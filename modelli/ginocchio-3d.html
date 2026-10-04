@@ -87,7 +87,15 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   #card{left:16px;right:auto;bottom:16px;margin:0;width:400px}
 }
 @media (prefers-reduced-motion:reduce){#list{transition:none}}
-@media (max-width:430px){.views{position:absolute;top:100%;right:14px;margin-top:6px}}
+.views .vtoggle{display:none}
+@media (max-width:430px){
+  .views{position:absolute;top:100%;right:14px;margin-top:6px}
+  .views .vtoggle{display:flex;align-items:center;gap:6px}
+  .views .vtoggle .vc{font-size:11px;opacity:.8}
+  .views:not(.closed) .vtoggle .vl{display:none}
+  .views:not(.closed) .vtoggle .vc{transform:rotate(180deg)}
+  .views.closed button:not(.vtoggle){display:none}
+}
 /* ===== Smartphone: pannello richiudibile e card compatta ===== */
 .sheet-tab{display:none}
 @media (max-width:600px),(orientation:landscape) and (max-height:500px){
@@ -173,11 +181,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   <div class="title">
     <h1>Ginocchio destro</h1>
   </div>
-  <nav class="views" aria-label="Vista">
+  <nav class="views closed" aria-label="Vista">
     <button data-view="ant" aria-pressed="true">Ant</button>
     <button data-view="post" aria-pressed="false">Post</button>
     <button data-view="lat" aria-pressed="false">Lat</button>
     <button data-view="med" aria-pressed="false">Med</button>
+    <button class="vtoggle" id="bViews" aria-expanded="false" aria-label="Scegli la vista"><span class="vl">Vista</span><span class="vc" aria-hidden="true">▾</span></button>
   </nav>
 </div>
 
@@ -869,12 +878,18 @@ function updateCam(){fitShadow();
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;cam.baseR=w<h?68:52;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();cam.r=cam.baseR;
 const VIEWS={ant:0,post:Math.PI,lat:-Math.PI/2,med:Math.PI/2};
-document.querySelectorAll('.views button').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('.views button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+document.querySelectorAll('.views button[data-view]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.views button[data-view]').forEach(x=>x.setAttribute('aria-pressed',x===b));
   let d=VIEWS[b.dataset.view]-cam.theta;d=Math.atan2(Math.sin(d),Math.cos(d));
   anim={t0:performance.now(),from:{theta:cam.theta,phi:cam.phi,r:cam.r,tg:cam.target.clone()},to:{theta:cam.theta+d,phi:0.08,r:cam.baseR,tg:V(0,-0.5,0)}};
 }));
-const clearViewPress=()=>document.querySelectorAll('.views button').forEach(x=>x.setAttribute('aria-pressed','false'));
+const clearViewPress=()=>document.querySelectorAll('.views button[data-view]').forEach(x=>x.setAttribute('aria-pressed','false'));
+(()=>{const nav=document.querySelector('.views'),t=document.getElementById('bViews'),vl=t.querySelector('.vl'),mq=matchMedia('(max-width:430px)');
+const sync=()=>{const on=nav.querySelector('button[data-view][aria-pressed="true"]');vl.textContent=on?on.textContent:'Vista';};
+const set=o=>{nav.classList.toggle('closed',!o);t.setAttribute('aria-expanded',o);t.setAttribute('aria-label',o?'Chiudi le viste':'Scegli la vista');};
+t.addEventListener('click',()=>set(nav.classList.contains('closed')));
+nav.querySelectorAll('button[data-view]').forEach(b=>b.addEventListener('click',()=>{if(mq.matches)set(false);}));
+new MutationObserver(sync).observe(nav,{subtree:true,attributes:true,attributeFilter:['aria-pressed']});sync();})();
 const ptrs=new Map();let tap=null,lastPinch=null,lastMid=null;
 canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});anim=null;tap=ptrs.size===1?{x:e.clientX,y:e.clientY,t:performance.now()}:null;lastPinch=null;lastMid=null;});
 canvas.addEventListener('pointermove',e=>{

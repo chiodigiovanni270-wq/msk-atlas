@@ -22,7 +22,8 @@ Ricavata da `ginocchio-3d.html` e `polso-dito-3d.html`. Un nuovo modello deve av
 - Modalità compatta (`(max-width:600px), (orientation:landscape) and (max-height:500px)`): `#sheet` chiuso all'avvio (classe `collapsed` già nell'HTML), da chiuso resta solo un pulsante ovale "Strutture ▴" centrato e fluttuante (alto 44 px, a 12 px + safe-area dal bordo, sfondo `--panel` all'82% con `backdrop-filter: blur`), che all'apertura diventa l'intestazione a tutta larghezza "Strutture ▾" con angoli superiori arrotondati; nessun elemento opaco deve toccare il bordo inferiore (in Safari iOS creerebbe una fascia di colore diverso sotto la barra del browser); altezza massima 60dvh con un solo scorrimento; aprire una card chiude il pannello, aprire il pannello chiude la card; card compatta (max 35dvh, scorre solo `.info`), sempre sopra il pulsante. La classe `open` resta riservata a Elenco. CSS e JS identici in ginocchio e polso: copiarli da lì. Desktop e 601–899 px invariati.
 - Card di dettaglio `#card` (nome `#cName`, categoria `#cCat`, testo `#cInfo`, pulsanti Isola `#cIso` e Nascondi `#cHide`).
 - Schermata di caricamento `#load` con barra `#loadBar` e testo `#loadTxt` ("Costruzione del modello…").
-- Su smartphone la fila `.views` deve stare nello schermo a 360 px (se serve, sotto 430 px farla scendere sotto il titolo come nel polso).
+- Viste richiudibili su smartphone (≤ 430 px): `<nav class="views closed">` contiene, come ultimo figlio, `<button class="vtoggle" id="bViews" aria-expanded="false">` con `<span class="vl">` (nome della vista attiva) e `<span class="vc">▾</span>`. Da chiusa la barra mostra solo il chip "Vista attiva ▾" (in alto a destra, sotto la "i"); un tocco la espande (freccia ▴), la scelta di una vista la richiude, il ⇅ (se c'è) no. Da 431 px il chip è nascosto e la barra è invariata. Regole CSS nel `@media (max-width:430px)` accanto a `.views{position:absolute…}` e JS subito dopo `clearViewPress`: copiarli da ginocchio/polso. I listener delle viste devono usare `.views button[data-view]`, altrimenti includono il chip; ogni pulsante vista ha `data-view`.
+- Su smartphone la fila `.views` deve stare nello schermo a 360 px anche aperta (sotto 430 px scende sotto il titolo, come nel polso).
 
 ## Dati
 - Categorie in `const CATS=[{id,name,color}]` (es. ossa, cart, men, leg, ten, mus, art, ven, ner, bor, adi, caps, cute). `HIDDEN_CATS` = categorie nascoste all'avvio (es. capsula, cute).
@@ -51,7 +52,7 @@ Ricavata da `ginocchio-3d.html` e `polso-dito-3d.html`. Un nuovo modello deve av
 - [ ] Clic su strutture vicino ai bordi alto e basso apre la card giusta
 - [ ] Rotazione, zoom, viste, isola/nascondi, elenco funzionanti
 - [ ] Nessun errore in console; carica anche su smartphone
-- [ ] `.views` interamente visibile a 360 px
+- [ ] `.views` interamente visibile a 360 px (aperta); su smartphone chiusa all'avvio come chip "Vista ▾", si richiude dopo la scelta di una vista, invariata da 431 px
 - [ ] Su smartphone: pannello chiuso all'avvio, pulsante "Strutture" ovale e funzionante, nessuna fascia di colore diverso in basso in Safari, card compatta, nessuna sovrapposizione titolo/viste
 - [ ] `<title>` nel formato "<Distretto> 3D | MSK Atlas" (anche eventuali `document.title` impostati dal modello)
 - [ ] Credito BodyParts3D presente e corretto

@@ -96,7 +96,15 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   #card{left:16px;right:auto;bottom:16px;margin:0;width:400px}
 }
 @media (prefers-reduced-motion:reduce){#list{transition:none}}
-@media (max-width:430px){.views{position:absolute;top:100%;right:14px;margin-top:6px}}
+.views .vtoggle{display:none}
+@media (max-width:430px){
+  .views{position:absolute;top:100%;right:14px;margin-top:6px}
+  .views .vtoggle{display:flex;align-items:center;gap:6px}
+  .views .vtoggle .vc{font-size:11px;opacity:.8}
+  .views:not(.closed) .vtoggle .vl{display:none}
+  .views:not(.closed) .vtoggle .vc{transform:rotate(180deg)}
+  .views.closed button:not(.vtoggle){display:none}
+}
 /* ===== Smartphone: pannello richiudibile e card compatta ===== */
 .sheet-tab{display:none}
 @media (max-width:600px),(orientation:landscape) and (max-height:500px){
@@ -183,12 +191,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     <div class="sect" role="tablist" aria-label="Sezione"><button data-sect="polso" role="tab">Polso</button><button data-sect="dito" role="tab">Dito</button></div>
     <h1>Polso destro</h1>
   </div>
-  <nav class="views" aria-label="Vista">
+  <nav class="views closed" aria-label="Vista">
     <button data-view="ant" aria-pressed="true">Volare</button>
     <button data-view="post" aria-pressed="false">Dorsale</button>
     <button data-view="lat" aria-pressed="false">Radiale</button>
     <button data-view="med" aria-pressed="false">Ulnare</button>
     <button class="flip" id="bFlip" aria-pressed="true" aria-label="Dita in alto o in basso" title="Dita in alto / in basso">⇅</button>
+    <button class="vtoggle" id="bViews" aria-expanded="false" aria-label="Scegli la vista"><span class="vl">Vista</span><span class="vc" aria-hidden="true">▾</span></button>
   </nav>
 </div>
 
@@ -786,6 +795,12 @@ if(MODE==='dito'){h.textContent='Dito medio destro';document.title='Dito 3D | MS
 document.querySelectorAll('.sect button').forEach(b=>{b.setAttribute('aria-selected',b.dataset.sect===MODE);b.addEventListener('click',()=>{if(b.dataset.sect===MODE)return;
  location.hash=b.dataset.sect==='dito'?'dito':'';location.reload();});});})();
 const clearViewPress=()=>document.querySelectorAll('.views button[data-view]').forEach(x=>x.setAttribute('aria-pressed','false'));
+(()=>{const nav=document.querySelector('.views'),t=document.getElementById('bViews'),vl=t.querySelector('.vl'),mq=matchMedia('(max-width:430px)');
+const sync=()=>{const on=nav.querySelector('button[data-view][aria-pressed="true"]');vl.textContent=on?on.textContent:'Vista';};
+const set=o=>{nav.classList.toggle('closed',!o);t.setAttribute('aria-expanded',o);t.setAttribute('aria-label',o?'Chiudi le viste':'Scegli la vista');};
+t.addEventListener('click',()=>set(nav.classList.contains('closed')));
+nav.querySelectorAll('button[data-view]').forEach(b=>b.addEventListener('click',()=>{if(mq.matches)set(false);}));
+new MutationObserver(sync).observe(nav,{subtree:true,attributes:true,attributeFilter:['aria-pressed']});sync();})();
 document.getElementById('bFlip').addEventListener('click',e=>{const up=root.rotation.z===0;root.rotation.z=up?Math.PI:0;VIEWS.lat=up?Math.PI/2:-Math.PI/2;VIEWS.med=-VIEWS.lat;e.currentTarget.setAttribute('aria-pressed',up);e.currentTarget.title=up?'Dita in alto (tocca per dita in basso)':'Dita in basso (tocca per dita in alto)';const pr=document.querySelector('.views button[data-view][aria-pressed="true"]');if(pr)pr.click();});
 const ptrs=new Map();let tap=null,lastPinch=null,lastMid=null;
 canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});anim=null;tap=ptrs.size===1?{x:e.clientX,y:e.clientY,t:performance.now()}:null;lastPinch=null;lastMid=null;});
