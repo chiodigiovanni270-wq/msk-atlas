@@ -62,6 +62,7 @@ const Y_TAGLIO = { prox: 7.98, dist: -7.38 };                  // piani di sezio
    inizio: 'distale' | 'prossimale' (sul piano di sezione) | { continua: chiave, estremo: 'inizio'|'fine' } | null
    fine: 'prossimale' (sul piano di sezione) | { sbocca: chiave, vicino: [x, y] } | null
    r0: raggio all'origine (cm); cresce di `cresc` per cm di decorso e di una quota di area a ogni confluenza
+   piano (opzionale): il vaso poggia sul piano profondo invece di seguire la profondità sotto la cute (come sul versante volare)
    spartiacque (solo arcata): punto da cui il sangue defluisce in entrambe le direzioni. */
 const VENE = [
   // ---- tronchi (si risolvono per primi) ----
@@ -85,7 +86,7 @@ const VENE = [
     guida: [[0.472, -7.38], [0.42, -6.7], [0.3, -6.0], [0.1, -5.4]] },
   { k: 'm5', id: 'vmcd', idx: 3, lato: 'd', r0: 0.048, cresc: 0.0035, rmax: 0.075, inizio: 'distale', fine: { sbocca: 'bas', vicino: [0.82, -1.75] },
     guida: [[2.15, -7.38], [2.05, -6.2], [1.8, -5.0], [1.45, -3.8], [1.15, -2.8]] },
-  { k: 'pol', id: 'vmcd', idx: 4, lato: 'd', r0: 0.055, cresc: 0.004, rmax: 0.09, inizio: 'distale', fine: { sbocca: 'cef', vicino: [-3.45, -3.2] },
+  { k: 'pol', id: 'vmcd', idx: 4, lato: 'd', piano: true, r0: 0.055, cresc: 0.004, rmax: 0.09, inizio: 'distale', fine: { sbocca: 'cef', vicino: [-3.45, -3.2] },
     guida: [[-5.1, -7.38], [-4.9, -6.2], [-4.45, -5.0], [-4.0, -4.1]] },
   { k: 'ten', id: 'vmed', idx: 1, lato: 'v', r0: 0.028, cresc: 0.0028, rmax: 0.055, inizio: 'distale', fine: { sbocca: 'med', vicino: [-1.55, -0.95] },
     guida: [[-3.4, -7.38], [-3.45, -6.0], [-3.3, -4.8], [-3.0, -3.8], [-2.6, -2.9], [-2.3, -2.1]] },
@@ -352,7 +353,7 @@ function calcola(sp) {
     R = Sn.map(sv => { const t = sv / Ln * Lp; for (let i = 1; i < Sp.length; i++) if (Sp[i] >= t) return mix(pr.r[i - 1], pr.r[i], (t - Sp[i - 1]) / (Sp[i] - Sp[i - 1] || 1)); return pr.r.at(-1); });
   }
   const vY = []; if (inizioY !== null) vY.push([0, inizioY]); if (fineY !== null) vY.push([n - 1, fineY]);
-  risolvi(P, R, fissi, vY, sp.lato === 'v');
+  risolvi(P, R, fissi, vY, sp.lato === 'v' || !!sp.piano);
   const S = ascisse(P);
   const rec = { P, S, sp, fissi, R };
   if (sp.spartiacque) { const c = vicino(P, [sp.spartiacque[0], sp.spartiacque[1], P[Math.floor(P.length / 2)][2]]); rec.sW = S[c.i] + (S[c.i + 1] - S[c.i]) * c.u; }
