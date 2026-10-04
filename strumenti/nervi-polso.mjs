@@ -193,14 +193,15 @@ function cute() {
 const VOLARI = { // tubo → strutture da cui deve stare lontano (oltre il raggio)
   'nmed:0': ['retfl', 'fds', 'fdp', 'fpl', 'fcr', 'gfcr', 'pl', 'pq', 'capvol', 'radio', 'ulna', 'semilunare', 'capitato', 'scafoide', 'trapezio'],
   'nmedmot:0': ['retfl', 'apb', 'fpb', 'op', 'trapezio', 'mc1', 'pl'],
-  'nuln:0': ['fcu', 'pisiforme', 'retfl', 'tettoguy', 'ulna', 'fds', 'fdp'],
-  'nulnprof:0': ['uncinato', 'pisiforme', 'fdm', 'odm', 'adm', 'retfl', 'mc5', 'mc4', 'fds', 'fdp', 'fpl', 'lumb', 'iod', 'iop', 'mc3', 'mc2', 'capitato', 'trapezoide', 'fcu'],   // non 'add': il ramo profondo termina nell'adduttore del pollice, che innerva
+  'nuln:0': ['fcu', 'pisiforme', 'retfl', 'tettoguy', 'ulna', 'fds', 'fdp', 'auln'],   // auln: l'arteria gli sta radialmente
+  'nulnprof:0': ['uncinato', 'pisiforme', 'fdm', 'odm', 'adm', 'retfl', 'mc5', 'mc4', 'fds', 'fdp', 'fpl', 'lumb', 'iod', 'iop', 'mc3', 'mc2', 'capitato', 'trapezoide', 'fcu', 'auln'],   // non 'add': il ramo profondo termina nell'adduttore del pollice, che innerva
   // nervi digitali comuni: profondi all'aponeurosi palmare (`pl`), sopra i tendini flessori e i lombricali
-  'ndig:0': ['pl', 'retfl', 'fds', 'fdp', 'lumb', 'mc2', 'mc3', 'mc4', 'add'],
-  'ndig:1': ['pl', 'retfl', 'fds', 'fdp', 'lumb', 'mc2', 'mc3', 'mc4', 'add'],
-  'ndig:2': ['pl', 'retfl', 'fds', 'fdp', 'lumb', 'mc2', 'mc3', 'mc4', 'add', 'apb', 'fpb'],
-  'nulnsup:0': ['pl', 'retfl', 'tettoguy', 'pisiforme', 'adm', 'fdm', 'fds', 'fdp', 'lumb', 'mc4', 'mc5'],
-  'nulnsup:1': ['pl', 'retfl', 'tettoguy', 'pisiforme', 'adm', 'fdm', 'fds', 'fdp', 'lumb', 'mc4', 'mc5'],
+  // e profondi all'arco palmare superficiale (`auln`, tubo dell'arteria letto dal sorgente attuale)
+  'ndig:0': ['pl', 'auln', 'retfl', 'fds', 'fdp', 'lumb', 'mc2', 'mc3', 'mc4', 'add'],
+  'ndig:1': ['pl', 'auln', 'retfl', 'fds', 'fdp', 'lumb', 'mc2', 'mc3', 'mc4', 'add'],
+  'ndig:2': ['pl', 'auln', 'retfl', 'fds', 'fdp', 'lumb', 'mc2', 'mc3', 'mc4', 'add', 'apb', 'fpb'],
+  'nulnsup:0': ['pl', 'auln', 'retfl', 'tettoguy', 'pisiforme', 'adm', 'fdm', 'fds', 'fdp', 'lumb', 'mc4', 'mc5'],
+  'nulnsup:1': ['pl', 'auln', 'retfl', 'tettoguy', 'pisiforme', 'adm', 'fdm', 'fds', 'fdp', 'lumb', 'mc4', 'mc5'],
 };
 // estremi liberi di scorrere sul loro piano: inizio dei tronchi (piano di sezione), fine dei rami digitali e del ramo
 // profondo dell'ulnare (che termina nell'adduttore del pollice); tutti gli altri estremi sono origini o divisioni e restano dove sono
@@ -243,7 +244,7 @@ function peggioreContorno(F, id, p, r) {
 }
 const SOTTO_PL = ['ndig', 'nulnsup'];   // nervi che stanno sempre profondi all'aponeurosi palmare
 const Y_PL = -9;   // y distale oltre cui l'aponeurosi palmare si divide in digitazioni e non vincola più i nervi digitali (cm)
-const NODI = { 'nmed:0': 1.1, 'nuln:0': 1.4, 'nulnprof:0': 0.45, base: 0.6 };   // passo dei nodi della B-spline dello spostamento (cm): più grande = decorso più disteso
+const NODI = { 'nmed:0': 1.1, 'nuln:0': 0.8, 'nulnprof:0': 0.45, base: 0.6 };   // passo dei nodi della B-spline dello spostamento (cm): più grande = decorso più disteso
 const TENSIONE = 0.15;   // a ogni giro ogni nodo si avvicina alla media dei vicini: spostamento senza ondulazioni
 // decorsi di partenza da distendere (passate di smussatura, estremi fissi): il ramo profondo dell'ulnare originale
 // attraversa il palmo dritto e poi fa una gobba distale prima di finire contro il II metacarpo; disteso descrive
@@ -264,10 +265,35 @@ const GIOCO_DIG = 0.01;   // i nervi digitali passano in un corridoio stretto tr
 const GIOCO_T = { 'nmedmot:0': { pl: 0.01 } };
 // priorità degli ostacoli dove lo spazio non basta (spinta proporzionale alla compenetrazione per il peso): nell'avambraccio
 // distale lo spazio tra guaina del FCR e FDP è più stretto del mediano; il compromesso cade sul FDP, su cui il nervo poggia
-const PESO_V = { gfcr: 2 };
+const PESO_V = { gfcr: 2, auln: 4 };   // auln: sotto l'arco il nervo deve scendere su un tratto breve (la tensione della spline lo trattiene)
 // spazio (cm) per la lamina profonda del retinacolo tra il tunnel del FCR e il mediano; la lamina esiste solo sotto il
 // retinacolo: rampa in y da Y_SETTO[0] a Y_SETTO[1]
 const EXTRA_V = { gfcr: 0.04 }, Y_SETTO = [0.0, -0.6];
+// arterie usate come ostacoli (tubi letti dal sorgente attuale, sistemati da `arterie-polso.mjs`): l'arco palmare
+// superficiale passa tra aponeurosi e nervi digitali comuni, che gli stanno sempre dorsalmente (come per un telo);
+// nell'avambraccio distale e nel canale di Guyon l'arteria ulnare sta radialmente al nervo ulnare (`aulnprof` serve alla
+// sola verifica: il ramo profondo dell'arteria evita da sé il ramo profondo del nervo)
+const TUBI_V = ['auln', 'aulnprof'];
+// direzione d'uscita imposta da un'arteria nel tratto y > y0: il nervo ulnare e il suo ramo superficiale, fino all'uscita
+// dal canale di Guyon, si spostano sempre in senso ulnare (l'arteria resta radiale); più distalmente il ramo
+// superficiale passa sotto l'arco palmare superficiale (come sotto un telo)
+const DIR_V = { 'nuln:0': { auln: { dir: [1, 0, 0], y0: -9 } }, 'nulnsup:0': { auln: { dir: [1, 0, 0], y0: -2.4 } }, 'nulnsup:1': { auln: { dir: [1, 0, 0], y0: -2.4 } } };
+function campoTuboPagina(id) {
+  const L = G.M.html.split('\n'), a = L.findIndex(l => l.startsWith("if(MODE==='polso')")), riga = L.slice(a).find(l => l.startsWith(`{id:'${id}',`));
+  const F = new Float32Array(G.N).fill(1);
+  for (const m of riga.matchAll(/tube\(\[\[(.*?)\]\],([\d.]+)(?:,(\{[^}]*\}))?\)/g)) {
+    const P = m[1].split('],[').map(s => s.split(',').map(Number)), r0 = +m[2], o = m[3] ? Function('return ' + m[3])() : {}, S = ascisse(P), L0 = S.at(-1);
+    const rg = s => { let f = 1; if (o.ini) f *= o.ini[0] + (1 - o.ini[0]) * sstep(0, o.ini[1], s); if (o.fin) f *= o.fin[0] + (1 - o.fin[0]) * sstep(0, o.fin[1], L0 - s); return r0 * f; };
+    for (let i = 0; i < P.length - 1; i++) {
+      const A = P[i], B = P[i + 1], r = Math.max(rg(S[i]), rg(S[i + 1])), AB = sub(B, A), ab2 = dot(AB, AB) || 1;
+      const i0 = [0, 1, 2].map(k => Math.max(0, Math.floor((Math.min(A[k], B[k]) - r - 0.35 - G.O[k]) / G.H))), i1 = [0, 1, 2].map(k => Math.min([G.NX, G.NY, G.NZ][k] - 1, Math.ceil((Math.max(A[k], B[k]) + r + 0.35 - G.O[k]) / G.H)));
+      for (let z = i0[2]; z <= i1[2]; z++) for (let y = i0[1]; y <= i1[1]; y++) for (let x = i0[0]; x <= i1[0]; x++) {
+        const q = [G.O[0] + (x + 0.5) * G.H, G.O[1] + (y + 0.5) * G.H, G.O[2] + (z + 0.5) * G.H], u = Math.max(0, Math.min(1, dot(sub(q, A), AB) / ab2));
+        const d = len(sub(q, add(A, mul(AB, u)))) - r, id = G.vi(x, y, z); if (d < F[id]) F[id] = d; }
+    }
+  }
+  return F;
+}
 function volari(T) {
   for (const [chiave, nomi] of Object.entries(VOLARI)) {
     const [id, b] = chiave.split(':'), t = T[id][+b], r = t.r;
@@ -279,7 +305,7 @@ function volari(T) {
     const P0 = P.map(p => p.slice());   // P0: decorso di partenza, da cui ci si allontana al massimo di SPOST_MAX
     const lo = [0, 1, 2].map(k => Math.min(...P.map(p => p[k]))), hi = [0, 1, 2].map(k => Math.max(...P.map(p => p[k])));
     griglia(lo, hi, 0.03, SPOST_MAX + 0.4);   // la griglia deve contenere tutto ciò che il nervo può raggiungere, altrimenti i campi sono costanti fuori e non spingono più
-    const noms = nomi.filter(m => man.meshes.some(x => x.n === m)), Fs = noms.map(m => campo([m]).F);
+    const noms = nomi.filter(m => man.meshes.some(x => x.n === m) || TUBI_V.includes(m)), Fs = noms.map(m => TUBI_V.includes(m) ? campoTuboPagina(m) : campo([m]).F);
     for (const [a, [b, dist]] of Object.entries(SENZA_SETTO[chiave] || {})) {   // ostacolo a meno della parte vicina a b
       const Fa = Fs[noms.indexOf(a)], Fb = Fs[noms.indexOf(b)]; for (let i = 0; i < Fa.length; i++) Fa[i] = Math.max(Fa[i], dist - Fb[i]); }
     const gr = (F, p) => { const e = 0.05, g = [0, 1, 2].map(k => { const a = p.slice(), c = p.slice(); a[k] += e; c[k] -= e; return sample(F, ...a) - sample(F, ...c); }); return nrm(g); };
@@ -292,11 +318,16 @@ function volari(T) {
       if (noms[j] === 'pl' && SOTTO_PL.includes(id) && p[1] < Y_PL) return;   // oltre le digitazioni dell'aponeurosi (testa dei metacarpali) i nervi digitali ne escono
       const { d: d0, q } = peggioreContorno(F, id, p, r), ex = GIOCO_V + (EXTRA_V[noms[j]] || 0) * sstep(Y_SETTO[0], Y_SETTO[1], p[1]), g = SOTTO_PL.includes(id) ? GIOCO_DIG : GIOCO_T[chiave]?.[noms[j]] ?? GIOCO_V, d = d0 - (ex - GIOCO_V); if (d - g >= 0) return;
       // l'aponeurosi palmare è un telo sottile: il nervo sta sempre sotto (dorsalmente), il gradiente cambierebbe verso attraversandola;
-      const telo = noms[j] === 'pl' && SOTTO_PL.includes(id);
+      const telo = (noms[j] === 'pl' || TUBI_V.includes(noms[j])) && SOTTO_PL.includes(id);
       // per l'aponeurosi la direzione è quella del gradiente, ribaltata verso il dorso se punta in senso volare: lontano
       // dal telo resta dorsale, vicino ai setti profondi dell'aponeurosi diventa laterale (non li si percorre verso il dorso)
       let dir = gr(F, q); if (telo && dir[2] > 0) dir = [dir[0], dir[1], -dir[2]];
-      if (!telo && lato0[i][j] && dot(dir, lato0[i][j]) < 0) dir = lato0[i][j];
+      // sotto l'arco palmare superficiale il nervo scende sempre (la normale dell'arco, di fianco, sarebbe quasi parallela
+      // al nervo nel punto d'incrocio e non lo sposterebbe)
+      if (telo && TUBI_V.includes(noms[j])) dir = [0, 0, -1];
+      const dv = DIR_V[chiave]?.[noms[j]];
+      if (dv && p[1] > dv.y0) dir = dv.dir;
+      else if (!telo && lato0[i][j] && dot(dir, lato0[i][j]) < 0) dir = lato0[i][j];
       f = add(f, mul(dir, Math.min((g - d) * 0.6 * (PESO_V[noms[j]] || 1), 0.08))); att = true; });
       // richiamo debole verso la guida anatomica (le spinte degli ostacoli prevalgono sempre)
       const gd = guida(chiave, p[1]);
@@ -425,8 +456,8 @@ const CONTRO = {
   nradsup: ['retext', 'g1', 'g2', 'g3', 'apl', 'epb', 'epl', 'ecrl', 'ecrb', 'br', 'radio', 'scafoide', 'trapezio', 'mc1', 'mc2', 'iod', 'add'],
   nulndors: ['retext', 'g5', 'g6', 'ecu', 'edm', 'edc', 'fcu', 'ulna', 'piramidale', 'uncinato', 'mc4', 'mc5', 'adm'],
   nmed: ['retfl', 'fds', 'fdp', 'fpl', 'fcr', 'gfcr', 'pl', 'pq', 'capvol'], npalm: ['retfl', 'pl', 'fcr', 'apb'], nmedmot: ['retfl', 'apb', 'fpb', 'op', 'pl'],
-  ndig: ['pl', 'retfl', 'fds', 'fdp', 'lumb'], nuln: ['fcu', 'pisiforme', 'retfl', 'tettoguy'], nulnsup: ['pl', 'retfl', 'tettoguy', 'pisiforme', 'adm'],
-  nulnprof: ['uncinato', 'pisiforme', 'fdm', 'odm', 'adm', 'fds', 'fdp', 'fpl', 'lumb', 'iod', 'iop', 'capitato', 'mc2', 'mc3', 'mc4', 'mc5', 'trapezoide'],
+  ndig: ['pl', 'auln', 'retfl', 'fds', 'fdp', 'lumb'], nuln: ['fcu', 'pisiforme', 'retfl', 'tettoguy', 'auln'], nulnsup: ['pl', 'auln', 'retfl', 'tettoguy', 'pisiforme', 'adm'],
+  nulnprof: ['uncinato', 'pisiforme', 'fdm', 'odm', 'adm', 'fds', 'fdp', 'fpl', 'lumb', 'iod', 'iop', 'capitato', 'mc2', 'mc3', 'mc4', 'mc5', 'trapezoide', 'auln', 'aulnprof'],
 };
 function verifica() {
   const mix = (a, b, t) => a + (b - a) * t;
@@ -439,8 +470,8 @@ function verifica() {
     const lo = [0, 1, 2].map(k => Math.min(...P.map(p => p[k]))), hi = [0, 1, 2].map(k => Math.max(...P.map(p => p[k])));
     griglia(lo, hi, 0.03, 0.4);
     for (const c of (CONTRO[id] || [])) {
-      if (!man.meshes.some(m => m.n === c)) continue;
-      const { F } = campo([c]); let n = 0, peggio = 0, dove = null;
+      if (!man.meshes.some(m => m.n === c) && !TUBI_V.includes(c)) continue;
+      const F = TUBI_V.includes(c) ? campoTuboPagina(c) : campo([c]).F; let n = 0, peggio = 0, dove = null;
       for (const p of P) { const d = peggioreContorno(F, id, p, r).d; if (d < -0.02) { n++; if (d < peggio) { peggio = d; dove = p; } } }
       if (n) log(`  ${id}[${b}] dentro ${c}: ${n} punti (fino a ${(-peggio * 10).toFixed(1)} mm, y = ${dove[1].toFixed(2)})`);
     }

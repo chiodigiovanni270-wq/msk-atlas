@@ -61,6 +61,8 @@ export function setPos(name, pos) { override.set(name, pos); const t = topo.get(
 // mesh con topologia nuova (posizioni, indici, tag, direzioni delle fibre)
 const topo = new Map();
 export function setMesh(name, mesh) { topo.set(name, mesh); override.set(name, mesh.pos); }
+// scarta le modifiche in memoria a una mesh: al salvataggio resta quella incorporata nel file
+export function ripristina(name) { topo.delete(name); override.delete(name); }
 // attributi per vertice originali: tag (colore muscolo/tendine) e direzione delle fibre
 export function attrs(name) {
   const t = topo.get(name); if (t) return { tag: t.tag, fdir: t.fdir };

@@ -4,6 +4,8 @@
      node strumenti/retinacoli-polso.mjs              → riscrive le mesh nel file del modello
      node strumenti/retinacoli-polso.mjs volari       → solo retinacolo dei flessori, legamento carpale volare e spazi
      node strumenti/retinacoli-polso.mjs estensori    → solo retinacolo degli estensori
+     node strumenti/retinacoli-polso.mjs volari --solo=tettoguy,lumguy   → calcola come sempre, ma salva solo le mesh
+       indicate (es. il tetto del canale di Guyon dopo uno spostamento dell'arteria ulnare: il resto non cambia)
      MODELLO=/tmp/copia.html node strumenti/retinacoli-polso.mjs   → lavora su una copia
 
    Ogni retinacolo è un "telo teso": una superficie z(x, y) (o r(φ, y) attorno al polso) che si appoggia sulle
@@ -549,8 +551,10 @@ function verifica(dett = process.argv.includes('--dove')) {
 
 /* ============ Esecuzione ============ */
 const SOLO = process.argv.slice(2).filter(a => !a.startsWith('--'));
+const SALVA_SOLO = process.argv.find(a => a.startsWith('--solo='))?.slice(7).split(',');
 if (SOLO.includes('verifica')) { verifica(); process.exit(0); }
 const vuole = id => !SOLO.length || SOLO.includes(id);
 if (vuole('volari')) volari();
 if (vuole('estensori')) { log('retinacolo degli estensori'); estensori(); }
+if (SALVA_SOLO) for (const m of man.meshes) if (!SALVA_SOLO.includes(m.n)) G.ripristina(m.n);
 saveFile(repack());
