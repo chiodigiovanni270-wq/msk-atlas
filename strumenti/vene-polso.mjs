@@ -200,6 +200,7 @@ const NERVI_ART = indiceTubi([...tubiPagina('ner'), ...tubiPagina('art')]);
 // niente scatti. A ogni giro i vincoli (profondità sotto la cute, ostacoli, nervi e arterie) danno gli spostamenti
 // desiderati dei punti, che si proiettano sui coefficienti con i minimi quadrati pesati.
 const NODO = 0.7;
+const GAP_PIANO = 0.03;      // versante volare: distanza del vaso dal piano profondo, oltre il raggio (cm)
 const GAIN_O = 1.0, GAIN_N = 1.2, STEP = 0.5;   // guadagni delle spinte (ostacoli, nervi e arterie) e passo di aggiornamento dei coefficienti
 const bs = u => { u = Math.abs(u); return u < 1 ? (4 - 6 * u * u + 3 * u ** 3) / 6 : u < 2 ? (2 - u) ** 3 / 6 : 0; };
 function risolviSolo(M, b) {  // eliminazione di Gauss con pivot parziale
@@ -213,7 +214,7 @@ function risolviSolo(M, b) {  // eliminazione di Gauss con pivot parziale
   for (let r = n - 1; r >= 0; r--) { let t = b[r]; for (let k = r + 1; k < n; k++) t -= M[r][k] * x[k]; x[r] = t / M[r][r]; }
   return x;
 }
-function risolvi(P, R, fissi, vincoloY) {
+function risolvi(P, R, fissi, vincoloY, sulPiano) {
   const n = P.length, G0 = P.map(v => v.slice()), S = ascisse(G0), L = S.at(-1), m = Math.ceil(L / NODO) + 3;
   const B = S.map(s => { const t = s / NODO + 1; return Array.from({ length: m }, (_, j) => bs(t - j)); });   // coefficiente j al nodo j - 1
   // pesi per asse: i punti fissi non si spostano (peso alto); gli estremi sul piano di sezione tengono y
@@ -240,7 +241,11 @@ function risolvi(P, R, fissi, vincoloY) {
       if (dO < need) d = add(d, mul(su, (need - dO) * GAIN_O + 0.002));
       // profondità sotto la cute (campo di distanza sfocato): verso il livello r + SOTTO_CUTE; in profondità solo se resta spazio
       const e = -camp(Fs, p) - (r + SOTTO_CUTE);
-      if (e > 1e-4 || (e < -1e-4 && dO > need + 0.04 && !(tn && tn.e < 0.06))) d = add(d, mul(grd(Fs, p, 0.06), e * 0.4));
+      // versante volare: al polso e nell'avambraccio il vaso poggia sul piano profondo (fascia, retinacolo, tendini, muscoli);
+      // nel palmo, dove i muscoli tenari e ipotenari hanno contorni accidentati, resta a profondità costante sotto la cute
+      const wp = sulPiano ? sstep(-3.8, -3.0, p[1]) : 0, dSk = (e > 1e-4 || (e < -1e-4 && dO > need + 0.04 && !(tn && tn.e < 0.06))) ? mul(grd(Fs, p, 0.06), e * 0.4) : [0, 0, 0];
+      const eo = dO - (need + GAP_PIANO), dPi = eo > 1e-4 && !(tn && tn.e < 0.06) ? mul(su, -eo * 0.4) : [0, 0, 0];
+      d = add(d, add(mul(dSk, 1 - wp), mul(dPi, wp)));
       // nervi e arterie: il vaso si allontana scavalcandoli
       const t = tn;
       if (t && t.e < 0) {
@@ -328,7 +333,7 @@ function calcola(sp) {
     R = Sn.map(sv => { const t = sv / Ln * Lp; for (let i = 1; i < Sp.length; i++) if (Sp[i] >= t) return mix(pr.r[i - 1], pr.r[i], (t - Sp[i - 1]) / (Sp[i] - Sp[i - 1] || 1)); return pr.r.at(-1); });
   }
   const vY = []; if (inizioY !== null) vY.push([0, inizioY]); if (fineY !== null) vY.push([n - 1, fineY]);
-  risolvi(P, R, fissi, vY);
+  risolvi(P, R, fissi, vY, sp.lato === 'v');
   const S = ascisse(P);
   const rec = { P, S, sp, fissi, R };
   if (sp.spartiacque) { const c = vicino(P, [sp.spartiacque[0], sp.spartiacque[1], P[Math.floor(P.length / 2)][2]]); rec.sW = S[c.i] + (S[c.i + 1] - S[c.i]) * c.u; }
