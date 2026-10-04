@@ -69,9 +69,6 @@
     '.an-panel strong{font-weight:600}' +
     '.an-cite{font:italic 500 14px/1.45 ' + SERIF + ';color:var(--muted,#93a1ae)}' +
     '.an-panel a{color:var(--accent,#72b4d0)}' +
-    '.an-back{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin-top:2px;border:1px solid rgba(114,180,208,.38);' +
-      'border-radius:999px;background:rgba(114,180,208,.12);font-weight:600;font-size:15px;text-decoration:none;transition:background-color .15s,color .15s}' +
-    '.an-back:hover{background:var(--accent,#72b4d0);color:var(--bg-lo,#0d1116)}' +
     /* interfaccia del modello (fino a 899 px): titolo e viste si affiancano ai due pulsanti */
     '.top{padding-top:calc(' + TOP + ' + 4px);padding-left:calc(' + SIDE + ' + ' + BTN + ' + 8px);padding-right:calc(' + SIDE_R + ' + ' + BTN + ' + 6px)}' +
     /* da 640 px: indietro con logo e nome; pannello "i" come riquadro sotto la "i", senza sfondo attenuato */
@@ -148,8 +145,7 @@
     '<section class="an-sec"><span class="an-label">Citazione</span>' +
       '<p class="an-cite">Mitsuhashi N et al. BodyParts3D: 3D structure database for anatomical concepts. Nucleic Acids Res 2009.</p></section>' +
     '<section class="an-sec"><span class="an-label">Autore</span>' +
-      '<p>Ideato e realizzato da <strong>Dott. Giovanni Chiodi</strong>, medico radiologo.</p></section>' +
-    '<a class="an-back" href="' + HOME + '">' + CHEVRON + 'Torna all’indice</a>';
+      '<p>Ideato e realizzato da <strong>Dott. Giovanni Chiodi</strong>, medico radiologo.</p></section>';
 
   var anchor = document.currentScript;
   if (anchor && anchor.parentNode === document.body) anchor.after(home, btn, scrim, panel);
