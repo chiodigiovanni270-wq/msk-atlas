@@ -88,7 +88,7 @@ const VENE = [
   { k: 'pol', id: 'vmcd', idx: 4, lato: 'd', r0: 0.055, cresc: 0.004, rmax: 0.09, inizio: 'distale', fine: { sbocca: 'cef', vicino: [-3.45, -3.2] },
     guida: [[-5.1, -7.38], [-4.9, -6.2], [-4.45, -5.0], [-4.0, -4.1]] },
   { k: 'ten', id: 'vmed', idx: 1, lato: 'v', r0: 0.028, cresc: 0.0028, rmax: 0.055, inizio: 'distale', fine: { sbocca: 'med', vicino: [-1.55, -0.95] },
-    guida: [[-3.25, -4.0], [-2.85, -3.0], [-2.3, -2.1]] },
+    guida: [[-3.4, -7.38], [-3.45, -6.0], [-3.3, -4.8], [-3.0, -3.8], [-2.6, -2.9], [-2.3, -2.1]] },
   { k: 'ipo', id: 'vmed', idx: 2, lato: 'v', r0: 0.028, cresc: 0.0028, rmax: 0.055, inizio: 'distale', fine: { sbocca: 'med', vicino: [-1.55, -0.2] },
     guida: [[1.2, -4.0], [0.65, -2.9], [-0.1, -1.75]] },
 ];
@@ -200,6 +200,7 @@ const NERVI_ART = indiceTubi([...tubiPagina('ner'), ...tubiPagina('art')]);
 // niente scatti. A ogni giro i vincoli (profondità sotto la cute, ostacoli, nervi e arterie) danno gli spostamenti
 // desiderati dei punti, che si proiettano sui coefficienti con i minimi quadrati pesati.
 const NODO = 0.7;
+const GAP_PALMO = 0.12;      // idem nel palmo (cm)
 const GAP_PIANO = 0.03;      // versante volare: distanza del vaso dal piano profondo, oltre il raggio (cm)
 const GAIN_O = 1.0, GAIN_N = 1.2, STEP = 0.5;   // guadagni delle spinte (ostacoli, nervi e arterie) e passo di aggiornamento dei coefficienti
 const bs = u => { u = Math.abs(u); return u < 1 ? (4 - 6 * u * u + 3 * u ** 3) / 6 : u < 2 ? (2 - u) ** 3 / 6 : 0; };
@@ -243,8 +244,9 @@ function risolvi(P, R, fissi, vincoloY, sulPiano) {
       const e = -camp(Fs, p) - (r + SOTTO_CUTE);
       // versante volare: al polso e nell'avambraccio il vaso poggia sul piano profondo (fascia, retinacolo, tendini, muscoli);
       // nel palmo, dove i muscoli tenari e ipotenari hanno contorni accidentati, resta a profondità costante sotto la cute
-      const wp = sulPiano ? sstep(-3.8, -3.0, p[1]) : 0, dSk = (e > 1e-4 || (e < -1e-4 && dO > need + 0.04 && !(tn && tn.e < 0.06))) ? mul(grd(Fs, p, 0.06), e * 0.4) : [0, 0, 0];
-      const eo = dO - (need + GAP_PIANO), dPi = eo > 1e-4 && !(tn && tn.e < 0.06) ? mul(su, -eo * 0.4) : [0, 0, 0];
+      // (nel palmo la distanza dal piano è un po' maggiore, per non seguire i contorni accidentati dei muscoli tenari e ipotenari)
+      const wp = sulPiano ? 1 : 0, gap = GAP_PIANO + (GAP_PALMO - GAP_PIANO) * (1 - sstep(-3.8, -3.0, p[1])), dSk = wp ? [0, 0, 0] : ((e > 1e-4 || (e < -1e-4 && dO > need + 0.04 && !(tn && tn.e < 0.06))) ? mul(grd(Fs, p, 0.06), e * 0.4) : [0, 0, 0]);
+      const lontano = sstep(0.2, 0.9, Math.min(Y_TAGLIO.prox - p[1], p[1] - Y_TAGLIO.dist)), eo = dO - (need + gap), dPi = eo > 1e-4 && !(tn && tn.e < 0.06) ? mul(su, -eo * 0.4 * lontano) : [0, 0, 0];   // vicino ai piani di sezione il vaso prosegue dritto
       d = add(d, add(mul(dSk, 1 - wp), mul(dPi, wp)));
       // nervi e arterie: il vaso si allontana scavalcandoli
       const t = tn;
