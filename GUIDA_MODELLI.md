@@ -26,7 +26,7 @@ Ricavata da `ginocchio-3d.html` e `polso-dito-3d.html`. Un nuovo modello deve av
 - Su smartphone la fila `.views` deve stare nello schermo a 360 px anche aperta (sotto 430 px scende sotto il titolo, come nel polso).
 
 ## Dati
-- Categorie in `const CATS=[{id,name,color}]` (es. ossa, cart, men, leg, ten, mus, art, ven, ner, bor, adi, caps, cute). `HIDDEN_CATS` = categorie nascoste all'avvio (es. capsula, cute).
+- Categorie in `const CATS=[{id,name,color}]` (es. ossa, cart, men, leg, ten, mus, art, ven, ner, bor, adi, caps, cute). `HIDDEN_CATS` = categorie nascoste all'avvio (es. capsula, cute; nel ginocchio anche le borse).
 - Strutture in `const S=[{id, cat, name, info, b:()=>[...]}]`: `info` è una nota breve didattica/clinica (anatomia + rilievo radiologico/ecografico), `b` restituisce le geometrie.
 - Geometrie reali (BodyParts3D) codificate in base64 dentro `<script id="bpdat" type="text/plain">`, con indice in `<script id="bpman" type="application/json">` (`min`, `max`, `meshes:[{n, nv, ni, p, t?, d?, i16, i}]`). Richiamate con `REAL('<nome>')`. Più sezioni → `bpdat2`/`bpman2`.
 - Strutture non presenti in BodyParts3D (legamenti, tendini, pulegge, borse, ecc.): modellate proceduralmente e adattate all'anatomia reale.
