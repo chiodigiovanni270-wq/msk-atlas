@@ -10,7 +10,7 @@ Sito statico con modelli anatomici 3D interattivi, a scopo didattico
 ```
 index.html                 homepage: modello che ruota con lo scorrimento, presentazione, una card per ogni modello, "Come si usa", crediti
 modelli/<nome>-3d.html     un file autocontenuto per modello (three.js r128 da CDN, dati in base64)
-assets/nav.js              header comune dei modelli: link alla home, disclaimer, pannello "i" con i crediti
+assets/nav.js              navigazione comune dei modelli: pulsanti fluttuanti "‹" (home) e "i" (disclaimer e crediti)
 assets/favicon.svg
 assets/anteprime/          immagini 1600×1000 delle card
 assets/sequenza/           fotogrammi della prima schermata (WebP trasparenti, grandi l/ e piccoli s/)
@@ -22,7 +22,7 @@ GUIDA_MODELLI.md           guida tecnica ai modelli, non pubblicata sul sito
 ```
 
 Nessun framework, nessun build step, nessun cookie o tracciamento.
-Ogni modello resta una pagina indipendente: se `assets/nav.js` manca, funziona lo stesso, solo senza header.
+Ogni modello resta una pagina indipendente: se `assets/nav.js` manca, funziona lo stesso, solo senza pulsanti di navigazione.
 
 ## Provare il sito in locale
 
@@ -37,7 +37,7 @@ ed è necessario per gli script delle anteprime e della sequenza.
 Cosa controllare dopo una modifica:
 - homepage: modello in alto che ruota scorrendo, card, immagini, link (anche "Polso" / "Dito"), numeri "Tav." e conteggio dei modelli,
   barra in alto che diventa di vetro scorrendo;
-- in ogni modello: header in alto, "‹ MSK Atlas" torna alla home, pannello "i" si apre e si chiude
+- in ogni modello: pulsanti fluttuanti in alto (nessuna barra), "‹" (da 640 px "‹ MSK Atlas") torna alla home, pannello "i" si apre e si chiude
   (su smartphone dal basso, chiudibile toccando lo sfondo; da 640 px come riquadro sotto la "i"),
   toccando una struttura si apre la scheda giusta;
 - vista smartphone (strumenti per sviluppatori del browser, 360 e 375 px) e desktop.

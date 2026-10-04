@@ -1,7 +1,8 @@
-/* Header comune dei modelli: link alla home e pannello "i" con avvertenza e crediti.
+/* Navigazione comune dei modelli: pulsante fluttuante per tornare alla home (in alto a sinistra)
+   e pulsante "i" (in alto a destra) con avvertenza e crediti. Niente barra a tutta larghezza.
    Da includere subito dopo <body>:  <script src="../assets/nav.js"></script>
    Non tocca la logica del modello: aggiunge solo elementi sopra il canvas e
-   sposta la barra .top del modello sotto l'header.
+   allarga i margini laterali della barra .top del modello per fare posto ai due pulsanti.
    Pannello "i": su smartphone foglio dal basso con sfondo attenuato, da 640 px riquadro sotto la "i". */
 (function(){
   /* tema scuro sempre, indipendentemente dal sistema: i modelli definiscono
@@ -10,41 +11,41 @@
   document.documentElement.style.colorScheme = 'dark';
 
   var HOME = '../index.html';
-  var BAR = 'calc(48px + env(safe-area-inset-top,0px))';
+  /* pulsanti fluttuanti (stile del pulsante "Strutture"): alti 44 px, a 10 px + safe-area dal bordo superiore */
+  var TOP = 'calc(env(safe-area-inset-top,0px) + 10px)';
+  var BTN = '44px';
+  var HOMEW = '176px';   /* indietro con logo e nome (da 640 px): larghezza fissa, indipendente dal font caricato */
+  var SIDE = 'max(14px,env(safe-area-inset-left,0px))';
+  var SIDE_R = 'max(14px,env(safe-area-inset-right,0px))';
   var SANS = 'var(--sans,"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif)';
   var SERIF = 'var(--serif,"Spectral",Georgia,serif)';
   var WARN = '#ecc85a';   /* giallo dei nervi nei modelli: solo per l'avvertenza */
+  /* vetro: stesse variabili del blocco "Vetro" dei modelli, con valori di riserva */
+  var GLASS = 'background:var(--glass,rgba(30,38,47,.55));border:1px solid var(--glass-bd,rgba(255,255,255,.13));' +
+    'box-shadow:var(--glass-hl,inset 0 1px 0 rgba(255,255,255,.12)),var(--shadow,0 6px 24px rgba(0,0,0,.45));' +
+    '-webkit-backdrop-filter:var(--glass-blur,blur(20px) saturate(170%));backdrop-filter:var(--glass-blur,blur(20px) saturate(170%));';
 
   var css =
-    /* barra in vetro: semitrasparente con sfocatura del modello sottostante */
-    '.an-bar{position:fixed;top:0;left:0;right:0;z-index:20;box-sizing:border-box;height:' + BAR + ';' +
-      'padding:env(safe-area-inset-top,0px) max(6px,env(safe-area-inset-right,0px)) 0 max(6px,env(safe-area-inset-left,0px));' +
-      'display:flex;align-items:center;justify-content:space-between;gap:8px;' +
-      'background:linear-gradient(180deg,rgba(13,17,22,.7),rgba(13,17,22,.45));border-bottom:1px solid rgba(255,255,255,.08);' +
-      '-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);' +
-      'color:var(--ink,#e5eaef);font:500 13px/1.2 ' + SANS + '}' +
-    '.an-home{flex:none;display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 10px 0 0;border-radius:999px;' +
-      'color:var(--ink,#e5eaef);font:600 15px/1 ' + SANS + ';letter-spacing:-.01em;text-decoration:none;white-space:nowrap}' +
-    /* pulsanti tondi in vetro: freccia indietro e "i" */
-    '.an-ico,.an-info span{flex:none;width:32px;height:32px;box-sizing:border-box;border-radius:50%;display:flex;align-items:center;justify-content:center;' +
-      'border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);box-shadow:inset 0 1px 0 rgba(255,255,255,.12);' +
-      'transition:background-color .15s,border-color .15s,color .15s,transform .15s}' +
-    '.an-ico{color:var(--muted,#93a1ae)}' +
-    '.an-home img{display:block;flex:none}' +
+    /* indietro (in alto a sinistra) e "i" (in alto a destra): pillole di vetro, senza barra a tutta larghezza */
+    '.an-home,.an-info{position:fixed;z-index:20;top:' + TOP + ';box-sizing:border-box;height:' + BTN + ';' +
+      'display:flex;align-items:center;justify-content:center;border-radius:999px;padding:0;' + GLASS +
+      'color:var(--ink,#e5eaef);transition:background-color .15s,border-color .15s,color .15s}' +
+    '.an-home{left:' + SIDE + ';min-width:' + BTN + ';gap:8px;text-decoration:none;white-space:nowrap;' +
+      'font:600 15px/1 ' + SANS + ';letter-spacing:-.01em}' +
+    '.an-ico{display:flex;color:var(--muted,#93a1ae);transition:color .15s,transform .15s}' +
+    '.an-home img,.an-home .an-name{display:none}' +
     '.an-home b{font-weight:600;color:var(--accent,#72b4d0)}' +
-    '.an-home:hover .an-ico{color:var(--accent,#72b4d0);border-color:rgba(114,180,208,.5);transform:translateX(-2px)}' +
-    '.an-info{flex:none;width:44px;height:44px;border:0;background:transparent;padding:0;cursor:pointer;' +
-      'display:flex;align-items:center;justify-content:center}' +
-    '.an-info span{color:var(--accent,#72b4d0);font:600 15px/1 ' + SANS + '}' +
-    '.an-info:hover span{border-color:rgba(114,180,208,.5);background:rgba(255,255,255,.1)}' +
-    '.an-info[aria-expanded="true"] span{background:var(--accent,#72b4d0);border-color:var(--accent,#72b4d0);color:var(--bg-lo,#0d1116)}' +
+    '.an-home:hover,.an-info:hover{background:var(--glass-card,rgba(30,38,47,.74));border-color:rgba(114,180,208,.5)}' +
+    '.an-home:hover .an-ico{color:var(--accent,#72b4d0);transform:translateX(-2px)}' +
+    '.an-info{right:' + SIDE_R + ';width:' + BTN + ';cursor:pointer;color:var(--accent,#72b4d0);font:600 17px/1 ' + SANS + '}' +
+    '.an-info[aria-expanded="true"]{background:var(--accent,#72b4d0);border-color:var(--accent,#72b4d0);color:var(--bg-lo,#0d1116)}' +
     '.an-home:focus-visible,.an-info:focus-visible,.an-panel a:focus-visible,.an-close:focus-visible{outline:2px solid var(--accent,#72b4d0);outline-offset:2px}' +
     '.an-panel:focus{outline:none}' +
-    '.an-scrim{position:fixed;z-index:19;top:' + BAR + ';left:0;right:0;bottom:0;background:rgba(13,17,22,.66)}' +
+    '.an-scrim{position:fixed;z-index:19;inset:0;background:rgba(13,17,22,.66)}' +
     '.an-scrim[hidden],.an-panel[hidden]{display:none}' +
     /* smartphone: foglio dal basso */
     '.an-panel{position:fixed;z-index:21;left:0;right:0;bottom:0;box-sizing:border-box;' +
-      'max-height:calc(100% - ' + BAR + ' - 16px);overflow-y:auto;overscroll-behavior:contain;' +
+      'max-height:calc(100% - env(safe-area-inset-top,0px) - 16px);overflow-y:auto;overscroll-behavior:contain;' +
       'padding:10px max(20px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 24px) max(20px,env(safe-area-inset-left,0px));' +
       'display:flex;flex-direction:column;gap:16px;background:var(--panel,#1e262f);border-top:1px solid var(--line,#324050);' +
       'border-radius:22px 22px 0 0;box-shadow:0 -16px 50px rgba(0,0,0,.55);color:var(--ink,#e5eaef);font:400 13.5px/1.55 ' + SANS + '}' +
@@ -70,19 +71,22 @@
     '.an-back{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin-top:2px;border:1px solid rgba(114,180,208,.38);' +
       'border-radius:999px;background:rgba(114,180,208,.12);font-weight:600;font-size:15px;text-decoration:none;transition:background-color .15s,color .15s}' +
     '.an-back:hover{background:var(--accent,#72b4d0);color:var(--bg-lo,#0d1116)}' +
-    /* da 640 px: riquadro sotto la "i", senza sfondo attenuato */
+    /* unica regola sull'interfaccia del modello: titolo e viste si affiancano ai due pulsanti */
+    '.top{padding-top:calc(' + TOP + ' + 4px);padding-left:calc(' + SIDE + ' + ' + BTN + ' + 8px);padding-right:calc(' + SIDE_R + ' + ' + BTN + ' + 6px)}' +
+    /* da 640 px: indietro con logo e nome; pannello "i" come riquadro sotto la "i", senza sfondo attenuato */
     '@media (min-width:641px){' +
+      '.an-home{width:' + HOMEW + ';justify-content:flex-start;padding:0 0 0 10px}' +
+      '.an-home img,.an-home .an-name{display:block}' +
+      '.top{padding-left:calc(' + SIDE + ' + ' + HOMEW + ' + 12px)}' +
       '.an-scrim{display:none}' +
-      '.an-panel{left:auto;bottom:auto;top:calc(' + BAR + ' + 8px);right:max(10px,env(safe-area-inset-right,0px));width:380px;' +
-        'max-height:calc(100% - ' + BAR + ' - 24px);padding:16px 20px 20px;gap:14px;border:1px solid var(--line,#324050);border-radius:18px;' +
+      '.an-panel{left:auto;bottom:auto;top:calc(' + TOP + ' + ' + BTN + ' + 8px);right:' + SIDE_R + ';width:380px;' +
+        'max-height:calc(100% - env(safe-area-inset-top,0px) - 86px);padding:16px 20px 20px;gap:14px;border:1px solid var(--line,#324050);border-radius:18px;' +
         'box-shadow:0 24px 60px -12px rgba(0,0,0,.7)}' +
       '.an-grip{display:none}.an-head{margin-top:0}' +
     '}' +
     /* sfondo di riserva sotto il gradiente del modello: Safari iOS lo usa per la fascia sotto la barra del browser.
        #11161c = colore del gradiente al centro del bordo inferiore, così la fascia non stacca */
-    'body{background-color:#11161c}' +
-    /* unica regola sull'interfaccia del modello: titolo e viste scendono sotto l'header */
-    '.top{top:' + BAR + ';padding-top:12px}';
+    'body{background-color:#11161c}';
 
   var style = document.createElement('style');
   style.textContent = css;
@@ -91,13 +95,20 @@
   var CHEVRON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
 
-  var bar = document.createElement('header');
-  bar.className = 'an-bar';
-  bar.innerHTML =
-    '<a class="an-home" href="' + HOME + '" aria-label="Torna all’indice di MSK Atlas"><span class="an-ico">' + CHEVRON + '</span>' +
-      '<img src="../assets/favicon.svg" width="24" height="24" alt="">MSK <b>Atlas</b></a>' +
-    '<button type="button" class="an-info" aria-expanded="false" aria-controls="an-panel" aria-label="Informazioni e crediti">' +
-      '<span aria-hidden="true">i</span></button>';
+  var home = document.createElement('a');
+  home.className = 'an-home';
+  home.href = HOME;
+  home.setAttribute('aria-label', 'Torna all’indice di MSK Atlas');
+  home.innerHTML = '<span class="an-ico">' + CHEVRON + '</span>' +
+    '<img src="../assets/favicon.svg" width="24" height="24" alt=""><span class="an-name">MSK <b>Atlas</b></span>';
+
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'an-info';
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-controls', 'an-panel');
+  btn.setAttribute('aria-label', 'Informazioni e crediti');
+  btn.innerHTML = '<span aria-hidden="true">i</span>';
 
   var scrim = document.createElement('div');
   scrim.className = 'an-scrim';
@@ -130,10 +141,9 @@
     '<a class="an-back" href="' + HOME + '">' + CHEVRON + 'Torna all’indice</a>';
 
   var anchor = document.currentScript;
-  if (anchor && anchor.parentNode === document.body) anchor.after(bar, scrim, panel);
-  else document.body.prepend(bar, scrim, panel);
+  if (anchor && anchor.parentNode === document.body) anchor.after(home, btn, scrim, panel);
+  else document.body.prepend(home, btn, scrim, panel);
 
-  var btn = bar.querySelector('.an-info');
   function setOpen(open, refocus){
     panel.hidden = !open;
     scrim.hidden = !open;
