@@ -2,7 +2,8 @@
    e pulsante "i" (in alto a destra) con avvertenza e crediti. Niente barra a tutta larghezza.
    Da includere subito dopo <body>:  <script src="../assets/nav.js"></script>
    Non tocca la logica del modello: aggiunge solo elementi sopra il canvas e
-   allarga i margini laterali della barra .top del modello per fare posto ai due pulsanti.
+   allarga i margini laterali della barra .top del modello per fare posto ai due pulsanti;
+   da 900 px porta viste e selettore di sezione sulla fila dei due pulsanti (alti 44 px) e il titolo sotto.
    Pannello "i": su smartphone foglio dal basso con sfondo attenuato, da 640 px riquadro sotto la "i". */
 (function(){
   /* tema scuro sempre, indipendentemente dal sistema: i modelli definiscono
@@ -71,7 +72,7 @@
     '.an-back{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin-top:2px;border:1px solid rgba(114,180,208,.38);' +
       'border-radius:999px;background:rgba(114,180,208,.12);font-weight:600;font-size:15px;text-decoration:none;transition:background-color .15s,color .15s}' +
     '.an-back:hover{background:var(--accent,#72b4d0);color:var(--bg-lo,#0d1116)}' +
-    /* unica regola sull'interfaccia del modello: titolo e viste si affiancano ai due pulsanti */
+    /* interfaccia del modello (fino a 899 px): titolo e viste si affiancano ai due pulsanti */
     '.top{padding-top:calc(' + TOP + ' + 4px);padding-left:calc(' + SIDE + ' + ' + BTN + ' + 8px);padding-right:calc(' + SIDE_R + ' + ' + BTN + ' + 6px)}' +
     /* da 640 px: indietro con logo e nome; pannello "i" come riquadro sotto la "i", senza sfondo attenuato */
     '@media (min-width:641px){' +
@@ -83,6 +84,16 @@
         'max-height:calc(100% - env(safe-area-inset-top,0px) - 86px);padding:16px 20px 20px;gap:14px;border:1px solid var(--line,#324050);border-radius:18px;' +
         'box-shadow:0 24px 60px -12px rgba(0,0,0,.7)}' +
       '.an-grip{display:none}.an-head{margin-top:0}' +
+    '}' +
+    /* da 900 px (computer): una sola fila di comandi alti 44 px allineati in alto — indietro, selettore di sezione
+       (.sect, se c'è) accanto, viste accanto alla "i" — e titolo sotto, allineato al pulsante indietro */
+    '@media (min-width:900px){' +
+      '.top{padding:calc(' + TOP + ' + ' + BTN + ' + 14px) ' + SIDE_R + ' 0 ' + SIDE + '}' +
+      '.top .views,.top .sect{position:fixed;top:' + TOP + ';box-sizing:border-box;height:' + BTN + ';margin:0;padding:4px;align-items:stretch}' +
+      '.top .views{right:calc(' + SIDE_R + ' + ' + BTN + ' + 8px)}' +
+      '.top .sect{left:calc(' + SIDE + ' + ' + HOMEW + ' + 8px)}' +
+      '.top .views button,.top .sect button{padding:0 14px;font-size:14px;font-weight:500}' +
+      '.top .views .flip{padding:0 14px 0 12px;font-size:16px}' +
     '}' +
     /* sfondo di riserva sotto il gradiente del modello: Safari iOS lo usa per la fascia sotto la barra del browser.
        #11161c = colore del gradiente al centro del bordo inferiore, così la fascia non stacca */
