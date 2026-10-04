@@ -215,6 +215,23 @@ function risolviSolo(M, b) {  // eliminazione di Gauss con pivot parziale
   for (let r = n - 1; r >= 0; r--) { let t = b[r]; for (let k = r + 1; k < n; k++) t -= M[r][k] * x[k]; x[r] = t / M[r][r]; }
   return x;
 }
+// Estremo sul piano di sezione: gli ultimi RETTO cm diventano un segmento rettilineo che si raccorda dolcemente al decorso
+// risolto (stessa tangente a RETTO cm dal piano), così il vaso entra nel piano senza gomiti né inversioni di y.
+const RETTO = 0.6;
+function raddrizzaEstremo(Q, i0, yPiano) {
+  const n = Q.length, at = k => i0 === 0 ? k : n - 1 - k;   // k-esimo punto a partire dall'estremo
+  const Sq = ascisse(Q), sk = q => i0 === 0 ? Sq[q] : Sq.at(-1) - Sq[q];   // distanza dall'estremo del punto q
+  let j = 0; while (j < n - 1 && sk(at(j)) < RETTO) j++;
+  let j2 = j; while (j2 < n - 1 && sk(at(j2)) < RETTO + 0.4) j2++;
+  if (j < 2 || j2 === j) return;
+  const Pj = Q[at(j)], Tv = nrm(sub(Pj, Q[at(j2)]));   // tangente verso il piano
+  if (Math.abs(Tv[1]) < 0.3) return;
+  const uj = (yPiano - Pj[1]) / Tv[1], A = add(Pj, mul(Tv, uj)), sj = sk(at(j));
+  for (let k = 0; k < j; k++) {
+    const f = sk(at(k)) / sj, w = f * f * (3 - 2 * f), L = add(A, mul(sub(Pj, A), f));
+    Q[at(k)] = [0, 1, 2].map(c => mix(L[c], Q[at(k)][c], w));
+  }
+}
 function risolvi(P, R, fissi, vincoloY, sulPiano) {
   const n = P.length, G0 = P.map(v => v.slice()), S = ascisse(G0), L = S.at(-1), m = Math.ceil(L / NODO) + 3;
   const B = S.map(s => { const t = s / NODO + 1; return Array.from({ length: m }, (_, j) => bs(t - j)); });   // coefficiente j al nodo j - 1
@@ -246,7 +263,7 @@ function risolvi(P, R, fissi, vincoloY, sulPiano) {
       // nel palmo, dove i muscoli tenari e ipotenari hanno contorni accidentati, resta a profondità costante sotto la cute
       // (nel palmo la distanza dal piano è un po' maggiore, per non seguire i contorni accidentati dei muscoli tenari e ipotenari)
       const wp = sulPiano ? 1 : 0, gap = GAP_PIANO + (GAP_PALMO - GAP_PIANO) * (1 - sstep(-3.8, -3.0, p[1])), dSk = wp ? [0, 0, 0] : ((e > 1e-4 || (e < -1e-4 && dO > need + 0.04 && !(tn && tn.e < 0.06))) ? mul(grd(Fs, p, 0.06), e * 0.4) : [0, 0, 0]);
-      const lontano = sstep(0.2, 0.9, Math.min(Y_TAGLIO.prox - p[1], p[1] - Y_TAGLIO.dist)), eo = dO - (need + gap), dPi = eo > 1e-4 && !(tn && tn.e < 0.06) ? mul(su, -eo * 0.4 * lontano) : [0, 0, 0];   // vicino ai piani di sezione il vaso prosegue dritto
+      const lontano = sstep(-0.1, 0.35, Math.min(Y_TAGLIO.prox - p[1], p[1] - Y_TAGLIO.dist)), eo = dO - (need + gap), dPi = eo > 1e-4 && !(tn && tn.e < 0.06) ? mul(su, -eo * 0.4 * lontano) : [0, 0, 0];   // vicino ai piani di sezione il vaso prosegue dritto
       d = add(d, add(mul(dSk, 1 - wp), mul(dPi, wp)));
       // nervi e arterie: il vaso si allontana scavalcandoli
       const t = tn;
@@ -267,7 +284,7 @@ function risolvi(P, R, fissi, vincoloY, sulPiano) {
     if (mx < 2e-5) break;
   }
   const out = posiz();
-  if (vincoloY) for (const [i, y] of vincoloY) out[i][1] = y;
+  if (vincoloY) for (const [i, y] of vincoloY) { out[i][1] = y; raddrizzaEstremo(out, i, y); }
   for (let i = 0; i < n; i++) P[i] = out[i];
 }
 
