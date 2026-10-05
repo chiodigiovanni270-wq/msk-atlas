@@ -199,8 +199,8 @@ export function lamina(B, N, T, D, sotto = 0.012) {
   for (let j = 0; j < nj - 1; j++) { lato([vid(0, 0, j + 1), vid(1, 0, j + 1)], [vid(0, 0, j), vid(1, 0, j)]); lato([vid(0, ni - 1, j), vid(1, ni - 1, j)], [vid(0, ni - 1, j + 1), vid(1, ni - 1, j + 1)]); }
   for (let i = 0; i < ni - 1; i++) { lato([vid(0, i, 0), vid(1, i, 0)], [vid(0, i + 1, 0), vid(1, i + 1, 0)]); lato([vid(0, i + 1, nj - 1), vid(1, i + 1, nj - 1)], [vid(0, i, nj - 1), vid(1, i, nj - 1)]); }
   const g = { pos: Float32Array.from(pos), idx: Uint32Array.from(idx), dir: Int8Array.from(dir), tag: null };
-  // la faccia esterna (prime 2·(ni−1)·(nj−1) triangoli) deve avere la normale concorde con N
-  let sc = 0, nT = 2 * (ni - 1) * (nj - 1); for (let t = 0; t < nT; t++) { const a = [0, 1, 2].map(k => [g.pos[3 * g.idx[3 * t + k]], g.pos[3 * g.idx[3 * t + k] + 1], g.pos[3 * g.idx[3 * t + k] + 2]]), fn = cross(sub(a[1], a[0]), sub(a[2], a[0])), i = Math.floor(g.idx[3 * t] / nj) % ni, j = g.idx[3 * t] % nj; sc += dot(fn, N[i][j]); }
+  // la faccia esterna (per ogni quad i primi 2 triangoli; i successivi 2 sono della faccia interna) deve avere la normale concorde con N
+  let sc = 0, nT = 2 * (ni - 1) * (nj - 1); for (let t = 0; t < nT; t++) { if (t % 4 >= 2) continue; const a = [0, 1, 2].map(k => [g.pos[3 * g.idx[3 * t + k]], g.pos[3 * g.idx[3 * t + k] + 1], g.pos[3 * g.idx[3 * t + k] + 2]]), fn = cross(sub(a[1], a[0]), sub(a[2], a[0])), i = Math.floor(g.idx[3 * t] / nj) % ni, j = g.idx[3 * t] % nj; sc += dot(fn, N[i][j]); }
   if (sc < 0) for (let t = 0; t < g.idx.length; t += 3) { const k = g.idx[t + 1]; g.idx[t + 1] = g.idx[t + 2]; g.idx[t + 2] = k; }
   return g;
 }

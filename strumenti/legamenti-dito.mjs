@@ -29,7 +29,7 @@ const ART = {
   mcf: {
     pref: 'mcp', ossa: ['d_mc3', 'd_p1'], fog: ['A1', 'A2', 'sagittali'], sol: ['d_fds', 'd_fdp', 'd_lumb', 'd_iod'],
     box: [[-1.1, 1.55, -1.7], [1.3, 3.6, 0.9]], win: [-0.85, 1.0, 1.7, 3.5],
-    gap: 0.004, xc: 0.10,
+    gap: 0.004, xc: 0.10, gapC: 0.02, // la cartilagine della testa metacarpale è irregolare: collaterali un po' più staccati
     // origine nella fossetta dorso-laterale della testa metacarpale, inserzione volare sulla base di P1; l'accessorio va alla placca
     proprio: { guida: [[2.92, -0.80], [2.74, -0.76], [2.52, -0.66], [2.30, -0.56], [2.10, -0.48]],
       w: [[0, 0.20], [0.4, 0.22], [1, 0.32]], t: [[0, 0.050], [0.5, 0.060], [1, 0.050]] },
@@ -76,6 +76,16 @@ const fine = u => u < 0.5 ? Math.pow(Math.max(0, 1 - Math.pow(1 - 2 * u, 4)), 0.
 const sigma = s => Math.sqrt(Math.max(0, Math.sin(Math.PI * clamp(s, 0, 1)))); // profilo a lente, bordo verticale e arrotondato
 
 /* nastro appoggiato alla superficie laterale: guida (y,z) → curva → nastro con spessore */
+// collaterali: come affina ma con distanza propria dall'unione osso ∪ cartilagine; dentro, esce lungo il gradiente del campo
+// (verso l'esterno dell'unione: non può finire dall'osso alla cartilagine e viceversa)
+const fuoriU = q => !ind.dentro(q) && !icart.dentro(q);
+const affinaC = (p, gap) => { let q = p;
+  for (let k = 0; k < 80 && !fuoriU(q); k++) q = add(q, mul(F.grad(q), 0.005));
+  for (let k = 0; k < 8; k++) { const c = vicinoU(q); if (!c.length) break; const x = c.reduce((a, b) => (a.r.d < b.r.d ? a : b)), dd = gap - x.r.d; if (Math.abs(dd) < 3e-4) break;
+    const nq = add(q, mul(x.r.d > 1e-5 ? unit(sub(q, x.r.q)) : x.r.n, dd)); if (!fuoriU(nq)) break; q = nq; }
+  return q; };
+const normaleU = q => { const c = vicinoU(q); if (!c.length) return F.grad(q); const x = c.reduce((a, b) => (a.r.d < b.r.d ? a : b)); return x.r.d > 1e-4 ? unit(sub(q, x.r.q)) : F.grad(q); };
+
 function nastro({ guida, w, t }, sgn, NU = 41, NV = 15, fib = 0.06) {
   const C = catmull(guida.map(([y, z]) => [aSupLaterale(y, z, sgn), y, z]), NU).map(p => F.proietta(p, LEV));
   const B = [], N = [], T = [], D = [];
@@ -85,12 +95,21 @@ function nastro({ guida, w, t }, sgn, NU = 41, NV = 15, fib = 0.06) {
     for (let j = 0; j < NV; j++) {
       const s = j / (NV - 1), v = (s - 0.5) * 2, half = v * wi * fine(u) / 2; let p0 = add(c, mul(ac, half)), p = F.proietta(p0, LEV);
       for (let k = 0; k < 3; k++) { const dd = sub(p, c), l = len(dd) || 1; p0 = add(c, mul(dd, Math.abs(half) / l)); p = F.proietta(p0, LEV); } // la larghezza resta quella voluta anche sulle curve dell'osso
-      p = affina(p); const nn = F.grad(p);
+      p = affinaC(p, IFP.gapC ?? 0.012); const nn = normaleU(p);
       const fas = 1 + 0.10 * Math.sin(v * 7 + u * 3) * sigma(s) ** 2; // lieve rilievo dei fascicoli
       rb.push(p); rn.push(nn); rt.push(ti * fas * sigma(s) * Math.pow(Math.sin(Math.PI * clamp(0.04 + 0.92 * u, 0, 1)), 0.55)); rd.push(tg);
     }
     B.push(rb); N.push(rn); T.push(rt); D.push(rd);
   }
+  // levigatura "a pellicola" e normali levigate (la cartilagine è irregolare: niente bitorzoli né sfumature di luce a chiazze)
+  const gC = IFP.gapC ?? 0.012;
+  for (let it = 0; it < 3; it++) { const B2 = B.map(r => r.map(q => q.slice()));
+    for (let i = 1; i < NU - 1; i++) for (let j = 1; j < NV - 1; j++) B2[i][j] = affinaC([0, 1, 2].map(k => 0.4 * B[i][j][k] + 0.15 * (B[i - 1][j][k] + B[i + 1][j][k] + B[i][j - 1][k] + B[i][j + 1][k])), gC);
+    for (let i = 0; i < NU; i++) B[i] = B2[i]; }
+  for (let i = 0; i < NU; i++) for (let j = 0; j < NV; j++) N[i][j] = normaleU(B[i][j]);
+  for (let it = 0; it < 3; it++) { const N2 = N.map(r => r.map(q => q.slice()));
+    for (let i = 0; i < NU; i++) for (let j = 0; j < NV; j++) { let a = N[i][j].slice(); for (const [di, dj] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) { const ii = i + di, jj = j + dj; if (ii >= 0 && ii < NU && jj >= 0 && jj < NV) a = add(a, N[ii][jj]); } N2[i][j] = unit(a); }
+    for (let i = 0; i < NU; i++) N[i] = N2[i]; }
   libera(B, N, T, SOL, FOG);
   return lamina(B, N, T, D, 0.006);
 }
