@@ -4,128 +4,99 @@
      node strumenti/inserzione-fdp.mjs              → riscrive d_fdp nel file del modello
      MODELLO=/tmp/copia.html node strumenti/inserzione-fdp.mjs   → lavora su una copia
 
-   Nel modello originale il tendine finisce sulla rima interfalangea distale. Il FDP si inserisce invece sulla faccia volare della
-   base della falange distale, distalmente alla placca volare. Qui il tendine originale viene tagliato a YCUT (dove è ancora un
-   nastro regolare dentro la guaina) e il tratto distale è ricostruito come tubo a sezione ellittica lungo una linea d'asse liscia:
-   - la giunzione è cucita direttamente sul bordo del taglio (nessuno scalino, mesh continua);
-   - la sezione parte uguale a quella del tendine al taglio, poi si allarga e si appiattisce (aponeurosi d'inserzione);
-   - l'asse scavalca la placca volare e scende sulla faccia volare di P3; l'ultimo tratto affonda nell'osso (inserzione).
+   Nel modello originale il tendine finisce sulla rima interfalangea distale (y ≈ −4,75). Il FDP si inserisce invece sulla faccia
+   volare della base della falange distale. Qui non si costruisce una mesh nuova: si DEFORMA la mesh originale del tendine (stessi
+   vertici, stessa superficie, stessa direzione delle fibre → stesso aspetto dall'inizio alla fine), come per l'EDC che termina
+   direttamente sulla base della falange intermedia:
+   - da YA in giù il tendine viene allungato fino a YFIN e piegato lungo una nuova linea d'asse;
+   - la linea d'asse resta sotto la faccia interna delle pulegge (C3, A5) e sopra osso, cartilagine e placca volare; dove lo spazio
+     sotto la puleggia è stretto il tendine si appiattisce;
+   - verso la fine il tendine si allarga e si appiattisce appena e la sua estremità originale affonda nella base di P3 (inserzione);
+   - la deformazione parte da zero a YA (raccordo graduale): nessuna giunzione.
    Riparte sempre dal FDP della revisione ORIGINALE, quindi si può rilanciare. Parametri in testa.
    Sistema di riferimento: y = asse del dito (distale verso −y), x = radio-ulnare, z = dorso (−) / volare (+). */
-import { Modello, Indice, add, sub, mul, dot, cross, unit, len, clamp, sstep, log } from './lib-dito.mjs';
+import { Modello, Indice, add, sub, mul, cross, unit, clamp, sstep, log } from './lib-dito.mjs';
 
 const ORIGINALE = 'ce9a824';
-const YCUT = -3.75, SOVRAPP = 0.20, MANICOTTO = 1.0, INIZIO = 1.0, ATTACCO = 0.10, RACC_O = 0.25;   // taglio dell'originale; il manicotto parte SOVRAPP cm più prossimale, allargato del 4%,
-                                    // RACC_O: tratto prossimale in cui la superficie originale si raccorda all'involucro (cm)
-const YINS = -4.98, YFIN = -5.42;   // inizio dell'inserzione (l'asse inizia a scendere nell'osso) e fine del tendine
-const LARGH = 1.28, SPESS_FIN = 0.65;  // semiasse x finale / iniziale; semiasse z finale / iniziale
-const GAP = 0.015;                  // distanza minima dalle strutture lungo il decorso (cm)
-const AFFONDA = 0.010;               // oltre l'immersione completa: all'estremità anche la faccia volare è sotto la superficie dell'osso (cm)
-const SOTTO_A5 = 0.025, SPESS_MIN = 0.035;   // margine sotto la A5; semispessore minimo del tendine sotto la puleggia
-// margine della faccia volare del tendine sotto la faccia esterna della A5 (cm)
-const RACC = 0.30;                  // frazione del decorso in cui la sezione reale del taglio diventa ellittica
-const NR = 60, NA = 72;             // anelli lungo il decorso, punti per anello
+const YA = -3.85;                   // inizio della deformazione (subito distale alla A4)
+const YEND0 = -4.75, YFIN = -5.28;  // fine del tendine originale e fine nuova (sulla base di P3)
+const YINS = -4.97;                 // da qui l'estremità scende nell'osso (inserzione)
+const LARGH = 1.30, SPESS = 0.80;   // allargamento e spessore relativi all'estremità
+const GAP = 0.012;                  // distanza dalle strutture lungo il decorso (cm)
+const SOTTO_PUL = 0.010;            // distanza dalla faccia interna delle pulegge (cm)
+const SPESS_MIN = 0.030;            // semispessore minimo sotto le pulegge (cm)
+const AFFONDA = 0.10;               // quanto l'estremità entra nell'osso (cm)
+const RACC = 0.22;                  // frazione del tratto in cui la deformazione cresce da zero (raccordo)
 
 const M = new Modello(), O = new Modello(undefined, ORIGINALE);
 const g = O.get('d_fdp'), nv = g.pos.length / 3, P = i => [g.pos[3 * i], g.pos[3 * i + 1], g.pos[3 * i + 2]];
 
-/* 1) parte prossimale: si tengono i triangoli del tendine originale con tutti i vertici prossimali a YCUT (vertici non spostati).
-      Il tratto nuovo parte SOVRAPP cm più prossimale come un manicotto che avvolge l'estremità del tendine originale: la sezione di
-      partenza è l'involucro convesso della sezione reale (le pieghe interne del mesh originale restano coperte, nessuna cucitura). */
-const pos = [], dir = [], idx = [], mapV = new Map();
-const vOrig = i => { if (!mapV.has(i)) { mapV.set(i, pos.length); pos.push(P(i)); dir.push(g.dir[3 * i], g.dir[3 * i + 1], g.dir[3 * i + 2]); } return mapV.get(i); };
-for (let t = 0; t < g.idx.length; t += 3) if ([0, 1, 2].every(k => g.pos[3 * g.idx[t + k] + 1] >= YCUT)) idx.push(vOrig(g.idx[t]), vOrig(g.idx[t + 1]), vOrig(g.idx[t + 2]));
-const nOrigT = idx.length, Y0 = YCUT + SOVRAPP;
-// sezione dell'originale nella fascia [YCUT, Y0 + 0.03]: punti proiettati sul piano (x, z) e loro involucro convesso
-const fascia = []; for (let i = 0; i < nv; i++) { const y = g.pos[3 * i + 1]; if (y >= YCUT - 0.02 && y <= Y0 + 0.03) fascia.push([g.pos[3 * i], g.pos[3 * i + 2]]); }
-// interseca anche gli spigoli con il piano y = Y0 (la sezione esatta, più fitta dei soli vertici)
-for (let t = 0; t < g.idx.length; t += 3) for (const [a, b] of [[0, 1], [1, 2], [2, 0]]) { const A = P(g.idx[t + a]), B = P(g.idx[t + b]); if ((A[1] - Y0) * (B[1] - Y0) < 0) { const u = (A[1] - Y0) / (A[1] - B[1]); fascia.push([A[0] + (B[0] - A[0]) * u, A[2] + (B[2] - A[2]) * u]); } }
-const hull = (() => { const pts = fascia.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]), cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], up = [];
-  for (const p of pts) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
-  for (const p of pts.slice().reverse()) { while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); }
-  return lo.slice(0, -1).concat(up.slice(0, -1)); })();   // antiorario in (x, z)
-const c0 = [(Math.min(...hull.map(p => p[0])) + Math.max(...hull.map(p => p[0]))) / 2, Y0, (Math.min(...hull.map(p => p[1])) + Math.max(...hull.map(p => p[1]))) / 2];
-const ax0 = (Math.max(...hull.map(p => p[0])) - Math.min(...hull.map(p => p[0]))) / 2 * MANICOTTO, az0 = (Math.max(...hull.map(p => p[1])) - Math.min(...hull.map(p => p[1]))) / 2 * MANICOTTO;
-log('taglio a y', YCUT, '; manicotto da y', Y0.toFixed(3), '; involucro', hull.length, 'punti; centro', c0.map(v => v.toFixed(3)).join(','), 'semiassi', ax0.toFixed(3), az0.toFixed(3));
-// involucro ricampionato a NA punti per lunghezza d'arco, dal punto più radiale (x minima), leggermente allargato (MANICOTTO)
-let L0 = hull.map(p => [(p[0] - c0[0]) * MANICOTTO, (p[1] - c0[2]) * MANICOTTO]);
-{ let im = 0; for (let i = 1; i < L0.length; i++) if (L0[i][0] < L0[im][0]) im = i; L0 = [...L0.slice(im), ...L0.slice(0, im)]; }
-const cum = [0]; for (let i = 1; i <= L0.length; i++) cum.push(cum[i - 1] + Math.hypot(L0[i % L0.length][0] - L0[i - 1][0], L0[i % L0.length][1] - L0[i - 1][1]));
-const SEZ = Array.from({ length: NA }, (_, j) => { const d = cum[L0.length] * j / NA; let i = 0; while (cum[i + 1] < d) i++; const t = (d - cum[i]) / (cum[i + 1] - cum[i] || 1), a = L0[i], b = L0[(i + 1) % L0.length]; return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; });
-let SEZL = SEZ.map(q => q.slice()); for (let it = 0; it < 4; it++) SEZL = SEZL.map((q, j) => { const a = SEZL[(j + NA - 1) % NA], b = SEZL[(j + 1) % NA]; return [0.5 * q[0] + 0.25 * (a[0] + b[0]), 0.5 * q[1] + 0.25 * (a[1] + b[1])]; });
-// raggio dell'involucro (non allargato) lungo la direzione th attorno al centro, nel piano (x, z)
-const HR = hull.map(p => [p[0] - c0[0], p[1] - c0[2]]);
-const rHull = th => { const d = [Math.cos(th), Math.sin(th)]; let best = 0;
-  for (let i = 0; i < HR.length; i++) { const a = HR[i], b = HR[(i + 1) % HR.length], e = [b[0] - a[0], b[1] - a[1]], den = d[0] * e[1] - d[1] * e[0]; if (Math.abs(den) < 1e-12) continue;
-    const t = (a[0] * e[1] - a[1] * e[0]) / den, u = (a[0] * d[1] - a[1] * d[0]) / den; if (t > 0 && u >= -1e-9 && u <= 1 + 1e-9) best = Math.max(best, t); } return best; };
-// raccordo della superficie originale: prossimalmente a Y0 si gonfia gradualmente fino all'involucro (che diventa la sezione del
-// tratto nuovo, senza gradino); distalmente a Y0 resta nascosta dentro il tratto nuovo
-for (const [i, v] of mapV) { const p = pos[v], dx = p[0] - c0[0], dz = p[2] - c0[2], r = Math.hypot(dx, dz); if (r < 1e-6) continue;
-  const th = Math.atan2(dz, dx), rh = rHull(th) * MANICOTTO;
-  let rn = r;
-  if (p[1] >= Y0) { const w = sstep(Y0 + RACC_O, Y0, p[1]); if (rh > r) rn = r + (rh - r) * w; }
-  else rn = Math.min(r, rh * 0.96);
-  pos[v] = [c0[0] + dx / r * rn, p[1], c0[2] + dz / r * rn]; }
-const ELL = (j, ax, az) => { const th = Math.PI + 2 * Math.PI * j / NA, ez = Math.sin(th); return [Math.cos(th) * ax, (ez < 0 ? ez * 0.85 : ez) * az]; };
+/* 1) asse e semispessori del tendine originale, per fette lungo y (lisciati) */
+const NS = 70, yS = Array.from({ length: NS }, (_, k) => YA + 0.25 + (YEND0 - 0.02 - (YA + 0.25)) * k / (NS - 1));
+let CX = [], CZ = [], HX = [], HZ = [];
+for (const y of yS) { let lo = [9, 9], hi = [-9, -9], n = 0; for (let i = 0; i < nv; i++) if (Math.abs(g.pos[3 * i + 1] - y) < 0.05) { n++; lo[0] = Math.min(lo[0], g.pos[3 * i]); hi[0] = Math.max(hi[0], g.pos[3 * i]); lo[1] = Math.min(lo[1], g.pos[3 * i + 2]); hi[1] = Math.max(hi[1], g.pos[3 * i + 2]); }
+  CX.push((lo[0] + hi[0]) / 2); CZ.push((lo[1] + hi[1]) / 2); HX.push((hi[0] - lo[0]) / 2); HZ.push((hi[1] - lo[1]) / 2); }
+const liscia = (A, it = 30) => { let o = A.slice(); for (let r = 0; r < it; r++) o = o.map((v, k) => k === 0 || k === NS - 1 ? v : 0.25 * o[k - 1] + 0.5 * v + 0.25 * o[k + 1]); return o; };
+CX = liscia(CX); CZ = liscia(CZ); HX = liscia(HX, 10); HZ = liscia(HZ, 10);
+const inS = (A, y) => { const f = clamp((y - yS[0]) / (yS[NS - 1] - yS[0]), 0, 1) * (NS - 1), k = Math.min(NS - 2, Math.floor(f)), t = f - k; return A[k] * (1 - t) + A[k + 1] * t; };
+const hz0 = inS(HZ, YA), hx0 = inS(HX, YA);
+log('tendine originale a y', YA, ': centro', inS(CX, YA).toFixed(3), inS(CZ, YA).toFixed(3), 'semiassi', hx0.toFixed(3), hz0.toFixed(3));
 
-/* 2) quota volare della superficie d'appoggio (ossa, cartilagine, placca volare) */
+/* 2) superficie d'appoggio (ossa, cartilagine, placca) e tetto (faccia interna delle pulegge) lungo y */
 const ALTE = ['d_p3', 'd_p2', 'd_cart', 'vp_dip'].map(n => new Indice([M.get(n)], 0.1));
-const quota = (x, y) => { for (let z = 0.9; z > -1.3; z -= 0.005) { const p = [x, y, z]; for (const S of ALTE) { const r = S.vicino(p, 0.02); if (r && (r.d < 0.003 || S.dentro(p))) return z; } } return -1.3; };
+const quota = (x, y) => { for (let z = 0.9; z > -1.3; z -= 0.004) { const p = [x, y, z]; for (const S of ALTE) { const r = S.vicino(p, 0.02); if (r && (r.d < 0.002 || S.dentro(p))) return z; } } return -1.3; };
+const PUL = ['A4', 'C3', 'A5'].map(n => M.get(n));
+const NR = 70, ys = Array.from({ length: NR }, (_, k) => YA + (YFIN - YA) * k / (NR - 1)), sOf = y => clamp((YA - y) / (YA - YFIN), 0, 1);
+const yOrig = y => YA + (YEND0 - YA) * sOf(y);                       // y del tendine originale che finisce a y (dopo l'allungamento)
+const XC = ys.map(y => inS(CX, yOrig(y)));
+const AX = ys.map(y => inS(HX, yOrig(y)) * (1 + (LARGH - 1) * sstep(0.5, 1, sOf(y))));
+let AZ = ys.map(y => inS(HZ, yOrig(y)) * (1 - (1 - SPESS) * sstep(0.5, 1, sOf(y))));
+const SUP0 = ys.map((y, k) => { let m = -9; for (let f = -1; f <= 1.001; f += 0.25) m = Math.max(m, quota(XC[k] + f * AX[k] * 0.9, y)); return m; });
+let SUP = SUP0.slice(); for (let it = 0; it < 40; it++) { SUP = SUP.map((v, k) => k === 0 || k === NR - 1 ? v : 0.25 * SUP[k - 1] + 0.5 * v + 0.25 * SUP[k + 1]); SUP = SUP.map((v, k) => clamp(v, SUP0[k] - 0.005, SUP0[k] + 0.02)); }
+// tetto: per ogni fetta, faccia interna (dorsale) del tetto delle pulegge sopra il tendine (solo la parte centrale, non i lati)
+const TET = ys.map((y, k) => { let m = 9; for (const G of PUL) for (let i = 0; i < G.pos.length / 3; i++) { if (Math.abs(G.pos[3 * i + 1] - y) > 0.025 || Math.abs(G.pos[3 * i] - XC[k]) > AX[k] * 0.7) continue; const z = G.pos[3 * i + 2]; if (z > SUP0[k] - 0.02) m = Math.min(m, z); } return m < 9 ? m - SOTTO_PUL : 9; });
+let TT = TET.slice(); for (let it = 0; it < 4; it++) TT = TT.map((v, k) => Math.min(v, k > 0 ? TT[k - 1] + 0.02 : v, k < NR - 1 ? TT[k + 1] + 0.02 : v));
+// spessore: dove lo spazio tra appoggio e tetto è minore, il tendine si appiattisce
+const SPZ = ys.map((y, k) => Math.max(SPESS_MIN, (TT[k] - SUP[k] - GAP) / 2));
+for (let it = 0; it < 3; it++) AZ = AZ.map((v, k) => Math.min(v, SPZ[k]));
+{ let a = AZ.slice(); for (let it = 0; it < 30; it++) a = a.map((v, k) => k === 0 || k === NR - 1 ? v : Math.min(0.25 * a[k - 1] + 0.5 * v + 0.25 * a[k + 1], SPZ[k], AZ[k])); AZ = a; }
 
-/* 3) linea d'asse: da c0 a YFIN; semiassi lisci; quota del centro ≥ superficie + gap + semiasse z (sotto l'intera larghezza) */
-const ys = Array.from({ length: NR }, (_, k) => c0[1] + (YFIN - c0[1]) * k / (NR - 1));   // ys[0] = poco oltre il punto più distale del taglio
-const sOf = y => clamp((c0[1] - y) / (c0[1] - YFIN), 0, 1), lisc = t => t * t * (3 - 2 * t);
-const AX = ys.map(y => ax0 * (1 + (LARGH - 1) * lisc(sstep(0.15, 0.75, sOf(y)))) * (1 - 0.15 * Math.pow(sstep(0.8, 1, sOf(y)), 2))), AZ = ys.map(y => az0 * (1 - (1 - SPESS_FIN) * lisc(sstep(0.10, 0.80, sOf(y)))));
-const XC = ys.map(() => c0[0]);
-const INS = ys.map(y => sstep(0, 1, (YINS - y) / (YINS - YFIN)));   // 0 → 1 nell'inserzione
-for (let k = 0; k < NR; k++) AZ[k] *= 1 - 0.8 * INS[k];   // spatola: lo spessore cala fino al 20%
-let SUP = ys.map((y, k) => { let m = -9; for (let f = -1; f <= 1.001; f += 0.25) m = Math.max(m, quota(XC[k] + f * AX[k] * 0.9, y)); return m; });
-// lisciatura della quota, tenuta tra 0,05 mm sotto e 0,2 mm sopra la superficie reale (il tendine resta aderente, dopo la placca scende sull'osso)
-const SUP0 = SUP.slice();
-for (let it = 0; it < 40; it++) { SUP = SUP.map((v, k) => k === 0 || k === NR - 1 ? v : 0.25 * SUP[k - 1] + 0.5 * v + 0.25 * SUP[k + 1]); SUP = SUP.map((v, k) => clamp(v, SUP0[k] - 0.005, SUP0[k] + 0.02)); }
-// centro: parte da c0, raggiunge la superficie, nell'inserzione affonda nell'osso
-// centro: parte da c0, raggiunge la superficie e la segue; nell'inserzione il tendine si assottiglia a spatola e si salda all'osso
-let ZC = ys.map((y, k) => { const appoggio = SUP[k] + GAP + AZ[k], inizio = c0[2] + (appoggio - c0[2]) * lisc(sstep(0.0, 0.5, sOf(y)));
-  return Math.max(inizio, appoggio) - Math.pow(INS[k], 1.5) * (GAP + 2 * AZ[k] + AFFONDA); });
-// tetto: la puleggia A5 deve coprire il tendine (la faccia volare del tendine resta sotto la faccia esterna della A5)
-const A5 = M.get('A5'), nA5 = A5.pos.length / 3;
-const tetto = ys.map((y, k) => { let m = -9; for (let i = 0; i < nA5; i++) if (Math.abs(A5.pos[3 * i + 1] - y) < 0.03 && Math.abs(A5.pos[3 * i] - XC[k]) < AX[k] * 0.8) m = Math.max(m, A5.pos[3 * i + 2]); return m > -9 ? m - SOTTO_A5 : 9; });
-let tt = tetto.slice(); for (let it = 0; it < 6; it++) tt = tt.map((v, k) => Math.min(v, k > 0 ? tt[k - 1] + 0.03 : v, k < NR - 1 ? tt[k + 1] + 0.03 : v)); // tetto senza salti
-// sotto la A5 lo spazio tra puleggia e placca è stretto: il tendine si appiattisce (spessore = spazio disponibile, mai < SPESS_MIN)
-{ const lim = ys.map((y, k) => Math.max(SPESS_MIN, (tt[k] - SUP[k] - GAP) / 2)); let az = AZ.map((v, k) => Math.min(v, lim[k]));
-  for (let it = 0; it < 30; it++) az = az.map((v, k) => k === 0 || k === NR - 1 ? v : Math.min(0.25 * az[k - 1] + 0.5 * v + 0.25 * az[k + 1], lim[k], AZ[k]));
-  for (let k = 0; k < NR; k++) AZ[k] = az[k];
-  ZC = ys.map((y, k) => { const appoggio = SUP[k] + GAP + AZ[k], inizio = c0[2] + (appoggio - c0[2]) * lisc(sstep(0.0, 0.5, sOf(y))); return Math.max(inizio, appoggio) - Math.pow(INS[k], 1.5) * (GAP + 2 * AZ[k] + AFFONDA); }); }
-ZC = ZC.map((z, k) => Math.min(z, tt[k] - AZ[k]));
-ZC[0] = c0[2];
-for (let it = 0; it < 12; it++) ZC = ZC.map((v, k) => k === 0 || k === NR - 1 ? v : Math.min(0.25 * ZC[k - 1] + 0.5 * v + 0.25 * ZC[k + 1], tt[k] - AZ[k]));
-
-if (process.env.DEBUG) ys.forEach((y, k) => k % 3 === 0 && log(y.toFixed(2), "SUP", SUP[k].toFixed(3), "ZC", ZC[k].toFixed(3), "AZ", AZ[k].toFixed(3), "AX", AX[k].toFixed(3), "tetto", tt[k].toFixed(3), "INS", INS[k].toFixed(2)));
-/* 4) anelli ellittici perpendicolari alla linea d'asse */
+/* 3) linea d'asse nuova: parte dall'asse originale, poggia sulla superficie, sotto il tetto; l'estremità affonda nell'osso */
+const INS = ys.map(y => sstep(0, 1, (YINS - y) / (YINS - YFIN)));
+let ZC = ys.map((y, k) => { const orig = inS(CZ, yOrig(y)), appoggio = SUP[k] + GAP + AZ[k], w = sstep(0, 0.35, sOf(y));
+  return Math.max(orig * (1 - w) + appoggio * w, appoggio) - INS[k] * (2 * AZ[k] + GAP + AFFONDA); });
+ZC = ZC.map((z, k) => Math.min(z, TT[k] - AZ[k]));
+ZC[0] = inS(CZ, YA);
+for (let it = 0; it < 15; it++) ZC = ZC.map((v, k) => k === 0 || k === NR - 1 ? v : Math.min(0.25 * ZC[k - 1] + 0.5 * v + 0.25 * ZC[k + 1], TT[k] - AZ[k]));
 const C = ys.map((y, k) => [XC[k], y, ZC[k]]);
-const base = pos.length;
-for (let k = 0; k < NR; k++) {
-  const T = unit(sub(C[Math.min(NR - 1, k + 1)], C[Math.max(0, k - 1)])), Xa = unit(cross([0, 0, 1], T)), Za = unit(cross(T, Xa));   // per T ≈ −y: Xa = +x, Za = +z (stesso riferimento della sezione)
-  const f = Math.round(127 * 1), d = T.map(v => Math.round(v * f));
-  const b = sstep(0, RACC, sOf(ys[k])), b2 = sstep(0.01, RACC * 0.6, sOf(ys[k])), sx = AX[k] / ax0, sz = AZ[k] / az0;
-  for (let j = 0; j < NA; j++) { const e = ELL(j, AX[k], AZ[k]), r0 = [SEZ[j][0] * sx, SEZ[j][1] * sz], r1 = [SEZL[j][0] * sx, SEZL[j][1] * sz];
-    const q0 = [r0[0] + (r1[0] - r0[0]) * b2, r0[1] + (r1[1] - r0[1]) * b2], q = [q0[0] + (e[0] - q0[0]) * b, q0[1] + (e[1] - q0[1]) * b];
-    const fr = INIZIO + (1 - INIZIO) * sstep(0, ATTACCO, (c0[1] - ys[k]));   // il manicotto nasce dentro il tendine originale e ne esce tangente
-    pos.push(add(C[k], add(mul(Xa, q[0] * fr), mul(Za, q[1] * fr)))); dir.push(...d); } }
-// tappo distale (dentro l'osso)
-const capC = pos.length; pos.push(C[NR - 1]); dir.push(0, 127, 0);
-for (let k = 1; k < NR; k++) for (let j = 0; j < NA; j++) { const a = base + (k - 1) * NA + j, b = base + (k - 1) * NA + (j + 1) % NA, c = base + k * NA + j, d = base + k * NA + (j + 1) % NA; idx.push(a, c, b, b, c, d); }
-for (let j = 0; j < NA; j++) idx.push(capC, base + (NR - 1) * NA + (j + 1) % NA, base + (NR - 1) * NA + j);
+const inR = (A, s) => { const f = clamp(s, 0, 1) * (NR - 1), k = Math.min(NR - 2, Math.floor(f)), t = f - k; return Array.isArray(A[0]) ? A[k].map((v, a) => v * (1 - t) + A[k + 1][a] * t) : A[k] * (1 - t) + A[k + 1] * t; };
+const TAN = C.map((c, k) => unit(sub(C[Math.min(NR - 1, k + 1)], C[Math.max(0, k - 1)])));
 
-// orientamento rispetto alla parte originale: il volume con segno della mesh intera dev'essere massimo (stessa convenzione ovunque)
-{ const vol = () => { let v = 0; for (let t = 0; t < idx.length; t += 3) v += dot(pos[idx[t]], cross(pos[idx[t + 1]], pos[idx[t + 2]])) / 6; return v; };
-  const flip = () => { for (let t = nOrigT; t < idx.length; t += 3) { const s = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = s; } };
-  const v1 = vol(); flip(); const v2 = vol(); if (v1 > v2) flip(); log('volume con segno', Math.max(v1, v2).toFixed(4), '(alternativa', Math.min(v1, v2).toFixed(4) + ')'); }
+/* 4) deformazione: ogni vertice distale a YA conserva la sua posizione relativa all'asse originale (x, z), scalata, nel riferimento
+      della nuova linea d'asse; il peso cresce da zero a YA (raccordo) */
+const pos = Float32Array.from(g.pos), dir = Int8Array.from(g.dir);
+let mossi = 0;
+for (let i = 0; i < nv; i++) {
+  const p = P(i); if (p[1] >= YA) continue;
+  const s = clamp((YA - p[1]) / (YA - YEND0), 0, 1), yo = p[1], cx = inS(CX, yo), cz = inS(CZ, yo), hx = inS(HX, yo) || 1e-3, hz = inS(HZ, yo) || 1e-3;
+  const c = inR(C, s), T = unit(inR(TAN, s)), Xa = unit(cross([0, 0, 1], T)), Za = unit(cross(T, Xa));
+  const ax = inR(AX, s), az = inR(AZ, s), ox = (p[0] - cx) * ax / hx, oz = (p[2] - cz) * az / hz;
+  // oltre la fine dell'asse originale (estremità arrotondata) la quota lungo l'asse si conserva
+  const dy = yo < yS[NS - 1] ? (yo - yS[NS - 1]) * 1.0 : 0;
+  const q = add(add(c, add(mul(Xa, ox), mul(Za, oz))), mul(T, -dy));
+  const w = sstep(0, RACC, s); for (let a = 0; a < 3; a++) pos[3 * i + a] = p[a] + (q[a] - p[a]) * w;
+  // direzione delle fibre ruotata con il riferimento
+  const d = [g.dir[3 * i], g.dir[3 * i + 1], g.dir[3 * i + 2]], d2 = add(add(mul(Xa, d[0]), mul(T, -d[1])), mul(Za, d[2]));
+  for (let a = 0; a < 3; a++) dir[3 * i + a] = Math.round(clamp(d[a] + (d2[a] - d[a]) * w, -127, 127));
+  mossi++;
+}
+log('vertici deformati', mossi, 'su', nv);
 
-/* 6) controllo: nessun vertice del tratto nuovo (prima dell'inserzione) dentro ossa, cartilagine o placca */
-const solidi = ['d_p3', 'd_p2', 'd_cart', 'vp_dip'].map(n => [n, new Indice([M.get(n)], 0.1)]);
-for (const [n, S] of solidi) { let k = 0, mx = 0; for (let v = base; v < pos.length; v++) { if (pos[v][1] < YINS) continue; if (S.dentro(pos[v])) { k++; const r = S.vicino(pos[v], 0.3); mx = Math.max(mx, r ? r.d : 0); } }
-  log('vertici del tratto nuovo (prossimali all\'inserzione) dentro', n, ':', k, k ? '(max ' + mx.toFixed(3) + ')' : ''); }
-log('vertici:', pos.length, '(nuovi', pos.length - base, ')');
-M.set('d_fdp', { pos: Float32Array.from(pos.flat()), idx: Uint32Array.from(idx), dir: Int8Array.from(dir), tag: null });
+/* 5) controllo: vertici dentro pulegge (prima dell'inserzione) e dentro osso/cartilagine */
+const pp = i => [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]];
+for (const n of ['A4', 'C3', 'A5', 'vp_dip', 'd_cart', 'd_p2', 'd_p3']) { const S = new Indice([M.get(n)], 0.1); let k = 0, mx = 0;
+  for (let i = 0; i < nv; i++) { const p = pp(i); if (p[1] > YA || (n === 'd_p3' && p[1] < YINS)) continue; if (S.dentro(p)) { k++; const r = S.vicino(p, 0.3); mx = Math.max(mx, r ? r.d : 0); } }
+  log('vertici del tratto deformato dentro', n.padEnd(7), k, k ? '(max ' + mx.toFixed(3) + ')' : ''); }
+if (process.env.DEBUG) ys.forEach((y, k) => k % 5 === 0 && log(y.toFixed(2), 'SUP', SUP[k].toFixed(3), 'TETTO', TT[k].toFixed(3), 'ZC', ZC[k].toFixed(3), 'AZ', AZ[k].toFixed(3), 'AX', AX[k].toFixed(3)));
+M.set('d_fdp', { pos, idx: g.idx, dir, tag: g.tag });
 M.salva();
