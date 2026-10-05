@@ -22,17 +22,39 @@ const YA = -3.85;                   // inizio della deformazione (subito distale
 const YEND0 = -4.75, YFIN = -5.28;  // fine del tendine originale e fine nuova (sulla base di P3)
 const YINS = -4.97;                 // da qui l'estremità scende nell'osso (inserzione)
 const LARGH = 1.30, SPESS = 0.80;   // allargamento e spessore relativi all'estremità
-const GAP = 0.008;                  // distanza dalle strutture lungo il decorso (cm)
-const SOTTO_PUL = 0.010, FUORI_PUL = 0.012;   // margine sotto la faccia interna / esterna delle pulegge (cm)
+const GAP = 0.004;                  // distanza dalle strutture lungo il decorso (cm)
+const SOTTO_PUL = 0.010, FUORI_PUL = 0.005;   // margine sotto la faccia interna / esterna delle pulegge (cm)
 // distanza dalla faccia interna delle pulegge (cm)
-const SPESS_MIN = 0.012;            // semispessore minimo sotto le pulegge (cm)
+const SPESS_MIN = 0.030;            // semispessore minimo sotto le pulegge (cm)
 const AFFONDA = 0.10;               // quanto l'estremità entra nell'osso (cm)
 const ELL0 = 0.45, ELL1 = 0.62, CAP0 = 0.78;   // da ELL0 a ELL1 la sezione diventa un'ellisse liscia; da CAP0 la punta si arrotonda
-const COLLASSA = +(process.env.COLLASSA ?? 4);   // passate di collasso dei triangoli rovesciati
+const COLLASSA = +(process.env.COLLASSA ?? 8);   // passate di collasso dei triangoli rovesciati
+const LATO_MAX = 0.03;              // lato massimo dei triangoli nel tratto deformato (cm, prima dell'allungamento)
+const SOPRA_TEND = 0.006;           // distanza della faccia interna delle pulegge sollevate dalla faccia volare del tendine (cm)
 const RACC = 0.22;                  // frazione del tratto in cui la deformazione cresce da zero (raccordo)
 
 const M = new Modello(), O = new Modello(undefined, ORIGINALE);
-const g = O.get('d_fdp'), nv = g.pos.length / 3, P = i => [g.pos[3 * i], g.pos[3 * i + 1], g.pos[3 * i + 2]];
+/* 0) suddivisione: nel tratto da deformare la mesh originale ha triangoli lunghi fino a 3 mm; allungati e piegati, le loro corde
+      tagliano la superficie curva (si vede il retro). Bisezione del lato più lungo finché tutti i lati sono ≤ LATO_MAX. */
+const g = (() => { const g0 = O.get('d_fdp'), pos = Array.from(g0.pos), dir = Array.from(g0.dir), idx = Array.from(g0.idx);
+  const P0 = i => [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]], L = (a, b) => Math.hypot(pos[3 * a] - pos[3 * b], pos[3 * a + 1] - pos[3 * b + 1], pos[3 * a + 2] - pos[3 * b + 2]);
+  const inReg = i => pos[3 * i + 1] < YA + 0.05;
+  for (let pass = 0; pass < 12; pass++) { const mid = new Map(); let split = 0; const out = [];
+    const midV = (a, b) => { const k = a < b ? a + ',' + b : b + ',' + a; if (!mid.has(k)) { const n = pos.length / 3; pos.push(...[0, 1, 2].map(c => (pos[3 * a + c] + pos[3 * b + c]) / 2)); dir.push(...[0, 1, 2].map(c => Math.round((dir[3 * a + c] + dir[3 * b + c]) / 2))); mid.set(k, n); } return mid.get(k); };
+    // marca i lati da dividere (il più lungo di ogni triangolo troppo grande); poi divide ogni triangolo secondo i suoi lati marcati
+    const mark = new Set(), key = (a, b) => a < b ? a + ',' + b : b + ',' + a;
+    for (let t = 0; t < idx.length; t += 3) { const T = [idx[t], idx[t + 1], idx[t + 2]]; if (!T.some(inReg)) continue; const e = [[T[0], T[1]], [T[1], T[2]], [T[2], T[0]]], l = e.map(([a, b]) => L(a, b)), m = l.indexOf(Math.max(...l)); if (l[m] > LATO_MAX) mark.add(key(...e[m])); }
+    for (let t = 0; t < idx.length; t += 3) { const T = [idx[t], idx[t + 1], idx[t + 2]], e = [[T[0], T[1]], [T[1], T[2]], [T[2], T[0]]], mk = e.map(([a, b]) => mark.has(key(a, b)));
+      const n = mk.filter(Boolean).length; if (!n) { out.push(...T); continue; } split++;
+      if (n === 3) { const [m0, m1, m2] = e.map(([a, b]) => midV(a, b)); out.push(T[0], m0, m2, m0, T[1], m1, m2, m1, T[2], m0, m1, m2); continue; }
+      // 1 o 2 lati: bisezione a ventaglio dal vertice opposto al primo lato marcato
+      let r = mk.indexOf(true); const A = T[r], B = T[(r + 1) % 3], C = T[(r + 2) % 3], mAB = midV(A, B);
+      if (n === 1) { out.push(A, mAB, C, mAB, B, C); continue; }
+      if (mk[(r + 1) % 3]) { const mBC = midV(B, C); out.push(A, mAB, C, mAB, B, mBC, mAB, mBC, C); } else { const mCA = midV(C, A); out.push(A, mAB, mCA, mAB, B, C, mAB, C, mCA); } }
+    idx.length = 0; idx.push(...out); if (!split) break; }
+  return { pos: Float32Array.from(pos), dir: Int8Array.from(dir), idx: Uint32Array.from(idx), tag: null }; })();
+const nv = g.pos.length / 3, P = i => [g.pos[3 * i], g.pos[3 * i + 1], g.pos[3 * i + 2]];
+log('mesh suddivisa nel tratto distale:', nv, 'vertici,', g.idx.length / 3, 'triangoli');
 
 /* 1) asse e semispessori del tendine originale, per fette lungo y (lisciati) */
 const NS = 70, yS = Array.from({ length: NS }, (_, k) => YA + 0.25 + (YEND0 - 0.02 - (YA + 0.25)) * k / (NS - 1));
@@ -48,7 +70,7 @@ log('tendine originale a y', YA, ': centro', inS(CX, YA).toFixed(3), inS(CZ, YA)
 /* 2) superficie d'appoggio (ossa, cartilagine, placca) e tetto (faccia interna delle pulegge) lungo y */
 const ALTE = ['d_p3', 'd_p2', 'd_cart', 'vp_dip'].map(n => new Indice([M.get(n)], 0.1));
 const quota = (x, y) => { for (let z = 0.9; z > -1.3; z -= 0.004) { const p = [x, y, z]; for (const S of ALTE) { const r = S.vicino(p, 0.02); if (r && (r.d < 0.002 || S.dentro(p))) return z; } } return -1.3; };
-const PUL = ['A4', 'C3', 'A5'].map(n => M.get(n));
+const PUL = ['A4', 'C3', 'A5'].map(n => O.get(n));   // pulegge originali (questo strumento le adatta al tendine: vedi 6)
 const NR = 70, ys = Array.from({ length: NR }, (_, k) => YA + (YFIN - YA) * k / (NR - 1)), sOf = y => clamp((YA - y) / (YA - YFIN), 0, 1);
 const yOrig = y => YA + (YEND0 - YA) * sOf(y);                       // y del tendine originale che finisce a y (dopo l'allungamento)
 const XC = ys.map(y => inS(CX, yOrig(y)));
@@ -67,7 +89,7 @@ let TT = TET.slice(); for (let it = 0; it < 4; it++) TT = TT.map((v, k) => Math.
 // spessore: dove lo spazio tra appoggio e tetto è minore, il tendine si appiattisce
 const SPZ = ys.map((y, k) => Math.max(SPESS_MIN, (TT[k] - SUP[k] - GAP) / 2));   // dove il tendine passa sulla placca sotto la puleggia, si assottiglia
 for (let it = 0; it < 3; it++) AZ = AZ.map((v, k) => Math.min(v, SPZ[k]));
-{ let a = AZ.slice(); for (let it = 0; it < 30; it++) a = a.map((v, k) => k === 0 || k === NR - 1 ? v : Math.min(0.25 * a[k - 1] + 0.5 * v + 0.25 * a[k + 1], SPZ[k], AZ[k])); AZ = a; }
+{ let a = AZ.slice(); for (let it = 0; it < 80; it++) a = a.map((v, k) => k === 0 || k === NR - 1 ? v : Math.min(0.25 * a[k - 1] + 0.5 * v + 0.25 * a[k + 1], SPZ[k], AZ[k])); AZ = a; }
 
 /* 3) linea d'asse nuova: parte dall'asse originale, poggia sulla superficie, sotto il tetto; l'estremità affonda nell'osso */
 const INS = ys.map(y => sstep(0, 1, (YINS - y) / (YINS - YFIN)));
@@ -77,6 +99,11 @@ ZC = ZC.map((z, k) => Math.min(z, TT[k] - AZ[k]));
 ZC[0] = inS(CZ, YA);
 for (let it = 0; it < 15; it++) ZC = ZC.map((v, k) => k === 0 || k === NR - 1 ? v : Math.min(0.25 * ZC[k - 1] + 0.5 * v + 0.25 * ZC[k + 1], TT[k] - AZ[k]));
 // la placca (e l'osso) prevalgono sul tetto: la faccia dorsale del tendine non scende mai sotto la superficie d'appoggio, fino all'inserzione
+// faccia esterna delle pulegge attraverso la larghezza: lo spessore si riduce dove lo spazio tra pavimento e puleggia è minore
+const PULI = PUL.map(G => new Indice([G], 0.1));
+const ESTX = ys.map((y, k) => FF.map((f, j) => { const x = XC[k] + f * AX[k] * 1.05; let m = 9; for (const S of PULI) { for (let z = PROF[k][j] + 0.003; z < PROF[k][j] + 0.35; z += 0.004) { const q = [x, y, z]; if (S.dentro(q)) { let z2 = z; while (z2 < z + 0.3 && S.dentro([x, y, z2])) z2 += 0.003; m = Math.min(m, z2); break; } } } return m; }));
+for (let k = 0; k < NR; k++) { let lim = 9; FF.forEach((f, j) => { if (ESTX[k][j] > 8) return; const w = Math.sqrt(Math.max(0.05, 1 - (f / 1.05) ** 2)); lim = Math.min(lim, (ESTX[k][j] - FUORI_PUL - PROF[k][j] - GAP) / (2 * w)); }); if (lim < 9) AZ[k] = Math.min(AZ[k], Math.max(SPESS_MIN, lim)); }
+{ let a = AZ.slice(); for (let it = 0; it < 4; it++) a = a.map((v, k) => k === 0 || k === NR - 1 ? v : Math.min(v, 0.5 * (a[k - 1] + a[k + 1]) + 0.004)); AZ = a; }
 // la faccia dorsale della sezione ellittica (alta ai lati) deve stare sopra il pavimento in ogni punto della larghezza
 const MINZ = ys.map((y, k) => Math.max(...FF.map((f, j) => PROF[k][j] + GAP + AZ[k] * Math.sqrt(Math.max(0, 1 - Math.min(1, Math.abs(f / 1.05)) ** 2)))));
 ZC = ZC.map((z, k) => { const w = sstep(0, 0.6, INS[k]); return Math.max(z, MINZ[k]) * (1 - w) + z * w; });   // nell'inserzione il vincolo si spegne gradualmente (niente scalini)
@@ -115,13 +142,15 @@ for (let i = 0; i < nv; i++) {
   mossi++;
 }
 log('vertici deformati', mossi, 'su', nv);
-// pieghe della mesh originale che la deformazione rovescia (faccia esterna rivolta verso l'asse): i triangoli rovesciati vengono
-// collassati sul loro baricentro (degeneri, invisibili), i vicini si raccordano
-{ let tot = 0; for (let it = 0; it < COLLASSA; it++) { let n = 0;
-    for (let t = 0; t < g.idx.length; t += 3) { const ii = [g.idx[t], g.idx[t + 1], g.idx[t + 2]]; if (ii.some(i => g.pos[3 * i + 1] > YA - 0.4 || (YA - g.pos[3 * i + 1]) / (YA - YEND0) > CAP0 - 0.04)) continue;
-      const A = ii.map(i => [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]]), fn = cross(sub(A[1], A[0]), sub(A[2], A[0])); const ln = Math.hypot(...fn); if (ln < 1e-9) continue;
-      const cen = [0, 1, 2].map(a => (A[0][a] + A[1][a] + A[2][a]) / 3), s0 = clamp((YA - g.pos[3 * ii[0] + 1]) / (YA - YEND0), 0, 1), c = inR(C, s0), out = sub(cen, c); out[1] = 0;
-      if ((fn[0] * out[0] + fn[2] * out[2]) / (ln * (Math.hypot(out[0], out[2]) || 1)) < -0.6) { for (const i of ii) for (let a = 0; a < 3; a++) pos[3 * i + a] = cen[a]; n++; } }
+// pieghe della mesh originale che la deformazione rovescia: un triangolo la cui normale è opposta a quella media dei triangoli
+// adiacenti viene collassato sul suo baricentro (degenere, invisibile); ripetuto finché non ne restano
+{ let tot = 0; const tri = g.idx.length / 3, adj = Array.from({ length: tri }, () => []), byEdge = new Map();
+  for (let t = 0; t < tri; t++) for (const [a, b] of [[0, 1], [1, 2], [2, 0]]) { const u = g.idx[3 * t + a], v = g.idx[3 * t + b], k = u < v ? u + ',' + v : v + ',' + u; const o = byEdge.get(k); if (o !== undefined) { adj[t].push(o); adj[o].push(t); } else byEdge.set(k, t); }
+  const nrm = t => { const A = [0, 1, 2].map(k => { const i = g.idx[3 * t + k]; return [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]]; }); return cross(sub(A[1], A[0]), sub(A[2], A[0])); };
+  for (let it = 0; it < COLLASSA; it++) { let n = 0;
+    for (let t = 0; t < tri; t++) { const ii = [g.idx[3 * t], g.idx[3 * t + 1], g.idx[3 * t + 2]]; if (ii.some(i => g.pos[3 * i + 1] > YA - 0.3)) continue;
+      const fn = nrm(t), ln = Math.hypot(...fn); if (ln < 1e-12) continue; let m = [0, 0, 0]; for (const o of adj[t]) { const q = nrm(o), l = Math.hypot(...q); if (l > 1e-12) m = add(m, mul(q, 1 / l)); }
+      const lm = Math.hypot(...m); if (lm < 1e-6) continue; if ((fn[0] * m[0] + fn[1] * m[1] + fn[2] * m[2]) / (ln * lm) < -0.2) { const cen = [0, 1, 2].map(a => ii.reduce((u, i) => u + pos[3 * i + a], 0) / 3); for (const i of ii) for (let a = 0; a < 3; a++) pos[3 * i + a] = cen[a]; n++; } }
     tot += n; if (!n) break; }
   log('triangoli rovesciati collassati', tot); }
 
@@ -130,6 +159,24 @@ const pp = i => [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]];
 for (const n of ['A4', 'C3', 'A5', 'vp_dip', 'd_cart', 'd_p2', 'd_p3']) { const S = new Indice([M.get(n)], 0.1); let k = 0, mx = 0;
   for (let i = 0; i < nv; i++) { const p = pp(i); if (p[1] > YA || (n === 'd_p3' && p[1] < YINS)) continue; if (S.dentro(p)) { k++; const r = S.vicino(p, 0.3); mx = Math.max(mx, r ? r.d : 0); } }
   log('vertici del tratto deformato dentro', n.padEnd(7), k, k ? '(max ' + mx.toFixed(3) + ')' : ''); }
+/* 6) pulegge sopra il tendine: dove la puleggia originale scende fino alla placca (A5, C3) non c'è spazio per il tendine; la puleggia
+      viene sollevata localmente (colonna intera: spessore invariato) quanto basta perché la sua faccia interna passi sopra il tendine,
+      con raccordo dolce ai lati e alle estremità. Riparte sempre dalle pulegge originali. */
+{ const H = 0.01, top = new Map(), kk = (x, y) => Math.round(x / H) + ',' + Math.round(y / H);
+  for (let i = 0; i < nv; i++) { const y = pos[3 * i + 1]; if (y > YA) continue; const k = kk(pos[3 * i], y); top.set(k, Math.max(top.get(k) ?? -9, pos[3 * i + 2])); }
+  const topAt = (x, y, r = 3) => { let m = -9; for (let a = -r; a <= r; a++) for (let b = -r; b <= r; b++) { const v = top.get((Math.round(x / H) + a) + ',' + (Math.round(y / H) + b)); if (v !== undefined) m = Math.max(m, v); } return m; };
+  for (const n of ['C3', 'A5']) { const G = O.get(n), np = Float32Array.from(G.pos), nG = G.pos.length / 3;
+    // fondo (faccia interna) della puleggia per colonna (x, y)
+    const fondo = new Map(); for (let i = 0; i < nG; i++) { const k = kk(G.pos[3 * i], G.pos[3 * i + 1]); fondo.set(k, Math.min(fondo.get(k) ?? 9, G.pos[3 * i + 2])); }
+    const lift = new Float32Array(nG); let mx = 0;
+    for (let i = 0; i < nG; i++) { const x = G.pos[3 * i], y = G.pos[3 * i + 1], t = topAt(x, y); if (t < -8) continue; let f = 9; for (let a = -2; a <= 2; a++) for (let b = -2; b <= 2; b++) { const v = fondo.get((Math.round(x / H) + a) + ',' + (Math.round(y / H) + b)); if (v !== undefined) f = Math.min(f, v); }
+      lift[i] = Math.max(0, t + SOPRA_TEND - f); }
+    // raccordo: il sollevamento si propaga con decadimento dolce ai vertici vicini della puleggia (niente gradini)
+    const nb = Array.from({ length: nG }, () => new Set()); for (let t = 0; t < G.idx.length; t += 3) { const [a, b, c] = [G.idx[t], G.idx[t + 1], G.idx[t + 2]]; nb[a].add(b).add(c); nb[b].add(a).add(c); nb[c].add(a).add(b); }
+    let L = lift; for (let it = 0; it < 25; it++) { const o = L.slice(); for (let i = 0; i < nG; i++) { let m = o[i]; for (const j of nb[i]) m = Math.max(m, o[j] * 0.93); L[i] = m; } }
+    for (let it = 0; it < 6; it++) { const o = L.slice(); for (let i = 0; i < nG; i++) { const J = [...nb[i]]; L[i] = Math.max(lift[i], 0.5 * o[i] + 0.5 * J.reduce((u, j) => u + o[j], 0) / J.length); } }
+    for (let i = 0; i < nG; i++) { np[3 * i + 2] += L[i]; mx = Math.max(mx, L[i]); }
+    M.set(n, { pos: np, idx: G.idx, dir: G.dir, tag: G.tag }); log('puleggia', n, 'sollevata sopra il tendine: max', (mx * 10).toFixed(2), 'mm'); } }
 if (process.env.DEBUG) ys.forEach((y, k) => k % 5 === 0 && log(y.toFixed(2), 'SUP', SUP[k].toFixed(3), 'TETTO', TT[k].toFixed(3), 'ZC', ZC[k].toFixed(3), 'AZ', AZ[k].toFixed(3), 'AX', AX[k].toFixed(3)));
 M.set('d_fdp', { pos, idx: g.idx, dir, tag: g.tag });
 M.salva();
