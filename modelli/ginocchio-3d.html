@@ -899,7 +899,7 @@ canvas.addEventListener('pointermove',e=>{
   else if(ptrs.size===2){const [a,b]=[...ptrs.values()];const dist=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
     if(lastPinch)cam.r=clamp(cam.r*lastPinch/dist,10,140);if(lastMid)pan(mid.x-lastMid.x,mid.y-lastMid.y);lastPinch=dist;lastMid=mid;}
 });
-canvas.addEventListener('pointerup',e=>{if(tap&&ptrs.size===1&&performance.now()-tap.t<350)pick(e.clientX,e.clientY);ptrs.delete(e.pointerId);tap=null;lastPinch=null;lastMid=null;});
+canvas.addEventListener('pointerup',e=>{if(tap&&ptrs.size===1&&performance.now()-tap.t<350){if(compact.matches&&!sheet.classList.contains('collapsed'))setSheet(false);else pick(e.clientX,e.clientY);}ptrs.delete(e.pointerId);tap=null;lastPinch=null;lastMid=null;});
 canvas.addEventListener('pointercancel',e=>{ptrs.delete(e.pointerId);tap=null;});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('wheel',e=>{e.preventDefault();cam.r=clamp(cam.r*Math.exp(e.deltaY*0.0012),10,140);},{passive:false});
