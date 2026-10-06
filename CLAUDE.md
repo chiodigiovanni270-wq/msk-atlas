@@ -29,6 +29,7 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
   e ribadito da `assets/nav.js`; homepage e nuove pagine usano la stessa palette scura dei modelli.
 - Responsive: deve funzionare bene su smartphone (touch) e desktop.
 - Nessun cookie, nessun tracciamento di terze parti.
+- Installazione come app: `manifest.webmanifest` e icone in `assets/icone/` (generate da `strumenti/icone.mjs`). Solo in homepage, da iPhone/iPad/Android e non da app già installata, compare dopo 3 s un foglio dal basso "App MSK Atlas" (iOS: istruzioni Condividi; Android/Chrome: pulsante Installa). Alla chiusura la data si salva in `localStorage` (solo sul dispositivo): non riappare per 7 giorni. Il blocco "App MSK Atlas" in fondo alla homepage con le istruzioni resta sempre visibile.
 - `.vercelignore` esclude dal deploy `strumenti/`, `CLAUDE.md`, `README.md` e `GUIDA_MODELLI.md`: restano nel repository ma non sul sito.
 
 ## Requisiti di contenuto

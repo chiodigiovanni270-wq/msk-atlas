@@ -256,6 +256,22 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
   .lit .w{opacity:1}
   .card:hover .card-media img{transform:none}
 }
+
+/* invito a installare l'app: foglio dal basso, solo da telefono/tablet (vedi script in fondo), mai dai modelli */
+.appbox{position:fixed;left:0;right:0;bottom:0;z-index:60;padding:22px max(22px,env(safe-area-inset-left,0px)) calc(env(safe-area-inset-bottom,0px) + 22px);border-radius:28px 28px 0 0;border-bottom:0;
+  background:linear-gradient(135deg,rgba(40,50,62,.92),rgba(24,31,39,.94));transform:translateY(105%);visibility:hidden;transition:transform .45s var(--ease),visibility 0s .45s;max-width:560px;margin:0 auto}
+.appbox.on{transform:none;visibility:visible;transition:transform .45s var(--ease)}
+.appbox-top{display:flex;align-items:center;gap:14px}
+.appbox-ico{flex:none;width:56px;height:56px;border-radius:14px;border:1px solid var(--line);background:#0d1116 center/cover no-repeat}
+.appbox-t{flex:1;min-width:0}
+.appbox-t b{display:block;font-size:20px;font-weight:600;letter-spacing:-.01em}
+.appbox-t span{font-size:14px;color:var(--muted)}
+.appbox-x{flex:none;width:44px;height:44px;margin:-8px -8px -8px 0;display:grid;place-items:center;background:none;border:0;color:var(--muted);cursor:pointer;border-radius:50%}
+.appbox p{margin:14px 0 0;font-size:15.5px;line-height:1.5;color:var(--ink-2)}
+.appbox p svg{vertical-align:-4px;color:var(--accent)}
+.appbox-go{display:inline-flex;align-items:center;justify-content:center;min-height:46px;margin-top:16px;padding:0 22px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:var(--accent);color:#06222e;font:600 15.5px var(--sans);text-decoration:none;cursor:pointer}
+.app .appbox,.js:not(.touch) .appbox{display:none}
+@media (prefers-reduced-motion:reduce){.appbox,.appbox.on{transition:none}}
 </style>
 </head>
 <body>
@@ -397,8 +413,8 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
         </li>
       </ol>
 
-      <div class="install">
-        <h3>Usalo come un'app</h3>
+      <div class="install" id="installa">
+        <h3>App MSK Atlas</h3>
         <p>Aggiungi MSK Atlas alla schermata Home: si apre con un tocco sull'icona, a schermo intero e senza le barre del browser. Serve comunque la connessione a internet.</p>
         <div class="install-os">
           <details class="glass">
@@ -451,6 +467,18 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
     <p class="wordmark" aria-hidden="true">MSK Atlas</p>
   </div>
 </footer>
+
+
+<!-- invito a installare l'app (solo da telefono/tablet, solo in homepage; testo adattato da script) -->
+<aside class="appbox glass" id="appbox" role="dialog" aria-label="Installa MSK Atlas come app" hidden>
+  <div class="appbox-top">
+    <span class="appbox-ico" style="background-image:url(assets/icone/icon-192.png)" aria-hidden="true"></span>
+    <div class="appbox-t"><b>App MSK Atlas</b><span>Aggiungi a Home</span></div>
+    <button class="appbox-x" id="appboxX" aria-label="Chiudi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <p id="appboxTxt"></p>
+  <a class="appbox-go" id="appboxGo" href="#installa">Come fare</a>
+</aside>
 
 <script>
 /* solo effetti visivi: nessun dato raccolto, nessuna chiamata di rete */
@@ -571,6 +599,34 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
     }, { rootMargin: '0px 0px -8% 0px' });
     items.forEach(function(el, i){ el.style.transitionDelay = (i % 2) * 90 + 'ms'; io.observe(el); });
   }
+})();
+
+/* invito all'installazione come app: solo da telefono o tablet (iPhone, iPad, Android), solo se non già installata.
+   Chiudendolo si ricorda la data (localStorage, solo sul dispositivo) e non riappare per 7 giorni. Nessun cookie né tracciamento. */
+(function(){
+  var box = document.getElementById('appbox'); if (!box) return;
+  var ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1), android = /Android/.test(ua);
+  if (!(ios || android)) return;
+  if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) return;
+  document.documentElement.classList.add('touch');
+  var KEY = 'msk-app-invito', SETTE = 7 * 24 * 3600 * 1000;
+  try { var t = +localStorage.getItem(KEY); if (t && Date.now() - t < SETTE) return; } catch (e) {}
+  var txt = document.getElementById('appboxTxt'), go = document.getElementById('appboxGo'), ev = null;
+  var share = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3m0 0L8 7m4-4l4 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>';
+  if (ios) txt.innerHTML = 'Per usarlo come app, tocca l\u2019icona Condividi ' + share + ' e scegli \u201cAggiungi alla schermata Home\u201d.';
+  else txt.textContent = 'Aggiungilo alla schermata Home: si apre a schermo intero, come un\u2019app.';
+  function chiudi(){ box.classList.remove('on'); setTimeout(function(){ box.hidden = true; }, 500); try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {} }
+  document.getElementById('appboxX').addEventListener('click', chiudi);
+  go.addEventListener('click', function(e){
+    if (ev) { e.preventDefault(); ev.prompt(); ev.userChoice.then(chiudi); return; }   // Android/Chrome: installazione diretta
+    e.preventDefault(); chiudi();
+    var inst = document.getElementById('installa'); if (!inst) return;
+    var d = inst.querySelectorAll('details'); d.forEach(function(x, i){ x.open = ios ? i === 0 : i === 1; });
+    inst.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); ev = e; go.textContent = 'Installa'; });
+  addEventListener('appinstalled', function(){ box.hidden = true; try { localStorage.setItem(KEY, String(Date.now() + 3650 * 24 * 3600 * 1000)); } catch (e) {} });
+  setTimeout(function(){ box.hidden = false; requestAnimationFrame(function(){ box.classList.add('on'); }); }, 3000);
 })();
 </script>
 </body>
