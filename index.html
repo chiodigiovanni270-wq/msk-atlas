@@ -602,15 +602,15 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
 })();
 
 /* invito all'installazione come app: solo da telefono o tablet (iPhone, iPad, Android), solo se non già installata.
-   Chiudendolo si ricorda la data (localStorage, solo sul dispositivo) e non riappare per 7 giorni. Nessun cookie né tracciamento. */
+   Chiudendolo si ricorda la data (localStorage, solo sul dispositivo) e non riappare per 1 giorno. Nessun cookie né tracciamento. */
 (function(){
   var box = document.getElementById('appbox'); if (!box) return;
   var ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1), android = /Android/.test(ua);
   if (!(ios || android)) return;
   if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) return;
   document.documentElement.classList.add('touch');
-  var KEY = 'msk-app-invito', SETTE = 7 * 24 * 3600 * 1000;
-  try { var t = +localStorage.getItem(KEY); if (t && Date.now() - t < SETTE) return; } catch (e) {}
+  var KEY = 'msk-app-invito', PAUSA = 24 * 3600 * 1000;
+  try { var t = +localStorage.getItem(KEY); if (t && Date.now() - t < PAUSA) return; } catch (e) {}
   var txt = document.getElementById('appboxTxt'), go = document.getElementById('appboxGo'), ev = null;
   var share = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3m0 0L8 7m4-4l4 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>';
   if (ios) txt.innerHTML = 'Per usarlo come app, tocca l\u2019icona Condividi ' + share + ' e scegli \u201cAggiungi alla schermata Home\u201d.';
