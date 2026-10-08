@@ -84,7 +84,7 @@ function tubi(id) {
   const a = M.html.indexOf(`{id:'${id}'`), b = M.html.indexOf('\n {id:', a + 5), src = M.html.slice(a, b);
   return [...src.matchAll(/tube\((\[\[.*?\]\]),([\d.]+)/g)].map(m => ({ p: JSON.parse(m[1]), r: +m[2], txt: m[1] }));
 }
-const ORIGINALE = '9deb601';  // revisione con i decorsi di vasi e nervi di partenza (prima di questo strumento, dopo aderenza-ginocchio.mjs)
+const ORIGINALE = 'b404771';  // revisione con i decorsi di vasi e nervi di partenza (prima di questo strumento, dopo aderenza-ginocchio.mjs)
 const SOPRA = ['ninfra'];   // rami sottocutanei: passano sopra i retinacoli; arterie genicolari e il resto sotto
 function ripristinaTubi() {
   const root = new URL('..', import.meta.url).pathname, h = execFileSync('git', ['show', `${ORIGINALE}:modelli/ginocchio-3d.html`], { cwd: root, maxBuffer: 1 << 30 }).toString('utf8');
