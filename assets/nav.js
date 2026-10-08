@@ -71,6 +71,11 @@
     '.an-panel a{color:var(--accent,#72b4d0)}' +
     /* interfaccia del modello (fino a 899 px): titolo e viste si affiancano ai due pulsanti */
     '.top{padding-top:calc(' + TOP + ' + 4px);padding-left:calc(' + SIDE + ' + ' + BTN + ' + 8px);padding-right:calc(' + SIDE_R + ' + ' + BTN + ' + 6px)}' +
+    /* smartphone stretti: il menu "Vista" sta sotto la barra .top; se il titolo è su una riga sola (ginocchio)
+       finirebbe sotto la "i", quindi non sale sopra il bordo inferiore dei pulsanti + 10 px di spazio */
+    '@media (max-width:430px){' +
+      '.top .views{top:max(100%,calc(' + TOP + ' + ' + BTN + ' + 4px))}' +
+    '}' +
     /* da 640 px: indietro con logo e nome; pannello "i" come riquadro sotto la "i", senza sfondo attenuato */
     '@media (min-width:641px){' +
       '.an-home{width:' + HOMEW + ';justify-content:flex-start;padding:0 0 0 10px}' +
