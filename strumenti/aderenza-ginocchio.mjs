@@ -14,12 +14,16 @@
    La mesh di partenza del sartorio (BodyParts3D) ha inoltre una punta (vertici tirati fuori fino a 2 cm presso
    l'inserzione): i vertici che si staccano dai vicini vengono riportati nel baricentro dei vicini.
 
-   Metodo: come la regola `aderisci` di stratifica-ginocchio.mjs. Ogni struttura si sposta per sezioni orizzontali
-   (fasce di 0,5 mm) rigide, verso il riferimento, finché lo spazio minimo nella sezione è `gap`; il profilo degli
-   spostamenti è un inviluppo inferiore gaussiano, così nessuna sezione supera la propria distanza (niente
-   compenetrazioni) e il decorso resta dolce. Vasi e nervi profondi vicini sono ostacoli; quelli sottocutanei
-   (grande safena, nervo safeno sotto il canale degli adduttori, ramo infrarotuleo) seguono i tendini su cui
-   appoggiano. Si parte sempre dalle mesh e dai tubi della revisione PARTENZA, quindi lo script si può rilanciare.
+   Metodo: ogni struttura si sposta per sezioni orizzontali (fasce di 0,5 mm) rigide, nel piano orizzontale, verso
+   l'asse del ginocchio (direzione levigata lungo l'altezza). Per ogni fascia si misura la corsa libera: quanto può
+   avanzare prima che un suo vertice arrivi a `gap` dal riferimento (strutture profonde, vasi e nervi profondi). Il
+   profilo degli spostamenti è l'inviluppo inferiore di parabole di raggio RAGGIO: nessuna fascia supera la propria
+   corsa (niente compenetrazioni) e il decorso cambia con curve dolci. I tendini già spostati fanno da riferimento
+   per i successivi (gracile e semitendinoso, poi il sartorio sopra di loro). Vasi e nervi sottocutanei (grande
+   safena, nervo safeno sotto il canale degli adduttori, ramo infrarotuleo) seguono i tendini su cui appoggiano e
+   ne restano fuori. Mesh dalla revisione PARTENZA e tubi dalla revisione TUBI (prima dei retinacoli), quindi lo
+   script si può rilanciare. Per le prove: DEBUG=1 stampa la corsa libera per fascia, SENZA=<struttura|OST> la
+   toglie dal riferimento.
 
    Requisiti: Node 18 o successivo, nessuna dipendenza. */
 import { M, REAL, setPos, posDaRevisione, N, or, solid, edt, sample, clamp, sstep, log, repack, saveFile, O, H, NX, NY, NZ, NXY } from './lib-modello.mjs';
