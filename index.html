@@ -572,13 +572,13 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       if (!W || !H) return;
       var r = stage.getBoundingClientRect();
       var target = still ? 0 : clamp(-r.top / Math.max(1, r.height - H));
-      /* il fotogramma segue lo scorrimento con un ritardo di pochi centesimi di secondo (costante di tempo ~40 ms, indipendente
-         dalla frequenza dello schermo): leviga i salti dei singoli eventi di scroll e si ferma subito dopo la pagina */
+      /* il fotogramma segue lo scorrimento con una breve levigatura (~30 ms), ma non resta mai indietro di più di 2 fotogrammi:
+         leviga i salti dei singoli eventi di scroll e, quando la pagina si ferma, la rotazione si ferma subito dopo */
       var now = performance.now(), dt = Math.min(64, now - lastT); lastT = now;
       if (shown < 0) shown = target;
       else {
-        var gap = target - shown, maxStep = 6 / (N - 1);
-        shown += Math.max(-maxStep, Math.min(maxStep, gap * (1 - Math.exp(-dt / 40))));
+        var lag = 2 / (N - 1), next = shown + (target - shown) * (1 - Math.exp(-dt / 30));
+        shown = Math.max(target - lag, Math.min(target + lag, next));
         if (Math.abs(target - shown) < 0.5 / (N - 1)) shown = target; else schedule();
       }
       var p = shown;
