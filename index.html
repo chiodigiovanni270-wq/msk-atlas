@@ -21,6 +21,11 @@ document.documentElement.classList.add('js');
 /* già aperta come app dalla schermata Home: niente istruzioni per installarla */
 if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) document.documentElement.classList.add('app');
 </script>
+<!-- Vercel Web Analytics -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
 /* palette scura del sito (tema scuro fisso), fondo più profondo in homepage */
 :root{
