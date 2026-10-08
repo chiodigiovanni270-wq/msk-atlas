@@ -508,7 +508,7 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
        veloce la finestra a piena risoluzione non fa in tempo a seguire, e così non si saltano molti fotogrammi.
        Le immagini decodificate pesano molto: tenerle tutte a piena risoluzione rallenta lo scorrimento. */
     var blobs = [], bitmaps = [], low = [], lowBusy = false, active = 0, dirn = 1, lastIdx = 0, tIdx = 0;
-    var queued = false, last = '', shown = -1, lastT = 0;   // shown: avanzamento mostrato, segue con poco ritardo quello dello scorrimento
+    var queued = false, last = '', shown = -1, lastT = 0, lastTarget = -1, movedT = 0;   // shown: avanzamento mostrato, segue con poco ritardo quello dello scorrimento
     var pad = function(i){ return ('00' + i).slice(-3); };
     var clamp = function(x){ return x < 0 ? 0 : x > 1 ? 1 : x; };
     var smooth = function(x){ x = clamp(x); return x * x * (3 - 2 * x); };
@@ -572,12 +572,14 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       if (!W || !H) return;
       var r = stage.getBoundingClientRect();
       var target = still ? 0 : clamp(-r.top / Math.max(1, r.height - H));
-      /* il fotogramma segue lo scorrimento con una breve levigatura (~30 ms), ma non resta mai indietro di più di 2 fotogrammi:
-         leviga i salti dei singoli eventi di scroll e, quando la pagina si ferma, la rotazione si ferma subito dopo */
+      /* mentre la pagina scorre il fotogramma segue con una levigatura (~50 ms, al massimo 6 fotogrammi indietro), che rende
+         fluida anche una scorsa veloce; appena lo scorrimento si ferma recupera in poche decine di ms e si ferma con la pagina */
       var now = performance.now(), dt = Math.min(64, now - lastT); lastT = now;
+      if (target !== lastTarget) { lastTarget = target; movedT = now; }
       if (shown < 0) shown = target;
       else {
-        var lag = 2 / (N - 1), next = shown + (target - shown) * (1 - Math.exp(-dt / 30));
+        var moving = now - movedT < 80, lag = 6 / (N - 1);
+        var next = shown + (target - shown) * (1 - Math.exp(-dt / (moving ? 50 : 18)));
         shown = Math.max(target - lag, Math.min(target + lag, next));
         if (Math.abs(target - shown) < 0.5 / (N - 1)) shown = target; else schedule();
       }
