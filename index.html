@@ -508,7 +508,7 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
        veloce la finestra a piena risoluzione non fa in tempo a seguire, e così non si saltano molti fotogrammi.
        Le immagini decodificate pesano molto: tenerle tutte a piena risoluzione rallenta lo scorrimento. */
     var blobs = [], bitmaps = [], low = [], lowBusy = false, active = 0, dirn = 1, lastIdx = 0, tIdx = 0;
-    var queued = false, last = '', shown = -1;   // shown: avanzamento mostrato, insegue quello dello scorrimento
+    var queued = false, last = '';
     var pad = function(i){ return ('00' + i).slice(-3); };
     var clamp = function(x){ return x < 0 ? 0 : x > 1 ? 1 : x; };
     var smooth = function(x){ x = clamp(x); return x * x * (3 - 2 * x); };
@@ -572,12 +572,8 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       if (!W || !H) return;
       var r = stage.getBoundingClientRect();
       var target = still ? 0 : clamp(-r.top / Math.max(1, r.height - H));
-      /* con uno scorrimento veloce la rotazione non salta: si avvicina all'obiettivo in pochi fotogrammi */
-      /* al massimo 4 fotogrammi per ciclo di disegno: con una scorsa velocissima la rotazione resta fluida e non salta */
-      var step = Math.max(-4 / (N - 1), Math.min(4 / (N - 1), (target - shown) * 0.2));
-      shown = shown < 0 ? target : shown + step;
-      if (Math.abs(target - shown) < 0.001) shown = target; else schedule();
-      var p = shown;
+      /* rotazione legata direttamente allo scorrimento, senza inseguimento: si ferma insieme alla pagina */
+      var p = target;
       var e = smooth(p), idx = Math.round(p * (N - 1)); tIdx = Math.round(target * (N - 1));
       if (idx !== lastIdx) { dirn = idx > lastIdx ? 1 : -1; lastIdx = idx; }
       keepWindow(idx);
