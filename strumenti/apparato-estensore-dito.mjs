@@ -60,10 +60,11 @@ function edc() {
 }
 
 /* ============ 2. Bendelle sagittali (sagittali): manicotto attorno all'MCF, dal tendine alla placca volare ============ */
-const SAG = { yp: 3.25, yd: 2.45, smax: 1.80 };
+const SAG = { yc: 2.85, smax: 1.62 }; // si fermano al margine laterale della placca volare (|s| ≈ 1,75), senza salire sulla puleggia A1
 function sagittali() {
-  return patch(26, 69, (u, v) => { const s = (v * 2 - 1) * SAG.smax, a = Math.abs(s), y = SAG.yp + (SAG.yd - SAG.yp) * u;
-    return { y, s, h: 0.012 + 0.07 * sstep(0.35, 0.85, a), t: 0.036 * orlo(u, 0.45) * orlo(v, 0.3), d: [0, 1] }; });
+  return patch(26, 69, (u, v) => { const s = (v * 2 - 1) * SAG.smax, a = Math.abs(s), hl = 0.40 - 0.14 * sstep(1.0, 1.6, a), y = SAG.yc + hl * (1 - 2 * u), fin = sstep(1.3, SAG.smax, a);
+    // le fibre convergono verso la placca: bordi che si restringono, spessore e quota che calano nell'ultimo tratto
+    return { y, s, h: 0.012 + 0.07 * sstep(0.35, 0.85, a) * (1 - 0.85 * fin), t: 0.036 * (1 - 0.6 * fin) * orlo(u, 0.45) * orlo(v, 0.3), d: [0, 1] }; });
 }
 
 /* ============ 3. Cappuccio degli estensori (cappuccio): espansione degli intrinseci distale alle sagittali ============ */
@@ -97,10 +98,10 @@ function triangolare() {
 }
 
 /* ============ 6. Tendine terminale ============ */
-const TERM = { y0: -3.5, y1: -4.97,
-  w: [[-3.5, 0.10], [-3.78, 0.20], [-4.05, 0.26], [-4.3, 0.24], [-4.7, 0.30], [-4.97, 0.40]],
-  t: [[-3.5, 0.05], [-4.2, 0.055], [-4.6, 0.045], [-4.85, 0.025], [-4.97, 0.0]],
-  h: [[-3.5, 0.02], [-4.6, 0.02], [-4.97, 0.0]] };
+const TERM = { y0: -3.5, y1: -5.22, // inserzione sul tubercolo dorsale della base di P3 (≈ −4,8 … −5,2), distale alla rima della IFD (≈ −4,65)
+  w: [[-3.5, 0.10], [-3.78, 0.20], [-4.05, 0.26], [-4.3, 0.24], [-4.8, 0.25], [-5.0, 0.36], [-5.14, 0.42], [-5.22, 0.30]],
+  t: [[-3.5, 0.05], [-4.2, 0.055], [-4.7, 0.045], [-4.95, 0.04], [-5.1, 0.025], [-5.22, 0.0]],
+  h: [[-3.5, 0.02], [-4.6, 0.02], [-4.85, 0.008], [-5.22, 0.0]] };
 function terminale() {
   return nastro({ NU: 70, NV: 15, fine: [false, true], path: u => ({ y: TERM.y0 + (TERM.y1 - TERM.y0) * u, s: 0 }), w: per(TERM.w), h: per(TERM.h), t: per(TERM.t) });
 }
