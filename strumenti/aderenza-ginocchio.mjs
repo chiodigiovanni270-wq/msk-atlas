@@ -11,8 +11,11 @@
      Tra i piani c'è solo fascia e poco grasso: nessuno spazio vuoto.
    - Tratto ileotibiale: ispessimento della fascia lata, unito al femore dal setto intermuscolare laterale; sulla coscia
      distale è applicato al vasto laterale, sul condilo laterale ne è separato solo da un sottile strato di grasso.
-   La mesh di partenza del sartorio (BodyParts3D) ha inoltre una punta (vertici tirati fuori fino a 2 cm presso
-   l'inserzione): i vertici che si staccano dai vicini vengono riportati nel baricentro dei vicini.
+   Le mesh di partenza (BodyParts3D) hanno inoltre punte isolate: uno o due vertici tirati fuori di 0,5–2 cm (sartorio
+   presso l'inserzione, semitendinoso all'interlinea verso il semimembranoso, gracile, semimembranoso, capi del
+   gastrocnemio, popliteo, vasto mediale, bicipite). Nei muscoli di PUNTE i vertici che si staccano dai vicini
+   (scarto dal baricentro dei vicini > 2,5 mm e > 0,7 volte la lunghezza media dei lati) vengono riportati nel
+   baricentro dei vicini; le sezioni di taglio (|y| > 19,5 cm) non si toccano.
 
    Metodo: ogni struttura si sposta per sezioni orizzontali (fasce di 0,5 mm) rigide, nel piano orizzontale, verso
    l'asse del ginocchio (direzione levigata lungo l'altezza). Per ogni fascia si misura la corsa libera: quanto può
@@ -57,23 +60,23 @@ const root = new URL('..', import.meta.url).pathname;
 const H0 = execFileSync('git', ['show', `${TUBI}:modelli/ginocchio-3d.html`], { cwd: root, maxBuffer: 1 << 30 }).toString('utf8');
 for (const id of VASI(M.html)) { const a = tubiDi(M.html, id), b = tubiDi(H0, id); a.forEach((T, k) => { if (b[k] && b[k].txt !== T.txt) M.html = M.html.replace(T.txt, b[k].txt); }); }
 const NOMI = [...new Set(REGOLE.map(R => R.sposta))];
-for (const n of NOMI) setPos(n, posDaRevisione(PARTENZA, n, 'modelli/ginocchio-3d.html'));
-const P0 = new Map(NOMI.map(n => [n, new Float32Array(REAL(n).pos)]));
-
-/* ---------- punta del sartorio ---------- */
+const PUNTE = ['sart', 'grac', 'semit', 'semim', 'gmed', 'glat', 'pop', 'vmed', 'biclong', 'bicbrev'];
+for (const n of new Set([...NOMI, ...PUNTE])) setPos(n, posDaRevisione(PARTENZA, n, 'modelli/ginocchio-3d.html'));
+/* ---------- punte isolate delle mesh ---------- */
 function togliPunte(name) {
   const { pos, idx } = REAL(name), p = new Float32Array(pos), nv = p.length / 3, nb = Array.from({ length: nv }, () => new Set());
   for (let t = 0; t < idx.length; t += 3) for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) if (a !== b) nb[idx[t + a]].add(idx[t + b]);
   let tot = 0;
   for (let it = 0; it < 10; it++) { let k = 0;
-    for (let i = 0; i < nv; i++) { const s = [...nb[i]]; if (!s.length) continue; const c = [0, 0, 0]; let el = 0;
+    for (let i = 0; i < nv; i++) { const s = [...nb[i]]; if (!s.length || Math.abs(p[3 * i + 1]) > 19.5) continue; const c = [0, 0, 0]; let el = 0;
       for (const j of s) { for (let q = 0; q < 3; q++) c[q] += p[3 * j + q] / s.length; el += Math.hypot(p[3 * j] - p[3 * i], p[3 * j + 1] - p[3 * i + 1], p[3 * j + 2] - p[3 * i + 2]) / s.length; }
       const d = Math.hypot(c[0] - p[3 * i], c[1] - p[3 * i + 1], c[2] - p[3 * i + 2]);
       if (d > 0.25 && d > 0.7 * el) { for (let q = 0; q < 3; q++) p[3 * i + q] = c[q]; k++; } }
     tot += k; if (!k) break; }
   setPos(name, p); return tot;
 }
-log(`sart: ${togliPunte('sart')} vertici della punta riportati tra i vicini`);
+for (const n of PUNTE) log(`${n}: ${togliPunte(n)} vertici di punte isolate riportati tra i vicini`);
+const P0 = new Map(NOMI.map(n => [n, new Float32Array(REAL(n).pos)]));
 
 /* ---------- ostacoli: vasi e nervi profondi ---------- */
 const OST = new Uint8Array(N);
