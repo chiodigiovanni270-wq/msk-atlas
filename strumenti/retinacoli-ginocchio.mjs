@@ -84,7 +84,7 @@ function tubi(id) {
   const a = M.html.indexOf(`{id:'${id}'`), b = M.html.indexOf('\n {id:', a + 5), src = M.html.slice(a, b);
   return [...src.matchAll(/tube\((\[\[.*?\]\]),([\d.]+)/g)].map(m => ({ p: JSON.parse(m[1]), r: +m[2], txt: m[1] }));
 }
-const ORIGINALE = '98225d3';  // revisione con i decorsi di vasi e nervi di partenza (prima di questo strumento)
+const ORIGINALE = '4637e28';  // revisione con i decorsi di vasi e nervi di partenza (prima di questo strumento, dopo aderenza-ginocchio.mjs)
 const SOPRA = ['ninfra'];   // rami sottocutanei: passano sopra i retinacoli; arterie genicolari e il resto sotto
 function ripristinaTubi() {
   const root = new URL('..', import.meta.url).pathname, h = execFileSync('git', ['show', `${ORIGINALE}:modelli/ginocchio-3d.html`], { cwd: root, maxBuffer: 1 << 30 }).toString('utf8');
@@ -96,7 +96,7 @@ const VASI = () => [...M.html.matchAll(/\{id:'([a-zA-Z]+)',nw:1,cat:'(art|ven|ne
 // entrare nel piano profondo reale (ossa, capsula); dove non c'è spazio è il telo a sollevarsi sopra il vaso (il tubo entra nel piano profondo e la
 // chiusura ne fa un rilievo dolce). Chi sta sopra (rami sottocutanei, SOPRA) sale sopra la faccia superficiale.
 // Spostamento lungo il gradiente del campo, esteso ai punti vicini del tubo; le coordinate nel sorgente vengono riscritte.
-function scostaVasi(f, vicino, Dr, sopra, nome) {
+function scostaVasi(f, vicino, Dr, sopra, nome, evita) {
   const mossi = [];
   for (const id of VASI()) { if (SOPRA.includes(id) !== sopra) continue; tubi(id).forEach((T, k) => {
     const p = T.p.map(q => q.slice()), lim = T.r + SPESS / 2 + 0.15;
@@ -118,6 +118,11 @@ function scostaVasi(f, vicino, Dr, sopra, nome) {
         const m = Math.hypot(q[0] - o[0], q[1] - o[1], q[2] - o[2]); if (m > 0.003) att++; });
       if (!att) break;
     } }
+    // rami sopra il telo: lo spostamento (levigato) non li porta dentro le strutture superficiali (es. sartorio):
+    // dove servirebbe, si accorcia fino al bordo della struttura
+    if (evita) p.forEach((q, i) => { const o = T.p[i], at = u => sample(evita, ...o.map((v, c) => v + (q[c] - v) * u)), m = T.r + 0.02;
+      if (at(1) >= m || at(0) < m) return; let a = 0, b = 1; for (let it = 0; it < 12; it++) { const u = (a + b) / 2; if (at(u) >= m) a = u; else b = u; }
+      for (let c = 0; c < 3; c++) q[c] = o[c] + (q[c] - o[c]) * a; });
     p.forEach((q, i) => mx = Math.max(mx, Math.hypot(...q.map((v, c) => v - T.p[i][c]))));
     const txt = JSON.stringify(p.map(q => q.map(v => +v.toFixed(2))));
     if (txt !== T.txt) { M.html = M.html.replace(T.txt, txt); log(`${nome}: ${id}:${k} ${sopra ? 'sopra' : 'sotto'} il telo, spostato fino a ${(mx * 10).toFixed(1)} mm`); }
@@ -227,7 +232,7 @@ function telo(L) {
     if (n[0] * gr[0] + n[1] * gr[1] + n[2] * gr[2] < 0) for (let t = 0; t < idx.length; t += 3) { const x = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = x; } }
   orienta(idx, nv * 2);
   log(L.nome, nv * 2, 'vertici,', idx.length / 3, 'triangoli');
-  scostaVasi(f, (q, lim) => vicino(q, lim, 0.4), Dr, true, L.nome);   // i nervi sopra anche un po' oltre il bordo
+  scostaVasi(f, (q, lim) => vicino(q, lim, 0.4), Dr, true, L.nome, So);   // i nervi sopra anche un po' oltre il bordo
   return { pos: out, idx: Uint32Array.from(idx), tag: null, fdir };
 }
 // orientamento coerente per propagazione dal primo triangolo di ogni pezzo
