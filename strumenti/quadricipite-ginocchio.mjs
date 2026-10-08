@@ -5,7 +5,8 @@
      node strumenti/quadricipite-ginocchio.mjs verifica   elenca le compenetrazioni con le strutture vicine (non salva)
      node strumenti/quadricipite-ginocchio.mjs verifica originale   le stesse, sulle mesh di partenza (per confronto)
 
-   Cosa fa (riparte sempre dalle mesh della revisione ORIGINALE, quindi si può rilanciare):
+   Cosa fa (riparte sempre dalle mesh di retto e vasti della revisione ORIGINALE, quindi si può rilanciare; tutte le
+   altre mesh restano quelle del file attuale):
    - Tendine quadricipitale (`tenquad`): ricostruito come lamina unica, mesh parametrica liscia a bordi arrotondati
      (sezione a superellisse). Nasce sottile tra retto femorale e vasto intermedio (TQ.yTop), scende appoggiato sul
      vasto intermedio allargandosi e ispessendosi (tabelle LARGH, SPESS, CENTRO), si inserisce sulla base della rotula
@@ -19,7 +20,7 @@
      Il vasto intermedio resta quello originale.
    Parametri nelle tabelle in testa. Dopo: rilanciare borse-ginocchio.mjs (la borsa prerotulea poggia sul tendine),
    poi percorsi-ginocchio.mjs ed estremi-ginocchio.mjs se cambiano gli ostacoli (vedi GUIDA_MODELLI.md). */
-import { meshDaRevisione, REAL, attrs, setMesh, repack, saveFile, log, clamp, sstep, setGriglia, solid, edt, sample, sdf, unione, grad } from './lib-modello.mjs';
+import { realDaRevisione, REAL, attrs, setMesh, repack, saveFile, log, clamp, sstep, setGriglia, solid, edt, sample, sdf, unione, grad } from './lib-modello.mjs';
 
 const ORIGINALE = 'f5ed5c1';            // revisione con le mesh di partenza del quadricipite
 const VERIFICA = process.argv.includes('verifica');
@@ -86,8 +87,8 @@ function quote(name, x0 = -4.5, x1 = 3.5, y0 = -1.5, y1 = 13, h = 0.04) {
 }
 
 /* ============ Mesh di partenza ============ */
-meshDaRevisione(ORIGINALE);
-log('mesh di partenza dalla revisione', ORIGINALE);
+for (const n of ['retto', 'vmed', 'vlat']) { const m = realDaRevisione(ORIGINALE, n); setMesh(n, { pos: m.pos, idx: Uint32Array.from(m.idx), tag: m.tag, fdir: m.fdir }); }
+log('retto e vasti di partenza dalla revisione', ORIGINALE);
 const QV = quote('vint'), QR = quote('rotula');
 
 /* ============ Tendine quadricipitale comune ============ */
@@ -237,7 +238,7 @@ if (!BASE) {
 if (!VERIFICA) saveFile(repack());
 
 /* ============ Verifica: vertici delle strutture ricostruite dentro le strutture vicine ============ */
-// (le mesh vicine sono quelle del file attuale per tendine, retto e vasti; le altre dalla revisione ORIGINALE)
+// (con `originale`: retto e vasti della revisione ORIGINALE e il tendine del file attuale)
 const VICINE = ['femore', 'rotula', 'cartfem', 'cartrot', 'vint', 'bsovra', 'bprep', 'capsula', 'retmed', 'retlat', 'mpfl', 'itb', 'hoffa', 'tenrot', 'sart'];
 const Y_MAX = 10.6;   // sopra questa quota le mesh sono quelle originali
 const NUOVE = ['tenquad', ...CAPI.map(C => C.id)];

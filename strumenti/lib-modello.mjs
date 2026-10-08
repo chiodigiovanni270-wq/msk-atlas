@@ -45,7 +45,7 @@ export function posDaRevisione(rev, name, file) {
   for (let i = 0; i < m.nv * 3; i++) { const k = i % 3; pos[i] = mn.min[k] + q[i] / 65535 * (mn.max[k] - mn.min[k]); }
   return pos;
 }
-// mesh completa (posizioni e indici) letta da una revisione git del modello: per ripartire da una forma che lo strumento sostituisce
+// mesh completa (posizioni, indici, tag e direzione delle fibre) letta da una revisione git del modello: per ripartire da una forma che lo strumento sostituisce
 export function realDaRevisione(rev, name, file) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const h = execFileSync('git', ['show', `${rev}:${file || relative(root, FILE).split('\\').join('/')}`], { cwd: root, maxBuffer: 1 << 30 }).toString('utf8');
@@ -53,7 +53,9 @@ export function realDaRevisione(rev, name, file) {
   const q = new Uint16Array(b.buffer.slice(b.byteOffset + m.p, b.byteOffset + m.p + m.nv * 6)), pos = new Float32Array(m.nv * 3);
   for (let i = 0; i < m.nv * 3; i++) { const k = i % 3; pos[i] = mn.min[k] + q[i] / 65535 * (mn.max[k] - mn.min[k]); }
   const ib = b.buffer.slice(b.byteOffset + m.i, b.byteOffset + m.i + m.ni * (m.i16 ? 2 : 4));
-  return { pos, idx: m.i16 ? new Uint16Array(ib) : new Uint32Array(ib) };
+  const tag = m.t !== undefined ? Uint8Array.from(b.subarray(m.t, m.t + m.nv)) : null;           // tag e direzione delle fibre, se presenti
+  const fdir = m.d !== undefined ? Int8Array.from(new Int8Array(b.buffer, b.byteOffset + m.d, m.nv * 3)) : null;
+  return { pos, idx: m.i16 ? new Uint16Array(ib) : new Uint32Array(ib), tag, fdir };
 }
 // posizioni correnti (modificabili con setPos prima della voxelizzazione)
 const override = new Map();

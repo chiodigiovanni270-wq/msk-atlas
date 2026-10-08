@@ -84,6 +84,9 @@ const REGOLE = [
   { tipo: 'sez', sposta: ['biclong', 'bicbrev'], insieme: true, rif: ['lcl'], modo: 'fuori', dove: y => y <= -2.6, sigma: 0.8, max: 0.35 },
   // bicipite laterale al capo laterale del gastrocnemio (tra i due passa il nervo peroneo comune)
   { tipo: 'sez', sposta: ['biclong', 'bicbrev'], insieme: true, rif: ['glat'], modo: 'laterale', dir: [-1, 0, 0], dove: y => y > -1.5, sigma: 0.9, max: 0.6 },
+  // lo spostamento totale del bicipite diventa una B-spline a nodi radi lungo y: il decorso cambia direzione in blocco,
+  // senza le ondulazioni delle campane strette delle tre regole precedenti
+  { tipo: 'liscia', nomi: ['biclong', 'bicbrev'], nodo: 1.5, ySu: 16, yGiu: -4.5, rigidezza: 3 },
   // inserzione sulla testa del perone: il tendine affonda nella corticale e le sfrangiature oltre l'inserzione
   // (che pendevano dietro la testa) vengono tolte
   { tipo: 'taglia', nome: 'biclong', ySink: -3.0, yCut: -3.9 },
@@ -290,7 +293,39 @@ function allunga({ nome, y0, yFine }) {
   setPos(nome, P); log(`${nome}: estremità distale da y ${ym.toFixed(2)} a ${yFine}`);
 }
 
-for (const R of REGOLE) ({ taglia, sez: sezioni, aderisci, tendine, allunga })[R.tipo](R);
+// spostamento per sezioni di un gruppo (già traslato dalle regole precedenti) sostituito dalla sua approssimazione
+// ai minimi quadrati con una B-spline cubica uniforme (nodi ogni `nodo` cm tra yGiu e ySu) penalizzata sulla curvatura
+// (P-spline, peso `rigidezza`; ogni sezione pesa uguale): il gradino e le ondulazioni del profilo diventano una rampa
+// lunga (da y ~9 a ~1) e una curva unica; sopra ySu lo spostamento è nullo (nodi fissi a zero).
+// yVincolo (facoltativo): approssima il profilo solo sotto questa quota, lasciando la spline libera più in alto.
+// Ogni sezione resta rigida (traslazione).
+function liscia({ nomi, nodo, ySu, yGiu, yVincolo = ySu, rigidezza = 0 }) {
+  const key = nomi.join('+'), { nb, bin } = fascia(key, nomi), S = [0, 1, 2].map(() => new Float64Array(nb)), C = new Float64Array(nb);
+  for (const n of nomi) { const p = REAL(n).pos, o = orig.get(n); for (let i = 0; i < p.length; i += 3) { const b = Math.round(bin(o[i + 1])); for (let k = 0; k < 3; k++) S[k][b] += p[i + k] - o[i + k]; C[b]++; } }
+  const nk = Math.ceil((ySu - yGiu) / nodo) + 3, B = t => { t = Math.abs(t); return t < 1 ? (4 - 6 * t * t + 3 * t * t * t) / 6 : t < 2 ? (2 - t) ** 3 / 6 : 0; };
+  const base = y => Array.from({ length: nk }, (_, j) => B((y - yGiu) / nodo - (j - 1)));
+  const libero = j => yGiu + (j - 1) * nodo < ySu - nodo; // i nodi in alto restano a zero
+  const fasce_ = []; for (let b = 0; b < nb; b++) if (C[b]) fasce_.push(b);
+  const yOf = new Float64Array(nb); { let y = -30; for (let b = 0; b < nb; b++) { while (bin(y) < b && y < 30) y += BIN / 4; yOf[b] = y; } }
+  const fit = k => { // minimi quadrati pesati per numero di vertici, piccola regolarizzazione
+    const A = Array.from({ length: nk }, () => new Float64Array(nk)), r = new Float64Array(nk);
+    let W = 0;
+    for (const b of fasce_) { const y = yOf[b]; if (y < yGiu - 1 || y > yVincolo) continue; const f = base(y), w = 1, d = S[k][b] / C[b]; W += w; // ogni sezione pesa uguale
+      for (let i = 0; i < nk; i++) { if (!f[i]) continue; r[i] += w * f[i] * d; for (let j = 0; j < nk; j++) A[i][j] += w * f[i] * f[j]; } }
+    const lam = rigidezza * W / nk; // differenze seconde dei coefficienti
+    for (let i = 1; i < nk - 1; i++) { const q = [i - 1, i, i + 1], c = [1, -2, 1]; for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) A[q[a]][q[b]] += lam * c[a] * c[b]; }
+    for (let i = 0; i < nk; i++) { A[i][i] += 1e-6; if (!libero(i)) { A[i].fill(0); A[i][i] = 1; r[i] = 0; } }
+    for (let i = 0; i < nk; i++) { let p = i; for (let q = i + 1; q < nk; q++) if (Math.abs(A[q][i]) > Math.abs(A[p][i])) p = q; [A[i], A[p]] = [A[p], A[i]]; [r[i], r[p]] = [r[p], r[i]];
+      for (let q = i + 1; q < nk; q++) { const m = A[q][i] / A[i][i]; for (let j = i; j < nk; j++) A[q][j] -= m * A[i][j]; r[q] -= m * r[i]; } }
+    const c = new Float64Array(nk); for (let i = nk - 1; i >= 0; i--) { let v = r[i]; for (let j = i + 1; j < nk; j++) v -= A[i][j] * c[j]; c[i] = v / A[i][i]; }
+    return y => { if (y >= ySu) return 0; const f = base(clamp(y, yGiu, ySu)); let v = 0; for (let i = 0; i < nk; i++) v += c[i] * f[i]; return v; };
+  };
+  const F = [0, 1, 2].map(fit);
+  for (const n of nomi) { const o = orig.get(n), P = new Float32Array(o.length); for (let i = 0; i < o.length; i += 3) for (let k = 0; k < 3; k++) P[i + k] = o[i + k] + F[k](o[i + 1]); setPos(n, P); }
+  log(`${key}: spostamento liscio (nodi ogni ${nodo} cm)`, process.argv.includes('--dettaglio') ? [14, 12, 10, 8, 6, 4, 2, 0, -1, -2, -3, -4].map(y => { const b = Math.round(bin(y)); return `y${y}: prima [${[0, 1, 2].map(k => (C[b] ? S[k][b] / C[b] * 10 : 0).toFixed(1))}] dopo [${F.map(f => (f(y) * 10).toFixed(1))}] mm`; }).join('\n  ') : '');
+}
+
+for (const R of REGOLE) if (!(R.tipo === 'liscia' && process.argv.includes('--senza-liscia'))) ({ taglia, sez: sezioni, aderisci, tendine, allunga, liscia })[R.tipo](R);
 for (const [name, o] of orig) { const p = REAL(name).pos; if (p.length !== o.length) { console.log(`  ${name}: topologia modificata`); continue; }
   let m = 0; for (let i = 0; i < p.length; i += 3) m = Math.max(m, Math.hypot(p[i] - o[i], p[i + 1] - o[i + 1], p[i + 2] - o[i + 2]));
   const pr = {}; for (let i = 0; i < p.length; i += 3) { const k = Math.round(o[i + 1]); pr[k] = Math.max(pr[k] || 0, Math.hypot(p[i] - o[i], p[i + 1] - o[i + 1], p[i + 2] - o[i + 2])); }
