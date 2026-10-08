@@ -52,7 +52,8 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
 - Anteprima e animazione NON vanno rigenerate a ogni modifica di un modello: si fanno alla fine, quando lo chiedo.
   Allora rigenerare l'anteprima del modello (`strumenti/anteprima.mjs`) e, per il polso,
   la sequenza della prima schermata: `node strumenti/sequenza-home.mjs polso-dito-3d`
-  (salva `assets/sequenza/polso-dito-3d/l/` e `s/`; se cambia il numero di fotogrammi aggiornare `data-frames` in `index.html`).
+  (salva `assets/sequenza/polso-dito-3d/l/` e `s/`, ritagliati sul modello; se cambiano il numero di fotogrammi o il ritaglio aggiornare `data-frames` e `data-crop` in `index.html`,
+  e le dimensioni dell'`<img>` di riserva nel CSS).
   L'animazione segue lo scorrimento e rispetta "riduci movimento".
 
 ## Modo di lavorare

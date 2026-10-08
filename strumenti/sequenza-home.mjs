@@ -3,21 +3,26 @@
 
    Uso (dalla cartella del progetto, con il server locale attivo sulla porta 8000):
      python3 -m http.server 8000                       (in un altro terminale)
-     node strumenti/sequenza-home.mjs <nome> [--passo=4] [--dist=1.4] [--alza=0] [--w=1280] [--ws=800] [--prova]
+     node strumenti/sequenza-home.mjs <nome> [--passo=4] [--dist=1.4] [--alza=0] [--w=2200] [--ws=1700] [--vista=2240] [--ritaglio=0.25,0.04,0.75,0.98] [--prova]
 
    Esempio:
      node strumenti/sequenza-home.mjs polso-dito-3d
-     → salva assets/sequenza/polso-dito-3d/l/000.webp … (1280×800, per computer)
-       e    assets/sequenza/polso-dito-3d/s/000.webp … (800×500, per smartphone)
-       WebP con sfondo trasparente: il fondo e la luce attorno al modello li disegna la pagina.
-     Alla fine stampa il numero di fotogrammi da scrivere in index.html (attributo data-frames).
+     → salva assets/sequenza/polso-dito-3d/l/000.webp … (per computer)
+       e    assets/sequenza/polso-dito-3d/s/000.webp … (per smartphone)
+       WebP con sfondo trasparente, ritagliati sul modello: il fondo e la luce attorno li disegna la pagina.
+     Alla fine stampa i valori da scrivere in index.html (data-frames, data-crop).
 
    Opzioni:
      --passo  px di trascinamento per fotogramma: un giro = 698 px, quindi 4 → 175 fotogrammi (~2° l'uno)
      --dist   distanza della camera rispetto a quella iniziale (1.4 = modello intero con un po' di margine;
               l'ingrandimento iniziale lo fa la pagina)
      --alza   elevazione della camera rispetto a quella iniziale, in radianti (negativo = più dal basso)
-     --w      larghezza dei fotogrammi grandi; --ws dei piccoli (altezza = 5/8)
+     --w      larghezza che avrebbe l'intero fotogramma grande; --ws dei piccoli (altezza = 5/8).
+              Il file salvato è solo il ritaglio, quindi più stretto (es. 2200 → 1100 px)
+     --vista  larghezza della finestra di rendering (altezza = 5/8), densità 1: deve essere ≥ --w. Non usare
+              densità > 1: il modello cambierebbe inquadratura. Con vista 2240 il canvas è 2240×1400
+     --ritaglio  x0,y0,x1,y1 in frazioni del fotogramma intero: area che contiene il modello in ogni
+              angolazione (si verifica con --prova e guardando i fotogrammi a metà giro). Va in data-crop
      --prova  salva solo il primo fotogramma (per regolare --dist e --alza)
 
    Come funziona: apre il modello in Chrome headless e nasconde l'interfaccia; poi usa i comandi del
@@ -37,12 +42,14 @@ const args = process.argv.slice(2);
 const name = args.find(a => !a.startsWith('--'));
 const opt = k => (args.find(a => a.startsWith(`--${k}=`)) || '').split('=')[1];
 if (!name || !/^[a-z0-9-]+$/.test(name)) {
-  console.error('Uso: node strumenti/sequenza-home.mjs <nome> [--passo=4] [--dist=1.4] [--alza=0] [--w=1280] [--ws=800] [--prova]');
+  console.error('Uso: node strumenti/sequenza-home.mjs <nome> [--passo=4] [--dist=1.4] [--alza=0] [--w=2200] [--ws=1700] [--vista=2240] [--ritaglio=0.25,0.04,0.75,0.98] [--prova]');
   process.exit(1);
 }
 const passo = Math.max(1, Math.round(Number(opt('passo') || 4)));
 const dist = Number(opt('dist') || 1.4), alza = Number(opt('alza') || 0);
-const W = Math.round(Number(opt('w') || 1280)), WS = Math.round(Number(opt('ws') || 800));
+const W = Math.round(Number(opt('w') || 2200)), WS = Math.round(Number(opt('ws') || 1700));
+const scala = Number(opt('scala') || 1), vista = Math.round(Number(opt('vista') || 2240));
+const ritaglio = (opt('ritaglio') || '0.25,0.04,0.75,0.98').split(',').map(Number);
 const prova = args.includes('--prova');
 const GIRO = Math.round(2 * Math.PI / 0.009);          // px di trascinamento per un giro completo
 const N = prova ? 1 : Math.round(GIRO / passo);
@@ -57,7 +64,7 @@ for (const c of cartelle) {
 const url = await verificaModello(name);
 const chrome = await avviaChrome();
 try {
-  await apriModello(chrome, url, 1600, 1000, 1);
+  await apriModello(chrome, url, vista, Math.round(vista * 5 / 8), scala);
   // interfaccia nascosta: gli eventi arrivano direttamente al canvas
   await chrome.evaluate(`(() => { const s = document.createElement('style');
     s.textContent = 'body > :not(canvas){display:none !important}'; document.head.appendChild(s); })()`);
@@ -70,7 +77,7 @@ try {
   const t = Date.now();
   for (let i = 0; i < N; i++) {
     if (i) await mouse('mouseMoved', X0 - i * passo, Y0 + dyAlza, { buttons: 1 });
-    const res = await chrome.evaluate(espressioneCatturaTrasparente([W, WS]));
+    const res = await chrome.evaluate(espressioneCatturaTrasparente([W, WS], 'image/webp', 0.72, ritaglio));
     if (res.error) throw new Error(res.error);
     res.data.forEach((d, k) => writeFileSync(join(cartelle[k], `${String(i).padStart(3, '0')}.webp`), Buffer.from(d.split(',')[1], 'base64')));
     if (i % 10 === 9) process.stdout.write(`\r${i + 1}/${N} fotogrammi (${Math.round((Date.now() - t) / 1000)} s)`);
@@ -80,7 +87,7 @@ try {
     const kb = readdirSync(c).reduce((s, f) => s + statSync(join(c, f)).size, 0) / 1024;
     console.log(`\nSalvati ${N} fotogrammi in ${relative(process.cwd(), c)}/ (${Math.round(kb)} KB in tutto)`);
   }
-  if (!prova) console.log(`In index.html: data-frames="${N}" e data-src="assets/sequenza/${name}/"`);
+  if (!prova) console.log(`In index.html: data-frames="${N}" e data-crop="${ritaglio.join(',')}" data-src="assets/sequenza/${name}/"`);
 } finally {
   await chrome.chiudi();
 }
