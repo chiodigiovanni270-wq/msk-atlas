@@ -15,7 +15,7 @@ import { man, REAL, attrs, setMesh, sstep, log, repack, saveFile } from './lib-m
 const SOGLIA = 19.9, FASCIA = [19.0, 19.9];
 // ventri senza tendine sopra la quota indicata (il tag sfuma a 0 tra le due quote): il retto femorale aveva l'aponeurosi
 // prossimale della mesh BodyParts3D (bianca) sulla faccia laterale del ventre fino al taglio della coscia
-const VENTRE = { retto: [15, 16.5] };
+const VENTRE = { retto: [11, 12.5] };
 const PROVA = process.argv.includes('--prova');
 let tot = 0;
 for (const nome of [...new Set(man.meshes.map(m => m.n))]) {
@@ -26,7 +26,7 @@ for (const nome of [...new Set(man.meshes.map(m => m.n))]) {
   if (VENTRE[nome]) for (let i = 0; i < nv; i++) { const v = Math.round(t[i] * (1 - sstep(...VENTRE[nome], pos[3 * i + 1]))); if (v !== t[i]) { t[i] = v; n++; } }
   for (let i = 0; i < nv; i++) { const y = pos[3 * i + 1]; if (Math.abs(y) < SOGLIA) continue; let bd = Infinity, bj = -1;
     for (const j of fonti) { if (Math.sign(pos[3 * j + 1]) !== Math.sign(y)) continue; const d = (pos[3 * j] - pos[3 * i]) ** 2 + (pos[3 * j + 2] - pos[3 * i + 2]) ** 2; if (d < bd) { bd = d; bj = j; } }
-    if (bj >= 0 && t[i] !== tag[bj]) { t[i] = tag[bj]; n++; } }
+    if (bj >= 0 && t[i] !== t[bj]) { t[i] = t[bj]; n++; } }
   if (n) { setMesh(nome, { pos, idx: Uint32Array.from(idx), tag: t, fdir }); tot += n; log(`${nome}: ${n} vertici della sezione`); }
 }
 log(`totale ${tot} vertici`);
