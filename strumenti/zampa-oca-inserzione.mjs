@@ -26,7 +26,7 @@ const GAP = 0.04, BAND = 0.05, LISCIA = 0.5, PIATTO = [-5.3, -6.6], PIATTO_K = 0
 const REGOLE = [
   { nome: 'semit', rif: ['tibia', 'lcm', 'bans'], y: [-4.8, -6.0] },
   { nome: 'grac', rif: ['tibia', 'lcm', 'bans', 'semit'], y: [-4.8, -6.0] },
-  { nome: 'sart', rif: ['tibia', 'lcm', 'bans', 'semit', 'grac'], y: [-4.8, -6.2] },
+  { nome: 'sart', rif: ['tibia', 'lcm', 'bans', 'semit', 'grac'], y: [-4.5, -5.8], piatto: [-4.8, -6.2], k: 0.2 },
 ];
 for (const R of REGOLE) setPos(R.nome, posDaRevisione(PARTENZA, R.nome, 'modelli/ginocchio-3d.html'));
 setGriglia([0, -10, -1.5], 0.03, 170, 230, 170);   // faccia mediale della tibia prossimale
@@ -53,13 +53,13 @@ for (const R of REGOLE) {
   // GAP + (d - GAP)·k(y), con k da 1 (sopra PIATTO[0]) a PIATTO_K (sotto PIATTO[1]); la mappa è monotona in d, quindi
   // la faccia profonda si posa sull'osso e lo spessore si riduce senza pieghe (lamina d'inserzione)
   const Dp = new Float32Array(3 * nv);
-  for (let i = 0; i < nv; i++) { const q = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]], k = 1 - (1 - PIATTO_K) * sstep(PIATTO[0], PIATTO[1], q[1]);
+  for (let i = 0; i < nv; i++) { const q = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]], PT = R.piatto || PIATTO, k = 1 - (1 - (R.k ?? PIATTO_K)) * sstep(PT[0], PT[1], q[1]);
     if (k >= 1) continue; const d = sd(q); if (d <= GAP || d > 1.5) continue; const g = gr(q), m = (d - GAP) * (1 - k);
     for (let c = 0; c < 3; c++) Dp[3 * i + c] = -g[c] * m; }
   // spostamento raccordato sulla mesh (le punte già nell'osso non restano indietro rispetto ai vicini: niente pieghe)
   { const { idx } = REAL(R.nome), nb = Array.from({ length: nv }, () => new Set());
     for (let t = 0; t < idx.length; t += 3) for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) if (a !== b) nb[idx[t + a]].add(idx[t + b]);
-    for (let it = 0; it < 25; it++) { const O = Dp.slice(); for (let i = 0; i < nv; i++) { if (!nb[i].size || pos[3 * i + 1] > PIATTO[0] + 0.3) continue; const m = [0, 0, 0];
+    for (let it = 0; it < 25; it++) { const O = Dp.slice(); for (let i = 0; i < nv; i++) { if (!nb[i].size || pos[3 * i + 1] > (R.piatto || PIATTO)[0] + 0.3) continue; const m = [0, 0, 0];
       for (const j of nb[i]) for (let c = 0; c < 3; c++) m[c] += O[3 * j + c] / nb[i].size; for (let c = 0; c < 3; c++) Dp[3 * i + c] = 0.5 * O[3 * i + c] + 0.5 * m[c]; } } }
   for (let i = 0; i < 3 * nv; i++) pos[i] += Dp[i];
   setPos(R.nome, pos);
