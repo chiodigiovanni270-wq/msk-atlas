@@ -40,7 +40,7 @@ const CENTRO = [[10.3, -1.47], [10, -1.45], [8, -1.25], [6, -1.1], [4, -0.95], [
 // `fuori`: strutture da cui il tratto deformato viene spinto fuori (gioco FUORI.gioco, spostamento levigato sulla mesh).
 const CAPI = [
   { id: 'retto', ya: 9.0, yb: 5.8, yFine: 4.6, verso: [0, 1], fine: [-1.2, null], dz: 0.32, sx: 1.0, sz: 0.55, ritardo: 0.0, tendine: [0.05, 0.5], v: 0.12, fuori: ['vint', 'vmed'] },
-  { id: 'vlat', ya: 10.5, yb: 2.2, yFine: 4.6, verso: [1, 0.6], fine: [-1.75, null], dz: 0.2, sx: 0.5, sz: 0.06, ritardo: 0.25, tendine: [0.5, 0.8], fuori: ['vint', 'femore'], sopra: 0.3 },
+  { id: 'vlat', ya: 10.5, yb: 2.2, yFine: 3.4, verso: [1, 0.6], fine: [-2.1, null], dz: 0.25, sx: 0.7, sz: 0.3, ritardo: 0.6, tendine: [0.72, 0.95], fuori: ['vint', 'femore'], sopra: 0.3 },
   { id: 'vmed', ya: 5.0, yb: 2.2, yFine: 2.35, verso: [-1, 0.5], fine: [0.55, null], dz: 0.3, sx: 0.3, sz: 0.12, ritardo: 0.2, tendine: [0.6, 0.92], fuori: ['vint', 'femore'] },
 ];
 const FUORI = { gioco: 0.02, passate: 4, liscia: 6 };
