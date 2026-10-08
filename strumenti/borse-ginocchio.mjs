@@ -3,7 +3,7 @@
 
    Uso (dalla cartella del progetto, dopo stratifica-ginocchio.mjs, capsula-ginocchio.mjs e cute-ginocchio.mjs, prima di percorsi-ginocchio.mjs):
      node strumenti/borse-ginocchio.mjs [--prova]
-   Con --prova stampa solo le verifiche, senza modificare il file.
+   Con --prova stampa solo le verifiche, senza modificare il file. SOLO=bprep,binfsup ricalcola solo le borse indicate.
 
    Anatomia di riferimento (Standring S, Gray's Anatomy, 42ª ed., Elsevier 2020):
    - Recesso sovrapatellare: sacca appiattita dietro il tendine del quadricipite e davanti al femore distale, larga
@@ -110,6 +110,6 @@ function borsa(B) {
   return { pos: Float32Array.from(pos), idx: Uint32Array.from(idx) };
 }
 
-for (const B of BORSE) { const m = borsa(B); setMesh(B.nome, { pos: m.pos, idx: m.idx, tag: null, fdir: null }); }
+for (const B of BORSE.filter(B => !process.env.SOLO || process.env.SOLO.split(',').includes(B.nome))) { const m = borsa(B); setMesh(B.nome, { pos: m.pos, idx: m.idx, tag: null, fdir: null }); }
 if (PROVA) process.exit(0);
 saveFile(repack());
