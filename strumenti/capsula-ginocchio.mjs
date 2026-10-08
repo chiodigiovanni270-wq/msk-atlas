@@ -30,10 +30,11 @@
 import { M, man, buf0, REAL, O, H, NX, NY, NZ, NXY, N, vi, or, solid, edt, sample, clamp, sstep, log, saveFile } from './lib-modello.mjs';
 const html = M.html;
 const PROVA = process.argv.includes('--prova');
-const P = { R: 1.1, t: 0.26, m: 0.1, tmin: 0.14, tthin: 0.1, clear: 0.13, blur: 2, sp: 2.6, step: 0.15, smooth: 12 };
+const P = { R: 1.1, t: 0.26, m: 0.1, tmin: 0.14, tthin: 0.1, clear: 0.13, blur: 2, sp: 2.6, spL: 2.7, step: 0.15, smooth: 12 };
 /* R: raggio di chiusura · t: distanza dal contenuto articolare · m: margine dalle strutture extracapsulari
    tmin/tthin: distanza minima dall'osso sotto muscoli / strutture sottili · clear: distacco minimo dall'osso
-   blur: passate di sfocatura del campo · sp: altezza del recesso sovrapatellare · step: passo della mesh */
+   blur: passate di sfocatura del campo · sp: altezza del recesso sovrapatellare · spL: sua semi-larghezza (cm; più largo,
+   sale anche sui lati della troclea: recessi parapatellari) · step: passo della mesh */
 
 const smax = (a, b, k) => { const h = Math.max(k - Math.abs(a - b), 0) / k; return Math.max(a, b) + h * h * k * 0.25; };
 
@@ -70,7 +71,7 @@ const Dc = edt(CORE);
 const A = new Uint8Array(N); for (let i = 0; i < N; i++) A[i] = Dc[i] <= P.R ? 1 : 0;
 const E = edt(A, true), Dn = edt(NB), Ds = edt(SH);
 const yT = (x, z) => { const wAnt = sstep(0.8, 2.0, z) * (1 - sstep(1.2, 2.2, Math.abs(x + 0.9))), wPost = 1 - sstep(-2.6, -1.6, z), wC = 1 - sstep(0.4, 1.6, Math.abs(x - 0.2)); return -2.35 - 0.45 * wAnt - 0.8 * wPost * wC; }; // davanti più in basso solo dietro al tendine rotuleo
-const yF = (x, z) => { const wAnt = sstep(0.6, 2.2, z), wPost = 1 - sstep(-2.4, -1.2, z), g = Math.exp(-Math.pow((x + 1.1) / 1.9, 2));
+const yF = (x, z) => { const wAnt = sstep(0.6, 2.2, z), wPost = 1 - sstep(-2.4, -1.2, z), g = Math.exp(-Math.pow((x + 1.1) / P.spL, 2));
   const wPL = sstep(-2.6, -3.3, x) * Math.exp(-Math.pow((z + 2.0) / 0.9, 2)); // posterolaterale: sotto l'origine del gastrocnemio laterale
   return 2.7 + 0.5 * wPost + wAnt * (0.6 + P.sp * g) - 0.9 * wPL; };
 const taper = (x, y, z) => sstep(yT(x, z), yT(x, z) + 0.5, y) * (1 - sstep(yF(x, z) - 0.7, yF(x, z), y));
