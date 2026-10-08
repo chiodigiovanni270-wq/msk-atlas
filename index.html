@@ -87,6 +87,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-off
 .stage-media::before{content:"";position:absolute;inset:0;
   background:radial-gradient(40% 36% at 50% 33%,rgba(114,180,208,.10),transparent 70%),radial-gradient(70% 46% at 50% 33%,#111820 0%,transparent 72%)}
 .stage-media img,.stage-media canvas{position:absolute;left:0;top:0;width:100%;height:100%}
+.stage-media canvas{transform-origin:0 0;will-change:transform}   /* dimensioni e trasformazione impostate dallo script */
 .stage-media img{top:6.48%;left:calc(50% - 24.8svh);width:49.6svh;height:58.28%;object-fit:contain;transform:scale(1.18);transform-origin:50% 48.94%}   /* senza JS: primo fotogramma fermo (ritagliato sul modello, data-crop), come il canvas */
 .stage-media.ready img{display:none}
 /* sfumature fisse sullo schermo (non sul titolo): barra in alto leggibile e testo leggibile sopra il modello */
@@ -509,7 +510,7 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
        veloce la finestra a piena risoluzione non fa in tempo a seguire, e così non si saltano molti fotogrammi.
        Le immagini decodificate pesano molto: tenerle tutte a piena risoluzione rallenta lo scorrimento. */
     var blobs = [], bitmaps = [], low = [], lowBusy = false, active = 0, dirn = 1, lastIdx = 0, tIdx = 0;
-    var queued = false, last = '', shown = -1, lastT = 0, lastTarget = -1, movedT = 0;   // shown: avanzamento mostrato, segue con poco ritardo quello dello scorrimento
+    var queued = false, last = '', lastTf = '', sized = false, shown = -1, lastT = 0, lastTarget = -1, movedT = 0;   // shown: avanzamento mostrato, segue con poco ritardo quello dello scorrimento
     var pad = function(i){ return ('00' + i).slice(-3); };
     var clamp = function(x){ return x < 0 ? 0 : x > 1 ? 1 : x; };
     var smooth = function(x){ x = clamp(x); return x * x * (3 - 2 * x); };
@@ -569,7 +570,7 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
     }
     function draw(){
       queued = false;
-      var W = canvas.clientWidth, H = canvas.clientHeight, dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var W = media.clientWidth, H = media.clientHeight;
       if (!W || !H) return;
       var r = stage.getBoundingClientRect();
       var target = still ? 0 : clamp(-r.top / Math.max(1, r.height - H));
@@ -596,24 +597,32 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       var desk = W >= 880, fh, cx, cy, op = 1;
       if (desk) { fh = H * (1.06 - 0.16 * e); cx = W * 0.7; cy = H * 0.53; }
       else { fh = H * 0.62 * (1.18 - 0.15 * e); cx = W * 0.5; cy = H * 0.35; op = 1 - 0.6 * smooth((p - 0.25) / 0.3); }
-      var key = [W, H, sel.k, sel.low || 0, Math.round(fh), op.toFixed(2)].join();
-      if (key === last) return;
-      last = key;
-      if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
-        canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      /* il canvas ha le dimensioni native del fotogramma e lo copia 1:1 solo quando cambia fotogramma; posizione e
+         ingrandimento sono una trasformazione CSS, eseguita dalla scheda grafica. Ridimensionare ogni volta in un canvas
+         grande quanto lo schermo (Retina) era troppo lento in Safari: il modello avanzava a balzi */
+      var k = 1 + (sel.low || 0);
+      if (!sized) {
+        sized = true;
+        canvas.width = sel.src.width * k; canvas.height = sel.src.height * k;
+        canvas.style.width = canvas.width + 'px'; canvas.style.height = canvas.height + 'px';
       }
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, W, H);
-      ctx.imageSmoothingQuality = 'high';
+      var frame = sel.k + '/' + k;
+      if (frame !== last) {
+        last = frame;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(sel.src, 0, 0, canvas.width, canvas.height);
+      }
       /* i fotogrammi sono ritagliati sul modello: crop = area (frazioni del fotogramma intero, di proporzioni 1,6) che contengono */
       var fw = fh * 1.6, fx = cx - fw / 2, fy = cy - fh / 2;
-      ctx.drawImage(sel.src, fx + crop[0] * fw, fy + crop[1] * fh, (crop[2] - crop[0]) * fw, (crop[3] - crop[1]) * fh);
+      var x = fx + crop[0] * fw, y = fy + crop[1] * fh, sx = (crop[2] - crop[0]) * fw / canvas.width, sy = (crop[3] - crop[1]) * fh / canvas.height;
+      var tf = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + sx.toFixed(4) + ',' + sy.toFixed(4) + ')';
+      if (tf !== lastTf) { lastTf = tf; canvas.style.transform = tf; }
       canvas.style.opacity = op;
       media.classList.add('ready');
     }
     function schedule(){ if (!queued) { queued = true; requestAnimationFrame(function(){ queued = false; draw(); }); } }
     addEventListener('scroll', schedule, { passive: true });
-    addEventListener('resize', function(){ last = ''; schedule(); });
+    addEventListener('resize', schedule);
     if (!still) {
       fetchFrame(0);
       if (document.readyState === 'complete') pump(); else addEventListener('load', pump);   // gli altri dopo il caricamento della pagina
