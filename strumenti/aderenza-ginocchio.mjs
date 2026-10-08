@@ -79,15 +79,22 @@ for (const n of PUNTE) log(`${n}: ${togliPunte(n)} vertici di punte isolate ripo
 const P0 = new Map(NOMI.map(n => [n, new Float32Array(REAL(n).pos)]));
 
 /* ---------- ostacoli: vasi e nervi profondi ---------- */
-const OST = new Uint8Array(N);
-for (const id of VASI(M.html)) for (const T of tubiDi(M.html, id)) {
-  const w = TRASPORTA[id];
-  for (let k = 1; k < T.p.length; k++) { const a = T.p[k - 1], b = T.p[k], L = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]), n = Math.ceil(L / (H / 2));
-    for (let s = 0; s <= n; s++) { const q = a.map((v, c) => v + (b[c] - v) * s / n); if (w && w(q[1]) > 0.5) continue; const r = T.r + 0.03, m = Math.ceil(r / H);
-      const i0 = Math.round((q[0] - O[0]) / H), j0 = Math.round((q[1] - O[1]) / H), k0 = Math.round((q[2] - O[2]) / H);
-      for (let i = i0 - m; i <= i0 + m; i++) for (let j = j0 - m; j <= j0 + m; j++) for (let kk = k0 - m; kk <= k0 + m; kk++) {
-        if (i < 0 || j < 0 || kk < 0 || i >= NX || j >= NY || kk >= NZ) continue;
-        if (Math.hypot(O[0] + i * H - q[0], O[1] + j * H - q[1], O[2] + kk * H - q[2]) <= r) OST[i + NX * j + NXY * kk] = 1; } } } }
+// tubi voxelizzati con margine `margine` (cm) oltre il raggio; quelli trasportati solo dove non seguono i tendini
+function ostacoli(margine) {
+  const OS = new Uint8Array(N);
+  for (const id of VASI(M.html)) for (const T of tubiDi(M.html, id)) {
+    const w = TRASPORTA[id];
+    for (let k = 1; k < T.p.length; k++) { const a = T.p[k - 1], b = T.p[k], L = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]), n = Math.ceil(L / (H / 2));
+      for (let s = 0; s <= n; s++) { const q = a.map((v, c) => v + (b[c] - v) * s / n); if (w && w(q[1]) > 0.5) continue; const r = T.r + margine, m = Math.ceil(r / H);
+        const i0 = Math.round((q[0] - O[0]) / H), j0 = Math.round((q[1] - O[1]) / H), k0 = Math.round((q[2] - O[2]) / H);
+        for (let i = i0 - m; i <= i0 + m; i++) for (let j = j0 - m; j <= j0 + m; j++) for (let kk = k0 - m; kk <= k0 + m; kk++) {
+          if (i < 0 || j < 0 || kk < 0 || i >= NX || j >= NY || kk >= NZ) continue;
+          if (Math.hypot(O[0] + i * H - q[0], O[1] + j * H - q[1], O[2] + kk * H - q[2]) <= r) OS[i + NX * j + NXY * kk] = 1; } } } }
+  return OS;
+}
+const OST = ostacoli(0.03);
+// per l'adagiamento i vertici della faccia profonda sono radi (3–5 mm): margine più ampio, così la faccia non scavalca il tubo
+const OST_ADAGIA = ostacoli(0.2);
 
 /* ---------- aderenza per sezioni ---------- */
 const blur = (a, s) => { const r = Math.ceil(3 * s), out = new Float64Array(a.length); for (let k = 0; k < a.length; k++) { let v = 0, w = 0; for (let j = -r; j <= r; j++) { const q = k + j; if (q < 0 || q >= a.length) continue; const ww = Math.exp(-(j * j) / (2 * s * s)); v += a[q] * ww; w += ww; } out[k] = v / w; } return out; };
@@ -123,6 +130,53 @@ function aderisci(R) {
 }
 
 for (const R of REGOLE) aderisci(R);
+
+/* ---------- faccia profonda adagiata sul muscolo sottostante ----------
+   La traslazione per sezioni si ferma al primo contatto: dove la sezione del tendine non segue la curva del muscolo
+   resta uno spazio. Qui la mesh si deforma: i vertici della faccia rivolta al riferimento (normale verso di esso)
+   entro `raggio` ricevono come obiettivo lo
+   spostamento che li porta a `gap` (lungo il gradiente della distanza); lo spostamento di tutti i vertici è il campo
+   più liscio sulla mesh che si avvicina agli obiettivi (iterazioni di Jacobi, rigidezza LISCEZZA), nullo fuori
+   dall'intervallo y (con raccordo); poi nessun vertice resta più vicino di `gap` al riferimento. */
+const ADAGIA = [
+  { nome: 'semit', rif: ['semim', 'gmed', 'femore', 'tibia', 'capsula', 'lcm', 'bans', 'grac', 'popobl'], y: [-3.5, 6], raccordo: 1, gap: 0.04, raggio: 0.7 },
+];
+const LISCEZZA = 0.6;
+function adagia(A) {
+  const { pos, idx } = REAL(A.nome), p = new Float32Array(pos), nv = p.length / 3, nb = Array.from({ length: nv }, () => new Set());
+  for (let t = 0; t < idx.length; t += 3) for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) if (a !== b) nb[idx[t + a]].add(idx[t + b]);
+  const NB = nb.map(x => [...x]);
+  const SO = new Uint8Array(N); for (const n of A.rif) or(SO, solid(n, APERTE.includes(n))); or(SO, OST_ADAGIA);
+  const DO = edt(SO), DI = edt(SO, true), F = q => sample(DO, ...q) - sample(DI, ...q);
+  const G = q => { const e = 0.05, g = [0, 1, 2].map(c => { const a = q.slice(), b = q.slice(); a[c] += e; b[c] -= e; return F(a) - F(b); }), l = Math.hypot(...g) || 1; return g.map(v => v / l); };
+  const peso = y => sstep(A.y[0] - A.raccordo, A.y[0], y) * (1 - sstep(A.y[1], A.y[1] + A.raccordo, y));
+  let mx = 0;
+  for (let giro = 0; giro < 4; giro++) {
+    const T = new Float64Array(3 * nv), W = new Float64Array(nv), Nv = new Float64Array(3 * nv);   // normali ai vertici
+    for (let t = 0; t < idx.length; t += 3) { const [a, b, c] = [idx[t], idx[t + 1], idx[t + 2]], u = [0, 1, 2].map(k => p[3 * b + k] - p[3 * a + k]), v = [0, 1, 2].map(k => p[3 * c + k] - p[3 * a + k]);
+      const n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]]; for (const i of [a, b, c]) for (let k = 0; k < 3; k++) Nv[3 * i + k] += n[k]; }
+    for (let i = 0; i < nv; i++) { const q = [p[3 * i], p[3 * i + 1], p[3 * i + 2]], w = peso(q[1]);
+      if (w < 1e-3) { W[i] = 1; continue; }                  // fuori dall'intervallo: fermo
+      const f = F(q); if (f > A.raggio) continue;            // faccia esterna: libera, segue i vicini
+      const g = G(q), nl = Math.hypot(Nv[3 * i], Nv[3 * i + 1], Nv[3 * i + 2]) || 1, verso = -(g[0] * Nv[3 * i] + g[1] * Nv[3 * i + 1] + g[2] * Nv[3 * i + 2]) / nl;
+      if (verso < 0.3) continue;                             // solo la faccia rivolta al riferimento; il resto la segue
+      const m = (f - A.gap) * w * (1 - sstep(A.raggio * 0.6, A.raggio, f)) * sstep(0.3, 0.6, verso);
+      for (let c = 0; c < 3; c++) T[3 * i + c] = -g[c] * m; W[i] = 1; }
+    let D = new Float64Array(3 * nv);
+    for (let it = 0; it < 300; it++) { const E = new Float64Array(3 * nv);
+      for (let i = 0; i < nv; i++) { const L = NB[i], den = W[i] + LISCEZZA * L.length;
+        for (let c = 0; c < 3; c++) { let s = W[i] * T[3 * i + c]; for (const j of L) s += LISCEZZA * D[3 * j + c]; E[3 * i + c] = s / den; } }
+      D = E; }
+    for (let i = 0; i < nv; i++) for (let c = 0; c < 3; c++) p[3 * i + c] += D[3 * i + c];
+    // nessun vertice dentro il riferimento (né più vicino di gap)
+    for (let i = 0; i < nv; i++) { const q = [p[3 * i], p[3 * i + 1], p[3 * i + 2]]; for (let k = 0; k < 20; k++) { const f = F(q); if (f >= A.gap) break; const g = G(q); for (let c = 0; c < 3; c++) q[c] += g[c] * Math.min(0.03, A.gap - f); } for (let c = 0; c < 3; c++) p[3 * i + c] = q[c]; }
+    let m = 0; for (let i = 0; i < nv; i++) m = Math.max(m, Math.hypot(D[3 * i], D[3 * i + 1], D[3 * i + 2])); mx = Math.max(mx, m);
+    if (m < 0.005) break;
+  }
+  setPos(A.nome, p);
+  log(`${A.nome} adagiato su ${A.rif.join('+')}: deformazione massima per giro ${(mx * 10).toFixed(1)} mm`);
+}
+for (const A of ADAGIA) adagia(A);
 
 /* ---------- vasi e nervi sottocutanei seguono i tendini ---------- */
 const mossi = NOMI.map(n => ({ p0: P0.get(n), p1: REAL(n).pos }));
