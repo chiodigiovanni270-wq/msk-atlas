@@ -508,7 +508,7 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
        veloce la finestra a piena risoluzione non fa in tempo a seguire, e così non si saltano molti fotogrammi.
        Le immagini decodificate pesano molto: tenerle tutte a piena risoluzione rallenta lo scorrimento. */
     var blobs = [], bitmaps = [], low = [], lowBusy = false, active = 0, dirn = 1, lastIdx = 0, tIdx = 0;
-    var queued = false, last = '';
+    var queued = false, last = '', shown = -1, lastT = 0;   // shown: avanzamento mostrato, segue con poco ritardo quello dello scorrimento
     var pad = function(i){ return ('00' + i).slice(-3); };
     var clamp = function(x){ return x < 0 ? 0 : x > 1 ? 1 : x; };
     var smooth = function(x){ x = clamp(x); return x * x * (3 - 2 * x); };
@@ -550,7 +550,7 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       }, function(){ low[best] = undefined; }).then(function(){ lowBusy = false; buildLow(); schedule(); });
     }
     function keepWindow(idx){
-      var ahead = dirn > 0 ? Math.max(12, Math.min(20, tIdx - idx)) : 6, behind = dirn > 0 ? 6 : Math.max(12, Math.min(20, idx - tIdx));
+      var ahead = dirn > 0 ? Math.max(12, Math.min(24, tIdx - idx)) : 6, behind = dirn > 0 ? 6 : Math.max(12, Math.min(24, idx - tIdx));
       for (var i = 0; i < N; i++) {
         if (i % 16 === 0 || (i >= idx - behind && i <= idx + ahead)) decode(i);
         else if (bitmaps[i] !== undefined) { if (bitmaps[i]) bitmaps[i].close(); bitmaps[i] = undefined; }
@@ -572,8 +572,16 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       if (!W || !H) return;
       var r = stage.getBoundingClientRect();
       var target = still ? 0 : clamp(-r.top / Math.max(1, r.height - H));
-      /* rotazione legata direttamente allo scorrimento, senza inseguimento: si ferma insieme alla pagina */
-      var p = target;
+      /* il fotogramma segue lo scorrimento con un ritardo di pochi centesimi di secondo (costante di tempo ~40 ms, indipendente
+         dalla frequenza dello schermo): leviga i salti dei singoli eventi di scroll e si ferma subito dopo la pagina */
+      var now = performance.now(), dt = Math.min(64, now - lastT); lastT = now;
+      if (shown < 0) shown = target;
+      else {
+        var gap = target - shown, maxStep = 6 / (N - 1);
+        shown += Math.max(-maxStep, Math.min(maxStep, gap * (1 - Math.exp(-dt / 40))));
+        if (Math.abs(target - shown) < 0.5 / (N - 1)) shown = target; else schedule();
+      }
+      var p = shown;
       var e = smooth(p), idx = Math.round(p * (N - 1)); tIdx = Math.round(target * (N - 1));
       if (idx !== lastIdx) { dirn = idx > lastIdx ? 1 : -1; lastIdx = idx; }
       keepWindow(idx);
