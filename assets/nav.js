@@ -71,10 +71,10 @@
     '.an-panel a{color:var(--accent,#72b4d0)}' +
     /* interfaccia del modello (fino a 899 px): titolo e viste si affiancano ai due pulsanti */
     '.top{padding-top:calc(' + TOP + ' + 4px);padding-left:calc(' + SIDE + ' + ' + BTN + ' + 8px);padding-right:calc(' + SIDE_R + ' + ' + BTN + ' + 6px)}' +
-    /* smartphone stretti: il menu "Vista" sta sotto la barra .top; se il titolo è su una riga sola (ginocchio)
-       finirebbe sotto la "i", quindi non sale sopra il bordo inferiore dei pulsanti + 10 px di spazio */
+    /* smartphone stretti: il menu "Vista" ha sempre la stessa posizione, 30 px sotto la "i" (con il margine di 6 px),
+       indipendentemente dall'altezza del titolo (nel polso c'è anche il selettore Polso/Dito, nel ginocchio no) */
     '@media (max-width:430px){' +
-      '.top .views{top:max(100%,calc(' + TOP + ' + ' + BTN + ' + 4px))}' +
+      '.top .views{top:calc(' + TOP + ' + ' + BTN + ' + 24px)}' +
     '}' +
     /* da 640 px: indietro con logo e nome; pannello "i" come riquadro sotto la "i", senza sfondo attenuato */
     '@media (min-width:641px){' +
