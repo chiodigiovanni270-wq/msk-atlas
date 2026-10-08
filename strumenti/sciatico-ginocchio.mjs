@@ -13,7 +13,8 @@
    1. prolunga il tronco fino al punto in cui i rami si separano davvero (DIVIDE), lungo la linea media tra i due;
    2. fa nascere i rami dentro l'ultimo tratto del tronco (sottili, poi al loro calibro) e prolunga il tronco per ~1 cm
       dentro il tibiale assottigliandosi (r1/l1): né la fine del tronco né l'inizio dei rami restano allo scoperto;
-   3. leviga il primo tratto dei rami (curve più dolci) con estremi fermi.
+   3. leviga il primo tratto dei rami (curve più dolci) con estremi fermi;
+   4. fa lo stesso alla divisione del peroneo comune in superficiale e profondo, presso il collo del perone.
    Riparte dai tubi della revisione PARTENZA, quindi si può rilanciare.
 
    Requisiti: Node 18 o successivo, nessuna dipendenza. */
@@ -69,7 +70,20 @@ sci.o = '{urep:6,r1:0.2,l1:3}'; tib.o = '{urep:6,r0:0.17,l0:1.5}'; per.o = '{ure
 // 3. primo tratto dei rami levigato (Laplaciano, estremi del tratto fermi)
 for (const t of [tib, per]) for (let it = 0; it < 12; it++) { const Q = t.p.map(q => q.slice());
   for (let k = 3; k < t.p.length - 1; k++) { const y = Q[k][1], w = y > LISCIA[0] && y < LISCIA[1] ? 0.5 : 0; if (!w) continue; for (let c = 0; c < 3; c++) t.p[k][c] = Q[k][c] + w * ((Q[k - 1][c] + Q[k + 1][c]) / 2 - Q[k][c]); } }
-for (const [id, t] of [['nsci', sci], ['ntib', tib], ['nper', per]]) M.html = M.html.replace(vecchi[id], tubeTxt(t));
+// 4. divisione del peroneo comune (collo del perone) in superficiale e profondo: stessa tecnica. Ultimo tratto del
+// tronco levigato (curva stretta prima della divisione), rami che nascono sottili dentro il tronco, tronco prolungato
+// ~0,8 cm dentro il ramo che ne continua meglio la direzione, assottigliandosi
+const [perS] = tubiDi(H0, 'nperS'), [perP] = tubiDi(H0, 'nperP');
+vecchi.nperS = tubiDi(M.html, 'nperS')[0].txt; vecchi.nperP = tubiDi(M.html, 'nperP')[0].txt;
+for (let it = 0; it < 20; it++) { const Q = per.p.map(q => q.slice()); for (let k = per.p.length - 5; k < per.p.length - 1; k++) for (let c = 0; c < 3; c++) per.p[k][c] = Q[k][c] + 0.5 * ((Q[k - 1][c] + Q[k + 1][c]) / 2 - Q[k][c]); }
+{ const E2 = per.p[per.p.length - 1], T2 = nrm(sub(E2, per.p[per.p.length - 3]));
+  const nasce = t => { const resto = t.p.filter(q => len(sub(q, E2)) > 0.3), dir = sub(resto.find(q => len(sub(q, E2)) > 1) || resto[2], E2), lato = nrm(sub(dir, T2.map(x => x * dot(dir, T2))));
+    return [add(E2, T2, -0.7), add(add(E2, T2, -0.3), lato, 0.02), add(add(E2, T2, -0.02), lato, 0.05), ...resto]; };
+  const cont = [perS, perP].map(t => [t, dot(nrm(sub(t.p.find(q => len(sub(q, E2)) > 1), E2)), T2)]).sort((a, b) => b[1] - a[1])[0][0];
+  const ext2 = cont.p.filter(q => { const d = len(sub(q, E2)); return d > 0.25 && d <= 0.9; });
+  perS.p = nasce(perS); perP.p = nasce(perP); per.p = [...per.p, ...ext2];
+  per.o = '{urep:6,r0:0.14,l0:1.5,r1:0.08,l1:2}'; perS.o = perP.o = '{r0:0.09,l0:1}'; }
+for (const [id, t] of [['nsci', sci], ['ntib', tib], ['nper', per], ['nperS', perS], ['nperP', perP]]) M.html = M.html.replace(vecchi[id], tubeTxt(t));
 log(`divisione dello sciatico a y ${DIVIDE}`);
 verifica(M.html);
 if (!PROVA) { const { saveFile, repack } = await import('./lib-modello.mjs'); saveFile(repack()); }
