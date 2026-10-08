@@ -87,7 +87,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-off
 .stage-media::before{content:"";position:absolute;inset:0;
   background:radial-gradient(40% 36% at 50% 33%,rgba(114,180,208,.10),transparent 70%),radial-gradient(70% 46% at 50% 33%,#111820 0%,transparent 72%)}
 .stage-media img,.stage-media canvas{position:absolute;left:0;top:0;width:100%;height:100%}
-.stage-media img{top:4%;left:calc(50% - 49.6svh);width:99.2svh;height:62%;object-fit:contain;transform:scale(1.18)}   /* senza JS: primo fotogramma fermo, come il canvas */
+.stage-media img{top:6.48%;left:calc(50% - 24.8svh);width:49.6svh;height:58.28%;object-fit:contain;transform:scale(1.18);transform-origin:50% 48.94%}   /* senza JS: primo fotogramma fermo (ritagliato sul modello, data-crop), come il canvas */
 .stage-media.ready img{display:none}
 /* sfumature fisse sullo schermo (non sul titolo): barra in alto leggibile e testo leggibile sopra il modello */
 .stage-media::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--bg) 0%,rgba(7,10,13,0) 14%),linear-gradient(0deg,var(--bg) 0%,var(--bg) 24%,rgba(7,10,13,0) 56%)}
@@ -110,7 +110,7 @@ h1 span{color:var(--accent)}
 }
 @media (min-width:880px){
   .stage-media::before{background:radial-gradient(30% 50% at 70% 50%,rgba(114,180,208,.10),transparent 70%),radial-gradient(46% 70% at 70% 50%,#111820 0%,transparent 72%)}
-  .stage-media img{top:3%;left:calc(70% - 80vh);width:160vh;height:100%;transform:scale(1.06)}
+  .stage-media img{top:7%;left:calc(70% - 40vh);width:80vh;height:94%;transform:scale(1.06)}
   .hero{padding-bottom:32px}
   .stage-media::after{background:linear-gradient(180deg,var(--bg) 0%,rgba(7,10,13,0) 12%),linear-gradient(0deg,var(--bg) 0%,rgba(7,10,13,0) 16%)}
   .hero-foot{display:flex}
@@ -290,10 +290,10 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
   <!-- palco: il polso resta sullo sfondo e ruota con lo scorrimento mentre titolo e frase scorrono sopra.
        Fotogrammi generati da strumenti/sequenza-home.mjs: data-frames = numero di fotogrammi -->
   <div class="stage">
-    <div class="stage-media" aria-hidden="true" data-frames="175" data-src="assets/sequenza/polso-dito-3d/">
+    <div class="stage-media" aria-hidden="true" data-frames="175" data-crop="0.25,0.04,0.75,0.98" data-src="assets/sequenza/polso-dito-3d/">
       <picture>
         <source media="(max-width:759px)" srcset="assets/sequenza/polso-dito-3d/s/000.webp">
-        <img src="assets/sequenza/polso-dito-3d/l/000.webp" width="1280" height="800" alt="" fetchpriority="high">
+        <img src="assets/sequenza/polso-dito-3d/l/000.webp" width="1100" height="1293" alt="" fetchpriority="high">
       </picture>
       <canvas></canvas>
     </div>
@@ -498,48 +498,96 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
      Con "riduci movimento" o risparmio dati resta il primo fotogramma, senza scaricare gli altri. */
   var media = document.querySelector('.stage-media'), stage = document.querySelector('.stage');
   if (media && stage && media.querySelector('canvas').getContext) {
-    var N = +media.dataset.frames, still = reduce || (navigator.connection && navigator.connection.saveData);
+    var N = +media.dataset.frames, crop = (media.dataset.crop || '0,0,1,1').split(',').map(Number);
+    var still = reduce || (navigator.connection && navigator.connection.saveData) || !window.createImageBitmap || !window.fetch;
     var small = window.matchMedia('(max-width:759px)').matches;
     var dir = media.dataset.src + (small ? 's/' : 'l/');
     var canvas = media.querySelector('canvas'), ctx = canvas.getContext('2d');
-    var frames = [], queued = false, last = '', shown = -1;   // shown: avanzamento mostrato, insegue quello dello scorrimento
+    /* i file compressi restano in memoria (blobs). Decodificati a piena risoluzione (bitmaps) solo i fotogrammi vicini
+       a quello mostrato, più uno ogni 16; in più uno ogni 2 a metà risoluzione (low) come riserva: con uno scorrimento
+       veloce la finestra a piena risoluzione non fa in tempo a seguire, e così non si saltano molti fotogrammi.
+       Le immagini decodificate pesano molto: tenerle tutte a piena risoluzione rallenta lo scorrimento. */
+    var blobs = [], bitmaps = [], low = [], lowBusy = false, active = 0, dirn = 1, lastIdx = 0, tIdx = 0;
+    var queued = false, last = '', shown = -1;   // shown: avanzamento mostrato, insegue quello dello scorrimento
     var pad = function(i){ return ('00' + i).slice(-3); };
     var clamp = function(x){ return x < 0 ? 0 : x > 1 ? 1 : x; };
     var smooth = function(x){ x = clamp(x); return x * x * (3 - 2 * x); };
-    function load(i){
-      if (frames[i] !== undefined) return;
-      frames[i] = null;
-      var im = new Image(); im.decoding = 'async';
-      /* decodifica prima di usarlo: disegnare un'immagine non ancora decodificata blocca lo scorrimento (iPhone) */
-      im.onload = function(){
-        var ok = function(){ frames[i] = im; schedule(); };
-        if (im.decode) im.decode().then(ok, ok); else ok();
-      };
-      im.src = dir + pad(i) + '.webp';
+    function fetchFrame(i){
+      blobs[i] = null; active++;
+      fetch(dir + pad(i) + '.webp').then(function(r){ if (!r.ok) throw 0; return r.blob(); })
+        .then(function(b){ blobs[i] = b; }, function(){ blobs[i] = undefined; })
+        .then(function(){ active--; pump(); buildLow(); schedule(); });
     }
-    function nearest(i){   // fotogramma caricato più vicino a quello richiesto
+    function pump(){   // scarica con al massimo 6 richieste: prima un fotogramma ogni 8, poi i più vicini a quello mostrato
+      while (active < 6) {
+        var best = -1, bestKey = 1e9;
+        for (var i = 0; i < N; i++) {
+          if (blobs[i] !== undefined) continue;
+          var key = Math.abs(i - lastIdx) + (i % 8 ? (i % 2 ? 2000 : 1000) : 0);   // 1° un fotogramma ogni 8, poi i pari, poi i dispari
+          if (key < bestKey) { bestKey = key; best = i; }
+        }
+        if (best < 0) return;
+        fetchFrame(best);
+      }
+    }
+    function decode(i){
+      if (bitmaps[i] !== undefined || !blobs[i]) return;
+      bitmaps[i] = null;
+      createImageBitmap(blobs[i]).then(function(b){
+        if (bitmaps[i] === null) { bitmaps[i] = b; schedule(); } else b.close();   // nel frattempo è uscito dalla finestra
+      }, function(){ bitmaps[i] = undefined; });
+    }
+    function buildLow(){   // anteprime a metà risoluzione dei fotogrammi pari, una alla volta, dalle più vicine a quella mostrata
+      if (lowBusy) return;
+      var best = -1, bd = 1e9;
+      for (var i = 0; i < N; i += 2) if (blobs[i] && !low[i] && Math.abs(i - lastIdx) < bd) { bd = Math.abs(i - lastIdx); best = i; }
+      if (best < 0) return;
+      lowBusy = true; low[best] = false;
+      createImageBitmap(blobs[best]).then(function(b){
+        var c = document.createElement('canvas'); c.width = Math.round(b.width / 2); c.height = Math.round(b.height / 2);
+        var g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(b, 0, 0, c.width, c.height); b.close();
+        low[best] = c;
+      }, function(){ low[best] = undefined; }).then(function(){ lowBusy = false; buildLow(); schedule(); });
+    }
+    function keepWindow(idx){
+      var ahead = dirn > 0 ? Math.max(12, Math.min(20, tIdx - idx)) : 6, behind = dirn > 0 ? 6 : Math.max(12, Math.min(20, idx - tIdx));
+      for (var i = 0; i < N; i++) {
+        if (i % 16 === 0 || (i >= idx - behind && i <= idx + ahead)) decode(i);
+        else if (bitmaps[i] !== undefined) { if (bitmaps[i]) bitmaps[i].close(); bitmaps[i] = undefined; }
+      }
+    }
+    function nearest(i){   // fotogramma disponibile più vicino a quello richiesto (a parità, quello a piena risoluzione)
       for (var d = 0; d < N; d++) {
-        if (frames[i - d]) return frames[i - d];
-        if (frames[i + d]) return frames[i + d];
+        var a = i - d, b = i + d;
+        if (bitmaps[a]) return { k: a, src: bitmaps[a] };
+        if (bitmaps[b]) return { k: b, src: bitmaps[b] };
+        if (low[a]) return { k: a, src: low[a], low: 1 };
+        if (low[b]) return { k: b, src: low[b], low: 1 };
       }
       return null;
     }
     function draw(){
       queued = false;
-      var W = canvas.clientWidth, H = canvas.clientHeight, dpr = Math.min(window.devicePixelRatio || 1, W < 880 ? 1.5 : 2);
+      var W = canvas.clientWidth, H = canvas.clientHeight, dpr = Math.min(window.devicePixelRatio || 1, 2);
       if (!W || !H) return;
       var r = stage.getBoundingClientRect();
       var target = still ? 0 : clamp(-r.top / Math.max(1, r.height - H));
       /* con uno scorrimento veloce la rotazione non salta: si avvicina all'obiettivo in pochi fotogrammi */
-      shown = shown < 0 ? target : shown + (target - shown) * 0.2;
+      /* al massimo 4 fotogrammi per ciclo di disegno: con una scorsa velocissima la rotazione resta fluida e non salta */
+      var step = Math.max(-4 / (N - 1), Math.min(4 / (N - 1), (target - shown) * 0.2));
+      shown = shown < 0 ? target : shown + step;
       if (Math.abs(target - shown) < 0.001) shown = target; else schedule();
       var p = shown;
-      var e = smooth(p), idx = Math.round(p * (N - 1)), im = nearest(idx);
-      if (!im) return;
+      var e = smooth(p), idx = Math.round(p * (N - 1)); tIdx = Math.round(target * (N - 1));
+      if (idx !== lastIdx) { dirn = idx > lastIdx ? 1 : -1; lastIdx = idx; }
+      keepWindow(idx);
+      var sel = nearest(idx);
+      if (!sel) return;
+      buildLow();
       var desk = W >= 880, fh, cx, cy, op = 1;
       if (desk) { fh = H * (1.06 - 0.16 * e); cx = W * 0.7; cy = H * 0.53; }
       else { fh = H * 0.62 * (1.18 - 0.15 * e); cx = W * 0.5; cy = H * 0.35; op = 1 - 0.6 * smooth((p - 0.25) / 0.3); }
-      var key = [W, H, idx, frames.indexOf(im), Math.round(fh), op.toFixed(2)].join();
+      var key = [W, H, sel.k, sel.low || 0, Math.round(fh), op.toFixed(2)].join();
       if (key === last) return;
       last = key;
       if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
@@ -548,19 +596,18 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
       ctx.imageSmoothingQuality = 'high';
-      var fw = fh * 1.6;
-      ctx.drawImage(im, cx - fw / 2, cy - fh / 2, fw, fh);
+      /* i fotogrammi sono ritagliati sul modello: crop = area (frazioni del fotogramma intero, di proporzioni 1,6) che contengono */
+      var fw = fh * 1.6, fx = cx - fw / 2, fy = cy - fh / 2;
+      ctx.drawImage(sel.src, fx + crop[0] * fw, fy + crop[1] * fh, (crop[2] - crop[0]) * fw, (crop[3] - crop[1]) * fh);
       canvas.style.opacity = op;
       media.classList.add('ready');
     }
     function schedule(){ if (!queued) { queued = true; requestAnimationFrame(function(){ queued = false; draw(); }); } }
     addEventListener('scroll', schedule, { passive: true });
     addEventListener('resize', function(){ last = ''; schedule(); });
-    load(0);
     if (!still) {
-      /* prima un fotogramma ogni 16, poi ogni 8, 4, 2 e tutti: la rotazione è subito completa, poi si fa più fluida */
-      var start = function(){ [16, 8, 4, 2, 1].forEach(function(st){ for (var i = 0; i < N; i += st) load(i); }); };
-      if (document.readyState === 'complete') start(); else addEventListener('load', start);
+      fetchFrame(0);
+      if (document.readyState === 'complete') pump(); else addEventListener('load', pump);   // gli altri dopo il caricamento della pagina
     }
   }
 
