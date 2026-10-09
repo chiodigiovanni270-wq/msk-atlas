@@ -71,3 +71,5 @@ Ricavata da `ginocchio-3d.html` e `polso-dito-3d.html`. Un nuovo modello deve av
 - [ ] `<title>` nel formato "<Distretto> 3D | MSK Atlas" (anche eventuali `document.title` impostati dal modello)
 - [ ] Credito BodyParts3D presente e corretto
 - [ ] Note `info` anatomicamente corrette (verificate da me)
+
+Fasci neurovascolari del dito: `node strumenti/fasci-dito.mjs` (`verifica` per solo elencare le compenetrazioni) riparte dal decorso originale di `arterie` e `nervi` (revisione `ORIGINALE`, default f058cc0) e li spinge fuori da ossa, tendini, guaina, pulegge, placche, collaterali, intrinseci e apparato estensore, con levigatura a filo teso; arteria e nervo restano separati e la prima posizione (y 4,2) è fissa. Da rilanciare se cambiano pulegge, guaina o apparato estensore.
