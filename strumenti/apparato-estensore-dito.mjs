@@ -140,27 +140,41 @@ function rastrema(nome, ya, yb) {
     zona.forEach((i, n) => { const m = nuove[n]; if (m) for (let k = 0; k < 3; k++) pos[3 * i + k] = 0.5 * pos[3 * i + k] + 0.5 * m[k]; }); }
   return { pos, idx: g.idx, dir: g.dir, tag: g.tag };
 }
-const lombricale = () => rastrema('d_lumb', LUMB.ya, LUMB.yb);
+const LUMBM = rastrema('d_lumb', LUMB.ya, LUMB.yb), lombricale = () => LUMBM;
+/* asse (s, h) del ventre rastremato per y (passo 0,1): il tendine nasce da qui, così sui due lati resta collegato al muscolo */
+function asse(g, sg, y0, y1) {
+  const A = []; for (let y = y0; y >= y1 - 1e-6; y -= 0.1) { let n = 0, ss = 0, hh = 0;
+    for (let i = 0; i < g.pos.length; i += 3) { if (Math.abs(g.pos[i + 1] - y) > 0.06) continue; const q = SF.da([g.pos[i], g.pos[i + 1], g.pos[i + 2]]); if (q.s * sg < 0.3) continue; n++; ss += q.s; hh += q.h; }
+    A.push(n ? [y, ss / n, hh / n] : null); }
+  const ok = A.filter(Boolean); if (!ok.length) return null; return A.map((a, i) => a || ok.reduce((b, c) => Math.abs(c[0] - (y0 - 0.1 * i)) < Math.abs(b[0] - (y0 - 0.1 * i)) ? c : b));
+}
+/* fonde l'asse del ventre A (per y ≥ yf) con il percorso fisso (per y ≤ yp): y → { s, h } */
+function fondi(A, yf, yp, tabS, tabH, sg) { return y => { const k = clamp((A[0][0] - y) / 0.1, 0, A.length - 1.001), i = Math.floor(k), f = k - i,
+  as = A[i][1] + (A[i + 1][1] - A[i][1]) * f, ah = A[i][2] + (A[i + 1][2] - A[i][2]) * f, w = sstep(yf, yp, y);
+  return { s: as * (1 - w) + sg * ty(tabS, y) * w, h: ah * (1 - w) + ty(tabH, y) * w }; }; }
+
 /* ============ 9. Interossei dorsali: ventre che si rastrema nel tendine, con fascio osseo (tubercolo laterale della base di P1) e fascio per il cappuccio ============ */
 const IOD = { ya: 3.3, yb: 2.75,
   tronco: { s: [[3.1, 1.14], [2.9, 1.14], [2.6, 1.12], [2.35, 1.15], [2.2, 1.18]], w: [[3.1, 0.10], [2.6, 0.15], [2.2, 0.17]], h: [[3.1, 0.22], [2.9, 0.20], [2.6, 0.11], [2.2, 0.05]], t: [[3.1, 0.05], [2.6, 0.065], [2.2, 0.06]] },
   osseo: { s: [[2.3, 1.16], [2.15, 1.25], [2.05, 1.32]], w: [[2.3, 0.14], [2.15, 0.22], [2.05, 0.30], [2.0, 0.26]], t: [[2.3, 0.05], [2.1, 0.05], [2.0, 0.0]] },
   cappuccio: { s: [[2.3, 1.14], [2.15, 1.04], [2.0, 0.96], [1.93, 0.92]], w: [[2.3, 0.12], [2.0, 0.14]], h: [[2.3, 0.05], [1.93, 0.05]], t: [[2.3, 0.045], [1.93, 0.04]] } };
+const IODM = rastrema('d_iod', IOD.ya, IOD.yb), iod = () => IODM;
 function tendineIod(sg) {
-  const f = (T, u0, u1) => y => ty(T, y), y2u = (T, a, b) => u => { const y = a + (b - a) * u; return { y, s: sg * ty(T.s, y) }; };
-  const tr = IOD.tronco, os = IOD.osseo, ca = IOD.cappuccio;
-  const tronco = nastro({ NU: 40, NV: 11, fine: [false, true], path: y2u(tr, 3.1, 2.2), w: per(tr.w), h: per(tr.h), t: per(tr.t) });
+  const y2u = (a, b, fs) => u => { const y = a + (b - a) * u; return { y, ...fs(y) }; };
+  const tr = IOD.tronco, os = IOD.osseo, ca = IOD.cappuccio, fd = fondi(asse(IODM, sg, 3.3, 2.7), 2.8, 2.45, tr.s, tr.h, sg);
+  // tronco: nasce sull'asse del ventre (s, h misurati sulla mesh rastremata di quel lato) e converge sul percorso fisso verso il tubercolo
+  const tronco = nastro({ NU: 50, NV: 11, fine: [false, true], path: y2u(3.3, 2.2, fd), w: per(tr.w), h: (u, p) => p.h, t: per(tr.t) });
   // fascio osseo: si allarga e poggia sull'osso (quota che cala a zero), spessore che si annulla sull'inserzione
-  const osseo = nastro({ NU: 30, NV: 13, fine: [false, false], path: y2u(os, 2.3, 2.0), w: per(os.w), h: (u, p) => 0.05 * (1 - sstep(0.3, 1, u)), t: per(os.t) });
-  const capp = nastro({ NU: 30, NV: 9, fine: [false, false], path: y2u(ca, 2.3, 1.93), w: per(ca.w), h: per(ca.h), t: per(ca.t) });
+  const osseo = nastro({ NU: 30, NV: 13, fine: [false, false], path: y2u(2.3, 2.0, y => ({ s: sg * ty(os.s, y) })), w: per(os.w), h: (u, p) => 0.05 * (1 - sstep(0.3, 1, u)), t: per(os.t) });
+  const capp = nastro({ NU: 30, NV: 9, fine: [false, false], path: y2u(2.3, 1.93, y => ({ s: sg * ty(ca.s, y) })), w: per(ca.w), h: per(ca.h), t: per(ca.t) });
   return unisci(tronco, osseo, capp);
 }
 const iod_t = () => unisci(tendineIod(-1), tendineIod(1));
-const iod = () => rastrema('d_iod', IOD.ya, IOD.yb);
+
 
 function tendineLombricale() {
-  const L = LUMB.tendine;
-  return nastro({ NU: 50, NV: 11, fine: [false, false], path: u => { const y = L.s[0][0] + (L.s[L.s.length - 1][0] - L.s[0][0]) * u; return { y, s: ty(L.s, y) }; }, w: per(L.w), h: per(L.h), t: per(L.t) });
+  const L = LUMB.tendine, fd = fondi(asse(LUMBM, -1, 3.1, 2.5), 2.6, 2.35, L.s, L.h, 1);
+  return nastro({ NU: 60, NV: 11, fine: [false, false], path: u => { const y = 3.1 + (L.s[L.s.length - 1][0] - 3.1) * u; return { y, ...fd(y) }; }, w: per(L.w), h: (u, p) => p.h, t: per(L.t) });
 }
 
 /* ============ Scrittura ============ */
