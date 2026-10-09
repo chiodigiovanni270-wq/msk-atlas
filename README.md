@@ -75,7 +75,7 @@ Cosa controllare dopo una modifica:
 
 In alto nella homepage il modello del polso resta sullo sfondo e ruota di 360° mentre si scorre la pagina
 (titolo e frase introduttiva gli scorrono sopra). È una sequenza di fotogrammi disegnati in un canvas
-in base allo scorrimento. Dopo una modifica al modello va rigenerata, con il server locale attivo:
+in base allo scorrimento; durante uno scorrimento veloce usa copie a metà risoluzione già pronte (in Safari decodificare quelle intere richiede troppo tempo) e torna nitida quando la pagina rallenta. Dopo una modifica al modello va rigenerata, con il server locale attivo:
 
 ```bash
 node strumenti/sequenza-home.mjs polso-dito-3d
