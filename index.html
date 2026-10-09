@@ -327,8 +327,8 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
         <p class="kicker">L'atlante</p>
         <p class="lit">Ogni tavola è un modello tridimensionale da ruotare, scomporre per strati e consultare struttura per struttura, con note di anatomia e di interesse radiologico. Direttamente nel browser, anche da smartphone.</p>
         <ul class="stats">
-          <li><b data-count-models>2</b><span>Tavole interattive, ognuna una pagina indipendente</span></li>
-          <li><b>4</b><span>Viste standard per modello, con un tocco</span></li>
+          <li><b data-count-models>2</b><span>Tavole interattive: ginocchio, polso e dito, ognuna una pagina indipendente</span></li>
+          <li><b data-count-structures>220</b><span>Strutture anatomiche con scheda: ossa, legamenti, muscoli, vasi e nervi</span></li>
           <li><b>360°</b><span>Rotazione libera, zoom e strati da mostrare o nascondere</span></li>
         </ul>
       </div>
@@ -343,8 +343,9 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
     </div>
     <ul class="grid">
       <!-- CARD MODELLO: per aggiungere un modello duplica questo blocco e cambia immagine, alt, distretto, link, titolo e descrizione.
-           Il numero "Tav." e il conteggio dei modelli sono automatici. -->
-      <li class="card">
+           Il numero "Tav." e il conteggio dei modelli sono automatici.
+           Imposta data-strutture sul <li>: numero di strutture con scheda del modello (somma automatica in "L'atlante"). -->
+      <li class="card" data-strutture="79">
         <figure class="card-media">
           <img src="assets/anteprime/ginocchio-3d.jpg" width="1600" height="1000" loading="lazy"
                alt="Anteprima del modello 3D del ginocchio destro in vista anteriore">
@@ -360,7 +361,7 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       <!-- /CARD MODELLO -->
 
       <!-- CARD MODELLO (con link alle sezioni: il blocco .sub è facoltativo e sostituisce il pulsante "Apri il modello") -->
-      <li class="card">
+      <li class="card" data-strutture="141">
         <figure class="card-media">
           <img src="assets/anteprime/polso-dito-3d.jpg" width="1600" height="1000" loading="lazy"
                alt="Anteprima del modello 3D del polso destro in vista volare">
@@ -494,6 +495,11 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
   /* numero di tavole = numero di card */
   var n = document.querySelectorAll('.grid > .card').length;
   document.querySelectorAll('[data-count-models]').forEach(function(el){ el.textContent = n; });
+
+  /* strutture con scheda = somma di data-strutture delle card */
+  var ns = 0;
+  document.querySelectorAll('.grid > .card').forEach(function(c){ ns += +c.dataset.strutture || 0; });
+  if (ns) document.querySelectorAll('[data-count-structures]').forEach(function(el){ el.textContent = ns; });
 
   /* palco: fotogramma e ingrandimento del modello in base allo scorrimento.
      Con "riduci movimento" o risparmio dati resta il primo fotogramma, senza scaricare gli altri. */
