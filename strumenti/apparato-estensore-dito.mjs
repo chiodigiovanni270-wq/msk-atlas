@@ -83,8 +83,10 @@ const BAND = { s: [[1.95, 0.95], [1.6, 0.80], [1.1, 0.68], [0.5, 0.60], [-0.5, 0
   h: [[1.95, 0.12], [1.6, 0.085], [1.2, 0.05], [-1.8, 0.035], [-3.98, 0.03]],
   slip: { y0: 1.55, y1: -0.25, s: [[1.55, 0.14], [1.1, 0.25], [0.6, 0.41], [0.2, 0.52], [-0.25, 0.555]], w: [[1.55, 0.10], [1.0, 0.13], [-0.25, 0.15]] } };
 function bendellette(sg) {
-  const banda = nastro({ NU: 120, NV: 13, fine: [true, false], path: u => { const y = BAND.s[0][0] + (BAND.s[BAND.s.length - 1][0] - BAND.s[0][0]) * u; return { y, s: sg * ty(BAND.s, y) }; },
-    w: per(BAND.w), h: per(BAND.h), t: per(BAND.t) });
+  // la bendelletta nasce dalla stessa traiettoria del tendine dell'interosseo (tabelle IOD.tronco per y > 1,95) e ne prende il posto con una dissolvenza incrociata dello spessore tra y 2,05 e 1,70 (nessun taglio netto, nessuna riga di giunzione)
+  const tr = IOD.tronco, ys = 2.1, ye = BAND.s[BAND.s.length - 1][0], sopra = y => y > 1.95;
+  const banda = nastro({ NU: 150, NV: 13, fine: [true, false], path: u => { const y = ys + (ye - ys) * u; return { y, s: sg * (sopra(y) ? ty(tr.s, y) : ty(BAND.s, y)), h: sopra(y) ? ty(tr.h, y) : ty(BAND.h, y) }; },
+    w: (u, p) => sopra(p.y) ? ty(tr.w, p.y) : ty(BAND.w, p.y), h: (u, p) => p.h, t: (u, p) => ty(BAND.t, p.y) * Math.sqrt(sstep(2.05, 1.70, p.y)) });
   const sl = BAND.slip, slip = nastro({ NU: 50, NV: 11, fine: [false, false], path: u => { const y = sl.y0 + (sl.y1 - sl.y0) * u; return { y, s: sg * ty(sl.s, y) }; },
     w: per(sl.w), h: (u, p) => 0.036 + 0.01 * (1 - u), t: (u, p) => 0.05 * sstep(0, 0.3, u) });
   return unisci(banda, slip);
@@ -164,7 +166,9 @@ function tendineIod(sg) {
   const y2u = (a, b, fs) => u => { const y = a + (b - a) * u; return { y, ...fs(y) }; };
   const tr = IOD.tronco, os = IOD.osseo, fd = fondi(asse(IODM, sg, 3.3, 2.7), 2.8, 2.45, tr.s, tr.h, sg);
   // tronco: nasce sull'asse del ventre (s, h misurati sulla mesh rastremata di quel lato) e converge sul percorso fisso verso il tubercolo
-  const tronco = nastro({ NU: 70, NV: 11, fine: [false, true], path: y2u(3.3, 1.85, fd), w: per(tr.w), h: (u, p) => p.h, t: per(tr.t) });
+  const sopra = y => y > 1.95, base = y => sopra(y) ? ty(tr.t, y) : ty(BAND.t, y);
+  const tronco = nastro({ NU: 90, NV: 11, fine: [false, true], path: y2u(3.3, 1.70, y => { const c = fd(y); return sopra(y) ? c : { s: sg * ty(BAND.s, y), h: ty(BAND.h, y) }; }),
+    w: (u, p) => sopra(p.y) ? ty(tr.w, p.y) : ty(BAND.w, p.y), h: (u, p) => p.h, t: (u, p) => base(p.y) * Math.sqrt(1 - sstep(2.05, 1.70, p.y)) });
   // fascio osseo: si allarga e poggia sull'osso (quota che cala a zero), spessore che si annulla sull'inserzione
   const osseo = nastro({ NU: 40, NV: 13, fine: [false, false], path: y2u(2.55, 1.98, y => ({ s: sg * ty(os.s, y) })), w: per(os.w), h: per(os.h), t: per(os.t) });
   return unisci(tronco, osseo);
