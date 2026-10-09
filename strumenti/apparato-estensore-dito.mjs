@@ -157,7 +157,7 @@ function fondi(A, yf, yp, tabS, tabH, sg) { return y => { const k = clamp((A[0][
 /* ============ 9. Interossei dorsali: ventre che si rastrema nel tendine, con fascio osseo (tubercolo laterale della base di P1) e fascio per il cappuccio ============ */
 const IOD = { ya: 3.3, yb: 2.75,
   tronco: { s: [[3.1, 1.14], [2.9, 1.14], [2.6, 1.12], [2.35, 1.12], [2.15, 1.04], [1.95, 0.95]], w: [[3.1, 0.10], [2.6, 0.15], [2.2, 0.16], [1.95, 0.14]], h: [[3.1, 0.22], [2.9, 0.20], [2.6, 0.14], [2.3, 0.12], [1.95, 0.12]], t: [[3.1, 0.05], [2.6, 0.065], [2.2, 0.06], [1.95, 0.05]] },
-  osseo: { s: [[2.3, 1.16], [2.15, 1.25], [2.05, 1.32]], w: [[2.3, 0.14], [2.15, 0.24], [2.05, 0.32], [2.0, 0.28]], t: [[2.3, 0.045], [2.1, 0.035], [2.0, 0.0]] },
+  osseo: { s: [[2.55, 1.12], [2.4, 1.16], [2.25, 1.24], [2.1, 1.30], [2.0, 1.33]], w: [[2.55, 0.10], [2.4, 0.14], [2.2, 0.22], [2.05, 0.28], [1.98, 0.16]], t: [[2.55, 0.05], [2.3, 0.05], [2.1, 0.035], [1.98, 0.0]], h: [[2.55, 0.14], [2.4, 0.12], [2.25, 0.08], [2.1, 0.03], [1.98, 0.0]] },
   cappuccio: { s: [[2.3, 1.14], [2.15, 1.04], [2.0, 0.96], [1.93, 0.92]], w: [[2.3, 0.12], [2.0, 0.14]], h: [[2.3, 0.05], [1.93, 0.05]], t: [[2.3, 0.045], [1.93, 0.04]] } };
 const IODM = rastrema('d_iod', IOD.ya, IOD.yb), iod = () => IODM;
 function tendineIod(sg) {
@@ -166,7 +166,7 @@ function tendineIod(sg) {
   // tronco: nasce sull'asse del ventre (s, h misurati sulla mesh rastremata di quel lato) e converge sul percorso fisso verso il tubercolo
   const tronco = nastro({ NU: 70, NV: 11, fine: [false, true], path: y2u(3.3, 1.85, fd), w: per(tr.w), h: (u, p) => p.h, t: per(tr.t) });
   // fascio osseo: si allarga e poggia sull'osso (quota che cala a zero), spessore che si annulla sull'inserzione
-  const osseo = nastro({ NU: 30, NV: 13, fine: [false, false], path: y2u(2.3, 2.0, y => ({ s: sg * ty(os.s, y) })), w: per(os.w), h: (u, p) => 0.06 * (1 - sstep(0, 1, u)), t: per(os.t) });
+  const osseo = nastro({ NU: 40, NV: 13, fine: [false, false], path: y2u(2.55, 1.98, y => ({ s: sg * ty(os.s, y) })), w: per(os.w), h: per(os.h), t: per(os.t) });
   return unisci(tronco, osseo);
 }
 const iod_t = () => unisci(tendineIod(-1), tendineIod(1));
