@@ -27,7 +27,7 @@ const ART = {
     placca: { yd: -2.17, cd: 0.03, ypc: -1.62, ypl: -1.55, checkrein: 0.14, zcut: -0.62, rientro: 0.04, ponte: 0.16, hw0: 0.52, hw1: 0.57, tdist: 0.070, tprox: 0.020, margine: 0.020 },
   },
   mcf: {
-    pref: 'mcp', ossa: ['d_mc3', 'd_p1'], fog: ['A1', 'A2', 'sagittali'], sol: ['d_fds', 'd_fdp', 'd_lumb', 'd_iod'],
+    pref: 'mcp', ossa: ['d_mc3', 'd_p1'], fog: ['A2'], sol: ['d_lumb', 'd_iod'], // la placca passa sotto i flessori e sotto la A1, che vi si fissa: nessun taglio (stesso colore, niente fessure)
     box: [[-1.1, 1.55, -1.7], [1.3, 3.6, 0.9]], win: [-0.85, 1.0, 1.7, 3.5],
     gap: 0.004, xc: 0.10, gapC: 0.02, // la cartilagine della testa metacarpale è irregolare: collaterali un po' più staccati
     // origine nella fossetta dorso-laterale della testa metacarpale, inserzione volare sulla base di P1; l'accessorio va alla placca
