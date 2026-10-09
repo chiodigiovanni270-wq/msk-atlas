@@ -68,7 +68,8 @@ function sagittali() {
 }
 
 /* ============ 3. Cappuccio degli estensori (cappuccio): espansione degli intrinseci distale alle sagittali ============ */
-const CAP = { yp: 2.62, smax: 1.28, yd: [[0, 1.00], [0.25, 1.12], [0.7, 1.55], [1.0, 1.82], [1.28, 2.05]] };
+const CAP = { yp: 2.62, smax: 0.98, // il cappuccio finisce dorsalmente al tendine dell'interosseo, che gli corre accanto senza entrarvi
+  yd: [[0, 1.00], [0.25, 1.12], [0.7, 1.55], [1.0, 1.82], [1.28, 2.05]] };
 function cappuccio() {
   return patch(30, 73, (u, v) => { const s = (v * 2 - 1) * CAP.smax, a = Math.abs(s), yd = interp(CAP.yd, a), y = CAP.yp + (yd - CAP.yp) * u;
     const dirS = -Math.sign(s) * 0.78 * sstep(0.05, 0.4, a); // fibre oblique: dal margine laterale verso la linea mediana e distalmente
@@ -77,12 +78,12 @@ function cappuccio() {
 
 /* ============ 4. Bendellette laterali (bl): intrinseci + bendellette dell'EDC ============ */
 const BAND = { s: [[1.95, 0.95], [1.6, 0.80], [1.1, 0.68], [0.5, 0.60], [-0.5, 0.55], [-1.2, 0.50], [-1.9, 0.46], [-2.4, 0.40], [-2.9, 0.29], [-3.35, 0.17], [-3.7, 0.09], [-3.98, 0.07]],
-  w: [[1.95, 0.12], [1.2, 0.15], [0.0, 0.17], [-1.9, 0.15], [-2.5, 0.14], [-3.0, 0.13], [-3.7, 0.12], [-3.98, 0.10]],
-  t: [[1.95, 0.04], [1.0, 0.05], [-1.9, 0.05], [-3.0, 0.045], [-3.7, 0.05], [-3.98, 0.05]],
-  h: [[1.95, 0.05], [1.2, 0.045], [-1.8, 0.035], [-3.98, 0.03]],
+  w: [[1.95, 0.14], [1.2, 0.15], [0.0, 0.17], [-1.9, 0.15], [-2.5, 0.14], [-3.0, 0.13], [-3.7, 0.12], [-3.98, 0.10]],
+  t: [[1.95, 0.05], [1.0, 0.05], [-1.9, 0.05], [-3.0, 0.045], [-3.7, 0.05], [-3.98, 0.05]],
+  h: [[1.95, 0.12], [1.6, 0.085], [1.2, 0.05], [-1.8, 0.035], [-3.98, 0.03]],
   slip: { y0: 1.55, y1: -0.25, s: [[1.55, 0.14], [1.1, 0.25], [0.6, 0.41], [0.2, 0.52], [-0.25, 0.555]], w: [[1.55, 0.10], [1.0, 0.13], [-0.25, 0.15]] } };
 function bendellette(sg) {
-  const banda = nastro({ NU: 120, NV: 13, fine: [false, false], path: u => { const y = BAND.s[0][0] + (BAND.s[BAND.s.length - 1][0] - BAND.s[0][0]) * u; return { y, s: sg * ty(BAND.s, y) }; },
+  const banda = nastro({ NU: 120, NV: 13, fine: [true, false], path: u => { const y = BAND.s[0][0] + (BAND.s[BAND.s.length - 1][0] - BAND.s[0][0]) * u; return { y, s: sg * ty(BAND.s, y) }; },
     w: per(BAND.w), h: per(BAND.h), t: per(BAND.t) });
   const sl = BAND.slip, slip = nastro({ NU: 50, NV: 11, fine: [false, false], path: u => { const y = sl.y0 + (sl.y1 - sl.y0) * u; return { y, s: sg * ty(sl.s, y) }; },
     w: per(sl.w), h: (u, p) => 0.036 + 0.01 * (1 - u), t: (u, p) => 0.05 * sstep(0, 0.3, u) });
@@ -121,7 +122,7 @@ function orl() {
 }
 
 /* ============ 8. Lombricale: il ventre finisce sul lato radiale dell'MCF, il tendine (nella bendelletta radiale) raggiunge la bendelletta laterale ============ */
-const LUMB = { ya: 2.85, yb: 2.35, tendine: { s: [[2.95, -1.12], [2.4, -1.12], [2.0, -0.99], [1.6, -0.86], [1.2, -0.73], [0.95, -0.67]], w: [[2.95, 0.10], [2.4, 0.12], [1.0, 0.13]], h: [[2.95, 0.14], [2.4, 0.085], [1.8, 0.075], [1.0, 0.045]], t: [[2.95, 0.05], [1.0, 0.05]] } };
+const LUMB = { ya: 2.85, yb: 2.35, tendine: { s: [[2.95, -1.12], [2.4, -1.12], [2.0, -0.99], [1.6, -0.86], [1.2, -0.73], [0.95, -0.67]], w: [[2.95, 0.10], [2.4, 0.12], [1.0, 0.13]], h: [[2.95, 0.14], [2.4, 0.12], [1.8, 0.12], [1.3, 0.09], [0.95, 0.05]], t: [[2.95, 0.05], [1.0, 0.05]] } };
 /* ventre muscolare (mesh originale) che si rastrema in punta: ya = inizio della rastremazione, yb = punta; i segni di s separano radiale e ulnare */
 function rastrema(nome, ya, yb, lato = 0) { // lato: −1 radiale, +1 ulnare, 0 = dal segno di s (iod, due ventri); il lombricale ha anche il tratto distale originale sulla linea mediana dorsale (|s| ≈ 0), da portare sul lato radiale
   const g = MO.get(nome), nv = g.pos.length / 3, q = [];
@@ -155,26 +156,26 @@ function fondi(A, yf, yp, tabS, tabH, sg) { return y => { const k = clamp((A[0][
 
 /* ============ 9. Interossei dorsali: ventre che si rastrema nel tendine, con fascio osseo (tubercolo laterale della base di P1) e fascio per il cappuccio ============ */
 const IOD = { ya: 3.3, yb: 2.75,
-  tronco: { s: [[3.1, 1.14], [2.9, 1.14], [2.6, 1.12], [2.35, 1.15], [2.2, 1.18]], w: [[3.1, 0.10], [2.6, 0.15], [2.2, 0.17]], h: [[3.1, 0.22], [2.9, 0.20], [2.6, 0.11], [2.2, 0.05]], t: [[3.1, 0.05], [2.6, 0.065], [2.2, 0.06]] },
-  osseo: { s: [[2.3, 1.16], [2.15, 1.25], [2.05, 1.32]], w: [[2.3, 0.14], [2.15, 0.22], [2.05, 0.30], [2.0, 0.26]], t: [[2.3, 0.05], [2.1, 0.05], [2.0, 0.0]] },
+  tronco: { s: [[3.1, 1.14], [2.9, 1.14], [2.6, 1.12], [2.35, 1.12], [2.15, 1.04], [1.95, 0.95]], w: [[3.1, 0.10], [2.6, 0.15], [2.2, 0.16], [1.95, 0.14]], h: [[3.1, 0.22], [2.9, 0.20], [2.6, 0.14], [2.3, 0.12], [1.95, 0.12]], t: [[3.1, 0.05], [2.6, 0.065], [2.2, 0.06], [1.95, 0.05]] },
+  osseo: { s: [[2.3, 1.16], [2.15, 1.25], [2.05, 1.32]], w: [[2.3, 0.14], [2.15, 0.24], [2.05, 0.32], [2.0, 0.28]], t: [[2.3, 0.045], [2.1, 0.035], [2.0, 0.0]] },
   cappuccio: { s: [[2.3, 1.14], [2.15, 1.04], [2.0, 0.96], [1.93, 0.92]], w: [[2.3, 0.12], [2.0, 0.14]], h: [[2.3, 0.05], [1.93, 0.05]], t: [[2.3, 0.045], [1.93, 0.04]] } };
 const IODM = rastrema('d_iod', IOD.ya, IOD.yb), iod = () => IODM;
 function tendineIod(sg) {
   const y2u = (a, b, fs) => u => { const y = a + (b - a) * u; return { y, ...fs(y) }; };
-  const tr = IOD.tronco, os = IOD.osseo, ca = IOD.cappuccio, fd = fondi(asse(IODM, sg, 3.3, 2.7), 2.8, 2.45, tr.s, tr.h, sg);
+  const tr = IOD.tronco, os = IOD.osseo, fd = fondi(asse(IODM, sg, 3.3, 2.7), 2.8, 2.45, tr.s, tr.h, sg);
   // tronco: nasce sull'asse del ventre (s, h misurati sulla mesh rastremata di quel lato) e converge sul percorso fisso verso il tubercolo
-  const tronco = nastro({ NU: 50, NV: 11, fine: [false, true], path: y2u(3.3, 2.2, fd), w: per(tr.w), h: (u, p) => p.h, t: per(tr.t) });
+  const tronco = nastro({ NU: 70, NV: 11, fine: [false, true], path: y2u(3.3, 1.85, fd), w: per(tr.w), h: (u, p) => p.h, t: per(tr.t) });
   // fascio osseo: si allarga e poggia sull'osso (quota che cala a zero), spessore che si annulla sull'inserzione
-  const osseo = nastro({ NU: 30, NV: 13, fine: [false, false], path: y2u(2.3, 2.0, y => ({ s: sg * ty(os.s, y) })), w: per(os.w), h: (u, p) => 0.05 * (1 - sstep(0.3, 1, u)), t: per(os.t) });
-  const capp = nastro({ NU: 30, NV: 9, fine: [false, false], path: y2u(2.3, 1.93, y => ({ s: sg * ty(ca.s, y) })), w: per(ca.w), h: per(ca.h), t: per(ca.t) });
-  return unisci(tronco, osseo, capp);
+  const osseo = nastro({ NU: 30, NV: 13, fine: [false, false], path: y2u(2.3, 2.0, y => ({ s: sg * ty(os.s, y) })), w: per(os.w), h: (u, p) => 0.06 * (1 - sstep(0, 1, u)), t: per(os.t) });
+  return unisci(tronco, osseo);
 }
 const iod_t = () => unisci(tendineIod(-1), tendineIod(1));
 
 
-function tendineLombricale() {
-  const L = LUMB.tendine, fd = fondi(asse(LUMBM, -1, 3.1, 2.5), 2.6, 2.35, L.s, L.h, 1);
-  return nastro({ NU: 60, NV: 11, fine: [false, false], path: u => { const y = 3.1 + (L.s[L.s.length - 1][0] - 3.1) * u; return { y, ...fd(y) }; }, w: per(L.w), h: (u, p) => p.h, t: per(L.t) });
+function tendineLombricale() { // nasce esattamente dalla punta del ventre rastremato (asse misurato sulla mesh) e converge sul percorso verso la bendelletta
+  const L = LUMB.tendine, tip = asse(LUMBM, -1, 2.45, 2.45)[0], y0 = 2.45;
+  return nastro({ NU: 60, NV: 11, fine: [false, false], path: u => { const y = y0 + (L.s[L.s.length - 1][0] - y0) * u, w = sstep(y0, 2.1, y);
+    return { y, s: tip[1] * (1 - w) + ty(L.s, y) * w, h: tip[2] * (1 - w) + ty(L.h, y) * w }; }, w: per(L.w), h: (u, p) => p.h, t: per(L.t) });
 }
 
 /* ============ Scrittura ============ */
