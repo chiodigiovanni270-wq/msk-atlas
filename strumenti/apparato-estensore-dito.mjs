@@ -1,6 +1,6 @@
 /* Apparato estensore del dito (modelli/polso-dito-3d.html, sezione dito): tendine dell'EDC con bendella centrale, bendelle sagittali,
    cappuccio degli estensori (espansione degli intrinseci), bendellette laterali (con le bendellette dell'EDC), legamento triangolare,
-   tendine terminale, legamenti retinacolari trasversi (`trl`) e obliqui (`orl`); inoltre porta il tendine del lombricale sul lato radiale.
+   tendine terminale, legamenti retinacolari trasversi (`trl`) e obliqui (`orl`); inoltre porta il lombricale sul lato radiale e rastrema lombricale e interossei dorsali in tendini (`iod_t`) che si inseriscono sull'osso e nel cappuccio.
 
    Uso (dalla cartella del progetto):
      node strumenti/apparato-estensore-dito.mjs              → riscrive le mesh nel file del modello
@@ -121,25 +121,50 @@ function orl() {
 }
 
 /* ============ 8. Lombricale: il ventre finisce sul lato radiale dell'MCF, il tendine (nella bendelletta radiale) raggiunge la bendelletta laterale ============ */
-const LUMB = { ya: 2.55, yb: 2.0, tendine: { s: [[2.4, -1.12], [2.0, -0.99], [1.6, -0.86], [1.2, -0.73], [0.95, -0.67]], w: [[2.4, 0.12], [1.0, 0.13]], h: [[2.4, 0.085], [1.8, 0.075], [1.0, 0.045]], t: [[2.4, 0.05], [1.0, 0.05]] } };
-function lombricale() { // la mesh originale (BodyParts3D) passava sulla linea mediana dorsale: si accorcia il ventre e si rastrema in punta
-  const g = MO.get('d_lumb'), nv = g.pos.length / 3, q = [];
+const LUMB = { ya: 2.85, yb: 2.35, tendine: { s: [[2.95, -1.12], [2.4, -1.12], [2.0, -0.99], [1.6, -0.86], [1.2, -0.73], [0.95, -0.67]], w: [[2.95, 0.10], [2.4, 0.12], [1.0, 0.13]], h: [[2.95, 0.14], [2.4, 0.085], [1.8, 0.075], [1.0, 0.045]], t: [[2.95, 0.05], [1.0, 0.05]] } };
+/* ventre muscolare (mesh originale) che si rastrema in punta: ya = inizio della rastremazione, yb = punta; i segni di s separano radiale e ulnare */
+function rastrema(nome, ya, yb) {
+  const g = MO.get(nome), nv = g.pos.length / 3, q = [];
   for (let i = 0; i < nv; i++) q.push(SF.da([g.pos[3 * i], g.pos[3 * i + 1], g.pos[3 * i + 2]]));
-  const sez = new Map(); q.forEach(p => { const k = Math.round(p.y / 0.1); let r = sez.get(k); if (!r) sez.set(k, r = { s: 0, h: 0, n: 0 }); r.s += p.s; r.h += p.h; r.n++; });
-  const cen = y => { const k = Math.round(y / 0.1); for (let d = 0; d < 8; d++) for (const kk of [k - d, k + d]) { const r = sez.get(kk); if (r && r.n > 3) return { s: r.s / r.n, h: r.h / r.n }; } return { s: 0, h: 0 }; };
+  const sez = new Map(); q.forEach(p => { const k = Math.round(p.y / 0.1) + (p.s > 0 ? 1e4 : 0); let r = sez.get(k); if (!r) sez.set(k, r = { s: 0, h: 0, n: 0 }); r.s += p.s; r.h += p.h; r.n++; });
+  const cen = (y, sg) => { const k = Math.round(y / 0.1); for (let d = 0; d < 8; d++) for (const kk of [k - d, k + d]) { const r = sez.get(kk + (sg > 0 ? 1e4 : 0)); if (r && r.n > 3) return { s: r.s / r.n, h: r.h / r.n }; } return { s: 0, h: 0 }; };
   const pos = Float32Array.from(g.pos);
-  for (let i = 0; i < nv; i++) { const p = q[i]; if (p.y >= LUMB.ya) continue;
-    const k = sstep(LUMB.yb, LUMB.ya, p.y), yc = Math.max(p.y, LUMB.yb), c = cen(yc), pt = SF.P(yc, c.s + (p.s - c.s) * k, c.h + (p.h - c.h) * k);
+  for (let i = 0; i < nv; i++) { const p = q[i]; if (p.y >= ya || Math.abs(p.s) < 0.2) continue;
+    const sg = p.s > 0 ? 1 : -1, k = sstep(yb, ya, p.y), yc = Math.max(p.y, yb), c = cen(yc, sg), pt = SF.P(yc, c.s + (p.s - c.s) * k, c.h + (p.h - c.h) * k);
     pos[3 * i] = pt[0]; pos[3 * i + 1] = pt[1]; pos[3 * i + 2] = pt[2]; }
+  // levigatura della zona rastremata (la punta originale è frastagliata): media dei vicini sui vertici con y < ya
+  const nb = Array.from({ length: nv }, () => new Set());
+  for (let t = 0; t < g.idx.length; t += 3) for (let a = 0; a < 3; a++) { nb[g.idx[t + a]].add(g.idx[t + (a + 1) % 3]); nb[g.idx[t + a]].add(g.idx[t + (a + 2) % 3]); }
+  const zona = []; for (let i = 0; i < nv; i++) if (g.pos[3 * i + 1] < ya + 0.15 && g.pos[3 * i + 1] > yb - 0.5 && Math.abs(q[i].s) > 0.2) zona.push(i);
+  for (let it = 0; it < 8; it++) { const nuove = zona.map(i => { const v = [...nb[i]]; if (!v.length) return null; const m = [0, 0, 0]; for (const j of v) for (let k = 0; k < 3; k++) m[k] += pos[3 * j + k] / v.length; return m; });
+    zona.forEach((i, n) => { const m = nuove[n]; if (m) for (let k = 0; k < 3; k++) pos[3 * i + k] = 0.5 * pos[3 * i + k] + 0.5 * m[k]; }); }
   return { pos, idx: g.idx, dir: g.dir, tag: g.tag };
 }
+const lombricale = () => rastrema('d_lumb', LUMB.ya, LUMB.yb);
+/* ============ 9. Interossei dorsali: ventre che si rastrema nel tendine, con fascio osseo (tubercolo laterale della base di P1) e fascio per il cappuccio ============ */
+const IOD = { ya: 3.3, yb: 2.75,
+  tronco: { s: [[3.1, 1.14], [2.9, 1.14], [2.6, 1.12], [2.35, 1.15], [2.2, 1.18]], w: [[3.1, 0.10], [2.6, 0.15], [2.2, 0.17]], h: [[3.1, 0.22], [2.9, 0.20], [2.6, 0.11], [2.2, 0.05]], t: [[3.1, 0.05], [2.6, 0.065], [2.2, 0.06]] },
+  osseo: { s: [[2.3, 1.16], [2.15, 1.25], [2.05, 1.32]], w: [[2.3, 0.14], [2.15, 0.22], [2.05, 0.30], [2.0, 0.26]], t: [[2.3, 0.05], [2.1, 0.05], [2.0, 0.0]] },
+  cappuccio: { s: [[2.3, 1.14], [2.15, 1.04], [2.0, 0.96], [1.93, 0.92]], w: [[2.3, 0.12], [2.0, 0.14]], h: [[2.3, 0.05], [1.93, 0.05]], t: [[2.3, 0.045], [1.93, 0.04]] } };
+function tendineIod(sg) {
+  const f = (T, u0, u1) => y => ty(T, y), y2u = (T, a, b) => u => { const y = a + (b - a) * u; return { y, s: sg * ty(T.s, y) }; };
+  const tr = IOD.tronco, os = IOD.osseo, ca = IOD.cappuccio;
+  const tronco = nastro({ NU: 40, NV: 11, fine: [false, true], path: y2u(tr, 3.1, 2.2), w: per(tr.w), h: per(tr.h), t: per(tr.t) });
+  // fascio osseo: si allarga e poggia sull'osso (quota che cala a zero), spessore che si annulla sull'inserzione
+  const osseo = nastro({ NU: 30, NV: 13, fine: [false, false], path: y2u(os, 2.3, 2.0), w: per(os.w), h: (u, p) => 0.05 * (1 - sstep(0.3, 1, u)), t: per(os.t) });
+  const capp = nastro({ NU: 30, NV: 9, fine: [false, false], path: y2u(ca, 2.3, 1.93), w: per(ca.w), h: per(ca.h), t: per(ca.t) });
+  return unisci(tronco, osseo, capp);
+}
+const iod_t = () => unisci(tendineIod(-1), tendineIod(1));
+const iod = () => rastrema('d_iod', IOD.ya, IOD.yb);
+
 function tendineLombricale() {
   const L = LUMB.tendine;
   return nastro({ NU: 50, NV: 11, fine: [false, false], path: u => { const y = L.s[0][0] + (L.s[L.s.length - 1][0] - L.s[0][0]) * u; return { y, s: ty(L.s, y) }; }, w: per(L.w), h: per(L.h), t: per(L.t) });
 }
 
 /* ============ Scrittura ============ */
-const NUOVE = { d_edc: edc, sagittali, cappuccio, bl, triangolare, terminale, trl, orl, d_lumb: lombricale };
+const NUOVE = { d_edc: edc, sagittali, cappuccio, bl, triangolare, terminale, trl, orl, d_lumb: lombricale, d_iod: iod, iod_t };
 for (const [n, f] of Object.entries(NUOVE)) {
   const g = f(); if (!M.man.meshes.find(m => m.n === n)) M.man.meshes.push({ n, nv: 0, ni: 0, p: 0, i: 0, i16: 1 });
   M.set(n, g); log(n.padEnd(12), g.pos.length / 3, 'vertici', g.idx.length / 3, 'triangoli'); }
