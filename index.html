@@ -509,8 +509,9 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
        a quello mostrato, più uno ogni 16; in più uno ogni 2 a metà risoluzione (low) come riserva: con uno scorrimento
        veloce la finestra a piena risoluzione non fa in tempo a seguire, e così non si saltano molti fotogrammi.
        Le immagini decodificate pesano molto: tenerle tutte a piena risoluzione rallenta lo scorrimento. */
-    var blobs = [], bitmaps = [], low = [], lowBusy = false, active = 0, dirn = 1, lastIdx = 0, tIdx = 0;
+    var blobs = [], bitmaps = [], low = [], lowBusy = false, active = 0, dirn = 1, lastIdx = 0, tIdx = 0, winKey = '';
     var queued = false, last = '', lastTf = '', sized = false, shown = -1, lastT = 0, lastTarget = -1, movedT = 0;   // shown: avanzamento mostrato, segue con poco ritardo quello dello scorrimento
+    var MAXV = 0.2;   // fotogrammi al ms (200 al secondo ≈ 400°/s)
     var pad = function(i){ return ('00' + i).slice(-3); };
     var clamp = function(x){ return x < 0 ? 0 : x > 1 ? 1 : x; };
     var smooth = function(x){ x = clamp(x); return x * x * (3 - 2 * x); };
@@ -555,7 +556,7 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       var ahead = dirn > 0 ? Math.max(12, Math.min(24, tIdx - idx)) : 6, behind = dirn > 0 ? 6 : Math.max(12, Math.min(24, idx - tIdx));
       for (var i = 0; i < N; i++) {
         if (i % 16 === 0 || (i >= idx - behind && i <= idx + ahead)) decode(i);
-        else if (bitmaps[i] !== undefined) { if (bitmaps[i]) bitmaps[i].close(); bitmaps[i] = undefined; }
+        else if (bitmaps[i] !== undefined && !(i >= idx - behind - 4 && i <= idx + ahead + 4)) { if (bitmaps[i]) bitmaps[i].close(); bitmaps[i] = undefined; }   // isteresi di 4 fotogrammi: oscillando non si rigenerano
       }
     }
     function nearest(i){   // fotogramma disponibile più vicino a quello richiesto (a parità, quello a piena risoluzione)
@@ -581,16 +582,22 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       if (target !== lastTarget) { lastTarget = target; movedT = now; }
       if (shown < 0) shown = target;
       else {
-        var moving = now - movedT < 80, lag = (fine ? 20 : 6) / (N - 1);
+        var moving = now - movedT < 80;
         var tau = fine ? (moving ? 65 : 45) : (moving ? 50 : 18);
         var next = shown + (target - shown) * (1 - Math.exp(-dt / tau));
-        shown = Math.max(target - lag, Math.min(target + lag, next));
+        /* velocità angolare massima: con uno scorrimento rapido la pagina percorre l'intero giro in pochi refresh (decine di
+           fotogrammi per disegno = poche pose isolate, che non possono sembrare fluide). Il modello invece ruota al massimo di
+           ~3 fotogrammi (6°) per refresh a 60 Hz e prosegue per un attimo dopo il gesto: passo uniforme, fotogrammi contigui,
+           sempre già decodificati. Sotto questa soglia (scorrimento lento) la levigatura non cambia. */
+        var cap = MAXV * dt / (N - 1);
+        shown = Math.max(shown - cap, Math.min(shown + cap, next));
         if (Math.abs(target - shown) < 0.5 / (N - 1)) shown = target; else schedule();
       }
       var p = shown;
       var e = smooth(p), idx = Math.round(p * (N - 1)); tIdx = Math.round(target * (N - 1));
       if (idx !== lastIdx) { dirn = idx > lastIdx ? 1 : -1; lastIdx = idx; }
-      keepWindow(idx);
+      var wk = idx + '/' + dirn + '/' + (tIdx >> 2);
+      if (wk !== winKey) { winKey = wk; keepWindow(idx); }   // solo quando cambiano fotogramma, direzione o meta
       var sel = nearest(idx);
       if (!sel) return;
       buildLow();
