@@ -61,15 +61,14 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .btn.primary,.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--panel)}
 
 #sheet{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);box-shadow:var(--shadow);padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px);border-radius:16px 16px 0 0}
-.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
-.chips::-webkit-scrollbar{display:none}
-/* computer (mouse/trackpad): le categorie vanno a capo invece di scorrere */
-@media (hover:hover) and (pointer:fine){.chips{flex-wrap:wrap;overflow:visible}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:2px}
 .chip{flex:none;display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 11px 6px 8px;font-size:13px;font-weight:500;white-space:nowrap}
 .chip .dot{width:12px;height:12px;border-radius:50%;background:var(--c);border:2px solid var(--c)}
 .chip[data-state="off"]{color:var(--muted)}
 .chip[data-state="off"] .dot{background:transparent}
 .chip[data-state="part"] .dot{background:linear-gradient(90deg,var(--c) 50%,transparent 50%)}
+/* le categorie vanno a capo (nessuno scorrimento); su smartphone chip più compatti per tenere basso il pannello */
+@media (max-width:600px){.chips{gap:5px}.chip{padding:4px 9px 4px 6px;gap:5px;font-size:12.5px}.chip .dot{width:10px;height:10px}}
 .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
 .row .left{display:flex;gap:6px;flex-wrap:wrap}
 .toggle-list{border:0;background:transparent;color:var(--accent);font-weight:600;font-size:13.5px;padding:6px 2px;white-space:nowrap}
@@ -81,7 +80,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .item input{width:18px;height:18px;accent-color:var(--accent);flex:none}
 .item label{flex:1}
 .credit{font-size:11px;color:var(--muted);margin:8px 2px 0;line-height:1.35}
-
 .item .go{border:0;background:transparent;color:var(--muted);font-size:12.5px;padding:2px 6px}
 @media (min-width:900px){
   #sheet{left:auto;right:16px;bottom:16px;width:360px;border-radius:14px;border:1px solid var(--line)}
