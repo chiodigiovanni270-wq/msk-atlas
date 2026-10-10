@@ -94,15 +94,15 @@ function nastro(Lg, ctx) {
   for (let r = 0; r <= nr; r++) {
     const s = SS[r], f = at(s), u = f.u;
     const k = Math.sqrt(Math.max(0, 1 - (Math.max(0, e0 - s) / e0) ** 2 - (Math.max(0, s - (Ls - e1)) / e1) ** 2));
-    const Le = Math.min(0.45, Ls * 0.3), tk = 0.45 + 0.55 * sstep(0, Le, s) * sstep(0, Le, Ls - s);
+    const Le = Math.min(0.45, Ls * 0.3), tk = 0.3 + 0.7 * sstep(0, Le, s) * sstep(0, Le, Ls - s);
     // tv = spessore visibile sopra l'osso; la faccia profonda resta appena dentro (hin) così non resta luce
     const w = W(u) * Math.max(k, 0.03), tv = Math.max(0.06, t0(u) * tk) * Math.max(k, 0.03) ** 0.5, hin = -0.012 - 0.008 * endW(u), ring = [];
     for (let j = 0; j < M; j++) {
       const th = 2 * Math.PI * j / M, cs = Math.cos(th), sn = Math.sin(th), a = w * cs;
       const q = proietta(x => Fb(x, u), add(f.c, mul(f.b, a)), hin, 6), n = nrm(add(normale(q, u), f.n));
       // fascicoli: creste longitudinali che si spostano appena lungo il legamento
-      const ar = Math.abs(cs), fas = 1 + 0.11 * Math.sin((cs + 1) * Math.PI * nf + seed + 0.9 * Math.sin(s * 2.7 + seed)) * (1 - ar ** 2);
-      const hgt = sn >= 0 ? (tv - hin) * Math.pow(Math.max(0, 1 - ar ** 4), 0.55) * fas : -0.006 * -sn;
+      const ar = Math.abs(cs), fas = 1 + 0.06 * Math.sin((cs + 1) * Math.PI * nf + seed + 0.9 * Math.sin(s * 2.7 + seed)) * (1 - ar ** 2);
+      const hgt = sn >= 0 ? (tv - hin) * Math.pow(Math.max(0, 1 - ar ** 4), 0.85) * fas : -0.006 * -sn;
       const p = add(q, mul(n, hgt)); ring.push(pos.length / 3); pos.push(...p); fdl.push(...f.t);
     }
     rings.push({ ring, c: f.c, t: f.t });
@@ -130,7 +130,7 @@ function nastro(Lg, ctx) {
 
 /* ============ Contesto: ossa e cartilagini nella griglia del legamento ============ */
 function contesto(lo, hi, r, extra = []) {
-  const gr = griglia(lo, hi);
+  const gr = griglia(lo, hi, STEP, Math.max(0.45, r + 0.2));
   const nomi = [...OSSA, ...CART, ...extra], M = unione(nomi), { F: Fr, Do } = sdf(M), Fc = chiuso(Do, r);
   return { gr, Fr: campoB(nomi, 0.1), Fc: sfoca(Fc, 4) };
 }
@@ -141,7 +141,7 @@ const bbox = pts => [[0, 1, 2].map(k => Math.min(...pts.map(p => p[k]))), [0, 1,
 /* ============ Anulare e quadrato (superfici implicite attorno alla testa e al collo del radio) ============ */
 const ANU = {
   top: -0.3, bot: -1.2,        // cm: fascia di y coperta dall'anulare (circonferenza della testa e collo)
-  gap: 0.01, t: 0.09,          // distanza dalla superficie ossea e spessore (0,7 mm)
+  gap: 0.01, t: 0.09, fine: 0.04, finePos: 0.55, pienoPos: 1.7, restringi: 0.3, sulRadio: 0.5, chiusura: 0.2,          // distanza dalla superficie ossea e spessore (0,7 mm)
   quadTop: -1.15, quadBot: -1.75, quadW: 0.3,  // quadrato: fascia di y e distanza massima dalle due ossa
 };
 // campo di distanza con segno di un gruppo di solidi chiusi (negativo dentro): minimo dei campi dei singoli solidi, ciascuno con la
@@ -160,8 +160,10 @@ function testaRadio() { // centro della testa (x, z) e centro/semiampiezza angol
 }
 function anulare() {
   const { cx, cz, U } = testaRadio();
-  griglia([-4.1, -1.95, -1.2], [-0.2, 0.3, 2.3], 0.025, 0.1);
-  const FR = campoB(['radio', 'cart_radio']), FU = campoB(['ulna', 'cart_ulna']), FRs = sfoca(Float32Array.from(FR), 2);
+  griglia([-4.1, -1.95, -1.2], [-0.2, 0.3, 2.3], 0.02, 0.1);
+  const FR = campoB(['radio', 'cart_radio']), FU = campoB(['ulna', 'cart_ulna']), FRU = campoB(['radio', 'cart_radio', 'ulna', 'cart_ulna']);
+  // chiusura morfologica di radio e ulna insieme: la superficie "tesa" scavalca la rima radio-ulnare, così le estremità raggiungono l'ulna
+  const { Do } = sdf(unione(['radio', 'cart_radio', 'ulna', 'cart_ulna'])), FCl = sfoca(chiuso(Do, ANU.chiusura), 2), FRs = sfoca(Float32Array.from(FR), 2);
   // incisura radiale: vertici della cartilagine ulnare vicini al radio, a livello della testa
   const A = []; for (let i = 0; i < U.nv; i++) { const p = [U.pos[3 * i], U.pos[3 * i + 1], U.pos[3 * i + 2]]; if (p[1] < 0.1 && p[1] > -1.7 && sample(FR, ...p) < 0.35) A.push(Math.atan2(p[2] - cz, p[0] - cx)); }
   const phi0 = Math.atan2(A.reduce((s, a) => s + Math.sin(a), 0), A.reduce((s, a) => s + Math.cos(a), 0));
@@ -169,15 +171,19 @@ function anulare() {
   const hs = Math.max(...A.map(a => Math.abs(wrap(a - phi0))));
   log('anulare: incisura radiale centrata a', (phi0 * 180 / Math.PI).toFixed(0), '°, semiampiezza', (hs * 180 / Math.PI).toFixed(0), '°');
   const g = p => {
-    const dr = sample(FRs, ...p), du = sample(FU, ...p), dn = Math.abs(wrap(Math.atan2(p[2] - cz, p[0] - cx) - phi0));
-    let e = Math.max(dr - (ANU.gap + ANU.t), ANU.gap - dr);                      // guscio attorno alla testa e al collo
-    e = smax(e, p[1] - ANU.top, 0.05); e = smax(e, ANU.bot - p[1], 0.07);        // fascia in y
-    e = smax(e, hs * 1.25 - dn, 0.06);                                            // non copre l'incisura radiale: si ferma ai suoi margini
-    e = smax(e, 0.01 - du, 0.02);                                                 // fuori dall'ulna
+    const dr = sample(FRs, ...p), du = sample(FU, ...p), dcl = sample(FCl, ...p), dn = Math.abs(wrap(Math.atan2(p[2] - cz, p[0] - cx) - phi0));
+    // verso le estremità (dn → margini dell'incisura) lo spessore scende a ANU.fine e la fascia si restringe: la fine è una pellicola che si perde sull'ulna
+    const w = sstep(hs * ANU.finePos, hs * ANU.pienoPos, dn), th = ANU.fine + (ANU.t - ANU.fine) * w;
+    const sup = dr < ANU.sulRadio ? dr : dcl;                                      // sul radio: distanza dal radio; verso l'ulna: dalla superficie tesa
+    const wl = sstep(hs * 0.9, hs * 1.5, dn), d = (1 - wl) * dcl + wl * dr;       // fuori dall'incisura segue il radio, dentro la chiusura radio+ulna
+    let e = Math.max(d - (ANU.gap + th), ANU.gap - d);                            // guscio
+    const rid = 1 - w;                                                             // 0 al centro, 1 alle estremità
+    e = smax(e, p[1] - (ANU.top - ANU.restringi * rid), 0.05); e = smax(e, (ANU.bot + ANU.restringi * rid) - p[1], 0.07);
+    e = smax(e, hs * ANU.finePos - dn, 0.05);                                      // ultimo limite angolare: già a spessore minimo
+    e = smax(e, 0.006 - du, 0.015);                                                // fuori dall'ulna
     return e;
   };
-  const mesh = nets(valuta(g), p => nrm(cross([0, 1, 0], [p[0] - cx, 0, p[2] - cz])));
-  if (false) { const d = []; for (let i = 0; i < mesh.pos.length / 3; i++) d.push(sample(FR, mesh.pos[3 * i], mesh.pos[3 * i + 1], mesh.pos[3 * i + 2])); d.sort((a, b) => a - b); log('anulare: distanza dal radio ai vertici: min', d[0].toFixed(3), 'p5', d[Math.floor(d.length * 0.05)].toFixed(3), 'mediana', d[d.length >> 1].toFixed(3), 'p95', d[Math.floor(d.length * 0.95)].toFixed(3), 'max', d[d.length - 1].toFixed(3)); }
+  const mesh = nets(sfoca(valuta(g), 1), p => nrm(cross([0, 1, 0], [p[0] - cx, 0, p[2] - cz])));
   return mesh;
 }
 /* Strutture minori già presenti (quadrato, legamento di Osborne): si conserva la forma e si spingono fuori da ossa e
@@ -213,13 +219,14 @@ function spingiFuori(nome, minimo, FO) {
 /* p: punti guida origine → inserzione; w: semilarghezze [origine, centro, inserzione]; t: spessore al centro;
    r: raggio della chiusura morfologica (quanto il legamento resta teso sopra le concavità e la rima articolare) */
 const LEG = [
-  // collaterale ulnare (mediale)
-  { id: 'ucl_ant', p: [[2.3, 0.85, 0.3], [1.9, 0.1, 0.35], [1.35, -0.5, 0.3], [1.0, -0.92, 0.22]], w: [0.2, 0.22, 0.22], t: 0.1, r: 0.35, fas: 5 },
-  { id: 'ucl_post', p: [[2.35, 0.95, -0.35], [1.9, 0.8, -0.9], [1.3, 0.6, -1.35]], w: [0.2, 0.45, 0.65], t: 0.09, r: 0.3, fas: 6 },
-  { id: 'ucl_trasv', p: [[1.2, 0.1, -0.95], [1.1, -0.3, -0.5], [1.05, -0.7, 0.1]], w: [0.12, 0.12, 0.12], t: 0.07, r: 0.2, fas: 4 },
-  // collaterale radiale e collaterale ulnare laterale
-  { id: 'rcl', p: [[-2.84, 1.45, -0.38], [-3.0, 0.6, -0.1], [-3.1, -0.3, 0.3]], w: [0.18, 0.28, 0.45], t: 0.08, r: 0.3, fas: 5 },
-  { id: 'lucl', p: [[-2.84, 1.45, -0.38], [-3.05, 0.55, -0.5], [-2.85, -0.3, -0.78], [-2.2, -1.15, -0.72], [-1.5, -1.8, -0.45]], w: [0.2, 0.2, 0.25], t: 0.07, r: 0.5, fas: 4 },
+  // collaterale ulnare (mediale). Riferimenti sull'ulna: tubercolo sublime (1,27; −1,10; 0,2); margine mediale dell'olecrano (1,35; 0,7; −1,45);
+  // sull'omero: faccia antero-inferiore dell'epicondilo mediale (cima: 3,28; 1,37; 0,05)
+  { id: 'ucl_ant', p: [[2.75, 0.95, 0.3], [2.2, 0.5, 0.36], [1.7, -0.25, 0.33], [1.4, -0.8, 0.27], [1.27, -1.08, 0.2]], w: [0.2, 0.19, 0.26], t: 0.07, r: 1.1, fas: 4 },
+  { id: 'ucl_post', p: [[2.8, 0.95, -0.3], [2.1, 0.85, -0.95], [1.4, 0.7, -1.43]], w: [0.2, 0.42, 0.62], t: 0.065, r: 0.8, fas: 6 },
+  { id: 'ucl_trasv', p: [[1.22, 0.1, -1.02], [1.13, -0.5, -0.75], [1.2, -0.85, -0.4], [1.27, -1.05, 0.05]], w: [0.1, 0.1, 0.1], t: 0.06, r: 0.25, fas: 3 },
+  // collaterale radiale e collaterale ulnare laterale (origine comune sotto l'epicondilo laterale)
+  { id: 'rcl', p: [[-2.85, 1.4, -0.4], [-2.98, 0.6, -0.1], [-3.08, -0.2, 0.12], [-3.1, -0.6, 0.2]], w: [0.17, 0.2, 0.28], t: 0.06, r: 1.0, fas: 5, fl: 0.1, extra: ['anulare'] },
+  { id: 'lucl', p: [[-2.85, 1.4, -0.4], [-3.02, 0.5, -0.5], [-2.85, -0.3, -0.78], [-2.2, -1.15, -0.72], [-1.5, -1.8, -0.45]], w: [0.17, 0.17, 0.22], t: 0.055, r: 0.9, fas: 4, fl: 0.1, extra: ['anulare'] },
 ];
 
 /* ============ Esecuzione ============ */
@@ -230,7 +237,7 @@ const registra = (id, mesh) => { setMesh(id, mesh); if (prova) uscita[id] = { po
 if (vuole('anulare')) { const mesh = anulare(); log('anulare', mesh.pos.length / 3, 'vertici'); registra('anulare', mesh); }
 for (const Lg of LEG) {
   if (!vuole(Lg.id)) continue;
-  const [lo, hi] = bbox(Lg.p), ctx = contesto(lo, hi, Lg.r), mesh = nastro(Lg, ctx);
+  const [lo, hi] = bbox(Lg.p), ctx = contesto(lo, hi, Lg.r, Lg.extra || []), mesh = nastro(Lg, ctx);
   log(Lg.id, mesh.pos.length / 3, 'vertici');
   if (prova) (uscita.__pts ||= []).push(...Lg._g.map((q, i) => [...q, i === 0 ? 0xff0000 : i === Lg._g.length - 1 ? 0x0000ff : 0xffff00, 0.04]));
   registra(Lg.id, mesh);
