@@ -108,6 +108,17 @@
   var CHEVRON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
 
+  /* elenco delle strutture del modello (da <meta name="strutture-bp3d|modellate|escluse">, se presenti) */
+  function strutture(){
+    function meta(n){ var m = document.querySelector('meta[name="strutture-' + n + '"]'); return m ? m.content : ''; }
+    function esc(t){ return t.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+    var righe = [['Da BodyParts3D', meta('bp3d')], ['Ricostruite', meta('modellate')], ['Non incluse', meta('escluse')]]
+      .filter(function(r){ return r[1]; });
+    if (!righe.length) return '';
+    return '<section class="an-sec"><span class="an-label">Strutture del modello</span>' +
+      righe.map(function(r){ return '<p><strong>' + r[0] + '.</strong> ' + esc(r[1]) + '</p>'; }).join('') + '</section>';
+  }
+
   var home = document.createElement('a');
   home.className = 'an-home';
   home.href = HOME;
@@ -148,6 +159,7 @@
       'per i dati delle versioni precedenti del database vale la <a href="https://creativecommons.org/licenses/by-sa/2.1/jp/" target="_blank" rel="noopener">CC BY-SA 2.1 JP</a>. ' +
       'Le geometrie originali sono state modificate e integrate con strutture modellate appositamente. ' +
       'Per prudenza i modelli modificati sono distribuiti con la licenza più restrittiva, CC BY-SA 2.1 JP.</p></section>' +
+    strutture() +
     '<section class="an-sec"><span class="an-label">Citazione</span>' +
       '<p class="an-cite">Mitsuhashi N et al. BodyParts3D: 3D structure database for anatomical concepts. Nucleic Acids Res 2009.</p></section>' +
     '<section class="an-sec"><span class="an-label">Autore</span>' +
