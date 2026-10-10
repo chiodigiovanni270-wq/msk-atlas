@@ -144,8 +144,10 @@
       '<p><strong>Materiale didattico.</strong> Non destinato a uso clinico o diagnostico.</p></section>' +
     '<section class="an-sec"><span class="an-label">Fonte e licenza</span>' +
       '<p>I modelli sono derivati da <strong>BodyParts3D</strong>, © The Database Center for Life Science (DBCLS), ' +
-      'licensed under <a href="https://creativecommons.org/licenses/by/4.0/deed.it" target="_blank" rel="noopener">CC Attribution 4.0 International</a> (CC BY 4.0). ' +
-      'Le geometrie originali sono state modificate e integrate con strutture modellate appositamente.</p></section>' +
+      'licensed under <a href="https://creativecommons.org/licenses/by/4.0/deed.it" target="_blank" rel="noopener">CC Attribution 4.0 International</a> (CC BY 4.0); ' +
+      'per i dati delle versioni precedenti del database vale la <a href="https://creativecommons.org/licenses/by-sa/2.1/jp/" target="_blank" rel="noopener">CC BY-SA 2.1 JP</a>. ' +
+      'Le geometrie originali sono state modificate e integrate con strutture modellate appositamente. ' +
+      'Per prudenza i modelli modificati sono distribuiti con la licenza più restrittiva, CC BY-SA 2.1 JP.</p></section>' +
     '<section class="an-sec"><span class="an-label">Citazione</span>' +
       '<p class="an-cite">Mitsuhashi N et al. BodyParts3D: 3D structure database for anatomical concepts. Nucleic Acids Res 2009.</p></section>' +
     '<section class="an-sec"><span class="an-label">Autore</span>' +
