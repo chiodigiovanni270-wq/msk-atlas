@@ -97,7 +97,13 @@ Non serve configurazione: Vercel serve i file così come sono.
 
 I modelli sono derivati da **BodyParts3D**, © The Database Center for Life Science (DBCLS),
 licensed under [CC Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/deed.it) (CC BY 4.0), come richiesto dalla
-[licenza ufficiale del database](https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html) (aggiornata al 27/02/2025).
+[licenza ufficiale del database](https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html) (aggiornata al 27/02/2025);
+per i dati delle versioni precedenti vale la [CC BY-SA 2.1 JP](https://creativecommons.org/licenses/by-sa/2.1/jp/).
 Le geometrie originali sono state modificate e integrate con strutture modellate appositamente.
+Per prudenza i modelli modificati sono distribuiti con la licenza più restrittiva, CC BY-SA 2.1 JP.
+
+Scelta prudenziale: DBCLS non documenta il passaggio da CC BY-SA 2.1 JP a CC BY 4.0 né la sorte dei dati scaricati
+prima del 2025, e non è accertato da quale release derivino ginocchio e polso (il gomito dichiara la 4.0).
+Distribuire con ShareAlike soddisfa comunque entrambe le licenze. Da rivedere se DBCLS conferma la sola CC BY 4.0.
 
 Mitsuhashi N et al. BodyParts3D: 3D structure database for anatomical concepts. Nucleic Acids Res 2009.

@@ -236,7 +236,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     <button class="toggle-list" id="bList" aria-expanded="false">Elenco</button>
   </div>
   <div id="list"></div>
-  <p class="credit"><b>Materiale didattico.</b> Non destinato a uso clinico o diagnostico.<br>Ossa, muscoli, tendini, retinacolo dei flessori, membrana interossea e cute: BodyParts3D, © The Database Center for Life Science, licenza CC BY 4.0 (Mitsuhashi N et al., Nucleic Acids Res 2009). Cartilagini, legamenti, capsula volare, TFCC, retinacolo degli estensori, guaine, cuscinetto adiposo del pronatore quadrato, vasi e nervi sono ricostruiti sulle ossa reali.</p>
+  <p class="credit"><b>Materiale didattico.</b> Non destinato a uso clinico o diagnostico.<br>Ossa, muscoli, tendini, retinacolo dei flessori, membrana interossea e cute: BodyParts3D, © The Database Center for Life Science, licenze CC BY 4.0 e, per le versioni precedenti, CC BY-SA 2.1 JP (Mitsuhashi N et al., Nucleic Acids Res 2009). Cartilagini, legamenti, capsula volare, TFCC, retinacolo degli estensori, guaine, cuscinetto adiposo del pronatore quadrato, vasi e nervi sono ricostruiti sulle ossa reali.</p>
   </div>
 </section>
 
@@ -799,7 +799,7 @@ document.querySelectorAll('.views button[data-view]').forEach(b=>b.addEventListe
 }));
 (()=>{const h=document.querySelector('.title h1'),cr=document.querySelector('.credit');
 if(MODE==='dito'){h.textContent='Dito medio destro';document.title='Dito 3D | MSK Atlas';
- cr.textContent='Ossa, tendini flessori ed estensori, lombricale, interossei e cute: BodyParts3D, © The Database Center for Life Science, licenza CC BY 4.0 (Mitsuhashi N et al., Nucleic Acids Res 2009). Pulegge, placche volari, collaterali, bendelle sagittali, apparato estensore distale, guaina, vasi e nervi sono ricostruiti sulle ossa reali.';}
+ cr.textContent='Ossa, tendini flessori ed estensori, lombricale, interossei e cute: BodyParts3D, © The Database Center for Life Science, licenze CC BY 4.0 e, per le versioni precedenti, CC BY-SA 2.1 JP (Mitsuhashi N et al., Nucleic Acids Res 2009). Pulegge, placche volari, collaterali, bendelle sagittali, apparato estensore distale, guaina, vasi e nervi sono ricostruiti sulle ossa reali.';}
 document.querySelectorAll('.sect button').forEach(b=>{b.setAttribute('aria-selected',b.dataset.sect===MODE);b.addEventListener('click',()=>{if(b.dataset.sect===MODE)return;
  location.hash=b.dataset.sect==='dito'?'dito':'';location.reload();});});})();
 const clearViewPress=()=>document.querySelectorAll('.views button[data-view]').forEach(x=>x.setAttribute('aria-pressed','false'));
