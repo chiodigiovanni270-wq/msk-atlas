@@ -1,4 +1,5 @@
-/* Legamenti del gomito (modelli/gomito-3d.html): collaterali ulnare e radiale, anulare e quadrato.
+/* Legamenti del gomito (modelli/gomito-3d.html): collaterali ulnare e radiale, anulare, quadrato, membrana interossea e legamento di Osborne
+   (con i muscoli che lo invadevano: FCU, tricipite mediale, tendine flessore comune).
 
    Uso (dalla cartella del progetto):
      node strumenti/legamenti-gomito.mjs [id …]            → riscrive le mesh nel file del modello (tutte o solo quelle indicate)
@@ -129,11 +130,20 @@ function nastro(Lg, ctx) {
 }
 
 /* ============ Contesto: ossa e cartilagini nella griglia del legamento ============ */
-function contesto(lo, hi, r, extra = []) {
-  const gr = griglia(lo, hi, STEP, Math.max(0.45, r + 0.2));
-  const nomi = [...OSSA, ...CART, ...extra], M = unione(nomi), { F: Fr, Do } = sdf(M), Fc = chiuso(Do, r);
-  return { gr, Fr: campoB(nomi, 0.1), Fc: sfoca(Fc, 4) };
+function distTubi(tubi) { // distanza con segno (negativa dentro) dai tubi {pts, r}, su tutta la griglia corrente
+  return valuta(p => { let d = 1e9; for (const t of tubi) for (let i = 0; i < t.pts.length - 1; i++) { const a = t.pts[i], b = t.pts[i + 1], ab = sub(b, a), q = clamp(dot(sub(p, a), ab) / dot(ab, ab), 0, 1); d = Math.min(d, len(sub(p, add(a, mul(ab, q)))) - t.r); } return d; });
 }
+function contesto(lo, hi, r, extra = [], tubi = []) {
+  const gr = griglia(lo, hi, STEP, Math.max(0.45, r + 0.2));
+  const nomi = [...OSSA, ...CART, ...extra], M = unione(nomi), { F: Fr, Do } = sdf(M);
+  // strutture tubolari non presenti come mesh (nervo ulnare): distanza dall'asse meno il raggio, come ostacolo
+  const Ft = tubi.length ? distTubi(tubi) : null;
+  if (Ft) for (let i = 0; i < M.length; i++) if (Ft[i] < 0) M[i] = 1;
+  const { Do: Do2 } = Ft ? sdf(M) : { Do };
+  const Fb = campoB(nomi, 0.1); if (Ft) for (let i = 0; i < Fb.length; i++) if (Ft[i] < Fb[i]) Fb[i] = Ft[i];
+  return { gr, Fr: Fb, Fc: sfoca(chiuso(Do2, r), 4) };
+}
+const tuboNervo = id => JSON.parse(G.M.html.match(/const NVP=(\{.*?\});\n/s)[1]).pts[id].filter(p => p[1] < 5 && p[1] > -3);
 const bbox = pts => [[0, 1, 2].map(k => Math.min(...pts.map(p => p[k]))), [0, 1, 2].map(k => Math.max(...pts.map(p => p[k])))];
 
 
@@ -186,7 +196,7 @@ function anulare() {
   const mesh = nets(sfoca(valuta(g), 1), p => nrm(cross([0, 1, 0], [p[0] - cx, 0, p[2] - cz])));
   return mesh;
 }
-/* Strutture minori già presenti (quadrato, legamento di Osborne): si conserva la forma e si spingono fuori da ossa e
+/* Strutture già presenti (non più usato: quadrato e Osborne sono ora ricostruiti): si conserva la forma e si spingono fuori da ossa e
    cartilagini i vertici che le attraversano, lungo il gradiente della distanza, con spostamento levigato sulla mesh. */
 // distanza minima (cm) da ossa, cartilagini e dagli altri legamenti indicati (ricostruiti qui sopra)
 const SPINGI = {};
@@ -323,7 +333,46 @@ const LEG = [
   // collaterale radiale e collaterale ulnare laterale (origine comune sotto l'epicondilo laterale)
   { id: 'rcl', p: [[-2.85, 1.4, -0.4], [-2.98, 0.6, -0.1], [-3.08, -0.2, 0.12], [-3.1, -0.6, 0.2]], w: [0.17, 0.2, 0.28], t: 0.06, r: 1.0, fas: 5, fl: 0.1, extra: ['anulare'] },
   { id: 'lucl', p: [[-2.85, 1.4, -0.4], [-3.02, 0.5, -0.5], [-2.85, -0.3, -0.78], [-2.2, -1.15, -0.72], [-1.5, -1.8, -0.45]], w: [0.17, 0.17, 0.22], t: 0.055, r: 0.9, fas: 4, fl: 0.1, extra: ['anulare', 'quadrato'] },
+  // legamento di Osborne (retinacolo del tunnel cubitale): dalla faccia posteriore dell'epicondilo mediale al margine mediale dell'olecrano,
+  // a ponte sopra il nervo ulnare e il fascio posteriore del collaterale ulnare (che fanno da ostacolo: nervo = tubo di raggio 2 mm, vedi `tubi`)
+  { id: 'osborne', p: [[3.18, 1.2, -0.3], [2.95, 1.1, -0.95], [2.2, 1.05, -1.45], [1.3, 1.1, -1.3]], w: [0.4, 0.5, 0.42], t: 0.07, r: 0.9, fas: 5, fl: 0.12, plat: 0.5, extra: ['ucl_post'], tubi: 'n_ulnare' },
 ];
+
+
+/* ============ Muscoli che invadono il retinacolo: si ritraggono dietro la faccia superficiale di Osborne ============ */
+/* Il FCU, il capo mediale del tricipite e il tendine flessore comune del modello arrivano fino al tunnel cubitale: dove la superficie di un muscolo sta
+   sul lato profondo del retinacolo (o dentro di esso) viene portata appena oltre la faccia superficiale, con spostamento levigato e smorzato con la
+   distanza dalla lamina. Riparte sempre dalle mesh originali. */
+const SGOMBRA = { muscoli: ['fcu', 'tri_med', 'cft'], margine: 0.03, portata: 0.9, dolce: [0.35, 0.9], passate: 6 };
+function sgombraMuscoli() {
+  const B = REAL('osborne'), nb = B.pos.length / 3, nerv = [{ pts: tuboNervo('n_ulnare'), r: 0.2 }];
+  const lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9]; for (let i = 0; i < B.pos.length; i++) { const k = i % 3; lo[k] = Math.min(lo[k], B.pos[i]); hi[k] = Math.max(hi[k], B.pos[i]); }
+  grigliaG(lo.map(v => v - 0.6), hi.map(v => v + 0.6), 0.04, 0);
+  const Fd = campoB([...OSSA, ...CART, 'ucl_post'], 0.35), Ft = distTubi(nerv); for (let i = 0; i < Fd.length; i++) if (Ft[i] < Fd[i]) Fd[i] = Ft[i];
+  const nOut = Array.from({ length: nb }, (_, i) => nrm(grad(Fd, [B.pos[3 * i], B.pos[3 * i + 1], B.pos[3 * i + 2]])));  // verso "fuori": lontano da ossa, collaterale e nervo
+  const res = {};
+  for (const id of SGOMBRA.muscoli) {
+    const m = realDaRevisione(ORIGINALE, id, FILE_REPO), nv = m.pos.length / 3, P = Float64Array.from(m.pos), D = new Float64Array(3 * nv);
+    let s = new Float64Array(nv), sx = [new Float64Array(nv), new Float64Array(nv), new Float64Array(nv)], n = 0, mx = 0;
+    for (let i = 0; i < nv; i++) {
+      const p = [P[3 * i], P[3 * i + 1], P[3 * i + 2]]; let bj = -1, bd = 1e9;
+      for (let j = 0; j < nb; j++) { const d = (B.pos[3 * j] - p[0]) ** 2 + (B.pos[3 * j + 1] - p[1]) ** 2 + (B.pos[3 * j + 2] - p[2]) ** 2; if (d < bd) { bd = d; bj = j; } }
+      bd = Math.sqrt(bd); if (bd > SGOMBRA.portata) continue;
+      const q = [B.pos[3 * bj], B.pos[3 * bj + 1], B.pos[3 * bj + 2]], d = dot(sub(p, q), nOut[bj]);
+      if (d >= SGOMBRA.margine) continue;
+      const w = 1 - sstep(SGOMBRA.dolce[0], SGOMBRA.dolce[1], bd), spost = (SGOMBRA.margine - d) * w;
+      for (let k = 0; k < 3; k++) sx[k][i] = nOut[bj][k] * spost;
+      n++; mx = Math.max(mx, spost);
+    }
+    // levigatura dello spostamento sui vicini (stessi vertici, stessa topologia)
+    const NB = Array.from({ length: nv }, () => new Set());
+    for (let t = 0; t < m.idx.length; t += 3) { const [a, b, c] = [m.idx[t], m.idx[t + 1], m.idx[t + 2]]; NB[a].add(b).add(c); NB[b].add(a).add(c); NB[c].add(a).add(b); }
+    for (let r = 0; r < SGOMBRA.passate; r++) for (let k = 0; k < 3; k++) { const q = sx[k].slice(); for (let i = 0; i < nv; i++) { let v = sx[k][i], c = 1; for (const j of NB[i]) { v += sx[k][j]; c++; } q[i] = v / c; } sx[k] = q; }
+    const pos = new Float32Array(3 * nv); for (let i = 0; i < nv; i++) for (let k = 0; k < 3; k++) pos[3 * i + k] = P[3 * i + k] + sx[k][i];
+    log(id, 'ritratto dal retinacolo:', n, 'vertici spinti (max', (mx * 10).toFixed(1), 'mm)');
+    registra(id, { pos, idx: Uint32Array.from(m.idx), tag: m.tag, fdir: m.fdir }); res[id] = true;
+  }
+}
 
 /* ============ Esecuzione ============ */
 const args = process.argv.slice(2), prova = (args.find(a => a.startsWith('--prova=')) || '').split('=')[1];
@@ -335,11 +384,12 @@ if (vuole('quadrato')) { const mesh = quadrato(); log('quadrato', mesh.pos.lengt
 if (vuole('mio')) { const mesh = membrana(); log('mio', mesh.pos.length / 3, 'vertici'); registra('mio', mesh); }
 for (const Lg of LEG) {
   if (!vuole(Lg.id)) continue;
-  const [lo, hi] = bbox(Lg.p), ctx = contesto(lo, hi, Lg.r, Lg.extra || []), mesh = nastro(Lg, ctx);
+  const [lo, hi] = bbox(Lg.p), ctx = contesto(lo, hi, Lg.r, Lg.extra || [], Lg.tubi ? [{ pts: tuboNervo(Lg.tubi), r: 0.23 }] : []), mesh = nastro(Lg, ctx);
   log(Lg.id, mesh.pos.length / 3, 'vertici');
   if (prova) (uscita.__pts ||= []).push(...Lg._g.map((q, i) => [...q, i === 0 ? 0xff0000 : i === Lg._g.length - 1 ? 0x0000ff : 0xffff00, 0.04]));
   registra(Lg.id, mesh);
 }
+if (vuole('osborne') || vuole('fcu')) sgombraMuscoli();
 // correzioni delle strutture già presenti, dopo i legamenti ricostruiti (che fanno da ostacolo)
 for (const [id, o] of Object.entries(SPINGI)) {
   if (!vuole(id)) continue;
