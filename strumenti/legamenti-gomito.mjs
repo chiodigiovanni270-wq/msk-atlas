@@ -217,25 +217,61 @@ function spingiFuori(nome, minimo, FO) {
 
 
 /* ============ Quadrato: guscio sulla rima tra collo del radio e ulna ============ */
-const QUAD = { top: -1.05, bot: -1.85, t: 0.045, fine: 0.015, vicino: [0.3, 0.6], chiusura: 0.4, sotto: 0.03 };
+const QUAD = { maxY: -1.28, scendi: 0.3, t: 0.05, passi: 60, colonne: 9, sotto: 0.035, bordo: 0.18, sag: 0.03, arco: 1.0 };
 function quadrato() {
-  griglia([-3.4, -2.4, -1.2], [-0.2, -0.85, 1.6], 0.02, 0.1);
-  const FR = campoB(['radio', 'cart_radio']), FU = campoB(['ulna', 'cart_ulna']);
-  const { Do } = sdf(unione(['radio', 'cart_radio', 'ulna', 'cart_ulna'])), FCl = sfoca(chiuso(Do, QUAD.chiusura), 2);
-  // centro e asse della fascia: il quadrato è un nastro che gira attorno al collo, sotto l'anulare, tra ulna e radio
-  const g = p => {
-    const dr = sample(FR, ...p), du = sample(FU, ...p), dcl = sample(FCl, ...p);
-    const pres = 1 - sstep(QUAD.vicino[0], QUAD.vicino[1], Math.max(dr, du));        // 1 dove la rima è stretta (entrambe le ossa vicine)
-    // margini prossimale e distale arrotondati: lo spessore scende a zero sui bordi di y (profilo ellittico)
-    const u = clamp((p[1] - QUAD.bot) / (QUAD.top - QUAD.bot), 0, 1), arco = Math.sqrt(Math.max(0, 1 - (2 * u - 1) ** 4));
-    const th = (QUAD.fine + (QUAD.t - QUAD.fine) * pres) * arco;
-    let e = Math.max(dcl - th, -QUAD.sotto - dcl);
-    e = smax(e, p[1] - QUAD.top, 0.02); e = smax(e, QUAD.bot - p[1], 0.02);
-    e = smax(e, (0.2 - pres) * 0.3, 0.07);                                            // fuori dalla rima il tessuto finisce con un raccordo dolce (angoli arrotondati)
-    return e;
-  };
-  const dirFibre = p => nrm(sub(grad(FR, p), grad(FU, p)));
-  return nets(sfoca(valuta(g), 2), dirFibre);
+  // Lamina continua dal margine inferiore dell'incisura radiale dell'ulna al collo del radio: per ogni angolo ψ sull'arco dell'incisura
+  // (stessa ampiezza dell'anulare) un raggio orizzontale dall'asse della testa trova il collo (ultima intersezione col radio, QUAD.scendi più in basso
+  // del margine) e la parete dell'ulna (prima intersezione oltre il radio, a livello del margine inferiore dell'incisura). La lamina è la superficie rigata
+  // tra le due curve, con un leggero cedimento verso il basso; le due inserzioni entrano di QUAD.sotto nell'osso.
+  const { cx, cz, U } = testaRadio(), Rm = REAL('radio'), Um = REAL('ulna');
+  griglia([-3.4, -2.4, -1.2], [-0.2, -0.85, 1.6], 0.025, 0.1);
+  const FR = campoB(['radio', 'cart_radio']);
+  const A = [];
+  for (let i = 0; i < U.nv; i++) { const p = [U.pos[3 * i], U.pos[3 * i + 1], U.pos[3 * i + 2]]; if (p[1] < 0.1 && p[1] > -1.8 && sample(FR, ...p) < 0.35) A.push([Math.atan2(p[2] - cz, p[0] - cx), p[1]]); }
+  const wrap = a => { a = (a + Math.PI) % (2 * Math.PI); if (a < 0) a += 2 * Math.PI; return a - Math.PI; };
+  const phi0 = Math.atan2(A.reduce((s, a) => s + Math.sin(a[0]), 0), A.reduce((s, a) => s + Math.cos(a[0]), 0));
+  const hs = Math.max(...A.map(a => Math.abs(wrap(a[0] - phi0)))) * QUAD.arco;
+  // quota del margine inferiore dell'incisura per angolo: minimo di y della cartilagine ulnare per fasce di angolo, poi levigato
+  const nb = 24, yMin = new Array(nb).fill(null); for (const [an, y] of A) { const k = Math.round((wrap(an - phi0) / hs + 1) / 2 * (nb - 1)); if (k >= 0 && k < nb) yMin[k] = yMin[k] === null ? y : Math.min(yMin[k], y); }
+  for (let k = 0; k < nb; k++) if (yMin[k] === null) { let j = 1; while (yMin[k] === null) { const v = yMin[k - j] ?? yMin[k + j]; if (v !== undefined && v !== null) yMin[k] = v; j++; if (j > nb) break; } }
+  const yS = yMin.map((_, k) => { let q = 0, n = 0; for (let d = -3; d <= 3; d++) { const v = yMin[clamp(k + d, 0, nb - 1)]; if (v !== null) { q += v; n++; } } return q / n; });
+  const yAt = u => { const f = clamp(u * (nb - 1), 0, nb - 1.001), i = Math.floor(f), h = f - i; return yS[i] * (1 - h) + yS[i + 1] * h; };
+  const nr = QUAD.passi, nc = QUAD.colonne, G2 = [], TH = [];
+  // 0. estensione utile dell'arco: gli angoli in cui il raggio dal centro della testa incontra davvero la parete dell'ulna
+  const ok = i => { const u = i / (nr - 1), psi = phi0 + hs * (2 * u - 1), d = [Math.cos(psi), 0, Math.sin(psi)], yU = Math.min(yAt(u) - 0.02, QUAD.maxY), yR = yU - QUAD.scendi;
+    const tr = raggioMesh([cx, yR, cz], d, Rm); if (!tr.length) return false; return raggioMesh([cx, yU, cz], d, Um).some(t => t > tr[tr.length - 1] + 0.02); };
+  let i0 = 0, i1 = nr - 1; while (i0 < nr && !ok(i0)) i0++; while (i1 > 0 && !ok(i1)) i1--;
+  const uMin = i0 / (nr - 1), uMax = Math.max(uMin + 0.1, i1 / (nr - 1)), phiA = phi0 + hs * (2 * uMin - 1), phiB = phi0 + hs * (2 * uMax - 1);
+  const angolo = u => phiA + (phiB - phiA) * u;
+  // 1. raggi per ogni angolo: distanza del collo (tR) e della parete ulnare (tU); i valori mancanti si interpolano, poi si levigano
+  const tRv = [], tUv = [], yUv = [];
+  for (let i = 0; i < nr; i++) {
+    const u = i / (nr - 1), uu = uMin + (uMax - uMin) * u, psi = angolo(u), d = [Math.cos(psi), 0, Math.sin(psi)], yU = Math.min(yAt(uu) - 0.02, QUAD.maxY), yR = yU - QUAD.scendi;
+    const tr = raggioMesh([cx, yR, cz], d, Rm), tu = raggioMesh([cx, yU, cz], d, Um); const r = tr.length ? tr[tr.length - 1] : null;
+    tRv.push(r); tUv.push(r === null ? null : (tu.find(t => t > r + 0.02) ?? null)); yUv.push(yU);
+  }
+  const riempi = A => { const o = A.slice(); for (let i = 0; i < o.length; i++) if (o[i] === null) { let l = i - 1, r = i + 1; while (l >= 0 && o[l] === null) l--; while (r < o.length && A[r] === null) r++; o[i] = l >= 0 && r < o.length ? o[l] + (A[r] - o[l]) * (i - l) / (r - l) : (l >= 0 ? o[l] : A[r]); } return o; };
+  const lisc = A => A.map((_, i) => { let q = 0, n = 0; for (let k = -4; k <= 4; k++) { q += A[clamp(i + k, 0, A.length - 1)]; n++; } return q / n; });
+  const tRs = lisc(lisc(riempi(tRv))), tUs = lisc(lisc(riempi(tUv))), yUs = lisc(yUv);
+  for (let i = 0; i < nr; i++) {
+    const u = i / (nr - 1), psi = angolo(u), d = [Math.cos(psi), 0, Math.sin(psi)], yU = yUs[i], yR = yU - QUAD.scendi, tR = tRs[i], tU = Math.max(tUs[i], tR + 0.12);
+    const R = [cx + d[0] * tR, yR, cz + d[2] * tR], Uu = [cx + d[0] * tU, yU, cz + d[2] * tU], e = nrm(sub(Uu, R));
+    const Rin = add(R, mul(e, -QUAD.sotto)), Uin = add(Uu, mul(e, QUAD.sotto)), row = [], tr2 = [];
+    for (let j = 0; j < nc; j++) { const sj = j / (nc - 1), q = add(mul(Rin, 1 - sj), mul(Uin, sj)); q[1] -= QUAD.sag * Math.sin(Math.PI * sj);       // cedimento verso il basso al centro
+      row.push(q); const bordo = 1 - sstep(0, QUAD.bordo, Math.min(sj, 1 - sj)); tr2.push(QUAD.t * Math.sqrt(Math.max(0, 1 - bordo * bordo)) * Math.sqrt(Math.max(0, 1 - sstep(0.88, 1, Math.abs(2 * u - 1)) ** 2)) + 0.004); }
+    G2.push(row); TH.push(tr2);
+  }
+  const pos = [], fd = [], idx = [], id = (f, i, j) => 2 * (i * nc + j) + f;
+  for (let i = 0; i < nr; i++) for (let j = 0; j < nc; j++) {
+    const P = G2[i][j], di = sub(G2[Math.min(nr - 1, i + 1)][j], G2[Math.max(0, i - 1)][j]), dj = sub(G2[i][Math.min(nc - 1, j + 1)], G2[i][Math.max(0, j - 1)]), n = nrm(cross(di, dj)), h = TH[i][j] / 2;
+    pos.push(...add(P, mul(n, h)), ...sub(P, mul(n, h))); const f = nrm(dj); fd.push(...f, ...f); }
+  for (let i = 0; i < nr - 1; i++) for (let j = 0; j < nc - 1; j++) { const a = [i, j], b = [i + 1, j], c = [i + 1, j + 1], d2 = [i, j + 1];
+    idx.push(id(0, ...a), id(0, ...b), id(0, ...c), id(0, ...a), id(0, ...c), id(0, ...d2)); idx.push(id(1, ...a), id(1, ...c), id(1, ...b), id(1, ...a), id(1, ...d2), id(1, ...c)); }
+  // lati della lamina: chiusura perimetrale per avere un solido
+  const lato = (f, g, h2) => idx.push(f, g, h2);
+  for (let i = 0; i < nr - 1; i++) { for (const j of [0, nc - 1]) { const a = id(0, i, j), b = id(1, i, j), c = id(0, i + 1, j), d2 = id(1, i + 1, j); if (j === 0) { lato(a, b, c); lato(b, d2, c); } else { lato(a, c, b); lato(b, c, d2); } } }
+  for (let j = 0; j < nc - 1; j++) { for (const i of [0, nr - 1]) { const a = id(0, i, j), b = id(1, i, j), c = id(0, i, j + 1), d2 = id(1, i, j + 1); if (i === 0) { lato(a, c, b); lato(b, c, d2); } else { lato(a, b, c); lato(b, d2, c); } } }
+  return { pos: Float32Array.from(pos), idx: Uint32Array.from(idx), tag: null, fdir: Int8Array.from(fd.map(v => Math.round(v * 127))) };
 }
 
 /* ============ Membrana interossea: lamina tra le creste interossee di radio e ulna ============ */
@@ -286,7 +322,7 @@ const LEG = [
   { id: 'ucl_trasv', p: [[1.17, -0.12, -0.95], [1.13, -0.38, -0.8], [1.12, -0.6, -0.7], [1.2, -0.9, -0.35], [1.28, -1.07, 0.02]], w: [0.12, 0.13, 0.16], t: 0.05, r: 0.2, fas: 3, fl: 0.0, plat: 0.35 },
   // collaterale radiale e collaterale ulnare laterale (origine comune sotto l'epicondilo laterale)
   { id: 'rcl', p: [[-2.85, 1.4, -0.4], [-2.98, 0.6, -0.1], [-3.08, -0.2, 0.12], [-3.1, -0.6, 0.2]], w: [0.17, 0.2, 0.28], t: 0.06, r: 1.0, fas: 5, fl: 0.1, extra: ['anulare'] },
-  { id: 'lucl', p: [[-2.85, 1.4, -0.4], [-3.02, 0.5, -0.5], [-2.85, -0.3, -0.78], [-2.2, -1.15, -0.72], [-1.5, -1.8, -0.45]], w: [0.17, 0.17, 0.22], t: 0.055, r: 0.9, fas: 4, fl: 0.1, extra: ['anulare'] },
+  { id: 'lucl', p: [[-2.85, 1.4, -0.4], [-3.02, 0.5, -0.5], [-2.85, -0.3, -0.78], [-2.2, -1.15, -0.72], [-1.5, -1.8, -0.45]], w: [0.17, 0.17, 0.22], t: 0.055, r: 0.9, fas: 4, fl: 0.1, extra: ['anulare', 'quadrato'] },
 ];
 
 /* ============ Esecuzione ============ */
