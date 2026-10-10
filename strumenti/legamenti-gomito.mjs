@@ -96,13 +96,13 @@ function nastro(Lg, ctx) {
     const k = Math.sqrt(Math.max(0, 1 - (Math.max(0, e0 - s) / e0) ** 2 - (Math.max(0, s - (Ls - e1)) / e1) ** 2));
     const Le = Math.min(0.45, Ls * 0.3), tk = 0.3 + 0.7 * sstep(0, Le, s) * sstep(0, Le, Ls - s);
     // tv = spessore visibile sopra l'osso; la faccia profonda resta appena dentro (hin) così non resta luce
-    const w = W(u) * Math.max(k, 0.03), tv = Math.max(0.06, t0(u) * tk) * Math.max(k, 0.03) ** 0.5, hin = -0.012 - 0.008 * endW(u), ring = [];
+    const w = W(u) * Math.max(k, 0.03), tv = Math.max(0.03, t0(u) * tk) * Math.max(k, 0.03) ** 0.5, hin = -0.012 - 0.008 * endW(u), ring = [];
     for (let j = 0; j < M; j++) {
       const th = 2 * Math.PI * j / M, cs = Math.cos(th), sn = Math.sin(th), a = w * cs;
       const q = proietta(x => Fb(x, u), add(f.c, mul(f.b, a)), hin, 6), n = nrm(add(normale(q, u), f.n));
       // fascicoli: creste longitudinali che si spostano appena lungo il legamento
       const ar = Math.abs(cs), fas = 1 + 0.06 * Math.sin((cs + 1) * Math.PI * nf + seed + 0.9 * Math.sin(s * 2.7 + seed)) * (1 - ar ** 2);
-      const hgt = sn >= 0 ? (tv - hin) * Math.pow(Math.max(0, 1 - ar ** 4), 0.85) * fas : -0.006 * -sn;
+      const hgt = sn >= 0 ? (tv - hin) * Math.pow(Math.max(0, 1 - ar ** 4), Lg.plat ?? 0.85) * fas : -0.006 * -sn;
       const p = add(q, mul(n, hgt)); ring.push(pos.length / 3); pos.push(...p); fdl.push(...f.t);
     }
     rings.push({ ring, c: f.c, t: f.t });
@@ -215,6 +215,66 @@ function spingiFuori(nome, minimo, FO) {
   return { pos: Float32Array.from(P), idx: Uint32Array.from(m.idx), tag: m.tag, fdir: m.fdir };
 }
 
+
+/* ============ Quadrato: guscio sulla rima tra collo del radio e ulna ============ */
+const QUAD = { top: -1.05, bot: -1.85, t: 0.045, fine: 0.015, vicino: [0.3, 0.6], chiusura: 0.4, sotto: 0.03 };
+function quadrato() {
+  griglia([-3.4, -2.4, -1.2], [-0.2, -0.85, 1.6], 0.02, 0.1);
+  const FR = campoB(['radio', 'cart_radio']), FU = campoB(['ulna', 'cart_ulna']);
+  const { Do } = sdf(unione(['radio', 'cart_radio', 'ulna', 'cart_ulna'])), FCl = sfoca(chiuso(Do, QUAD.chiusura), 2);
+  // centro e asse della fascia: il quadrato è un nastro che gira attorno al collo, sotto l'anulare, tra ulna e radio
+  const g = p => {
+    const dr = sample(FR, ...p), du = sample(FU, ...p), dcl = sample(FCl, ...p);
+    const pres = 1 - sstep(QUAD.vicino[0], QUAD.vicino[1], Math.max(dr, du));        // 1 dove la rima è stretta (entrambe le ossa vicine)
+    // margini prossimale e distale arrotondati: lo spessore scende a zero sui bordi di y (profilo ellittico)
+    const u = clamp((p[1] - QUAD.bot) / (QUAD.top - QUAD.bot), 0, 1), arco = Math.sqrt(Math.max(0, 1 - (2 * u - 1) ** 4));
+    const th = (QUAD.fine + (QUAD.t - QUAD.fine) * pres) * arco;
+    let e = Math.max(dcl - th, -QUAD.sotto - dcl);
+    e = smax(e, p[1] - QUAD.top, 0.02); e = smax(e, QUAD.bot - p[1], 0.02);
+    e = smax(e, (0.2 - pres) * 0.3, 0.07);                                            // fuori dalla rima il tessuto finisce con un raccordo dolce (angoli arrotondati)
+    return e;
+  };
+  const dirFibre = p => nrm(sub(grad(FR, p), grad(FU, p)));
+  return nets(sfoca(valuta(g), 2), dirFibre);
+}
+
+/* ============ Membrana interossea: lamina tra le creste interossee di radio e ulna ============ */
+const MIO = { y0: -4.7, y1: -12, obliqua: 1.2, spess: 0.05, sotto: 0.035, colonne: 16, passo: 0.1 };
+function raggioMesh(o, d, M) { // parametri t > 0 delle intersezioni del raggio con la mesh
+  const ts = [], P = M.pos, I = M.idx;
+  for (let t = 0; t < I.length; t += 3) { const a = 3 * I[t], b = 3 * I[t + 1], c = 3 * I[t + 2];
+    const e1 = [P[b] - P[a], P[b + 1] - P[a + 1], P[b + 2] - P[a + 2]], e2 = [P[c] - P[a], P[c + 1] - P[a + 1], P[c + 2] - P[a + 2]], h = cross(d, e2), det = dot(e1, h); if (Math.abs(det) < 1e-12) continue;
+    const f = 1 / det, sv = [o[0] - P[a], o[1] - P[a + 1], o[2] - P[a + 2]], u = f * dot(sv, h); if (u < 0 || u > 1) continue; const q = cross(sv, e1), v = f * dot(d, q); if (v < 0 || u + v > 1) continue; const tt = f * dot(e2, q); if (tt > 1e-6) ts.push(tt); }
+  return ts.sort((x, y) => x - y);
+}
+function creste() { // punti di cresta interossea di radio (R) e ulna (U) a ogni quota y, rivolti l'uno verso l'altro, e verso R→U
+  const Rm = REAL('radio'), Um = REAL('ulna'), cen = (M, y) => { let n = 0, x = 0, z = 0; for (let i = 0; i < M.pos.length; i += 3) if (Math.abs(M.pos[i + 1] - y) < 0.2) { x += M.pos[i]; z += M.pos[i + 2]; n++; } return [x / n, y, z / n]; };
+  const ys = [], R = [], U = [], E = [];
+  for (let y = -3.6; y >= -11.95; y -= MIO.passo) { const Rc = cen(Rm, y), Uc = cen(Um, y); let e = [Uc[0] - Rc[0], 0, Uc[2] - Rc[2]]; const l = Math.hypot(...e); e = e.map(v => v / l);
+    const tr = raggioMesh(Rc, e, Rm), tu = raggioMesh(Uc, e.map(v => -v), Um);
+    ys.push(y); R.push(Rc.map((v, i) => v + e[i] * tr[tr.length - 1])); U.push(Uc.map((v, i) => v - e[i] * tu[tu.length - 1])); E.push(e); }
+  const liscia = A => A.map((_, i) => { let q = [0, 0, 0], n = 0; for (let k = -4; k <= 4; k++) { const j = clamp(i + k, 0, A.length - 1); for (let a = 0; a < 3; a++) q[a] += A[j][a]; n++; } return q.map(v => v / n); });
+  return { ys, R: liscia(R), U: liscia(U), E: liscia(E).map(nrm) };
+}
+function membrana() {
+  const C = creste(), at = (A, y) => { const f = clamp((C.ys[0] - y) / MIO.passo, 0, C.ys.length - 1.001), i = Math.floor(f), h = f - i; return [0, 1, 2].map(a => A[i][a] * (1 - h) + A[i + 1][a] * h); };
+  const nr = Math.round((MIO.y0 - MIO.y1) / MIO.passo) + 1, nc = MIO.colonne, griglia_ = [], th = [];
+  for (let i = 0; i < nr; i++) { const yr = MIO.y0 - i * MIO.passo, yu = Math.max(yr - MIO.obliqua, -11.95), Rp = at(C.R, yr), Up = at(C.U, yu), e = nrm(sub(Up, Rp));
+    const Rin = add(Rp, mul(e, -MIO.sotto)), Uin = add(Up, mul(e, MIO.sotto)), row = [], tr = [];
+    for (let j = 0; j < nc; j++) { const sj = j / (nc - 1); row.push(add(mul(Rin, 1 - sj), mul(Uin, sj)));
+      const bordo = 1 - sstep(0, 0.12, Math.min(sj, 1 - sj));                                             // sui lati (inserzioni) la lamina si fonde nell'osso
+      tr.push(MIO.spess * Math.sqrt(Math.max(0, 1 - bordo * bordo)) * sstep(0, 0.35, i * MIO.passo)); }  // margine prossimale libero: si assottiglia
+    griglia_.push(row); th.push(tr); }
+  const pos = [], fd = [], idx = [], id = (f, i, j) => 2 * (i * nc + j) + f;
+  for (let i = 0; i < nr; i++) for (let j = 0; j < nc; j++) {
+    const P = griglia_[i][j], di = sub(griglia_[Math.min(nr - 1, i + 1)][j], griglia_[Math.max(0, i - 1)][j]), dj = sub(griglia_[i][Math.min(nc - 1, j + 1)], griglia_[i][Math.max(0, j - 1)]), n = nrm(cross(di, dj)), h = th[i][j] / 2;
+    pos.push(...add(P, mul(n, h)), ...sub(P, mul(n, h))); const e = nrm(dj); fd.push(...e, ...e); }
+  for (let i = 0; i < nr - 1; i++) for (let j = 0; j < nc - 1; j++) { const a = [i, j], b = [i + 1, j], c = [i + 1, j + 1], d = [i, j + 1];
+    idx.push(id(0, ...a), id(0, ...b), id(0, ...c), id(0, ...a), id(0, ...c), id(0, ...d)); idx.push(id(1, ...a), id(1, ...c), id(1, ...b), id(1, ...a), id(1, ...d), id(1, ...c)); }
+  const taglio = Float32Array.from(pos); for (let i = 1; i < taglio.length; i += 3) if (taglio[i] < -12) taglio[i] = -12;   // sezione di taglio della finestra: y = −12
+  return { pos: taglio, idx: Uint32Array.from(idx), tag: null, fdir: Int8Array.from(fd.map(v => Math.round(v * 127))) };
+}
+
 /* ============ Tabella dei legamenti collaterali ============ */
 /* p: punti guida origine → inserzione; w: semilarghezze [origine, centro, inserzione]; t: spessore al centro;
    r: raggio della chiusura morfologica (quanto il legamento resta teso sopra le concavità e la rima articolare) */
@@ -223,7 +283,7 @@ const LEG = [
   // sull'omero: faccia antero-inferiore dell'epicondilo mediale (cima: 3,28; 1,37; 0,05)
   { id: 'ucl_ant', p: [[2.75, 0.95, 0.3], [2.2, 0.5, 0.36], [1.7, -0.25, 0.33], [1.4, -0.8, 0.27], [1.27, -1.08, 0.2]], w: [0.2, 0.19, 0.26], t: 0.07, r: 1.1, fas: 4 },
   { id: 'ucl_post', p: [[2.8, 0.95, -0.3], [2.1, 0.85, -0.95], [1.4, 0.7, -1.43]], w: [0.2, 0.42, 0.62], t: 0.065, r: 0.8, fas: 6 },
-  { id: 'ucl_trasv', p: [[1.22, 0.1, -1.02], [1.13, -0.5, -0.75], [1.2, -0.85, -0.4], [1.27, -1.05, 0.05]], w: [0.1, 0.1, 0.1], t: 0.06, r: 0.25, fas: 3 },
+  { id: 'ucl_trasv', p: [[1.17, -0.12, -0.95], [1.13, -0.38, -0.8], [1.12, -0.6, -0.7], [1.2, -0.9, -0.35], [1.28, -1.07, 0.02]], w: [0.12, 0.13, 0.16], t: 0.05, r: 0.2, fas: 3, fl: 0.0, plat: 0.35 },
   // collaterale radiale e collaterale ulnare laterale (origine comune sotto l'epicondilo laterale)
   { id: 'rcl', p: [[-2.85, 1.4, -0.4], [-2.98, 0.6, -0.1], [-3.08, -0.2, 0.12], [-3.1, -0.6, 0.2]], w: [0.17, 0.2, 0.28], t: 0.06, r: 1.0, fas: 5, fl: 0.1, extra: ['anulare'] },
   { id: 'lucl', p: [[-2.85, 1.4, -0.4], [-3.02, 0.5, -0.5], [-2.85, -0.3, -0.78], [-2.2, -1.15, -0.72], [-1.5, -1.8, -0.45]], w: [0.17, 0.17, 0.22], t: 0.055, r: 0.9, fas: 4, fl: 0.1, extra: ['anulare'] },
@@ -235,6 +295,8 @@ const SOLO = args.filter(a => !a.startsWith('--')), vuole = id => !SOLO.length |
 const uscita = {};
 const registra = (id, mesh) => { setMesh(id, mesh); if (prova) uscita[id] = { pos: Array.from(mesh.pos, v => +v.toFixed(4)), idx: Array.from(mesh.idx) }; };
 if (vuole('anulare')) { const mesh = anulare(); log('anulare', mesh.pos.length / 3, 'vertici'); registra('anulare', mesh); }
+if (vuole('quadrato')) { const mesh = quadrato(); log('quadrato', mesh.pos.length / 3, 'vertici'); registra('quadrato', mesh); }
+if (vuole('mio')) { const mesh = membrana(); log('mio', mesh.pos.length / 3, 'vertici'); registra('mio', mesh); }
 for (const Lg of LEG) {
   if (!vuole(Lg.id)) continue;
   const [lo, hi] = bbox(Lg.p), ctx = contesto(lo, hi, Lg.r, Lg.extra || []), mesh = nastro(Lg, ctx);
@@ -254,7 +316,7 @@ for (const [id, o] of Object.entries(SPINGI)) {
   grigliaG([-4, -3, -3], [3.8, 2.5, 3], 0.04, 0);
   const H = G.H, SD = {};
   for (const o of [...OSSA, ...CART]) { const M = G.solid(o), Do = G.edt(M), Di = G.edt(M, true), F = new Float32Array(G.N); for (let i = 0; i < G.N; i++) F[i] = M[i] ? -(Di[i] - H / 2) : Do[i] - H / 2; SD[o] = esatta(F, [o], 0.1); }
-  for (const id of [...LEG.map(l => l.id), 'anulare', ...Object.keys(SPINGI)]) { if (!vuole(id)) continue; const P = REAL(id).pos, nv = P.length / 3, r = [];
+  for (const id of [...LEG.map(l => l.id), "anulare", ...Object.keys(SPINGI)]) { if (!vuole(id)) continue; const P = REAL(id).pos, nv = P.length / 3, r = [];
     for (const o of [...OSSA, ...CART]) { let k = 0, mx = 0, mn = 9; for (let i = 0; i < nv; i++) { const d = sample(SD[o], P[3 * i], P[3 * i + 1], P[3 * i + 2]); mn = Math.min(mn, d); if (d < -0.03) { k++; mx = Math.max(mx, -d); } } if (k) r.push(`${o} ${k} (${(100 * k / nv).toFixed(0)}%, max ${mx.toFixed(2)})`); }
     log(id, 'verifica: dentro', r.length ? r.join('; ') : 'niente (>0,3 mm)'); }
 }
