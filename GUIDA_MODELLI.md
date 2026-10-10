@@ -79,8 +79,13 @@ Ricavata da `ginocchio-3d.html` e `polso-dito-3d.html`. Un nuovo modello deve av
 
 Fasci neurovascolari del dito: `node strumenti/fasci-dito.mjs` (`verifica` per solo elencare le compenetrazioni) riparte dal decorso originale di `arterie` e `nervi` (revisione `ORIGINALE`, default f058cc0) e li spinge fuori da ossa, tendini, guaina, pulegge, placche, collaterali, intrinseci e apparato estensore, con levigatura a filo teso; arteria e nervo restano separati e la prima posizione (y 4,2) è fissa. Da rilanciare se cambiano pulegge, guaina o apparato estensore.
 
-## Crediti del gomito (riga `.credit` accorciata)
-La riga `.credit` del gomito ha la stessa lunghezza di quella degli altri modelli. Il dettaglio che non compare più nel pannello:
+## Crediti: riga `.credit` breve e uniforme
+La riga `.credit` ha la stessa lunghezza in tutti i modelli (disclaimer + attribuzione BodyParts3D + "Le altre strutture sono modellate e adattate"): niente elenchi lunghi. Il dettaglio che non compare più nel pannello:
 - Da BodyParts3D: ossa, bicipite, tricipite, brachioradiale, estensori radiali del carpo, estensore delle dita, ECU, FCR, palmare lungo, FDS, FDP, supinatore e membrana interossea. Le forme dei muscoli reali sono state completate con tendini e inserzioni e compattate nelle logge.
 - Ricostruiti sulle ossa e sui muscoli reali (posizione e forma indicative): brachiale, pronatore rotondo, FCU, anconeo, FPL, estensore del mignolo, APL, EPL, setti intermuscolari, linfonodi, cartilagini, capsula, cuscinetti adiposi, borse, legamenti, tendini comuni, vasi, nervi e cute.
 - Non inclusi perché fuori dalla finestra di ±12 cm o troppo variabili: EPB, EIP, pronatore quadrato, coracobrachiale, deltoide, corda obliqua, fascia brachiale e antibrachiale.
+
+Polso e dito:
+- Da BodyParts3D: ossa, muscoli, tendini, retinacolo dei flessori, membrana interossea e cute.
+- Ricostruiti sulle ossa reali: cartilagini, legamenti, capsula volare, TFCC, retinacolo degli estensori, guaine, cuscinetto adiposo del pronatore quadrato, vasi e nervi.
+
