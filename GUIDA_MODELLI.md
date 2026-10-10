@@ -63,7 +63,7 @@ Ricavata da `ginocchio-3d.html` e `polso-dito-3d.html`. Un nuovo modello deve av
 - Sezioni di taglio del ginocchio: tutte le strutture finiscono sullo stesso piano della cute (y = ±20,1 cm). `strumenti/estremi-ginocchio.mjs` porta sul piano i vertici delle mesh che lo superano, verifica che i tubi vi terminino e pulisce le sezioni: toglie i triangoli a ventaglio sovrapposti alla sezione originale, elimina le sovrapposizioni tra sezioni vicine (priorità: ossa, vasi e nervi, poi le sezioni più ampie) e porta le strutture diverse da ossa, vasi e nervi 0,3 mm sotto il piano, così non ci sono superfici coincidenti (in WebGL darebbero un disegno "a raggiera" o a schegge); si lancia per ultimo (le mesh BodyParts3D rigenerate dagli altri strumenti finiscono a ±20,2–20,3). Ordine completo: stratifica → capsula → cute → borse → percorsi → estremi. Colore delle sezioni: `strumenti/tag-sezioni-ginocchio.mjs` dà ai vertici delle sezioni (|y| ≥ 19,9 cm) il tag muscolo/tendine del vertice più vicino appena sotto il taglio (prima erano bianchi come tendine); va rilanciato dopo `estremi-ginocchio.mjs`.
 
 ## Contenuti obbligatori
-- Riga `.credit`: inizia con "<b>Materiale didattico.</b> Non destinato a uso clinico o diagnostico." e un a capo, poi i crediti: "Ossa, muscoli e cute: BodyParts3D, © The Database Center for Life Science, licenze CC BY 4.0 e, per le versioni precedenti, CC BY-SA 2.1 JP (scelta prudenziale: vedi "Crediti" nel README; il pannello "i" di `assets/nav.js` riporta la riga di attribuzione completa) (Mitsuhashi N et al., Nucleic Acids Res 2009). Le altre strutture sono modellate e adattate." (adattare l'elenco a ciò che viene effettivamente da BodyParts3D).
+- Riga `.credit` (nel pannello strutture): solo "<b>Materiale didattico.</b> Non destinato a uso clinico o diagnostico." Crediti e attribuzione BodyParts3D stanno nel pannello "i" di `assets/nav.js`; l'elenco delle strutture del modello si dichiara con tre `<meta>` nel `<head>`, subito prima di `description`: `strutture-bp3d` (strutture da BodyParts3D), `strutture-modellate` (ricostruite/modellate), `strutture-escluse` (facoltativa, non incluse). `nav.js` li mostra nella sezione "Strutture del modello" (se mancano, la sezione non compare). Adattare l'elenco a ciò che viene effettivamente da BodyParts3D.
 - Viste standard coerenti con il distretto (es. Ant/Post/Lat/Med; per il polso Volare/Dorsale/Radiale/Ulnare).
 - Più distretti nello stesso file = sezioni separate con selettore e ancora nell'URL (es. `#dito`).
 
@@ -78,14 +78,3 @@ Ricavata da `ginocchio-3d.html` e `polso-dito-3d.html`. Un nuovo modello deve av
 - [ ] Note `info` anatomicamente corrette (verificate da me)
 
 Fasci neurovascolari del dito: `node strumenti/fasci-dito.mjs` (`verifica` per solo elencare le compenetrazioni) riparte dal decorso originale di `arterie` e `nervi` (revisione `ORIGINALE`, default f058cc0) e li spinge fuori da ossa, tendini, guaina, pulegge, placche, collaterali, intrinseci e apparato estensore, con levigatura a filo teso; arteria e nervo restano separati e la prima posizione (y 4,2) è fissa. Da rilanciare se cambiano pulegge, guaina o apparato estensore.
-
-## Crediti: riga `.credit` breve e uniforme
-La riga `.credit` ha la stessa lunghezza in tutti i modelli (disclaimer + attribuzione BodyParts3D + "Le altre strutture sono modellate e adattate"): niente elenchi lunghi. Il dettaglio che non compare più nel pannello:
-- Da BodyParts3D: ossa, bicipite, tricipite, brachioradiale, estensori radiali del carpo, estensore delle dita, ECU, FCR, palmare lungo, FDS, FDP, supinatore e membrana interossea. Le forme dei muscoli reali sono state completate con tendini e inserzioni e compattate nelle logge.
-- Ricostruiti sulle ossa e sui muscoli reali (posizione e forma indicative): brachiale, pronatore rotondo, FCU, anconeo, FPL, estensore del mignolo, APL, EPL, setti intermuscolari, linfonodi, cartilagini, capsula, cuscinetti adiposi, borse, legamenti, tendini comuni, vasi, nervi e cute.
-- Non inclusi perché fuori dalla finestra di ±12 cm o troppo variabili: EPB, EIP, pronatore quadrato, coracobrachiale, deltoide, corda obliqua, fascia brachiale e antibrachiale.
-
-Polso e dito:
-- Da BodyParts3D: ossa, muscoli, tendini, retinacolo dei flessori, membrana interossea e cute.
-- Ricostruiti sulle ossa reali: cartilagini, legamenti, capsula volare, TFCC, retinacolo degli estensori, guaine, cuscinetto adiposo del pronatore quadrato, vasi e nervi.
-

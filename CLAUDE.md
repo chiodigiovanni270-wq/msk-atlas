@@ -34,14 +34,14 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
 
 ## Requisiti di contenuto
 - Ogni pagina riporta un disclaimer breve: "Materiale didattico. Non destinato a uso clinico o diagnostico."
-  Nei modelli sta nella riga dei crediti del pannello strutture e nel pannello "i" (`assets/nav.js`), non in alto.
+  Nei modelli sta in una sola riga nel pannello strutture (riga `.credit`) e nel pannello "i" (`assets/nav.js`), non in alto. Crediti, attribuzione BodyParts3D ed elenco delle strutture (da BodyParts3D / ricostruite / non incluse, via `<meta name="strutture-bp3d|strutture-modellate|strutture-escluse">`) stanno solo nel pannello "i".
 - Al momento i modelli sono due, ma ne verranno aggiunti altri nel tempo: la struttura del sito deve permettere di aggiungere un nuovo modello in modo semplice e ripetibile, senza riorganizzare tutto.
 
 ## Aggiungere un modello
 1. Copia il file in `modelli/<nome>-3d.html` (nome minuscolo, parole separate da trattini).
 2. Nel tag `<html>` aggiungi l'attributo `data-theme="dark"`; imposta il `<title>` come "<Distretto> 3D | MSK Atlas"; nel `<head>` aggiungi
    `<meta name="description" content="…">` e `<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">`;
-   subito dopo `<body>` aggiungi `<script src="../assets/nav.js"></script>`. Nient'altro nel file del modello.
+   subito dopo `<body>` aggiungi `<script src="../assets/nav.js"></script>`. Aggiungi anche i `<meta name="strutture-bp3d">` e `strutture-modellate` (facoltativo `strutture-escluse`) per la sezione "Strutture del modello" del pannello "i". Nient'altro nel file del modello.
 3. Crea l'anteprima con `node strumenti/anteprima.mjs <nome>-3d` (server locale attivo sulla porta 8000):
    salva `assets/anteprime/<nome>-3d.jpg`, 1600×1000. Istruzioni e opzioni in testa allo script.
 4. In `index.html` duplica un blocco `<!-- CARD MODELLO -->` e aggiorna distretto, immagine, alt,
