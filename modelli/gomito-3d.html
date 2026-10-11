@@ -67,7 +67,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .btn.primary,.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--panel)}
 
 #sheet{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);box-shadow:var(--shadow);padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px);border-radius:16px 16px 0 0}
-.chips{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:2px}  /* computer: a capo, senza scorrimento */
+.chips{padding-bottom:2px}.chips-in{display:flex;flex-wrap:wrap;gap:6px}  /* computer: a capo, senza scorrimento */
 .regs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;align-items:center}
 .regs::-webkit-scrollbar{display:none}
 .regs .rl{flex:none;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:2px}
@@ -83,8 +83,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .chip[data-state="off"]{color:var(--muted)}
 .chip[data-state="off"] .dot{background:transparent}
 .chip[data-state="part"] .dot{background:linear-gradient(90deg,var(--c) 50%,transparent 50%)}
-/* smartphone: categorie su 3 righe con scorrimento orizzontale e chip compatti, per lasciare spazio al modello */
-@media (max-width:600px){.chips{display:grid;grid-auto-flow:column;grid-template-rows:repeat(3,auto);grid-auto-columns:max-content;justify-items:start;gap:5px;overflow-x:auto;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}.chip{padding:4px 9px 4px 6px;gap:5px;font-size:12.5px}.chip .dot{width:10px;height:10px}}
+/* smartphone: categorie su 3 righe compatte con scorrimento orizzontale (larghezza calcolata nello script) e chip compatti */
+@media (max-width:600px){.chips{overflow-x:auto;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}.chips-in{gap:5px}.chip{padding:4px 9px 4px 6px;gap:5px;font-size:12.5px}.chip .dot{width:10px;height:10px}}
 .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
 .row .left{display:flex;gap:6px;flex-wrap:wrap}
 .toggle-list{border:0;background:transparent;color:var(--accent);font-weight:600;font-size:13.5px;padding:6px 2px;white-space:nowrap}
@@ -825,6 +825,13 @@ CATS.forEach(c=>{
   });
   listEl.appendChild(g);
 });
+/* smartphone: categorie su 3 righe compatte (senza buchi), scorrevoli in orizzontale: la larghezza minima che le tiene su 3 righe */
+(()=>{const mq=matchMedia('(max-width:600px)'),inn=document.createElement('div');inn.className='chips-in';inn.append(...chipsEl.children);chipsEl.appendChild(inn);
+const fit=()=>{inn.style.width='';const cw=chipsEl.clientWidth,ch=[...inn.children];if(!mq.matches||!cw||!ch.length)return;
+  const g=parseFloat(getComputedStyle(inn).columnGap)||0,max=3*ch[0].offsetHeight+2*g+1;if(inn.offsetHeight<=max)return;
+  let w=Math.max(cw,Math.ceil(ch.reduce((a,c)=>a+c.offsetWidth+g,0)/3));
+  for(let i=0;i<300;i++){inn.style.width=w+'px';if(inn.offsetHeight<=max)break;w+=6;}};
+new ResizeObserver(fit).observe(chipsEl);mq.addEventListener('change',fit);})();
 S.forEach(s=>{s.visible=!hiddenDefault(s);});
 function sync(){
   CATS.forEach(c=>{const it=S.filter(s=>s.cat===c.id),n=it.filter(s=>s.visible).length;chipsEl.querySelector('[data-cat="'+c.id+'"]').dataset.state=n===0?'off':n===it.length?'on':'part';});
