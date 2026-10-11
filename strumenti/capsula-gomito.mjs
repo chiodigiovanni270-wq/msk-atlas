@@ -29,12 +29,18 @@ const P = {
   Y: { H: [-0.7, 3.1], Hlati: 1.3, U: [-1.4, 2.0], R: [-1.5, 0.3] },   // intervalli di quota (cm) in cui omero, ulna e radio entrano nel contenuto
   X: { H: [-3.0, 3.0, 1.0, 2.6, 0.2] }, // omero: intervallo di x; la quota massima scende di `Y.Hlati` tra |x−x0| = [2]…[3] (x0 = [4]): ai lati la capsula si inserisce più in basso, alla base degli epicondili
   fuori: 0.015, th: 0.10,              // distanza dall'inviluppo e spessore del guscio (cm)
-  rastrema: 0.35,                      // cm: tratto alle estremità in cui lo spessore scende a zero
+  rastrema: 0.6,                       // cm: tratto, lungo y a partire dalle linee d'inserzione, in cui lo spessore scende a zero
+  // linee d'inserzione curve (non piani y = costante): quota massima sull'omero e minima su ulna/radio in funzione di (x, z); z > 0 anteriore, x < 0 laterale
+  top: { post: 0.4, ant: 0.25 },       // cm in più sopra la fossetta olecranica (z < −0.2) e sopra le fossette coronoidea/radiale (z > 0.2, al centro)
+  bot: { y0: -1.35, post: 0.9, rad: 0.45, med: 0.45 },  // quota minima: -1.35 cm al centro; più alta dietro (bordo articolare dell'olecrano), più alta sul lato mediale (margine del coronoide), più bassa attorno al collo del radio (legamento anulare)
   gbone: 0.012,                        // distanza minima dall'osso (cm)
   chiusura: 0.9, levigaD: 4,                       // cm: raggio della chiusura morfologica 2D per sezione
 };
 const OSSA = ['omero', 'ulna', 'radio', 'cart_omero', 'cart_ulna', 'cart_radio'];
 
+const yTop = (x, z) => P.Y.H[1] - P.Y.Hlati * sstep(P.X.H[2], P.X.H[3], Math.abs(x - P.X.H[4]))
+  + P.top.post * sstep(-0.2, -1.1, z) + P.top.ant * sstep(0.2, 1.0, z) * (1 - sstep(1.0, 2.2, Math.abs(x - P.X.H[4])));
+const yBot = (x, z) => P.bot.y0 + P.bot.post * sstep(0, -1.2, z) + P.bot.med * sstep(0.2, 1.2, x) - P.bot.rad * sstep(-0.3, -1.3, x);
 griglia(P.lo, P.hi, P.passo, 0);
 const { NX, NY, NZ, NXY, O, H } = G, N = G.N;
 log('griglia', NX, NY, NZ, (N / 1e6).toFixed(1), 'M voxel');
@@ -43,9 +49,9 @@ const { F: F0 } = sdf(unione(OSSA)), FBall = esatta(sfoca(F0, 1), OSSA, 0.1);
 // contenuto articolare: presenza di osso nel territorio, per colonna (i, k) e quota j
 const SH = unione(['omero', 'cart_omero']), SU = unione(['ulna', 'cart_ulna']), SR = unione(['radio', 'cart_radio']);
 const pres = new Uint8Array(N);
-for (let k = 0; k < NZ; k++) for (let j = 0; j < NY; j++) { const y = O[1] + (j + 0.5) * H; for (let i = 0; i < NX; i++) {
+for (let k = 0; k < NZ; k++) for (let j = 0; j < NY; j++) { const y = O[1] + (j + 0.5) * H, z = O[2] + (k + 0.5) * H; for (let i = 0; i < NX; i++) {
   const id = i + NX * (j + NY * k), x = O[0] + (i + 0.5) * H;
-  if ((SH[id] && y >= P.Y.H[0] && y <= P.Y.H[1] - P.Y.Hlati * sstep(P.X.H[2], P.X.H[3], Math.abs(x - P.X.H[4])) && x >= P.X.H[0] && x <= P.X.H[1]) || (SU[id] && y >= P.Y.U[0] && y <= P.Y.U[1]) || (SR[id] && y >= P.Y.R[0] && y <= P.Y.R[1])) pres[id] = 1; } }
+  if ((SH[id] && y >= P.Y.H[0] && y <= yTop(x, z) && x >= P.X.H[0] && x <= P.X.H[1]) || (SU[id] && y >= yBot(x, z) && y <= P.Y.U[1]) || (SR[id] && y >= yBot(x, z) && y <= P.Y.R[1])) pres[id] = 1; } }
 // presenza entro la finestra ±w (somme cumulative lungo j)
 const w = Math.round(P.finestra / H), cum = new Int32Array(NX * NZ * (NY + 1));
 const ci = (i, j, k) => i + NX * (k + NZ * j);
@@ -78,13 +84,15 @@ for (let j = 0; j < NY; j++) {
 log('sezioni', j0, '→', j1, '(y', (O[1] + (j0 + 0.5) * H).toFixed(2), '→', (O[1] + (j1 + 0.5) * H).toFixed(2) + ')');
 for (let i = 0; i < N; i++) Dout[i] = Math.min(Dout[i], 1.5);
 for (let p = 0; p < P.levigaD; p++) sfoca(Dout, 3);      // le sezioni sono indipendenti: la levigatura 3D toglie i gradini lungo y
-const V = new Float32Array(N).fill(1), ext = Math.round(P.rastrema / H);
+const V = new Float32Array(N).fill(1);
 for (let j = j0; j <= j1; j++) {
-  const thk = P.th * sstep(0, ext, Math.min(j - j0, j1 - j));
-  if (thk < 0.012) continue;
-  for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) { const id = i + NX * (j + NY * k), d = Dout[id];
-    if (d > P.fuori + thk + 0.1) continue;
-    V[id] = Math.max(d - (P.fuori + thk), P.fuori - d, P.gbone - FBall[id]); }
+  const y = O[1] + (j + 0.5) * H;
+  for (let k = 0; k < NZ; k++) { const z = O[2] + (k + 0.5) * H; for (let i = 0; i < NX; i++) { const id = i + NX * (j + NY * k), d = Dout[id];
+    const x = O[0] + (i + 0.5) * H;
+    // lo spessore scende a zero in modo dolce lungo le linee d'inserzione curve (distanza in y dalla quota minima e massima della colonna)
+    const thk = P.th * sstep(0, P.rastrema, Math.min(y - yBot(x, z), yTop(x, z) - y));
+    if (thk < 0.012 || d > P.fuori + thk + 0.1) continue;
+    V[id] = Math.max(d - (P.fuori + thk), P.fuori - d, P.gbone - FBall[id]); } }
 }
 log('campo costruito');
 function componentiPrincipali(Vf, quota = 0.05) {
