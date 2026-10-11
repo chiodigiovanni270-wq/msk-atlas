@@ -29,6 +29,7 @@ const P = {
   Y: { H: [-0.7, 3.1], Hlati: 1.3, U: [-1.4, 2.0], R: [-1.5, 0.3] },   // intervalli di quota (cm) in cui omero, ulna e radio entrano nel contenuto
   X: { H: [-3.0, 3.0, 1.0, 2.6, 0.2] }, // omero: intervallo di x; la quota massima scende di `Y.Hlati` tra |x−x0| = [2]…[3] (x0 = [4]): ai lati la capsula si inserisce più in basso, alla base degli epicondili
   fuori: 0.015, th: 0.10,              // distanza dall'inviluppo e spessore del guscio (cm)
+  thkMin: 0.05,                       // cm: sotto questo spessore il guscio non si costruisce (sotto il passo della griglia genererebbe schegge)
   rastrema: 0.6,                       // cm: tratto, lungo y a partire dalle linee d'inserzione, in cui lo spessore scende a zero
   // linee d'inserzione curve (non piani y = costante): quota massima sull'omero e minima su ulna/radio in funzione di (x, z); z > 0 anteriore, x < 0 laterale
   top: { post: 0.4, ant: 0.25 },       // cm in più sopra la fossetta olecranica (z < −0.2) e sopra le fossette coronoidea/radiale (z > 0.2, al centro)
@@ -91,7 +92,7 @@ for (let j = j0; j <= j1; j++) {
     const x = O[0] + (i + 0.5) * H;
     // lo spessore scende a zero in modo dolce lungo le linee d'inserzione curve (distanza in y dalla quota minima e massima della colonna)
     const thk = P.th * sstep(0, P.rastrema, Math.min(y - yBot(x, z), yTop(x, z) - y));
-    if (thk < 0.012 || d > P.fuori + thk + 0.1) continue;
+    if (thk < P.thkMin || d > P.fuori + thk + 0.1) continue;
     V[id] = Math.max(d - (P.fuori + thk), P.fuori - d, P.gbone - FBall[id]); } }
 }
 log('campo costruito');
@@ -106,7 +107,29 @@ function componentiPrincipali(Vf, quota = 0.05) {
 }
 log('componenti tenute:', componentiPrincipali(V));
 const mesh = nets(sfoca(V, 1), () => [0, 0, 1]);
-const out = { pos: mesh.pos, idx: mesh.idx, tag: null, fdir: null };
+// i bordi sottili lungo le linee d'inserzione (spessore ≈ 1 voxel) generano qualche triangolo con avvolgimento incoerente: si riorienta ogni componente
+// connessa (propagazione dell'orientamento sui bordi manifold) e la si gira in modo che il volume sia positivo (normali verso l'esterno)
+function orienta(m) {
+  const T = m.idx.length / 3, ed = new Map();
+  for (let t = 0; t < T; t++) for (let q = 0; q < 3; q++) { const a = m.idx[3 * t + q], b = m.idx[3 * t + (q + 1) % 3], k = a < b ? a * 4294967296 + b : b * 4294967296 + a; const e = ed.get(k); if (e) e.push(t); else ed.set(k, [t]); }
+  const flip = new Uint8Array(T), seen = new Uint8Array(T), dir = (t, a, b) => { for (let q = 0; q < 3; q++) { const u = m.idx[3 * t + q], v = m.idx[3 * t + (q + 1) % 3]; if (u === a && v === b) return 1; if (u === b && v === a) return -1; } return 0; };
+  const comp = new Int32Array(T).fill(-1); let nc = 0;
+  for (let s = 0; s < T; s++) { if (seen[s]) continue; seen[s] = 1; comp[s] = nc; const st = [s];
+    while (st.length) { const t = st.pop();
+      for (let q = 0; q < 3; q++) { const a = m.idx[3 * t + q], b = m.idx[3 * t + (q + 1) % 3], e = ed.get(a < b ? a * 4294967296 + b : b * 4294967296 + a); if (e.length !== 2) continue;
+        const u = e[0] === t ? e[1] : e[0]; if (seen[u]) continue; seen[u] = 1; comp[u] = nc;
+        // t orientato (a→b) (con eventuale flip); u deve percorrere il bordo in senso opposto
+        const dt = dir(t, a, b) * (flip[t] ? -1 : 1), du = dir(u, a, b); flip[u] = du === dt ? 1 : 0; st.push(u); } }
+    nc++; }
+  const vol = new Float64Array(nc), p = m.pos;
+  for (let t = 0; t < T; t++) { let [a, b, c] = [0, 1, 2].map(q => 3 * m.idx[3 * t + q]); if (flip[t]) [b, c] = [c, b];
+    vol[comp[t]] += (p[a] * (p[b + 1] * p[c + 2] - p[b + 2] * p[c + 1]) - p[a + 1] * (p[b] * p[c + 2] - p[b + 2] * p[c]) + p[a + 2] * (p[b] * p[c + 1] - p[b + 1] * p[c])) / 6; }
+  let nf = 0; const idx = m.idx.slice();
+  for (let t = 0; t < T; t++) { if (flip[t] !== (vol[comp[t]] < 0 ? 1 : 0)) { const b = idx[3 * t + 1]; idx[3 * t + 1] = idx[3 * t + 2]; idx[3 * t + 2] = b; nf++; } }
+  log('triangoli riorientati', nf, 'su', T);
+  return { pos: m.pos, idx };
+}
+const out = { pos: mesh.pos, idx: orienta(mesh).idx, tag: null, fdir: null };
 let vol = 0; for (let t = 0; t < out.idx.length; t += 3) { const a = 3 * out.idx[t], b = 3 * out.idx[t + 1], c = 3 * out.idx[t + 2], p = out.pos;
   vol += (p[a] * (p[b + 1] * p[c + 2] - p[b + 2] * p[c + 1]) - p[a + 1] * (p[b] * p[c + 2] - p[b + 2] * p[c]) + p[a + 2] * (p[b] * p[c + 1] - p[b + 1] * p[c])) / 6; }
 log('capsula', out.pos.length / 3, 'vertici, volume', vol.toFixed(2), 'cm³');
