@@ -110,7 +110,12 @@
 
   /* elenco delle strutture del modello (da <meta name="strutture-bp3d|modellate|escluse">, se presenti) */
   function strutture(){
-    function meta(n){ var m = document.querySelector('meta[name="strutture-' + n + '"]'); return m ? m.content : ''; }
+    /* sezione del modello nell'ancora (es. #dito): usa <meta name="strutture-…-dito"> se c'è, altrimenti quello generale */
+    var sez = location.hash.replace('#', '');
+    function meta(n){
+      var m = (sez && document.querySelector('meta[name="strutture-' + n + '-' + sez + '"]')) || document.querySelector('meta[name="strutture-' + n + '"]');
+      return m ? m.content : '';
+    }
     function esc(t){ return t.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
     var righe = [['Da BodyParts3D', meta('bp3d')], ['Ricostruite', meta('modellate')], ['Non incluse', meta('escluse')]]
       .filter(function(r){ return r[1]; });

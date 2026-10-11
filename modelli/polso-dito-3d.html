@@ -6,6 +6,8 @@
 <title>Polso 3D | MSK Atlas</title>
 <meta name="strutture-bp3d" content="Ossa, muscoli, tendini, retinacolo dei flessori, membrana interossea e cute.">
 <meta name="strutture-modellate" content="Cartilagini, legamenti, capsula volare, TFCC, retinacolo degli estensori, guaine, cuscinetto adiposo del pronatore quadrato, vasi e nervi: ricostruiti sulle ossa reali.">
+<meta name="strutture-bp3d-dito" content="Ossa, tendini flessori ed estensori, lombricale, interossei e cute.">
+<meta name="strutture-modellate-dito" content="Pulegge, placche volari, collaterali, bendelle sagittali, apparato estensore distale, guaina, vasi e nervi: ricostruiti sulle ossa reali.">
 <meta name="description" content="Modello 3D interattivo del polso destro e del dito medio: carpo, legamenti e TFCC, retinacoli, tendini flessori ed estensori, tunnel carpale e canale di Guyon. Materiale didattico.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -66,7 +68,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .btn.primary,.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--panel)}
 
 #sheet{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);box-shadow:var(--shadow);padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px);border-radius:16px 16px 0 0}
-.chips{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:2px}  /* computer: a capo, senza scorrimento */
 .regs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;align-items:center}
 .regs::-webkit-scrollbar{display:none}
 .regs .rl{flex:none;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:2px}
@@ -82,8 +84,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .chip[data-state="off"]{color:var(--muted)}
 .chip[data-state="off"] .dot{background:transparent}
 .chip[data-state="part"] .dot{background:linear-gradient(90deg,var(--c) 50%,transparent 50%)}
-/* le categorie vanno a capo (nessuno scorrimento); su smartphone chip più compatti per tenere basso il pannello */
-@media (max-width:600px){.chips{gap:5px}.chip{padding:4px 9px 4px 6px;gap:5px;font-size:12.5px}.chip .dot{width:10px;height:10px}}
+/* smartphone: categorie su 3 righe con scorrimento orizzontale e chip compatti, per lasciare spazio al modello */
+@media (max-width:600px){.chips{display:grid;grid-auto-flow:column;grid-template-rows:repeat(3,auto);grid-auto-columns:max-content;justify-items:start;gap:5px;overflow-x:auto;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}.chip{padding:4px 9px 4px 6px;gap:5px;font-size:12.5px}.chip .dot{width:10px;height:10px}}
 .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
 .row .left{display:flex;gap:6px;flex-wrap:wrap}
 .toggle-list{border:0;background:transparent;color:var(--accent);font-weight:600;font-size:13.5px;padding:6px 2px;white-space:nowrap}
@@ -798,9 +800,8 @@ document.querySelectorAll('.views button[data-view]').forEach(b=>b.addEventListe
   let d=VIEWS[b.dataset.view]-cam.theta;d=Math.atan2(Math.sin(d),Math.cos(d));
   anim={t0:performance.now(),from:{theta:cam.theta,phi:cam.phi,r:cam.r,tg:cam.target.clone()},to:{theta:cam.theta+d,phi:0.08,r:cam.baseR,tg:V(0,0,0)}};
 }));
-(()=>{const h=document.querySelector('.title h1'),cr=document.querySelector('.credit');
-if(MODE==='dito'){h.textContent='Dito medio destro';document.title='Dito 3D | MSK Atlas';
- cr.textContent='Ossa, tendini flessori ed estensori, lombricale, interossei e cute: BodyParts3D, © The Database Center for Life Science, licenze CC BY 4.0 e, per le versioni precedenti, CC BY-SA 2.1 JP (Mitsuhashi N et al., Nucleic Acids Res 2009). Pulegge, placche volari, collaterali, bendelle sagittali, apparato estensore distale, guaina, vasi e nervi sono ricostruiti sulle ossa reali.';}
+(()=>{const h=document.querySelector('.title h1');
+if(MODE==='dito'){h.textContent='Dito medio destro';document.title='Dito 3D | MSK Atlas';}
 document.querySelectorAll('.sect button').forEach(b=>{b.setAttribute('aria-selected',b.dataset.sect===MODE);b.addEventListener('click',()=>{if(b.dataset.sect===MODE)return;
  location.hash=b.dataset.sect==='dito'?'dito':'';location.reload();});});})();
 const clearViewPress=()=>document.querySelectorAll('.views button[data-view]').forEach(x=>x.setAttribute('aria-pressed','false'));
