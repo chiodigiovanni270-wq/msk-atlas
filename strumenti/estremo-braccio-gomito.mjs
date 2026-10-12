@@ -21,6 +21,7 @@
       e non si vedono facce piane); ogni vertice va sul campo bersaglio. Spostamento = proiezione sul bersaglio + granulosità propria del vertice
       (differenza dalla proiezione sul campo di partenza), che sfuma sopra `REG.y[0]` + 1,6 cm: nessun bordo tra zona toccata e zona intatta.
       Vicino al taglio (`RIL`) qualche passata di rilassamento tangenziale con ritorno sul bersaglio riordina i vertici.
+   Per il capo lungo (`PER`) la levigatura parte più in basso (y 3,5) e lungo le fibre ha sigma più ampia (`sigmaY`): toglie le ondulazioni del profilo laterale.
    Tag e fibre restano quelli dei vertici di partenza; il tag di sezione (250) non si interpola e si riassegna dalla normale (faccia rivolta in alto).
    Va lanciato dopo `legamenti-gomito.mjs` e `muscoli-gomito.mjs` (che riscrivono tricipite mediale e bicipite). `--verifica` non scrive. */
 import { dirname, resolve } from 'node:path';
@@ -37,11 +38,14 @@ const TAGLIO = 12.0;                        // piano di taglio (cm)
 const Y0 = 10.6;                            // sezione di riferimento (liscia)
 const RAMPA = [9.0, 11.0];                 // dal campo originale alla sezione levigata
 const RACCORDO = 0.10;                      // cm, raggio dello spigolo al piano di taglio
-const ZONA = 4.8;                           // sopra questa y i triangoli si dividono
+let ZONA = 4.8;                             // sopra questa y i triangoli si dividono
 const LATO = 0.2;                           // cm, lato massimo dei triangoli nella zona
 const RILASSA = 25;                         // passate di rilassamento tangenziale (solo vicino al taglio, peso `RIL`)
 const RIL = [10.0, 10.8];
-const REG = { y: [4.8, 7.2], sigma: 0.55 };  // regolarizzazione della forma: da y[0] a y[1] cresce il peso del campo levigato con una gaussiana 3D di `sigma` (cm)
+const REG0 = { y: [4.8, 7.2], sigma: 0.55, sigmaY: 0.55 };  // regolarizzazione della forma: da y[0] a y[1] cresce il peso del campo levigato con una gaussiana 3D (`sigma` nel piano, `sigmaY` lungo il muscolo, cm)
+let REG = REG0;
+// il capo lungo del tricipite ha il profilo laterale ondulato (avvallamenti e spalle tra y ≈ 4 e 9): qui la levigatura parte più in basso e lungo le fibre è molto più ampia
+const PER = { tri_lungo: { zona: 3.5, reg: { y: [3.5, 6.5], sigma: 0.55, sigmaY: 0.8 } } };
 
 const H = 0.04;                             // cm, passo della griglia dei campi
 const OSTACOLI = ['omero', 'brach', 'br'];  // mesh che il muscolo non deve attraversare (più tutti i tubi della pagina nella zona)
@@ -97,11 +101,12 @@ function gauss2d(A, n0, n1, sigmaCelle) {
   return C;
 }
 // levigatura gaussiana 3D (separabile) sulla griglia corrente
-function gauss3d(A, sigmaCelle) {
-  const { NX, NY, NZ, NXY } = G, R = Math.ceil(3 * sigmaCelle), K = Float32Array.from({ length: 2 * R + 1 }, (_, q) => Math.exp(-((q - R) ** 2) / (2 * sigmaCelle ** 2)));
-  const S = K.reduce((a, b) => a + b, 0); for (let q = 0; q < K.length; q++) K[q] /= S;
+function gauss3d(A, sigmaCelle, sigmaYCelle = sigmaCelle) {
+  const { NX, NY, NZ, NXY } = G;
   let src = A, dst = new Float32Array(A.length);
-  for (const [st, n] of [[1, NX], [NX, NY], [NXY, NZ]]) {
+  for (const [st, n, sg] of [[1, NX, sigmaCelle], [NX, NY, sigmaYCelle], [NXY, NZ, sigmaCelle]]) {
+    const R = Math.ceil(3 * sg), K = Float32Array.from({ length: 2 * R + 1 }, (_, q) => Math.exp(-((q - R) ** 2) / (2 * sg ** 2)));
+    const S = K.reduce((a, b) => a + b, 0); for (let q = 0; q < K.length; q++) K[q] /= S;
     for (let i = 0; i < A.length; i++) {
       const c = ((i / st) | 0) % n; let v = 0;
       for (let q = -R; q <= R; q++) { const cc = c + q < 0 ? 0 : c + q >= n ? n - 1 : c + q; v += K[q + R] * src[i + (cc - c) * st]; }
@@ -131,7 +136,7 @@ function campoBersaglio(id, m) {
   const D = new Float32Array(NX * NZ); for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) D[i + NX * k] = Fp[G.vi(i, j0, k)];
   const Dl = gauss2d(D, NX, NZ, REG.sigma / G.H);   // stessa sigma della levigatura 3D: sezione e campo sotto si raccordano senza gradino
   const { F: F0 } = G.sdf(M); G.sfoca(F0, 1);
-  const Fh = gauss3d(F0, REG.sigma / G.H);                         // forma levigata (toglie facce, creste e lobi sottili)
+  const Fh = gauss3d(F0, REG.sigma / G.H, REG.sigmaY / G.H);                         // forma levigata (toglie facce, creste e lobi sottili)
   const F = new Float32Array(G.N);
   for (let j = 0; j < NY; j++) {
     const y = G.O[1] + (j + 0.5) * G.H, w = sstep(RAMPA[0], RAMPA[1], y), wr = sstep(REG.y[0], REG.y[1], y);
@@ -171,6 +176,7 @@ function campoBersaglio(id, m) {
 
 /* ============ Muscolo ============ */
 function muscolo(id) {
+  ZONA = PER[id]?.zona ?? 4.8; REG = PER[id]?.reg ?? REG0;
   const p0 = realDaRevisione(PARTENZA, id, FILE_REPO);
   const m = suddividi({ pos: Float32Array.from(p0.pos), idx: p0.idx, tag: p0.tag, fdir: p0.fdir });
   const nv = m.pos.length / 3;
