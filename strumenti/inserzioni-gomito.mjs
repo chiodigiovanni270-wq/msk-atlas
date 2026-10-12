@@ -285,5 +285,7 @@ function componentePrincipale(o) {
   return { pos: Float32Array.from(P), idx: Uint32Array.from(I), fdir: Int8Array.from(D) };
 }
 
+// entrambi ripartono da `PARTENZA` anche come ostacoli (il bicipite vede il brachiale di partenza): il risultato non dipende dal file attuale
+for (const id of ['bic', 'brach']) { const p = realDaRevisione(PARTENZA, id, FILE_REPO); setMesh(id, { pos: Float32Array.from(p.pos), idx: p.idx, tag: p.tag, fdir: p.fdir }); }
 for (const id of DA_FARE) { const r = id === 'bic' ? bicipite() : brachiale(); setMesh(id, r); }
 if (!VERIFICA) saveFile(repack());
