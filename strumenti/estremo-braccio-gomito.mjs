@@ -22,6 +22,9 @@
       (differenza dalla proiezione sul campo di partenza), che sfuma sopra `REG.y[0]` + 1,6 cm: nessun bordo tra zona toccata e zona intatta.
       Vicino al taglio (`RIL`) qualche passata di rilassamento tangenziale con ritorno sul bersaglio riordina i vertici.
    Per il capo lungo (`PER`) la levigatura parte più in basso (y 3,5) e lungo le fibre ha sigma più ampia (`sigmaY`): toglie le ondulazioni del profilo laterale.
+   Sempre per il capo lungo, `larghezza`: la radice dell'area delle sezioni era costante vicino al tendine e poi cresceva linearmente (spigolo, visto come ampia curva
+   concava del bordo mediale); la larghezza viene riempita fino alla corda da y 4 a 10, levigata (sigma 1 cm) e imposta scalando le sezioni attorno al baricentro
+   (fino a +16 %, trasformazione `T` applicata ai vertici; poi chi tocca un ostacolo torna fuori dal suo margine).
    Tag e fibre restano quelli dei vertici di partenza; il tag di sezione (250) non si interpola e si riassegna dalla normale (faccia rivolta in alto).
    Va lanciato dopo `legamenti-gomito.mjs` e `muscoli-gomito.mjs` (che riscrivono tricipite mediale e bicipite). `--verifica` non scrive. */
 import { dirname, resolve } from 'node:path';
@@ -45,7 +48,10 @@ const RIL = [10.0, 10.8];
 const REG0 = { y: [4.8, 7.2], sigma: 0.55, sigmaY: 0.55 };  // regolarizzazione della forma: da y[0] a y[1] cresce il peso del campo levigato con una gaussiana 3D (`sigma` nel piano, `sigmaY` lungo il muscolo, cm)
 let REG = REG0;
 // il capo lungo del tricipite ha il profilo laterale ondulato (avvallamenti e spalle tra y ≈ 4 e 9): qui la levigatura parte più in basso e lungo le fibre è molto più ampia
-const PER = { tri_lungo: { zona: 3.5, reg: { y: [3.5, 6.5], sigma: 0.55, sigmaY: 0.8 } } };
+const PER = { tri_lungo: { zona: 3.5, reg: { y: [3.5, 6.5], sigma: 0.55, sigmaY: 0.8 },
+  // larghezza delle sezioni (radice dell'area) lungo y: tratto costante vicino al tendine e poi crescita lineare formavano uno spigolo, visto come ampia curva concava del bordo;
+  // la larghezza viene riempita fino alla corda tra `y[0]` e `y[1]` (mai assottigliata), levigata con una gaussiana di `sigma` (cm) e imposta scalando le sezioni attorno al loro baricentro
+  larghezza: { y: [4.0, 10.0], sigma: 1.0, sfuma: [[3.2, 4.0], [9.2, 10.2]] } } };
 
 const H = 0.04;                             // cm, passo della griglia dei campi
 const OSTACOLI = ['omero', 'brach', 'br'];  // mesh che il muscolo non deve attraversare (più tutti i tubi della pagina nella zona)
@@ -124,7 +130,7 @@ function campoBersaglio(id, m) {
   setMesh(id, { pos: m.pos, idx: m.idx, tag: m.tag, fdir: m.fdir });
   let lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < m.pos.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], m.pos[i + k]); hi[k] = Math.max(hi[k], m.pos[i + k]); }
-  lo[1] = REG.y[0] - 0.8; hi[1] = TAGLIO + 0.4;
+  lo[1] = Math.min(REG.y[0] - 0.8, (PER[id]?.larghezza?.sfuma[0][0] ?? Infinity) - 0.5); hi[1] = TAGLIO + 0.4;
   G.griglia(lo, hi, H, 0.6);
   const { NX, NY, NZ, NXY } = G;
   // solido: si usa solo sotto il piano della sezione di riferimento (sopra la mesh è stata schiacciata sul piano)
@@ -144,6 +150,34 @@ function campoBersaglio(id, m) {
       const q = G.vi(i, j, k), prisma = Dl[i + NX * k], base = (1 - wr) * F0[q] + wr * Fh[q];
       F[q] = smax(w >= 1 ? prisma : (1 - w) * base + w * prisma, y - TAGLIO, RACCORDO);
     }
+  }
+  // larghezza delle sezioni (radice dell'area misurata sul campo): riempita fino alla corda, levigata; il fattore di scala per ogni y (sezioni scalate
+  // attorno al baricentro) diventa la trasformazione `T`, che si applica ai vertici già proiettati (ricampionare il campo lasciava striature sulla superficie)
+  const LAR = PER[id]?.larghezza;
+  let T = null;
+  if (LAR) {
+    const A = new Float32Array(NY), cx = new Float32Array(NY), cz = new Float32Array(NY);
+    for (let j = 0; j < NY; j++) {
+      let n = 0, sx = 0, sz = 0;
+      for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) if (F[G.vi(i, j, k)] < 0) { n++; sx += i; sz += k; }
+      A[j] = n * G.H * G.H; cx[j] = n ? G.O[0] + (sx / n + 0.5) * G.H : NaN; cz[j] = n ? G.O[2] + (sz / n + 0.5) * G.H : NaN;
+    }
+    const yj = j => G.O[1] + (j + 0.5) * G.H, jy = y => clamp(Math.round((y - G.O[1]) / G.H - 0.5), 0, NY - 1);
+    const media = (a, r) => Float32Array.from(a, (v, j) => { let t = 0, n = 0; for (let q = -r; q <= r; q++) { const w = a[j + q]; if (w > 0 || w < 0) { t += w; n++; } } return n ? t / n : NaN; });
+    const wc = media(Float32Array.from(A, Math.sqrt), 3), cxs = media(cx, 8), czs = media(cz, 8);
+    const ja = jy(LAR.y[0]), jb = jy(LAR.y[1]), wh = Float32Array.from(wc), sc = new Float32Array(NY).fill(1);
+    for (let j = ja; j <= jb; j++) wh[j] = Math.max(wc[j], wc[ja] + (wc[jb] - wc[ja]) * (j - ja) / (jb - ja));
+    // gaussiana lungo y con estensione dispari agli estremi del tratto (le estremità non si spostano)
+    const R = Math.ceil(3 * LAR.sigma / G.H), lo0 = jy(LAR.sfuma[0][0]) - R, hi0 = jb + R;
+    const ext = j => j < ja ? 2 * wh[ja] - wh[Math.min(2 * ja - j, NY - 1)] : j > jb ? 2 * wh[jb] - wh[Math.max(2 * jb - j, 0)] : wh[j];
+    const K = Float32Array.from({ length: 2 * R + 1 }, (_, q) => Math.exp(-((q - R) ** 2) / (2 * (LAR.sigma / G.H) ** 2))), SK = K.reduce((a, b) => a + b, 0);
+    for (let j = Math.max(lo0, 0); j <= Math.min(hi0, NY - 1); j++) {
+      let wt = 0; for (let q = -R; q <= R; q++) wt += K[q + R] * ext(j + q); wt /= SK;
+      const y = yj(j), f = sstep(LAR.sfuma[0][0], LAR.sfuma[0][1], y) * (1 - sstep(LAR.sfuma[1][0], LAR.sfuma[1][1], y));
+      if (f > 0 && wc[j] > 0) sc[j] = 1 + (wt / wc[j] - 1) * f;
+    }
+    const lin = (a, y) => { const u = clamp((y - G.O[1]) / G.H - 0.5, 0, NY - 1.001), j = u | 0; return a[j] + (a[j + 1] - a[j]) * (u - j); };
+    T = p => { const s = lin(sc, p[1]); if (s === 1 || !(s > 0)) return p; const x = lin(cxs, p[1]), z = lin(czs, p[1]); return [x + (p[0] - x) * s, p[1], z + (p[2] - z) * s]; };
   }
   // ostacoli: mesh e tubi vicini, il muscolo resta a GIOCO di distanza
   const Ob = new Uint8Array(G.N);
@@ -170,8 +204,8 @@ function campoBersaglio(id, m) {
   const { F: Fd } = G.sdf(dentroOrig);
   for (let q = 0; q < G.N; q++) if (Ob[q] && Fd[q] < -INCASSO) Ob[q] = 0;
   const { F: Fo } = G.sdf(Ob);
-  for (let q = 0; q < G.N; q++) F[q] = Math.max(F[q], GIOCO - Fo[q]);
-  return { F, F0 };
+  const C = new Float32Array(G.N); for (let q = 0; q < G.N; q++) { C[q] = GIOCO - Fo[q]; F[q] = Math.max(F[q], C[q]); }
+  return { F, F0, T, C };
 }
 
 /* ============ Muscolo ============ */
@@ -180,8 +214,8 @@ function muscolo(id) {
   const p0 = realDaRevisione(PARTENZA, id, FILE_REPO);
   const m = suddividi({ pos: Float32Array.from(p0.pos), idx: p0.idx, tag: p0.tag, fdir: p0.fdir });
   const nv = m.pos.length / 3;
-  const { F, F0 } = campoBersaglio(id, m);
-  const f = p => sample(F, p[0], p[1], p[2]), f0 = p => sample(F0, p[0], p[1], p[2]);
+  const { F, F0, T, C } = campoBersaglio(id, m);
+  const f = p => sample(F, p[0], p[1], p[2]), f0 = p => sample(F0, p[0], p[1], p[2]), fc = p => sample(C, p[0], p[1], p[2]);
   const peso = new Float32Array(nv); for (let i = 0; i < nv; i++) peso[i] = sstep(RIL[0], RIL[1], m.pos[3 * i + 1]);
   const pos = Float32Array.from(m.pos);
   // spostamento = (proiezione sulla forma bersaglio) − (proiezione sulla forma di partenza): la granulosità propria dei vertici (± 0,2 mm)
@@ -190,6 +224,11 @@ function muscolo(id) {
     const v = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]], a = sstep(REG.y[0], REG.y[0] + 1.6, v[1]);
     const pt = proietta(f, v, 0, 24), pl = a < 1 ? proietta(f0, v, 0, 24) : v;
     for (let c = 0; c < 3; c++) pos[3 * i + c] = pt[c] + (1 - a) * (v[c] - pl[c]);
+  }
+  // larghezza imposta (T) e, dove le sezioni scalate toccano un ostacolo, ritorno fuori dal suo margine
+  if (T) for (let i = 0; i < nv; i++) {
+    let p = T([pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]]); if (fc(p) > 0) p = proietta(fc, p, 0, 12);
+    pos[3 * i] = p[0]; pos[3 * i + 1] = p[1]; pos[3 * i + 2] = p[2];
   }
   // rilassamento tangenziale: media dei vicini e ritorno sul bersaglio
   const nb = Array.from({ length: nv }, () => new Set());
