@@ -1,24 +1,27 @@
-/* Estremo prossimale dei muscoli del braccio (modelli/gomito-3d.html): bicipite e capi del tricipite al piano di taglio y = 12 cm.
+/* Braccio del gomito (modelli/gomito-3d.html): forma di bicipite e capi del tricipite da y ≈ 4,8 cm al piano di taglio y = 12 cm.
 
    Uso (dalla cartella del progetto):
      node strumenti/estremo-braccio-gomito.mjs                    → riscrive le mesh nel file del modello
      MODELLO=/tmp/copia.html node strumenti/estremo-braccio-gomito.mjs   → lavora su una copia
      node strumenti/estremo-braccio-gomito.mjs bic tri_lat        → solo alcuni muscoli
 
-   Problema: le mesh BodyParts3D di bicipite e tricipite continuavano oltre il taglio; i vertici sopra y = 12 erano stati portati sul piano.
-   Fino a y ≈ 11,8 la sezione è liscia, ma nell'ultimo mezzo centimetro il margine diventa a dente di sega (vertici schiacciati da
-   posizioni diverse), con spigoli e punte; più in basso (y ≈ 10–11,6) restano code sottili e uncini (coda del capo corto del bicipite,
-   punta del capo laterale del tricipite) che sporgono lateralmente con margini netti.
+   Problemi delle mesh BodyParts3D (a bassa risoluzione, ~3 mm):
+   - facce piane e creste nette (la sfumatura delle normali le nascondeva solo in parte): blocchi "a prisma" con spigoli, un lobo
+     medioposteriore del capo lungo del tricipite (y ≈ 7,5–9, ritagliato dal piano x = 4,576), code e uncini sottili (coda del capo corto del
+     bicipite, punta del capo laterale del tricipite);
+   - al piano di taglio i vertici oltre y = 12 erano stati schiacciati sul piano: dall'ultimo mezzo centimetro il margine era a dente di sega.
    Metodo (ogni muscolo riparte dalla revisione `PARTENZA`, quindi lo strumento si può rilanciare):
-   1. campo di distanza della mesh di partenza (`F0`) e della sezione di riferimento a y = `Y0` (liscia in tutti e quattro i muscoli),
-      estrusa lungo y e levigata nel piano con una gaussiana (`SIGMA`: tolgono code e uncini più sottili di ~2·SIGMA e arrotondano gli angoli);
-   2. campo bersaglio: da `RAMPA[0]` a `RAMPA[1]` si passa gradualmente da `F0` alla sezione levigata, poi un'unica sezione fino al taglio, chiuso
-      sul piano y = `TAGLIO` con un raccordo `RACCORDO` (spigolo del taglio appena smussato);
-   3. dal bersaglio si tolgono gli ostacoli (`OSTACOLI`: omero, brachiale, brachioradiale, i tubi di vasi e nervi e i muscoli già rifatti,
-      a distanza `GIOCO`): lo smussamento non deve portare il muscolo dentro di loro;
-   4. nella zona sopra `ZONA` i triangoli si dividono (lati ≤ `LATO`, con tag e fibre interpolati) e i vertici vengono portati sul bersaglio con peso
-      crescente in y (invariati sotto `ZONA`); qualche passata di rilassamento tangenziale, sempre riproiettando sul bersaglio, riordina i vertici.
-   Cambiano solo le posizioni sopra `ZONA` (e la suddivisione dei triangoli lì): tag e direzione delle fibre restano quelli dei vertici di partenza.
+   1. campo di distanza della mesh (`F0`) e sua versione levigata con una gaussiana 3D (`Fh`, `REG.sigma`: arrotonda creste e facce, toglie code e
+      lobi sottili); da `REG.y[0]` a `REG.y[1]` il campo passa gradualmente da `F0` a `Fh`;
+   2. vicino al taglio: sezione di riferimento a y = `Y0` (liscia), levigata nel piano con la stessa sigma ed estrusa fino al taglio, da `RAMPA`;
+      chiusa sul piano y = `TAGLIO` con un raccordo `RACCORDO`;
+   3. dal campo si tolgono gli ostacoli (`OSTACOLI`: omero, brachiale, brachioradiale, i tubi di vasi e nervi e i muscoli già rifatti, a distanza
+      `GIOCO`): lo smussamento non deve portare il muscolo dentro di loro (non si scava dove un tubo era già incassato di oltre `INCASSO`);
+   4. sopra `ZONA` i triangoli si dividono (lati ≤ `LATO`, con tag e fibre interpolati; così la superficie levigata è campionata abbastanza fitta
+      e non si vedono facce piane); ogni vertice va sul campo bersaglio. Spostamento = proiezione sul bersaglio + granulosità propria del vertice
+      (differenza dalla proiezione sul campo di partenza), che sfuma sopra `REG.y[0]` + 1,6 cm: nessun bordo tra zona toccata e zona intatta.
+      Vicino al taglio (`RIL`) qualche passata di rilassamento tangenziale con ritorno sul bersaglio riordina i vertici.
+   Tag e fibre restano quelli dei vertici di partenza; il tag di sezione (250) non si interpola e si riassegna dalla normale (faccia rivolta in alto).
    Va lanciato dopo `legamenti-gomito.mjs` e `muscoli-gomito.mjs` (che riscrivono tricipite mediale e bicipite). `--verifica` non scrive. */
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,17 +34,18 @@ const PARTENZA = 'e106e55';                 // revisione con le mesh di partenza
 const FILE_REPO = 'modelli/gomito-3d.html';
 const MUSCOLI = ['bic', 'tri_lungo', 'tri_med', 'tri_lat'];
 const TAGLIO = 12.0;                        // piano di taglio (cm)
-const Y0 = 11.0;                            // sezione di riferimento (liscia)
-const RAMPA = [9.6, 11.2];                 // dal campo originale alla sezione levigata
-const SIGMA = 0.32;                         // cm, levigatura della sezione nel piano
+const Y0 = 10.6;                            // sezione di riferimento (liscia)
+const RAMPA = [9.0, 11.0];                 // dal campo originale alla sezione levigata
 const RACCORDO = 0.10;                      // cm, raggio dello spigolo al piano di taglio
-const ZONA = 9.2;                           // sopra questa y i vertici si portano sul bersaglio (peso da 0 a 1 in `PESO`)
-const PESO = [9.2, 10.2];
-const LATO = 0.18;                          // cm, lato massimo dei triangoli nella zona
-const RILASSA = 25;                         // passate di rilassamento tangenziale
+const ZONA = 4.8;                           // sopra questa y i triangoli si dividono
+const LATO = 0.2;                           // cm, lato massimo dei triangoli nella zona
+const RILASSA = 25;                         // passate di rilassamento tangenziale (solo vicino al taglio, peso `RIL`)
+const RIL = [10.0, 10.8];
+const REG = { y: [4.8, 7.2], sigma: 0.55 };  // regolarizzazione della forma: da y[0] a y[1] cresce il peso del campo levigato con una gaussiana 3D di `sigma` (cm)
+
 const H = 0.04;                             // cm, passo della griglia dei campi
 const OSTACOLI = ['omero', 'brach', 'br'];  // mesh che il muscolo non deve attraversare (più tutti i tubi della pagina nella zona)
-const GIOCO = 0.03;                         // cm, distanza dagli ostacoli
+const GIOCO = 0.05;                         // cm, distanza dagli ostacoli
 const INCASSO = 0.09;                       // cm: un ostacolo già dentro il muscolo di partenza di oltre tanto non viene scavato
 
 const argv = process.argv.slice(2);
@@ -92,6 +96,21 @@ function gauss2d(A, n0, n1, sigmaCelle) {
   passo(A, B, n0, 1, n1, n0); passo(B, C, n1, n0, n0, 1);
   return C;
 }
+// levigatura gaussiana 3D (separabile) sulla griglia corrente
+function gauss3d(A, sigmaCelle) {
+  const { NX, NY, NZ, NXY } = G, R = Math.ceil(3 * sigmaCelle), K = Float32Array.from({ length: 2 * R + 1 }, (_, q) => Math.exp(-((q - R) ** 2) / (2 * sigmaCelle ** 2)));
+  const S = K.reduce((a, b) => a + b, 0); for (let q = 0; q < K.length; q++) K[q] /= S;
+  let src = A, dst = new Float32Array(A.length);
+  for (const [st, n] of [[1, NX], [NX, NY], [NXY, NZ]]) {
+    for (let i = 0; i < A.length; i++) {
+      const c = ((i / st) | 0) % n; let v = 0;
+      for (let q = -R; q <= R; q++) { const cc = c + q < 0 ? 0 : c + q >= n ? n - 1 : c + q; v += K[q + R] * src[i + (cc - c) * st]; }
+      dst[i] = v;
+    }
+    [src, dst] = [dst, src];
+  }
+  return src;
+}
 // smax polinomiale (raccordo di raggio k)
 const smax = (a, b, k) => { const h = Math.max(k - Math.abs(a - b), 0) / k; return Math.max(a, b) + h * h * k / 4; };
 
@@ -100,7 +119,7 @@ function campoBersaglio(id, m) {
   setMesh(id, { pos: m.pos, idx: m.idx, tag: m.tag, fdir: m.fdir });
   let lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < m.pos.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], m.pos[i + k]); hi[k] = Math.max(hi[k], m.pos[i + k]); }
-  lo[1] = RAMPA[0] - 0.6; hi[1] = TAGLIO + 0.4;
+  lo[1] = REG.y[0] - 0.8; hi[1] = TAGLIO + 0.4;
   G.griglia(lo, hi, H, 0.6);
   const { NX, NY, NZ, NXY } = G;
   // solido: si usa solo sotto il piano della sezione di riferimento (sopra la mesh è stata schiacciata sul piano)
@@ -110,14 +129,15 @@ function campoBersaglio(id, m) {
   for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) { const v = M[G.vi(i, j0, k)]; for (let j = 0; j < NY; j++) S0[G.vi(i, j, k)] = v; }
   const { F: Fp } = G.sdf(S0);                                     // prisma della sezione di riferimento
   const D = new Float32Array(NX * NZ); for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) D[i + NX * k] = Fp[G.vi(i, j0, k)];
-  const Dl = gauss2d(D, NX, NZ, SIGMA / G.H);
+  const Dl = gauss2d(D, NX, NZ, REG.sigma / G.H);   // stessa sigma della levigatura 3D: sezione e campo sotto si raccordano senza gradino
   const { F: F0 } = G.sdf(M); G.sfoca(F0, 1);
+  const Fh = gauss3d(F0, REG.sigma / G.H);                         // forma levigata (toglie facce, creste e lobi sottili)
   const F = new Float32Array(G.N);
   for (let j = 0; j < NY; j++) {
-    const y = G.O[1] + (j + 0.5) * G.H, w = sstep(RAMPA[0], RAMPA[1], y);
+    const y = G.O[1] + (j + 0.5) * G.H, w = sstep(RAMPA[0], RAMPA[1], y), wr = sstep(REG.y[0], REG.y[1], y);
     for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) {
-      const q = G.vi(i, j, k), prisma = Dl[i + NX * k];
-      F[q] = smax(w >= 1 ? prisma : (1 - w) * F0[q] + w * prisma, y - TAGLIO, RACCORDO);
+      const q = G.vi(i, j, k), prisma = Dl[i + NX * k], base = (1 - wr) * F0[q] + wr * Fh[q];
+      F[q] = smax(w >= 1 ? prisma : (1 - w) * base + w * prisma, y - TAGLIO, RACCORDO);
     }
   }
   // ostacoli: mesh e tubi vicini, il muscolo resta a GIOCO di distanza
@@ -146,7 +166,7 @@ function campoBersaglio(id, m) {
   for (let q = 0; q < G.N; q++) if (Ob[q] && Fd[q] < -INCASSO) Ob[q] = 0;
   const { F: Fo } = G.sdf(Ob);
   for (let q = 0; q < G.N; q++) F[q] = Math.max(F[q], GIOCO - Fo[q]);
-  return F;
+  return { F, F0 };
 }
 
 /* ============ Muscolo ============ */
@@ -154,12 +174,17 @@ function muscolo(id) {
   const p0 = realDaRevisione(PARTENZA, id, FILE_REPO);
   const m = suddividi({ pos: Float32Array.from(p0.pos), idx: p0.idx, tag: p0.tag, fdir: p0.fdir });
   const nv = m.pos.length / 3;
-  const F = campoBersaglio(id, m);
-  const f = p => sample(F, p[0], p[1], p[2]);
-  const peso = new Float32Array(nv); for (let i = 0; i < nv; i++) peso[i] = sstep(PESO[0], PESO[1], m.pos[3 * i + 1]);
+  const { F, F0 } = campoBersaglio(id, m);
+  const f = p => sample(F, p[0], p[1], p[2]), f0 = p => sample(F0, p[0], p[1], p[2]);
+  const peso = new Float32Array(nv); for (let i = 0; i < nv; i++) peso[i] = sstep(RIL[0], RIL[1], m.pos[3 * i + 1]);
   const pos = Float32Array.from(m.pos);
-  const sposta = (i, q, w) => { for (let c = 0; c < 3; c++) pos[3 * i + c] += w * (q[c] - pos[3 * i + c]); };
-  for (let i = 0; i < nv; i++) if (peso[i] > 0) sposta(i, proietta(f, [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]], 0, 24), peso[i]);
+  // spostamento = (proiezione sulla forma bersaglio) − (proiezione sulla forma di partenza): la granulosità propria dei vertici (± 0,2 mm)
+  // resta (sfuma sopra REG.y[0]), e dove i due campi coincidono il vertice non si muove
+  for (let i = 0; i < nv; i++) {
+    const v = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]], a = sstep(REG.y[0], REG.y[0] + 1.6, v[1]);
+    const pt = proietta(f, v, 0, 24), pl = a < 1 ? proietta(f0, v, 0, 24) : v;
+    for (let c = 0; c < 3; c++) pos[3 * i + c] = pt[c] + (1 - a) * (v[c] - pl[c]);
+  }
   // rilassamento tangenziale: media dei vicini e ritorno sul bersaglio
   const nb = Array.from({ length: nv }, () => new Set());
   for (let t = 0; t < m.idx.length; t += 3) for (let e = 0; e < 3; e++) { const a = m.idx[t + e], b = m.idx[t + (e + 1) % 3]; nb[a].add(b); nb[b].add(a); }
@@ -176,7 +201,7 @@ function muscolo(id) {
   // normali dal bersaglio: tag di sezione sulle facce rivolte verso l'alto, triangoli rovesciati rimessi nel verso giusto
   const gradP = p => [0, 1, 2].map(k => { const e = 0.03, q = p.slice(), r = p.slice(); q[k] += e; r[k] -= e; return f(q) - f(r); });
   let ntag = 0;
-  if (m.tag) for (let i = 0; i < nv; i++) if (peso[i] > 0 && pos[3 * i + 1] > TAGLIO - 0.3) {
+  if (m.tag) for (let i = 0; i < nv; i++) if (pos[3 * i + 1] > TAGLIO - 0.3) {
     const g = gradP([pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]]), l = Math.hypot(...g) || 1;
     if (g[1] / l > 0.6) { if (m.tag[i] < 250) ntag++; m.tag[i] = 250; }
   }
@@ -184,7 +209,7 @@ function muscolo(id) {
   const idx = Uint32Array.from(m.idx);
   for (let t = 0; t < idx.length; t += 3) {
     const [a, b, c] = [idx[t], idx[t + 1], idx[t + 2]].map(q => [pos[3 * q], pos[3 * q + 1], pos[3 * q + 2]]);
-    if ((a[1] + b[1] + c[1]) / 3 <= ZONA) continue;
+    if ((a[1] + b[1] + c[1]) / 3 <= 9.2) continue;
     const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]], n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
     const g = gradP([(a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3, (a[2] + b[2] + c[2]) / 3]);
     if (n[0] * g[0] + n[1] * g[1] + n[2] * g[2] < 0) { rov++; const x = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = x; }
