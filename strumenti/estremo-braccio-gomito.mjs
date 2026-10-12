@@ -25,6 +25,7 @@
    Sempre per il capo lungo, `larghezza`: la radice dell'area delle sezioni era costante vicino al tendine e poi cresceva linearmente (spigolo, visto come ampia curva
    concava del bordo mediale); la larghezza viene riempita fino alla corda da y 4 a 10, levigata (sigma 1 cm) e imposta scalando le sezioni attorno al baricentro
    (fino a +16 %, trasformazione `T` applicata ai vertici; poi chi tocca un ostacolo torna fuori dal suo margine).
+   Il tendine distale di capo lungo e capo laterale (`TEND`) è una fascia sfumata e simmetrica sull'asse tra i due capi (vedi commento sopra `TEND`).
    Tag e fibre restano quelli dei vertici di partenza; il tag di sezione (250) non si interpola e si riassegna dalla normale (faccia rivolta in alto).
    Va lanciato dopo `legamenti-gomito.mjs` e `muscoli-gomito.mjs` (che riscrivono tricipite mediale e bicipite). `--verifica` non scrive. */
 import { dirname, resolve } from 'node:path';
@@ -52,6 +53,12 @@ const PER = { tri_lungo: { zona: 3.5, reg: { y: [3.5, 6.5], sigma: 0.55, sigmaY:
   // larghezza delle sezioni (radice dell'area) lungo y: tratto costante vicino al tendine e poi crescita lineare formavano uno spigolo, visto come ampia curva concava del bordo;
   // la larghezza viene riempita fino alla corda tra `y[0]` e `y[1]` (mai assottigliata), levigata con una gaussiana di `sigma` (cm) e imposta scalando le sezioni attorno al loro baricentro
   larghezza: { y: [4.0, 10.0], sigma: 1.0, sfuma: [[3.2, 4.0], [9.2, 10.2]] } } };
+
+// Tendine distale comune (capo lungo e capo laterale): nel modello di partenza i tag disegnavano due triangoli bianchi a spigolo netto, con l'apice in alto e
+// asimmetrici. Ora il tag (0–200, muscolo → tendine) segue un'unica fascia centrata sull'asse tra i due capi (`xa`), il cui semilato cresce verso il basso con
+// profilo a radice (apice arrotondato, non a punta) fino a `ya` − `L`; margine sfumato (`soft`), frastagliato lungo le fibre (`noise`: lingue verticali) e
+// compresso con `gamma` (il colore passa troppo presto al bianco); solo sulla faccia posteriore (normale z); sotto y 2,3 resta tendine pieno.
+const TEND = { muscoli: ['tri_lungo', 'tri_lat'], xa: 0.42, ya: 7.9, L: 3.9, H0: 1.0, soft: 0.7, noise: 0.25, gamma: 1.6, fade: 2.4, pn: [0.15, -0.35] };
 
 const H = 0.04;                             // cm, passo della griglia dei campi
 const OSTACOLI = ['omero', 'brach', 'br'];  // mesh che il muscolo non deve attraversare (più tutti i tubi della pagina nella zona)
@@ -208,6 +215,29 @@ function campoBersaglio(id, m) {
   return { F, F0, T, C };
 }
 
+/* ============ Tendine distale ============ */
+function normali(pos, idx) {
+  const n = new Float32Array(pos.length);
+  for (let t = 0; t < idx.length; t += 3) {
+    const [a, b, c] = [idx[t], idx[t + 1], idx[t + 2]], u = [0, 1, 2].map(k => pos[3 * b + k] - pos[3 * a + k]), v = [0, 1, 2].map(k => pos[3 * c + k] - pos[3 * a + k]);
+    const q = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+    for (const i of [a, b, c]) for (let k = 0; k < 3; k++) n[3 * i + k] += q[k];
+  }
+  for (let i = 0; i < n.length; i += 3) { const l = Math.hypot(n[i], n[i + 1], n[i + 2]) || 1; n[i] /= l; n[i + 1] /= l; n[i + 2] /= l; }
+  return n;
+}
+const rumore = (x, y) => Math.sin(x * 9.1 + y * 0.7) * 0.5 + Math.sin(x * 17.3 - y * 1.1 + 1.7) * 0.3 + Math.sin(x * 31.7 + y * 0.4 + 4.2) * 0.2;
+function tendineDistale(pos, idx, tag) {
+  const P = TEND, N = normali(pos, idx);
+  for (let i = 0; i < pos.length / 3; i++) {
+    if (tag[i] >= 250) continue;                              // sezioni di taglio: non toccare
+    const x = pos[3 * i], y = pos[3 * i + 1]; if (y <= 2.3) continue;
+    const t = clamp((P.ya - y) / P.L, 0, 1.6), hw = P.H0 * Math.sqrt(t), d = Math.abs(x - P.xa) + P.noise * rumore(x, y), soft = P.soft * (0.6 + 0.4 * Math.min(t, 1));
+    let w = (1 - sstep(hw - soft, hw + soft, d)) * sstep(P.ya, P.ya - P.fade, y) * Math.max(sstep(P.pn[0], P.pn[1], N[3 * i + 2]), sstep(3.6, 2.8, y));
+    tag[i] = Math.round(200 * Math.max(Math.pow(w, P.gamma), sstep(3.4, 2.3, y)));
+  }
+}
+
 /* ============ Muscolo ============ */
 function muscolo(id) {
   ZONA = PER[id]?.zona ?? 4.8; REG = PER[id]?.reg ?? REG0;
@@ -260,6 +290,7 @@ function muscolo(id) {
     if (n[0] * g[0] + n[1] * g[1] + n[2] * g[2] < 0) { rov++; const x = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = x; }
   }
   for (let i = 0; i < nv; i++) maxS = Math.max(maxS, Math.hypot(pos[3 * i] - m.pos[3 * i], pos[3 * i + 1] - m.pos[3 * i + 1], pos[3 * i + 2] - m.pos[3 * i + 2]));
+  if (m.tag && TEND.muscoli.includes(id)) tendineDistale(pos, idx, m.tag);
   log(`${id.padEnd(9)} vertici ${p0.pos.length / 3} → ${nv}, triangoli rimessi nel verso giusto ${rov}, vertici di sezione aggiunti ${ntag}, spostamento massimo ${(maxS * 10).toFixed(1)} mm`);
   return { pos, idx, tag: m.tag, fdir: m.fdir };
 }
