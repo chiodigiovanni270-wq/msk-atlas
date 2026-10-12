@@ -25,6 +25,7 @@
    Sempre per il capo lungo, `larghezza`: la radice dell'area delle sezioni era costante vicino al tendine e poi cresceva linearmente (spigolo, visto come ampia curva
    concava del bordo mediale); la larghezza viene riempita fino alla corda da y 4 a 10, levigata (sigma 1 cm) e imposta scalando le sezioni attorno al baricentro
    (fino a +16 %, trasformazione `T` applicata ai vertici; poi chi tocca un ostacolo torna fuori dal suo margine).
+   Il capo mediale (`PER.tri_med`) è rifatto anche nell'estremo distale (da y 0,3: levigatura più fine, ulna come ostacolo) e il suo margine laterale non supera il profilo del capo laterale (`latmax`).
    Il tendine distale di capo lungo e capo laterale (`TEND`) è una fascia sfumata e simmetrica sull'asse tra i due capi (vedi commento sopra `TEND`).
    Tag e fibre restano quelli dei vertici di partenza; il tag di sezione (250) non si interpola e si riassegna dalla normale (faccia rivolta in alto).
    Va lanciato dopo `legamenti-gomito.mjs` e `muscoli-gomito.mjs` (che riscrivono tricipite mediale e bicipite). `--verifica` non scrive. */
@@ -49,7 +50,12 @@ const RIL = [10.0, 10.8];
 const REG0 = { y: [4.8, 7.2], sigma: 0.55, sigmaY: 0.55 };  // regolarizzazione della forma: da y[0] a y[1] cresce il peso del campo levigato con una gaussiana 3D (`sigma` nel piano, `sigmaY` lungo il muscolo, cm)
 let REG = REG0;
 // il capo lungo del tricipite ha il profilo laterale ondulato (avvallamenti e spalle tra y ≈ 4 e 9): qui la levigatura parte più in basso e lungo le fibre è molto più ampia
-const PER = { tri_lungo: { zona: 3.5, reg: { y: [3.5, 6.5], sigma: 0.55, sigmaY: 0.8 },
+const PER = {
+  // capo mediale: l'estremo distale (y 0–5) era una lamina sottile con punte, lembi e un margine laterale che oltrepassava il profilo del capo laterale (`latmax`: x minima
+  // ammessa per y, cm, già a ~1 mm sotto il bordo del capo laterale); levigatura più fine (`basso`, da y[0] a y[1]), ostacolo in più: l'ulna (olecrano)
+  tri_med: { zona: 0.3, reg: REG0, ostacoli: ['ulna'], basso: { y: [0.6, 2.6], sigma: 0.3, sigmaY: 0.3 },
+    latmax: { y: [[0.5, -0.2], [1, -0.5], [2, -0.52], [3, -0.61], [4, -0.76], [5, -0.79], [6, -0.81]], dentro: [0.5, 1.4], fuori: [5.0, 5.8], raccordo: 0.25 } },
+  tri_lungo: { zona: 3.5, reg: { y: [3.5, 6.5], sigma: 0.55, sigmaY: 0.8 },
   // larghezza delle sezioni (radice dell'area) lungo y: tratto costante vicino al tendine e poi crescita lineare formavano uno spigolo, visto come ampia curva concava del bordo;
   // la larghezza viene riempita fino alla corda tra `y[0]` e `y[1]` (mai assottigliata), levigata con una gaussiana di `sigma` (cm) e imposta scalando le sezioni attorno al loro baricentro
   larghezza: { y: [4.0, 10.0], sigma: 1.0, sfuma: [[3.2, 4.0], [9.2, 10.2]] } } };
@@ -137,7 +143,7 @@ function campoBersaglio(id, m) {
   setMesh(id, { pos: m.pos, idx: m.idx, tag: m.tag, fdir: m.fdir });
   let lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < m.pos.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], m.pos[i + k]); hi[k] = Math.max(hi[k], m.pos[i + k]); }
-  lo[1] = Math.min(REG.y[0] - 0.8, (PER[id]?.larghezza?.sfuma[0][0] ?? Infinity) - 0.5); hi[1] = TAGLIO + 0.4;
+  lo[1] = Math.min(REG.y[0] - 0.8, (PER[id]?.larghezza?.sfuma[0][0] ?? Infinity) - 0.5, (PER[id]?.basso?.y[0] ?? Infinity) - 0.6); hi[1] = TAGLIO + 0.4;
   G.griglia(lo, hi, H, 0.6);
   const { NX, NY, NZ, NXY } = G;
   // solido: si usa solo sotto il piano della sezione di riferimento (sopra la mesh è stata schiacciata sul piano)
@@ -149,12 +155,13 @@ function campoBersaglio(id, m) {
   const D = new Float32Array(NX * NZ); for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) D[i + NX * k] = Fp[G.vi(i, j0, k)];
   const Dl = gauss2d(D, NX, NZ, REG.sigma / G.H);   // stessa sigma della levigatura 3D: sezione e campo sotto si raccordano senza gradino
   const { F: F0 } = G.sdf(M); G.sfoca(F0, 1);
+  const BA = PER[id]?.basso, Fl = BA ? gauss3d(F0, BA.sigma / G.H, BA.sigmaY / G.H) : null;   // levigatura più fine per l'estremo distale
   const Fh = gauss3d(F0, REG.sigma / G.H, REG.sigmaY / G.H);                         // forma levigata (toglie facce, creste e lobi sottili)
   const F = new Float32Array(G.N);
   for (let j = 0; j < NY; j++) {
     const y = G.O[1] + (j + 0.5) * G.H, w = sstep(RAMPA[0], RAMPA[1], y), wr = sstep(REG.y[0], REG.y[1], y);
     for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) {
-      const q = G.vi(i, j, k), prisma = Dl[i + NX * k], base = (1 - wr) * F0[q] + wr * Fh[q];
+      const q = G.vi(i, j, k), prisma = Dl[i + NX * k], f0b = BA ? (1 - sstep(BA.y[0], BA.y[1], y)) * F0[q] + sstep(BA.y[0], BA.y[1], y) * Fl[q] : F0[q], base = (1 - wr) * f0b + wr * Fh[q];
       F[q] = smax(w >= 1 ? prisma : (1 - w) * base + w * prisma, y - TAGLIO, RACCORDO);
     }
   }
@@ -186,9 +193,19 @@ function campoBersaglio(id, m) {
     const lin = (a, y) => { const u = clamp((y - G.O[1]) / G.H - 0.5, 0, NY - 1.001), j = u | 0; return a[j] + (a[j + 1] - a[j]) * (u - j); };
     T = p => { const s = lin(sc, p[1]); if (s === 1 || !(s > 0)) return p; const x = lin(cxs, p[1]), z = lin(czs, p[1]); return [x + (p[0] - x) * s, p[1], z + (p[2] - z) * s]; };
   }
+  // margine laterale: il capo mediale non oltrepassa il profilo del capo laterale (taglio con raccordo, sfumato agli estremi)
+  const LM = PER[id]?.latmax;
+  if (LM) {
+    const xl = y => { const T = LM.y; if (y <= T[0][0]) return T[0][1]; for (let q = 1; q < T.length; q++) if (y <= T[q][0]) return T[q - 1][1] + (T[q][1] - T[q - 1][1]) * (y - T[q - 1][0]) / (T[q][0] - T[q - 1][0]); return T[T.length - 1][1]; };
+    for (let j = 0; j < NY; j++) {
+      const y = G.O[1] + (j + 0.5) * G.H, wy = sstep(LM.dentro[0], LM.dentro[1], y) * (1 - sstep(LM.fuori[0], LM.fuori[1], y)); if (wy <= 0) continue;
+      const lim = xl(y);
+      for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) { const q = G.vi(i, j, k), c = lim - (G.O[0] + (i + 0.5) * G.H) - (1 - wy) * 3; if (c > -LM.raccordo) F[q] = smax(F[q], c, LM.raccordo); }
+    }
+  }
   // ostacoli: mesh e tubi vicini, il muscolo resta a GIOCO di distanza
   const Ob = new Uint8Array(G.N);
-  for (const nome of OSTACOLI.concat(finiti)) if (nome !== id) G.or(Ob, G.solid(nome));
+  for (const nome of OSTACOLI.concat(PER[id]?.ostacoli ?? [], finiti)) if (nome !== id) G.or(Ob, G.solid(nome));
   for (const t of Object.keys(NVP.pts)) {
     const P = NVP.pts[t], r = NVP.r[t];
     for (let q = 0; q + 1 < P.length; q++) {
@@ -245,13 +262,14 @@ function muscolo(id) {
   const m = suddividi({ pos: Float32Array.from(p0.pos), idx: p0.idx, tag: p0.tag, fdir: p0.fdir });
   const nv = m.pos.length / 3;
   const { F, F0, T, C } = campoBersaglio(id, m);
+  const g0 = PER[id]?.basso?.y[0] ?? REG.y[0];                    // sopra g0 + 1,6 cm la granulosità dei vertici di partenza è sfumata
   const f = p => sample(F, p[0], p[1], p[2]), f0 = p => sample(F0, p[0], p[1], p[2]), fc = p => sample(C, p[0], p[1], p[2]);
   const peso = new Float32Array(nv); for (let i = 0; i < nv; i++) peso[i] = sstep(RIL[0], RIL[1], m.pos[3 * i + 1]);
   const pos = Float32Array.from(m.pos);
   // spostamento = (proiezione sulla forma bersaglio) − (proiezione sulla forma di partenza): la granulosità propria dei vertici (± 0,2 mm)
   // resta (sfuma sopra REG.y[0]), e dove i due campi coincidono il vertice non si muove
   for (let i = 0; i < nv; i++) {
-    const v = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]], a = sstep(REG.y[0], REG.y[0] + 1.6, v[1]);
+    const v = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]], a = sstep(g0, g0 + 1.6, v[1]);
     const pt = proietta(f, v, 0, 24), pl = a < 1 ? proietta(f0, v, 0, 24) : v;
     for (let c = 0; c < 3; c++) pos[3 * i + c] = pt[c] + (1 - a) * (v[c] - pl[c]);
   }
