@@ -1,4 +1,5 @@
-/* Flessori-pronatori del gomito (modelli/gomito-3d.html): pronatore rotondo, FCR, palmare lungo, FDS, FDP, FCU, FPL.
+/* Flessori-pronatori del gomito (modelli/gomito-3d.html): pronatore rotondo, FCR, palmare lungo, FDS, FDP, FCU, FPL e tendine comune (`cft`,
+   generato da tendine-comune-gomito.mjs, da cui nascono pronatore, FCR, palmare lungo, FDS e FCU).
 
    Uso (dalla cartella del progetto):
      node strumenti/flessori-pronatori-gomito.mjs              → riscrive le mesh (con il lacerto fibroso e i tubi di nervi e vasi) nel file del modello
@@ -12,6 +13,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'gomito-3d.html');
 const G = await import('./lib-modello.mjs');
+const { campoCft, appoggio, meshCft } = await import('./tendine-comune-gomito.mjs');
 const { setMesh, clamp, sstep, log, repack, saveFile, realDaRevisione, REAL } = G;
 
 const PARTENZA = 'd587775';                 // revisione con le mesh di partenza (prima di questo strumento)
@@ -31,7 +33,7 @@ const APERTURA = { fcu: 0.2, fds: 0.1, pt: 0.12, altri: 0.08 };
 // capo omerale del pronatore rotondo: nella mesh di partenza era un cordone di 0,25 cm² tra epicondilo e ventre; in anatomia è un'origine
 // carnosa dall'epicondilo mediale e dalla cresta sopracondiloidea. Linea d'asse [y, x, z, scala della sezione] (gira attorno al lato mediale del nervo mediano,
 // e si perde nel ventre), spessore (verso il nervo) e larghezza della sezione, raccordo col ventre, chiusura [raggio, tratto y in cui entra] (cm)
-const CAPO_OMERALE_PT = { asse: [[2.0, 2.30, 1.25, 0.7], [1.7, 2.25, 1.35, 0.9], [1.4, 2.19, 1.45, 1], [1.0, 2.12, 1.72, 1], [0.6, 2.12, 2.18, 1], [0.2, 1.75, 2.55, 0.95], [-0.2, 1.15, 2.5, 0.8], [-0.6, 0.7, 2.5, 0.7], [-1.0, 0.35, 2.5, 0.6]], spessore: 0.8, larghezza: 1.3, raccordo: 0.4, chiusura: [0.3, [0.3, 0.8]] };
+const CAPO_OMERALE_PT = { cresta: [[3.15, 2.2, 0.45], [2.75, 2.25, 0.55], [2.35, 2.3, 0.65]], asse: [[2.0, 2.30, 1.25, 0.7], [1.7, 2.25, 1.35, 0.9], [1.4, 2.19, 1.45, 1], [1.0, 2.12, 1.72, 1], [0.6, 2.12, 2.18, 1], [0.2, 1.75, 2.55, 0.95], [-0.2, 1.15, 2.5, 0.8], [-0.6, 0.7, 2.5, 0.7], [-1.0, 0.35, 2.5, 0.6]], spessore: 0.8, larghezza: 1.3, raccordo: 0.4, chiusura: [0.3, [0.3, 0.8]] };
 // tendine d'inserzione del pronatore rotondo: nella mesh di partenza il ventre finiva a punta ~4 mm davanti al radio, senza tendine; il tendine,
 // piatto, scende dal ventre (y = da[0]) sull'angolo anterolaterale del radio (`direzione` in x, z dal centro dell'osso: il lato laterale è coperto
 // dal supinatore, la faccia anteriore è del FPL) e finisce in y = a
@@ -209,8 +211,17 @@ const J_CUTE = Math.round((Y_TAGLIO + 0.5 - G.O[1]) / PASSO);   // sotto y = −
 campi.osso = campoDi(OSSA); log('campo ossa');
 campi.struttura = campoDi(STRUTT); log('campo strutture');
 campi.muscolo = campoDi(VICINI); log('campo muscoli vicini');
-campi.cft = campoDi(['cft']); log('campo tendine comune');
 campi.cute = campoDi(['cute']); log('campo cute');
+// tendine comune: lamina unica sull'epicondilo mediale (strumenti/tendine-comune-gomito.mjs), rifatta a ogni esecuzione; i muscoli vi si appoggiano.
+// Prima di spostare i vasi la lamina evita solo cute e nervo ulnare; poi (`rifaiCft`) è ricavata di nuovo con un solco per ogni nervo, arteria e vena
+// nella posizione finale (i vasi sono già stati portati sulla sua superficie da `spostaTubi`: restano solchi poco profondi)
+const FAPP = appoggio();
+function rifaiCft(extra) {
+  const m = meshCft(campoCft(Float32Array.from(FAPP), { cute: campi.cute, giocoCute: GIOCO.cute, ...extra })); G.setMesh('cft', m);
+  log(`tendine comune: ${m.pos.length / 3} vertici, ${m.componenti} componenti (${m.isole} voxel isolati)`);
+}
+rifaiCft({ nervo: campoTubi(['n_ulnare']), giocoNervo: GIOCO.tubo });
+campi.cft = campoDi(['cft']); log('campo tendine comune');
 campi.cuteDentro = campi.cute.map(v => -v);   // positivo dentro la cute: i tubi non devono avvicinarsi alla cute più di quanto erano
 // dietro la membrana interossea (tra radio e ulna, verso il compartimento posteriore) non ci sono flessori: la mesh del FDP vi passava con un lobo
 const zMio = (() => {
@@ -364,7 +375,12 @@ function tendinePT() {
 // nella mesh di partenza si strozza (0,25 cm² a y 0,6–0,8) e salta davanti al nervo mediano: qui è un fuso continuo dalla cresta
 // sopracondiloidea mediale al ventre, che passa sul lato mediale del nervo e poi davanti (il nervo resta profondo al capo omerale)
 {
-  const A = CAPO_OMERALE_PT.asse, med = NVP.pts.n_mediano;
+  // origine ossea: la mesh di partenza lasciava la punta del capo omerale a ~8 mm davanti all'omero (y ≈ 2,5); in anatomia nasce dalla cresta
+  // sopracondiloidea mediale (e dal setto intermuscolare), sopra l'epicondilo, davanti al tendine comune. Punti [y, x, scala] aggiunti in alto:
+  // la quota z è quella a cui la faccia posteriore del fuso tocca l'osso (gioco `GIOCO.osso`)
+  const A = [...CAPO_OMERALE_PT.cresta.map(([y, x, sc]) => {
+    const th = CAPO_OMERALE_PT.spessore * sc; let z = -0.5; while (z < 3 && G.sample(campi.osso, x, y, z) < th / 2 + GIOCO.osso + 0.02) z += 0.01;
+    return [y, x, z, sc]; }), ...CAPO_OMERALE_PT.asse], med = NVP.pts.n_mediano;
   const nervo = y => { for (let s = 0; s + 1 < med.length; s++) { const a = med[s], b = med[s + 1]; if ((a[1] - y) * (b[1] - y) <= 0 && a[1] !== b[1]) { const f = (a[1] - y) / (a[1] - b[1]); return [a[0] + (b[0] - a[0]) * f, a[2] + (b[2] - a[2]) * f]; } } return null; };
   const cr = (p0, p1, p2, p3, t) => 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t * t * t);   // Catmull-Rom
   const pts = [];
@@ -380,6 +396,43 @@ function tendinePT() {
     const Fc = G.chiuso(G.sdf(M).Do, CAPO_OMERALE_PT.chiusura[0]), Y = CAPO_OMERALE_PT.chiusura[1];
     for (let q = 0; q < N; q++) { const w = sstep(Y[0], Y[1], yDi(q)); if (w > 0) F[q] = Math.min(F[q], Fc[q] + (1 - w)); } }
   log('pronatore rotondo: capo omerale continuo attorno al nervo mediano');
+}
+
+/* ============ Origine dal tendine comune ============ */
+// pronatore rotondo, FCR, palmare lungo, FDS e FCU nascono dalla faccia profonda e distale del tendine comune (Standring, Gray's Anatomy 42ª ed.):
+// nella mesh di partenza le loro estremità tendinee finivano 2–12 mm prima dell'osso o del tendine. Per ogni muscolo una chiusura morfologica di
+// raggio `raggio` dell'unione muscolo ∪ tendine colma lo spazio tra i due (solo entro `vicino` cm dal tendine, da y = `da` in su): l'estremità
+// si allarga sulla lamina come un'aponeurosi di origine. Poi ritagli e competizione tra muscoli lasciano 0,3 mm di gioco.
+const ORIGINE = { raggio: { pt: 0.4, fcr: 0.5, pl: 0.5, fds: 0.5, fcu: 0.8 }, vicino: { pt: 0.8, fcr: 1.0, pl: 1.0, fds: 1.0, fcu: 1.8 }, da: -0.5 };
+function collegaOrigini() {
+  const Mc = new Uint8Array(N); for (let q = 0; q < N; q++) Mc[q] = campi.cft[q] < 0 ? 1 : 0;
+  for (const id of ['pt', 'fcr', 'pl', 'fds', 'fcu']) {
+    const F = f0.get(id), U = new Uint8Array(N); for (let q = 0; q < N; q++) U[q] = F[q] < 0 || Mc[q] ? 1 : 0;
+    const Cl = G.chiuso(G.sdf(U).Do, ORIGINE.raggio[id]); let n = 0;
+    for (let q = 0; q < N; q++) if (Cl[q] < 0 && campi.cft[q] > 0 && campi.cft[q] < ORIGINE.vicino[id] && yDi(q) > ORIGINE.da && F[q] >= 0) { F[q] = Cl[q]; n++; }
+    gauss(F, 0.03);
+    log(`${id}: origine dal tendine comune (${n} voxel aggiunti)`);
+  }
+}
+collegaOrigini();
+
+// aggancio finale: sulle mesh pronte, i vertici a meno di `portata` cm dalla lamina si portano a contatto (distanza `gioco`; spostamento pieno
+// entro `piena`, poi sfuma) e il colore da tendine si estende alla zona di contatto (`tag`: distanza a cui il tag è 200 → 0): le fibre carnose
+// entrano nel tendine comune attraverso un breve tratto tendineo, senza fessure né bordo netto tra muscolo e tendine
+const AGGANCIO = { muscoli: ['pt', 'fcr', 'pl', 'fds', 'fcu'], portata: 0.35, piena: 0.2, gioco: 0.03, tag: [0.55, 0.05] };
+function agganciaAlTendine(id, r) {
+  if (!AGGANCIO.muscoli.includes(id)) return '';
+  const nv = r.pos.length / 3, e = PASSO * 0.75; let mossi = 0, max = 0;
+  const grad = p => { const g = [G.sample(campi.cft, p[0] + e, p[1], p[2]) - G.sample(campi.cft, p[0] - e, p[1], p[2]), G.sample(campi.cft, p[0], p[1] + e, p[2]) - G.sample(campi.cft, p[0], p[1] - e, p[2]), G.sample(campi.cft, p[0], p[1], p[2] + e) - G.sample(campi.cft, p[0], p[1], p[2] - e)], l = Math.hypot(...g) || 1; return g.map(v => v / l); };
+  for (let i = 0; i < nv; i++) {
+    const p = [r.pos[3 * i], r.pos[3 * i + 1], r.pos[3 * i + 2]]; if (p[1] <= Y_TAGLIO + 0.05) continue;
+    const d = G.sample(campi.cft, ...p); if (d <= 0 || d >= AGGANCIO.tag[0]) continue;
+    if (r.tag[i] < 250) r.tag[i] = Math.max(r.tag[i], Math.round(200 * (1 - sstep(AGGANCIO.tag[1], AGGANCIO.tag[0], d))));
+    if (d >= AGGANCIO.portata || d <= AGGANCIO.gioco) continue;
+    const m = (d - AGGANCIO.gioco) * (1 - sstep(AGGANCIO.piena, AGGANCIO.portata, d)), g = grad(p);
+    for (let c = 0; c < 3; c++) r.pos[3 * i + c] -= g[c] * m; mossi++; max = Math.max(max, m);
+  }
+  return `, agganciati al tendine comune ${mossi} vertici (al più ${(max * 10).toFixed(1)} mm)`;
 }
 
 /* ============ Ritagli e competizione tra muscoli (con o senza i tubi) ============ */
@@ -477,6 +530,7 @@ const AFFONDA = 0.3, FUORI_SUP = 0.04, TAPERA = 0.7, SIGMA_T = 0.55;   // AFFOND
 function spostaTubi(f2) {
   const ALTRI_CAMPI = [campi.osso, campi.struttura, campi.muscolo, campi.cuteDentro].map(F => [F, Object.fromEntries(Object.entries(NVP.pts).map(([id, P]) => [id, P.map(q => G.sample(F, q[0], q[1], q[2]))]))]);
   const U = new Float32Array(N).fill(1); for (const id of MUSCOLI) { const F = f2.get(id); for (let q = 0; q < N; q++) if (F[q] < U[q]) U[q] = F[q]; }
+  for (let q = 0; q < N; q++) if (campi.cft[q] < U[q]) U[q] = campi.cft[q];   // anche il tendine comune: vasi e vene superficiali non lo attraversano, passano sulla sua superficie
   const dentroGriglia = p => p[0] > AREA.lo[0] + 0.3 && p[0] < AREA.hi[0] - 0.3 && p[1] > AREA.lo[1] + 0.3 && p[1] < AREA.hi[1] - 0.3 && p[2] > AREA.lo[2] + 0.3 && p[2] < AREA.hi[2] - 0.3;
   const grad = (F, p) => { const e = PASSO, g = [G.sample(F, p[0] + e, p[1], p[2]) - G.sample(F, p[0] - e, p[1], p[2]), G.sample(F, p[0], p[1] + e, p[2]) - G.sample(F, p[0], p[1] - e, p[2]), G.sample(F, p[0], p[1], p[2] + e) - G.sample(F, p[0], p[1], p[2] - e)], l = Math.hypot(...g) || 1; return g.map(v => v / l); };
   for (const [id, P] of Object.entries(NVP.pts)) {
@@ -627,14 +681,15 @@ function costruisci(id, F) {
 let f2 = costruisciCampi(null);
 if (CON_TUBI) {
   spostaTubi(f2); allineaRami();
+  rifaiCft({ nervo: campoTubi(null), giocoNervo: GIOCO.tubo }); campi.cft = campoDi(['cft']);
   f2 = costruisciCampi(campoTubi(null, SUPERFICIALI), f2.delte);
   G.M.html = G.M.html.replace(/const NVP=\{.*?\};\n/s, () => `const NVP=${pyJson(NVP)};\n`);
 }
 for (const id of MUSCOLI) {
   const pul = pulisci(f2.get(id));
-  const r = costruisci(id, f2.get(id));
+  const r = costruisci(id, f2.get(id)), agg = agganciaAlTendine(id, r);
   setMesh(id, r);
-  log(`${id}: ${r.pos.length / 3} vertici (${pul.isole} voxel isolati rimossi${pul.isole > 300 ? ' — ATTENZIONE: parte staccata dal muscolo, attorno a ' + JSON.stringify(pul.dove) : ''}, ${pul.cavita} cavità riempite)`);
+  log(`${id}: ${r.pos.length / 3} vertici (${pul.isole} voxel isolati rimossi${pul.isole > 300 ? ' — ATTENZIONE: parte staccata dal muscolo, attorno a ' + JSON.stringify(pul.dove) : ''}, ${pul.cavita} cavità riempite${agg})`);
 }
 
 /* ============ Lacerto fibroso adagiato sui flessori ============ */

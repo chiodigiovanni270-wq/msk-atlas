@@ -343,7 +343,7 @@ const LEG = [
 /* Il FCU, il capo mediale del tricipite e il tendine flessore comune del modello arrivano fino al tunnel cubitale: dove la superficie di un muscolo sta
    sul lato profondo del retinacolo (o dentro di esso) viene portata appena oltre la faccia superficiale, con spostamento levigato e smorzato con la
    distanza dalla lamina. Riparte sempre dalle mesh originali. */
-const SGOMBRA = { muscoli: ['fcu', 'tri_med', 'cft'], margine: 0.03, portata: 0.9, dolce: [0.35, 0.9], passate: 6 };
+const SGOMBRA = { muscoli: ['fcu', 'tri_med'], margine: 0.03, portata: 0.9, dolce: [0.35, 0.9], passate: 6 };
 function sgombraMuscoli() {
   const B = REAL('osborne'), nb = B.pos.length / 3, nerv = [{ pts: tuboNervo('n_ulnare'), r: 0.2 }];
   const lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9]; for (let i = 0; i < B.pos.length; i++) { const k = i % 3; lo[k] = Math.min(lo[k], B.pos[i]); hi[k] = Math.max(hi[k], B.pos[i]); }
