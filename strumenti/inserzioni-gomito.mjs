@@ -63,11 +63,12 @@ const BRA = {
   riempi: 0.25,                             // cm: fessure tra faccia profonda e ulna riempite fino a questa distanza dall'osso
   vicino: 0.3,                              // ... solo dove il muscolo è entro questa distanza (cioè sotto il muscolo)
   spessore: y => 0.25 + 0.75 * sstep(-3.0, -0.6, y),   // cm, spessore massimo dall'osso
-  sigma: 0.18,                              // cm, levigatura dell'estremità
+  sigma: 0.26,                              // cm, levigatura dell'estremità
   tendine: [-0.4, -2.0, 0.3],               // tag: muscolo da y[0], tendine pieno a y[1], frastagliatura (cm)
   ossa: ['ulna', 'radio', 'omero'],
   ostacoli: ['bic', 'pt', 'br', 'sup', 'caps'],
   passo: 0.08,                              // cm, griglia della superficie nuova
+  liscia: { sigma: 0.22, y: [5.0, 6.8], riduci: 0.05, ostSigma: 0.12 },   // levigatura del ventre (sotto y[0] piena, sfumata fino a y[1]), riduzione dello spessore (cm), levigatura degli ostacoli
 };
 
 const argv = process.argv.slice(2);
@@ -165,10 +166,10 @@ function proiettaRilassa(m, f, peso, passate) {
   }
   return { pos, idx, rov };
 }
-function ostacoli(nomi, conTubi) {
+function ostacoli(nomi, conTubi, sigma = 0.06) {
   const Ob = conTubi ? tubi() : new Uint8Array(G.N);
   for (const n of nomi) G.or(Ob, G.solid(n));
-  return gauss3d(G.sdf(Ob).F, 0.06 / G.H);                        // levigato: niente creste a gradini dove il muscolo tocca l'ostacolo
+  return gauss3d(G.sdf(Ob).F, sigma / G.H);                        // levigato: niente creste a gradini dove il muscolo tocca l'ostacolo
 }
 function bbox(pos, filtro) {
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
@@ -245,7 +246,13 @@ function brachiale() {
     const y = G.O[1] + (j + 0.5) * G.H, w = sstep(BRA.y, BRA.y + 0.6, y);
     for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) { const q = G.vi(i, j, k); F[q] = w * F0[q] + (1 - w) * F1s[q]; }
   }
-  const Fo = ostacoli(BRA.ostacoli, true), Fb = gauss3d(Fu, 0.06 / G.H);   // strutture vicine e ossa (all'osso il tendine resta più aderente)
+  // ventre muscolare: superficie levigata (le creste e i solchi a gradini della mesh di partenza e gli intagli dei vasi) e leggermente assottigliata
+  { const L = BRA.liscia, Fs = gauss3d(F, L.sigma / G.H);
+    for (let j = 0; j < NY; j++) {
+      const y = G.O[1] + (j + 0.5) * G.H, w = 1 - sstep(L.y[0], L.y[1], y);
+      if (w > 0) for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) { const q = G.vi(i, j, k); F[q] = (1 - w) * F[q] + w * (Fs[q] + L.riduci); }
+    } }
+  const Fo = ostacoli(BRA.ostacoli, true, BRA.liscia.ostSigma), Fb = gauss3d(Fu, 0.06 / G.H);   // strutture vicine e ossa (all'osso il tendine resta più aderente)
   for (let j = 0; j < NY; j++) {
     const y = G.O[1] + (j + 0.5) * G.H, w = 1;   // ostacoli ovunque: anche la superficie ricampionata sopra la zona rifatta non deve entrare nelle strutture vicine
     if (w > 0) for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) { const q = G.vi(i, j, k); F[q] = smax(smax(F[q], w * (GIOCO.brach - Fo[q]) + (1 - w) * -1, 0.06), GIOCO.osso - Fb[q], 0.04); }
