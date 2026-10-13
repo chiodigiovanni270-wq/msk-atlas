@@ -1,15 +1,11 @@
-/* Tendine comune dei flessori-pronatori del gomito (`cft`, modelli/gomito-3d.html).
+/* Origine tendinea comune dei flessori-pronatori del gomito (forma, modelli/gomito-3d.html).
 
-   Il tendine di partenza (BodyParts3D) era fatto di tre frammenti isolati (A, C sull'epicondilo, B staccato a 2,6–5,8 mm dall'osso) senza
-   continuità con i muscoli. Qui è una lamina unica appoggiata alla faccia antero-inferiore dell'epicondilo mediale e, in senso distale, sopra il
-   fascio anteriore del collaterale ulnare (Standring, Gray's Anatomy 42ª ed.: il tendine comune nasce dalla faccia antero-inferiore
-   dell'epicondilo mediale e dà origine a pronatore rotondo, FCR, palmare lungo, FDS e al capo omerale del FCU; il fascio anteriore del
-   collaterale ulnare decorre subito in profondità).
-
-   Modulo usato da `flessori-pronatori-gomito.mjs` (che ne importa `campoCft` e `meshCft`). Da solo:
-     node strumenti/tendine-comune-gomito.mjs            → riscrive solo `cft` nel file del modello (senza toccare i muscoli)
-     MODELLO=/tmp/copia.html node strumenti/tendine-comune-gomito.mjs
-     node strumenti/tendine-comune-gomito.mjs verifica   → non scrive: componenti, distanza dall'osso e compenetrazioni di `cft` */
+   Il tendine comune non è una struttura a sé: è la parte tendinea dei muscoli che ne nascono (pronatore rotondo, FCR, palmare lungo, FDS, FCU). Questo
+   modulo ne calcola la forma come lamina appoggiata alla faccia antero-inferiore dell'epicondilo mediale e, in senso distale, sopra il fascio anteriore del
+   collaterale ulnare (Standring, Gray's Anatomy 42ª ed.: il tendine comune nasce dalla faccia antero-inferiore dell'epicondilo mediale; il fascio anteriore
+   del collaterale ulnare decorre subito in profondità). `flessori-pronatori-gomito.mjs` ne importa `appoggio`, `campoCft` e `meshCft`: la lamina è una mesh
+   temporanea (ostacolo dei muscoli), poi fusa nelle loro mesh; nel file del modello non c'è più una mesh `cft`.
+   Il tendine di partenza (BodyParts3D) erano tre frammenti isolati, uno staccato a 2,6–5,8 mm dall'osso, senza continuità con i muscoli. */
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'gomito-3d.html');
@@ -123,47 +119,4 @@ export function meshCft(T, { passo = 0.06, taubin = 20 } = {}) {
     for (let c = 0; c < 3; c++) fdir[3 * i + c] = Math.round(clamp(f[c], -1, 1) * 127);
   }
   return { pos, idx: out.idx, tag: null, fdir, isole: pul.isole, componenti: pul.componenti };
-}
-
-/* Verifica del tendine comune nel file: topologia, aderenza alle strutture d'appoggio, compenetrazioni con le altre mesh e con i tubi di nervi e vasi. */
-function verifica() {
-  const { REAL } = G, m = REAL('cft'), nv = m.pos.length / 3, PASSO = 0.04;
-  G.griglia([0.6, -2.2, -1.8], [4.2, 3.2, 2.6], PASSO, 0);
-  // topologia: componenti, spigoli di bordo e non-manifold
-  const E = new Map(), par = Array.from({ length: nv }, (_, i) => i), f = a => { while (par[a] !== a) { par[a] = par[par[a]]; a = par[a]; } return a; };
-  for (let t = 0; t < m.idx.length; t += 3) for (let e = 0; e < 3; e++) { const a = m.idx[t + e], b = m.idx[t + (e + 1) % 3], k = a < b ? a * nv + b : b * nv + a; E.set(k, (E.get(k) || 0) + 1); par[f(a)] = f(b); }
-  let bordo = 0, nonman = 0; for (const c of E.values()) { if (c === 1) bordo++; else if (c > 2) nonman++; }
-  const comp = new Set(); for (let t = 0; t < m.idx.length; t++) comp.add(f(m.idx[t]));
-  console.log(`cft: ${nv} vertici, ${comp.size} componente/i, ${bordo} spigoli di bordo, ${nonman} spigoli non-manifold`);
-  const campoEsatto = nomi => { const M = G.unione(nomi), { F } = G.sdf(M); G.esatta(F, nomi, 0.15); for (let q = 0; q < G.N; q++) if (Math.abs(F[q]) <= 0.15) F[q] = (M[q] ? -1 : 1) * Math.abs(F[q]); return F; };
-  const vert = i => [m.pos[3 * i], m.pos[3 * i + 1], m.pos[3 * i + 2]];
-  // aderenza: distanza dei vertici dalla superficie d'appoggio reale
-  const Fa = campoEsatto(CFT.appoggio), d = Array.from({ length: nv }, (_, i) => G.sample(Fa, ...vert(i))).sort((a, b) => a - b);
-  const prof = d.filter(v => v < 0.12);   // faccia profonda: vertici entro 1,2 mm dall'appoggio (tutti gli altri sono sulla faccia superficiale o sul margine)
-  console.log(`  distanza dall'appoggio (osso, collaterale ulnare, capsula): minima ${(d[0] * 10).toFixed(2)} mm; faccia profonda ${prof.length} vertici, mediana ${(prof[prof.length >> 1] * 10).toFixed(2)} mm, ${prof.filter(v => v < 0.05).length} entro 0,5 mm, ${prof.filter(v => v < 0.1).length} entro 1 mm`);
-  // compenetrazioni con le altre mesh (distanza esatta con segno: negativa dentro)
-  const altre = ['omero', 'ulna', 'radio', 'cart_omero', 'cart_ulna', 'cart_radio', 'caps', 'fat_ant', 'fat_post', 'ucl_ant', 'ucl_post', 'ucl_trasv', 'rcl', 'anulare', 'lucl', 'osborne', 'lacerto', 'setto_med', 'pt', 'fcr', 'pl', 'fds', 'fcu', 'fdp', 'fpl', 'brach', 'bic', 'br', 'tri_med', 'tri_lungo'];
-  const righe = [];
-  for (const n of altre) { const F = campoEsatto([n]); let k = 0, pf = 0; for (let i = 0; i < nv; i++) { const v = G.sample(F, ...vert(i)); if (v < -0.003) { k++; pf = Math.max(pf, -v); } } if (k) righe.push(`${n}: ${k} (${(pf * 10).toFixed(2)} mm)`); }
-  { const F = campoEsatto(['cute']); let mn = 1e9; for (let i = 0; i < nv; i++) mn = Math.min(mn, -G.sample(F, ...vert(i)));   // la cute è un guscio: dentro il corpo il campo è negativo
-    righe.push(...(mn < 0.2 - 0.005 ? [`cute: a ${(mn * 10).toFixed(2)} mm (minimo previsto 2 mm)`] : [])); console.log(`  distanza minima dalla cute: ${(mn * 10).toFixed(2)} mm`); }
-  const NVP = JSON.parse(G.M.html.match(/const NVP=(\{.*?\});\n/s)[1]);
-  for (const [id, P] of Object.entries(NVP.pts)) {
-    let k = 0, pf = 0;
-    for (let i = 0; i < nv; i++) { const p = vert(i); let dm = 1e9; for (let s = 0; s + 1 < P.length; s++) dm = Math.min(dm, distSeg(p, P[s], P[s + 1])[0]); if (dm < NVP.r[id] - 0.003) { k++; pf = Math.max(pf, NVP.r[id] - dm); } }
-    if (k) righe.push(`[${id}]: ${k} (${(pf * 10).toFixed(2)} mm)`);
-  }
-  console.log('  vertici dentro: ' + (righe.length ? righe.join(', ') : 'nessuno'));
-}
-
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  if (process.argv.includes('verifica')) { verifica(); process.exit(0); }
-  const PASSO = Number(process.env.PASSO || 0.05);
-  G.griglia([0.6, -2.0, -1.8], [4.0, 3.0, 2.6], PASSO, 0);
-  log(`griglia ${G.NX}×${G.NY}×${G.NZ}`);
-  const F = appoggio(); log('superficie d\'appoggio');
-  const T = campoCft(F); log('campo del tendine comune');
-  console.log('volume', (T.reduce((a, v) => a + (v < 0 ? 1 : 0), 0) * PASSO ** 3).toFixed(3), 'cm³');
-  const m = meshCft(T); log(`mesh: ${m.pos.length / 3} vertici, ${m.componenti} componenti (${m.isole} voxel isolati rimossi)`);
-  G.setMesh('cft', m); G.saveFile(G.repack());
 }

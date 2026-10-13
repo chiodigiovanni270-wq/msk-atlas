@@ -1,5 +1,6 @@
-/* Flessori-pronatori del gomito (modelli/gomito-3d.html): pronatore rotondo, FCR, palmare lungo, FDS, FDP, FCU, FPL e tendine comune (`cft`,
-   generato da tendine-comune-gomito.mjs, da cui nascono pronatore, FCR, palmare lungo, FDS e FCU).
+/* Flessori-pronatori del gomito (modelli/gomito-3d.html): pronatore rotondo, FCR, palmare lungo, FDS, FDP, FCU, FPL.
+   L'origine tendinea comune di pronatore, FCR, palmare lungo, FDS e FCU (forma da tendine-comune-gomito.mjs) è parte delle loro mesh: nel modello
+   non esiste una struttura `cft` a sé (la lamina è una mesh temporanea, usata come ostacolo e poi fusa nei muscoli).
 
    Uso (dalla cartella del progetto):
      node strumenti/flessori-pronatori-gomito.mjs              → riscrive le mesh (con il lacerto fibroso e i tubi di nervi e vasi) nel file del modello
@@ -141,7 +142,7 @@ function buchiNelleSezioni(id) {
   return risultato;
 }
 function verifica() {
-  const altri = ['omero', 'ulna', 'radio', 'cart_omero', 'cart_ulna', 'cart_radio', 'caps', 'fat_ant', 'fat_post', 'ucl_ant', 'ucl_post', 'ucl_trasv', 'rcl', 'anulare', 'lucl', 'mio', 'osborne', 'cft', 'lacerto', 'brach', 'bic', 'br', 'sup', 'ecrl', 'ecrb', 'edc', 'ecu', 'anc', 'tri_med'];
+  const altri = ['omero', 'ulna', 'radio', 'cart_omero', 'cart_ulna', 'cart_radio', 'caps', 'fat_ant', 'fat_post', 'ucl_ant', 'ucl_post', 'ucl_trasv', 'rcl', 'anulare', 'lucl', 'mio', 'osborne', 'lacerto', 'brach', 'bic', 'br', 'sup', 'ecrl', 'ecrb', 'edc', 'ecu', 'anc', 'tri_med'];
   const NVP = JSON.parse(G.M.html.match(/const NVP=(\{.*?\});\n/s)[1]);
   const solidi = new Map(); const test = id => { if (!solidi.has(id)) solidi.set(id, solidoTest(id)); return solidi.get(id); };
   let tutto = true;
@@ -416,23 +417,32 @@ function collegaOrigini() {
 }
 collegaOrigini();
 
-// aggancio finale: sulle mesh pronte, i vertici a meno di `portata` cm dalla lamina si portano a contatto (distanza `gioco`; spostamento pieno
-// entro `piena`, poi sfuma) e il colore da tendine si estende alla zona di contatto (`tag`: distanza a cui il tag è 200 → 0): le fibre carnose
-// entrano nel tendine comune attraverso un breve tratto tendineo, senza fessure né bordo netto tra muscolo e tendine
-const AGGANCIO = { muscoli: ['pt', 'fcr', 'pl', 'fds', 'fcu'], portata: 0.35, piena: 0.2, gioco: 0.03, tag: [0.55, 0.05] };
-function agganciaAlTendine(id, r) {
-  if (!AGGANCIO.muscoli.includes(id)) return '';
-  const nv = r.pos.length / 3, e = PASSO * 0.75; let mossi = 0, max = 0;
-  const grad = p => { const g = [G.sample(campi.cft, p[0] + e, p[1], p[2]) - G.sample(campi.cft, p[0] - e, p[1], p[2]), G.sample(campi.cft, p[0], p[1] + e, p[2]) - G.sample(campi.cft, p[0], p[1] - e, p[2]), G.sample(campi.cft, p[0], p[1], p[2] + e) - G.sample(campi.cft, p[0], p[1], p[2] - e)], l = Math.hypot(...g) || 1; return g.map(v => v / l); };
-  for (let i = 0; i < nv; i++) {
-    const p = [r.pos[3 * i], r.pos[3 * i + 1], r.pos[3 * i + 2]]; if (p[1] <= Y_TAGLIO + 0.05) continue;
-    const d = G.sample(campi.cft, ...p); if (d <= 0 || d >= AGGANCIO.tag[0]) continue;
-    if (r.tag[i] < 250) r.tag[i] = Math.max(r.tag[i], Math.round(200 * (1 - sstep(AGGANCIO.tag[1], AGGANCIO.tag[0], d))));
-    if (d >= AGGANCIO.portata || d <= AGGANCIO.gioco) continue;
-    const m = (d - AGGANCIO.gioco) * (1 - sstep(AGGANCIO.piena, AGGANCIO.portata, d)), g = grad(p);
-    for (let c = 0; c < 3; c++) r.pos[3 * i + c] -= g[c] * m; mossi++; max = Math.max(max, m);
-  }
-  return `, agganciati al tendine comune ${mossi} vertici (al più ${(max * 10).toFixed(1)} mm)`;
+/* ============ Fusione dell'origine tendinea comune nei muscoli ============ */
+// Durante i calcoli la lamina `cft` (mesh temporanea) è un ostacolo solido: i muscoli le si appoggiano. Alla fine ogni parte della lamina diventa parte
+// del muscolo che la tocca più vicino (zona di contatto: voxel della lamina a meno di 1,2 mm dal corpo finale del muscolo) e si fonde con esso: la lamina,
+// ingrossata di `INGROSSA` cm per chiudere lo spazio di gioco tra lamina e muscolo, è divisa in regioni dal confine tra le zone di contatto (levigato; tra
+// regioni vicine resta un gioco), ritagliata da ossa, strutture, cute, tubi e dai corpi degli altri muscoli, e unita al campo del muscolo. Nessuna mesh
+// `cft` resta nel modello. Il colore da tendine sfuma dal pezzo al ventre (`TAG_PEZZO`: distanza a cui il tag va da 200 a 0).
+const NOMI_ORIGINE = ['pt', 'fcr', 'pl', 'fds', 'fcu'], INGROSSA = 0.05, CONTATTO = 0.12, TAG_PEZZO = [0.55, 0.05];
+let pezziFinali = null;
+function fondiOrigini(f2, tubi) {
+  const T = campi.cft, idx = []; for (let q = 0; q < N; q++) if (T[q] < INGROSSA) idx.push(q);
+  const D = NOMI_ORIGINE.map(id => { const M = new Uint8Array(N); let n = 0; for (const q of idx) if (T[q] < CONTATTO && f2.get(id)[q] < 0.12) { M[q] = 1; n++; } return { n, F: n ? G.edt(M) : null }; });
+  const own = new Int8Array(N).fill(-1);
+  for (const q of idx) { let best = Infinity; D.forEach((d, k) => { if (d.n && d.F[q] + 1e-4 * k < best) { best = d.F[q] + 1e-4 * k; own[q] = k; } }); }
+  const W = new Float32Array(N); for (const q of idx) W[q] = 1; G.sfoca(W, 3);
+  const Q = new Map(); let lam = 0, preso = 0;
+  NOMI_ORIGINE.forEach((id, k) => {
+    const B = new Float32Array(N); for (const q of idx) if (own[q] === k) B[q] = 1; G.sfoca(B, 3);
+    const C = vincoli(id, true), R = new Float32Array(N).fill(1);   // la lamina stessa non è un ostacolo del suo pezzo
+    for (const j of MUSCOLI) if (j !== id) { const Fj = f2.get(j); for (let q = 0; q < N; q++) { const c = GIOCO.muscolo - Fj[q]; if (c > C[q]) C[q] = c; } }
+    if (tubi) for (let q = 0; q < N; q++) { const c = GIOCO.tubo - tubi[q]; if (c > C[q]) C[q] = c; }
+    for (const q of idx) { const reg = W[q] > 1e-4 ? (0.56 - B[q] / W[q]) * 0.4 : 1; R[q] = smax(smax(T[q] - INGROSSA, reg, 0.05), C[q], RACCORDO.ostacolo); }
+    Q.set(id, R); });
+  for (const q of idx) { if (T[q] < 0) lam++; if (T[q] < 0 && NOMI_ORIGINE.some(id => Q.get(id)[q] < 0)) preso++; }
+  for (const id of MUSCOLI) { const R = Q.get(id); if (!R) continue; const F = f2.get(id); for (const q of idx) if (R[q] < F[q]) F[q] = R[q]; }
+  pezziFinali = Q;
+  log(`origine tendinea comune: ${lam} voxel di lamina, ${preso} nei muscoli; zone di contatto ${NOMI_ORIGINE.map((id, k) => `${id} ${D[k].n}`).join(', ')}`);
 }
 
 /* ============ Ritagli e competizione tra muscoli (con o senza i tubi) ============ */
@@ -442,10 +452,10 @@ const centroRadio = (() => {   // centro (x, z) della sezione del radio a ogni y
   const v = Array.from({ length: NY }, (_, j) => { let x = 0, z = 0, m = 0; for (let k = -6; k <= 6; k++) { const jj = j + k; if (jj >= 0 && jj < NY && n[jj]) { x += c[2 * jj]; z += c[2 * jj + 1]; m += n[jj]; } } return m ? [x / m, z / m] : [0, -99]; });
   return y => v[clamp(Math.round((y - G.O[1]) / PASSO - 0.5), 0, NY - 1)];
 })();
-function vincoli(id) {
+function vincoli(id, senzaCft = false) {
   const C = new Float32Array(N);
   const T = id === 'fcu' ? (campi.tubiFcu ||= campoTubi(TUBI_FCU)) : null;   // il FCU non ingloba mai nervo e arteria ulnare (corrono nello spazio tra FCU e FDP/FDS)
-  for (let q = 0; q < N; q++) C[q] = Math.max(GIOCO.osso - campi.osso[q], GIOCO.struttura - campi.struttura[q], GIOCO.muscolo - campi.muscolo[q], GIOCO.cft - campi.cft[q], T ? GIOCO.tubo - T[q] : -1, GIOCO.cute + campi.cute[jDi(q) < J_CUTE ? q + (J_CUTE - jDi(q)) * NX : q]);
+  for (let q = 0; q < N; q++) C[q] = Math.max(GIOCO.osso - campi.osso[q], GIOCO.struttura - campi.struttura[q], GIOCO.muscolo - campi.muscolo[q], senzaCft ? -1 : GIOCO.cft - campi.cft[q], T ? GIOCO.tubo - T[q] : -1, GIOCO.cute + campi.cute[jDi(q) < J_CUTE ? q + (J_CUTE - jDi(q)) * NX : q]);
   for (let q = 0; q < N; q++) { const zm = zMio[q % NXY]; if (zm === zm) C[q] = Math.max(C[q], zm + GIOCO.struttura - (G.O[2] + (((q / NXY) | 0) + 0.5) * PASSO)); }
   if (id === 'fcu') for (let q = 0; q < N; q++) { const [x, y, z] = vox(q); C[q] = Math.max(C[q], limiteFcu(x, y) - z); }
   if (LATO_RADIO.sopra[id]) for (let q = 0; q < N; q++) {
@@ -601,7 +611,7 @@ function pulisci(F) {
 }
 
 /* ============ Mesh dal campo ============ */
-const MESH = { passo: Number(process.env.MESH || 0.15), taubin: 20 };   // cm: passo della griglia della mesh finale (più largo del campo: vertici ogni ~1,5 mm come le mesh originali) e passate di Taubin
+const MESH = { passo: Number(process.env.MESH || 0.15), passoOrigine: Number(process.env.MESH_ORIGINE || 0.1), taubin: 20 };   // cm: passo della griglia della mesh finale (più largo del campo: vertici ogni ~1,5 mm come le mesh originali) e passate di Taubin
 const TAUBIN = MESH.taubin;   // passate di Taubin sulla mesh dei surface nets (oltre alle 12 di `nets`)
 const FIBRE = { sigma: 0.5, sigmaTag: 0.22, passate: 6 };   // cm: nucleo gaussiano con cui fibre e tag sono ricavati dai vertici di partenza; passate di levigatura sulla mesh
 function adiacenza(idx, nv) {
@@ -627,8 +637,9 @@ function costruisci(id, F) {
     const i = fx | 0, j = fy | 0, k = fz | 0, u = fx - i, v = fy - j, w = fz - k, b = i + fine.NX * j + fine.NXY * k, l = (a, c, t) => a + (c - a) * t;
     return l(l(l(F[b], F[b + 1], u), l(F[b + fine.NX], F[b + fine.NX + 1], u), v), l(l(F[b + fine.NXY], F[b + fine.NXY + 1], u), l(F[b + fine.NXY + fine.NX], F[b + fine.NXY + fine.NX + 1], u), v), w);
   };
-  const nc = [0, 1, 2].map(k => Math.ceil((AREA.hi[k] - AREA.lo[k]) / MESH.passo));
-  G.setGriglia(AREA.lo, MESH.passo, nc[0], nc[1], nc[2]);
+  const passoMesh = NOMI_ORIGINE.includes(id) ? MESH.passoOrigine : MESH.passo;   // le origini tendinee (2–3,6 mm di spessore) vogliono una maglia più fitta
+  const nc = [0, 1, 2].map(k => Math.ceil((AREA.hi[k] - AREA.lo[k]) / passoMesh));
+  G.setGriglia(AREA.lo, passoMesh, nc[0], nc[1], nc[2]);
   const Fc = G.valuta(p => campFine(p[0], p[1], p[2]));
   const out = G.nets(Fc, () => [0, 1, 0]);
   G.setGriglia(fine.O, PASSO, NX, NY, NZ);
@@ -673,6 +684,7 @@ function costruisci(id, F) {
   for (let p = 0; p < 6; p++) { const T = Float32Array.from(tagF); for (let i = 0; i < n2; i++) { let s = tagF[i] * 2, c = 2; for (const j of nb[i]) { s += tagF[j]; c++; } T[i] = s / c; } tagF.set(T); }
   const tag = new Uint8Array(n2), fdir = new Int8Array(3 * n2);
   if (id === 'pt') for (let i = 0; i < n2; i++) tagF[i] = Math.max(tagF[i], 200 * sstep(INS_PT.tendine[0], INS_PT.tendine[1], pos[3 * i + 1]));
+  const Fp = pezziFinali && pezziFinali.get(id); if (Fp) for (let i = 0; i < n2; i++) { const d = G.sample(Fp, pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]); if (d < TAG_PEZZO[0]) tagF[i] = Math.max(tagF[i], 200 * (1 - sstep(TAG_PEZZO[1], TAG_PEZZO[0], d))); }
   for (let i = 0; i < n2; i++) { tag[i] = sezione[i] || Math.round(clamp(tagF[i], 0, 200)); for (let k = 0; k < 3; k++) fdir[3 * i + k] = Math.round(clamp(fd[3 * i + k], -1, 1) * 127); }
   return { pos, idx: out.idx, tag, fdir };
 }
@@ -685,11 +697,12 @@ if (CON_TUBI) {
   f2 = costruisciCampi(campoTubi(null, SUPERFICIALI), f2.delte);
   G.M.html = G.M.html.replace(/const NVP=\{.*?\};\n/s, () => `const NVP=${pyJson(NVP)};\n`);
 }
+fondiOrigini(f2, CON_TUBI ? campoTubi(null, SUPERFICIALI) : null);
 for (const id of MUSCOLI) {
   const pul = pulisci(f2.get(id));
-  const r = costruisci(id, f2.get(id)), agg = agganciaAlTendine(id, r);
+  const r = costruisci(id, f2.get(id));
   setMesh(id, r);
-  log(`${id}: ${r.pos.length / 3} vertici (${pul.isole} voxel isolati rimossi${pul.isole > 300 ? ' — ATTENZIONE: parte staccata dal muscolo, attorno a ' + JSON.stringify(pul.dove) : ''}, ${pul.cavita} cavità riempite${agg})`);
+  log(`${id}: ${r.pos.length / 3} vertici (${pul.isole} voxel isolati rimossi${pul.isole > 300 ? ' — ATTENZIONE: parte staccata dal muscolo, attorno a ' + JSON.stringify(pul.dove) : ''}, ${pul.cavita} cavità riempite)`);
 }
 
 /* ============ Lacerto fibroso adagiato sui flessori ============ */
@@ -734,4 +747,15 @@ function adagiaLacerto() {
   log(`lacerto fibroso: ${mosso} vertici su ${nv} sollevati sui flessori (al più ${(max * 10).toFixed(1)} mm); ancora dentro l'involucro ${dentro}, a meno di 0,5 mm dalla cute ${cute}`);
 }
 adagiaLacerto();
+
+/* ============ Pagina: niente scheda del tendine comune ============ */
+// l'origine tendinea comune è parte dei muscoli (stesse mesh): la mesh `cft` e la sua scheda non esistono più. Sostituzioni idempotenti sul testo della pagina.
+{
+  const i = G.man.meshes.findIndex(m => m.n === 'cft'); if (i >= 0) G.man.meshes.splice(i, 1);
+  const sost = (da, a) => { if (G.M.html.includes(da)) G.M.html = G.M.html.replace(da, () => a); };
+  G.M.html = G.M.html.replace(/^\{id:'cft',cat:'ten',.*\},\n/m, '').replace(/'cft',/g, '');
+  sost('Superficialmente il tendine comune dei flessori.', 'Superficialmente l’origine tendinea comune dei flessori-pronatori (parte dei muscoli).');
+  sost("Capo omerale (epicondilo mediale) e capo ulnare (coronoide); inserzione", "Capo omerale (dall’origine tendinea comune sull’epicondilo mediale) e capo ulnare (coronoide); inserzione");
+  sost("info:\"Dal tendine comune dei flessori, medialmente al pronatore rotondo;", "info:\"Dall’origine tendinea comune dei flessori sull’epicondilo mediale (sede dell’epicondilite mediale, meno frequente della laterale; il fascio anteriore del collaterale ulnare decorre subito in profondità), medialmente al pronatore rotondo;");
+}
 saveFile(repack());
