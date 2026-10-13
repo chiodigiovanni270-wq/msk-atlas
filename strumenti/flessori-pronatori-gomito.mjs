@@ -1,13 +1,13 @@
 /* Flessori-pronatori del gomito (modelli/gomito-3d.html): pronatore rotondo, FCR, palmare lungo, FDS, FDP, FCU, FPL.
 
    Uso (dalla cartella del progetto):
-     node strumenti/flessori-pronatori-gomito.mjs              → riscrive le mesh (e i tubi di nervi e vasi) nel file del modello
+     node strumenti/flessori-pronatori-gomito.mjs              → riscrive le mesh (con il lacerto fibroso e i tubi di nervi e vasi) nel file del modello
      MODELLO=/tmp/copia.html node strumenti/flessori-pronatori-gomito.mjs   → lavora su una copia
      PASSO=0.08 …                                              → passo della griglia in cm (default 0,07)
      node strumenti/flessori-pronatori-gomito.mjs verifica     → non scrive: topologia, buchi, compenetrazioni e tubi delle mesh del file
      opzioni: senza-tubi (non sposta né ritaglia nervi e vasi)
 
-   Il metodo è descritto in GUIDA_MODELLI.md. Riparte sempre dalle mesh della revisione `PARTENZA` e dai tubi del file. */
+   Il metodo è descritto in GUIDA_MODELLI.md. Riparte sempre da mesh e tubi della revisione `PARTENZA` (idempotente). */
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'gomito-3d.html');
@@ -20,13 +20,33 @@ const MUSCOLI = ['fdp', 'fpl', 'fds', 'pt', 'fcr', 'pl', 'fcu'];
 const ALTRI = MUSCOLI.filter(m => m !== 'fcu');
 const PASSO = Number(process.env.PASSO || 0.07);   // cm, griglia
 const CHIUSURA = 0.25;                     // cm, raggio della chiusura che riempie i tunnel delle mesh di partenza
-const LISCIA = 0.16;                       // cm, sigma della levigatura del campo di partenza
-const LISCIA2 = 0.08;                      // cm, sigma della levigatura finale (dopo i ritagli)
+const LISCIA = 0.04;                       // cm, sigma della levigatura del campo di partenza (la forma è già levigata sulla mesh: `LISCIA_MESH`)
+const LISCIA_MESH = { suddividi: 1, taubin: 40 };   // la mesh di partenza (faccette di ~3 mm) è suddivisa e levigata con Taubin, che non assottiglia le lamine
+const LISCIA2 = 0.045;                     // cm, sigma della levigatura finale (dopo i ritagli)
 const GIOCO = { osso: 0.045, struttura: 0.02, muscolo: 0.025, tubo: 0.045, cute: 0.2, cft: 0.03 };   // cm
 const Y_TAGLIO = -12;
-const CRESCITA = { max: 0.7, sigma: 0.8 };   // cm: crescita massima nel piano del FCU e levigatura del suo profilo lungo y
+const CRESCITA = { max: 0.7, maxAltri: 0.4, sigma: 0.8 };   // cm: crescita massima nel piano (FCU, altri muscoli) e levigatura del suo profilo lungo y
 const TUBI_FCU = ['n_ulnare', 'a_ulnare'];
-const APERTURA = { fcu: 0.2, altri: 0.12 };             // cm: raggio dell'apertura morfologica (toglie lembi e ali più sottili di 2 × raggio)
+const APERTURA = { fcu: 0.2, fds: 0.1, pt: 0.12, altri: 0.08 };
+// capo omerale del pronatore rotondo: nella mesh di partenza era un cordone di 0,25 cm² tra epicondilo e ventre; in anatomia è un'origine
+// carnosa dall'epicondilo mediale e dalla cresta sopracondiloidea. Linea d'asse [y, x, z, scala della sezione] (gira attorno al lato mediale del nervo mediano,
+// e si perde nel ventre), spessore (verso il nervo) e larghezza della sezione, raccordo col ventre, chiusura [raggio, tratto y in cui entra] (cm)
+const CAPO_OMERALE_PT = { asse: [[2.0, 2.30, 1.25, 0.7], [1.7, 2.25, 1.35, 0.9], [1.4, 2.19, 1.45, 1], [1.0, 2.12, 1.72, 1], [0.6, 2.12, 2.18, 1], [0.2, 1.75, 2.55, 0.95], [-0.2, 1.15, 2.5, 0.8], [-0.6, 0.7, 2.5, 0.7], [-1.0, 0.35, 2.5, 0.6]], spessore: 0.8, larghezza: 1.3, raccordo: 0.4, chiusura: [0.3, [0.3, 0.8]] };
+// tendine d'inserzione del pronatore rotondo: nella mesh di partenza il ventre finiva a punta ~4 mm davanti al radio, senza tendine; il tendine,
+// piatto, scende dal ventre (y = da[0]) sull'angolo anterolaterale del radio (`direzione` in x, z dal centro dell'osso: il lato laterale è coperto
+// dal supinatore, la faccia anteriore è del FPL) e finisce in y = a
+const INS_PT = { direzione: [-0.75, 0.66], da: [-7.0, -7.6], contatto: -8.3, a: -9.1, spessore: [0.6, 0.36], larghezza: [0.95, 0.75], tendine: [-7.5, -8.3], raccordo: 0.15 };
+// raccordi (cm) del massimo "morbido" tra il campo del muscolo e i vincoli: i solchi dei vasi e le linee di divisione tra due muscoli hanno margini
+// arrotondati invece di spigoli vivi
+const RACCORDO = { tubo: 0.18, muscolo: 0.12, ostacolo: 0.05 };
+// vene superficiali e nervi cutanei stanno nel sottocutaneo, sopra la fascia: non scavano i muscoli, si portano sopra la loro superficie
+// tratti (y) in cui un tubo profondo passa sopra i muscoli invece di affondarvi: il ramo superficiale del radiale, sotto il brachioradiale,
+// incrocia superficialmente l'inserzione del pronatore rotondo sul radio
+const SOPRA = { n_rad_sup: [-9.6, -7.0] };
+// FDS e FPL restano davanti al radio: sotto y = da (raccordo tra da[0] e da[1]) non vanno lateralmente oltre il centro del radio − margine
+// (lì c'è l'inserzione del pronatore, sotto il brachioradiale), il FDS solo fino a `sopra` cm davanti al centro dell'osso
+const LATO_RADIO = { da: [-4.5, -5.5], margine: 0.5, sopra: { fds: 0.85, fpl: 9 } };
+const SUPERFICIALI = ['v_cefalica', 'v_basilica', 'v_mediana_cub', 'v_mediana_avambraccio', 'n_cut_med_avambraccio', 'n_cut_med_braccio', 'n_cut_post_avambraccio', 'n_cut_lat'];
 
 const argv = process.argv.slice(2);
 const CON_TUBI = !argv.includes('senza-tubi');
@@ -39,6 +59,9 @@ const { N, NX, NY, NZ, NXY } = G;
 log(`griglia ${NX}×${NY}×${NZ} (${(N / 1e6).toFixed(1)} M voxel, passo ${PASSO} cm)`);
 const gauss = (F, sigmaCm) => G.sfoca(F, Math.max(1, Math.round((sigmaCm / PASSO) ** 2 * 1.5)));   // media 3×3×3 ripetuta (varianza 2/3 voxel² per passata)
 const vox = q => G.voxel(q);
+// massimo raccordato (polinomiale): uguale a max(a, b) lontano dal pareggio, più alto di al più k/4 dove a ≈ b
+const smin = (a, b, k) => -smax(-a, -b, k);
+const smax = (a, b, k) => { const h = Math.max(k - Math.abs(a - b), 0) / k; return Math.max(a, b) + h * h * k * 0.25; };
 const yDi = q => G.O[1] + (((q / NX) | 0) % NY + 0.5) * PASSO;
 const jDi = q => ((q / NX) | 0) % NY;
 
@@ -143,7 +166,9 @@ if (VERIFICA) { verifica(); process.exit(0); }
 for (const id of MUSCOLI) { const m = daPartenza(id); G.setMesh(id, { pos: m.pos, idx: m.idx, tag: m.tag, fdir: m.fdir }); }
 
 /* ============ Nervi e vasi (tubi procedurali della pagina) ============ */
-const NVP = JSON.parse(G.M.html.match(/const NVP=(\{.*?\});\n/s)[1]);
+// i tubi ripartono da quelli della revisione di partenza (lo strumento li riscrive nella pagina)
+const htmlPartenza = (await import('node:child_process')).execFileSync('git', ['show', `${PARTENZA}:${FILE_REPO}`], { cwd: resolve(dirname(fileURLToPath(import.meta.url)), '..'), maxBuffer: 1 << 30 }).toString('utf8');
+const NVP = JSON.parse(htmlPartenza.match(/const NVP=(\{.*?\});\n/s)[1]);
 const NVP0 = JSON.parse(JSON.stringify(NVP));
 const PARENT = (() => { const m = G.M.html.match(/const PARENT=(\{.*?\});/s); return m ? Function(`return (${m[1]})`)() : {}; })();
 // raggio efficace (la pagina appiattisce le vene e gonfia i nervi e le valvole delle vene)
@@ -152,7 +177,7 @@ const reff = id => NVP.r[id] * (id.startsWith('v_') ? 1.25 : id.startsWith('n_')
 /* ============ Campi degli ostacoli ============ */
 const OSSA = ['omero', 'ulna', 'radio'];
 const STRUTT = ['cart_omero', 'cart_ulna', 'cart_radio', 'caps', 'fat_ant', 'fat_post', 'ucl_ant', 'ucl_post', 'ucl_trasv', 'rcl', 'anulare', 'lucl', 'quadrato', 'mio', 'osborne', 'bor_bicrad', 'bor_olecr'];
-const VICINI = ['brach', 'bic', 'br', 'sup', 'ecrl', 'ecrb', 'edc', 'ecu', 'anc', 'tri_med', 'tri_lungo', 'lacerto', 'setto_med'];
+const VICINI = ['brach', 'bic', 'br', 'sup', 'ecrl', 'ecrb', 'edc', 'ecu', 'anc', 'tri_med', 'tri_lungo', 'setto_med'];
 // distanza esatta dalle mesh vicino alla superficie, con il segno dalla maschera dei voxel (le normali di capsula, legamenti e lamine non sono affidabili)
 function campoDi(nomi) {
   const M = G.unione(nomi), { F } = G.sdf(M); gauss(F, 0.02); G.esatta(F, nomi, 0.12);
@@ -160,10 +185,11 @@ function campoDi(nomi) {
   return F;
 }
 // distanza con segno dall'asse dei tubi meno il raggio (nervi e vasi), solo entro 0,6 cm
-function campoTubi(solo) {
+function campoTubi(solo, escludi = []) {
   const F = new Float32Array(N).fill(1);
   for (const [id, P] of Object.entries(NVP.pts)) {
     if (solo && !solo.includes(id)) continue;
+    if (escludi.includes(id)) continue;
     const r = reff(id);
     for (let s = 0; s + 1 < P.length; s++) {
       const a = P[s], b = P[s + 1], ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], L2 = ux * ux + uy * uy + uz * uz || 1e-9, R = r + 0.6;
@@ -179,11 +205,13 @@ function campoTubi(solo) {
   return F;
 }
 const campi = {};
+const J_CUTE = Math.round((Y_TAGLIO + 0.5 - G.O[1]) / PASSO);   // sotto y = −11,5 la distanza dalla cute si legge a −11,5 (la cute è chiusa da un tappo sul piano di taglio)
 campi.osso = campoDi(OSSA); log('campo ossa');
 campi.struttura = campoDi(STRUTT); log('campo strutture');
 campi.muscolo = campoDi(VICINI); log('campo muscoli vicini');
 campi.cft = campoDi(['cft']); log('campo tendine comune');
 campi.cute = campoDi(['cute']); log('campo cute');
+campi.cuteDentro = campi.cute.map(v => -v);   // positivo dentro la cute: i tubi non devono avvicinarsi alla cute più di quanto erano
 // dietro la membrana interossea (tra radio e ulna, verso il compartimento posteriore) non ci sono flessori: la mesh del FDP vi passava con un lobo
 const zMio = (() => {
   const { pos, idx } = REAL('mio'), lo = new Float32Array(NX * NY).fill(Infinity), hi = new Float32Array(NX * NY).fill(-Infinity);
@@ -248,31 +276,130 @@ function posFcuSpostata() {
 }
 
 /* ============ Campi di partenza dei muscoli (indipendenti dai tubi) ============ */
+// suddivisione a punto medio (ogni triangolo in 4) e levigatura di Taubin: toglie le faccette senza ridurre lo spessore (una gaussiana
+// sul campo di distanza cancellava le lamine sottili: capo radiale del FDS, tendine d'inserzione del pronatore, FPL)
+function levigaMesh(pos, idx) {
+  let P = Array.from(pos), I = Array.from(idx);
+  for (let s = 0; s < LISCIA_MESH.suddividi; s++) {
+    const mid = new Map(), J = [];
+    const m = (a, b) => { const k = a < b ? a + ',' + b : b + ',' + a; if (!mid.has(k)) { mid.set(k, P.length / 3); P.push((P[3 * a] + P[3 * b]) / 2, (P[3 * a + 1] + P[3 * b + 1]) / 2, (P[3 * a + 2] + P[3 * b + 2]) / 2); } return mid.get(k); };
+    for (let t = 0; t < I.length; t += 3) { const [a, b, c] = [I[t], I[t + 1], I[t + 2]], ab = m(a, b), bc = m(b, c), ca = m(c, a); J.push(a, ab, ca, ab, b, bc, ca, bc, c, ab, bc, ca); }
+    I = J;
+  }
+  const pl = G.taubin(Float32Array.from(P), Uint32Array.from(I), LISCIA_MESH.taubin);
+  return { pos: pl, idx: Uint32Array.from(I) };
+}
 function riempi(Ms, r) {   // chiusura morfologica: riempie tunnel e fessure più strette di 2 × r
   const { Do } = G.sdf(Ms), F = G.chiuso(Do, r), out = new Uint8Array(N);
   for (let i = 0; i < N; i++) out[i] = F[i] < 0 ? 1 : 0;
   return out;
 }
-const f0 = new Map();
-let A0fcu;
+const f0 = new Map(), A0 = new Map();   // campo di partenza e area per sezione (cm²) della mesh di partenza, da ripristinare
 for (const id of MUSCOLI) {
-  if (id === 'fcu') {   // area per sezione del FCU di partenza (non spostato), da ripristinare
-    const S1 = G.solid('fcu'); A0fcu = new Float64Array(NY); for (let q = 0; q < N; q++) if (S1[q]) A0fcu[jDi(q)] += PASSO * PASSO;
-    G.setPos('fcu', posFcuSpostata());
-  }
+  { const S1 = G.solid(id), a = new Float64Array(NY); for (let q = 0; q < N; q++) if (S1[q]) a[jDi(q)] += PASSO * PASSO;
+    A0.set(id, a); }
+  const m = daPartenza(id), lev = levigaMesh(id === 'fcu' ? posFcuSpostata() : m.pos, m.idx);
+  G.setMesh(id, { pos: lev.pos, idx: lev.idx, tag: null, fdir: null });
   const S = G.solid(id), P = riempi(S, CHIUSURA), { F } = G.sdf(P);
   gauss(F, LISCIA); rugosita(F, 3.7 * (MUSCOLI.indexOf(id) + 1)); f0.set(id, F);
-  if (id === 'fcu') G.setPos('fcu', daPartenza('fcu').pos);
   log(`${id}: campo di partenza`);
 }
 
+// fuso a sezione ellittica lungo una linea d'asse: punti {p, n (direzione dello spessore), th (spessore), wd (larghezza)}; estremità arrotondate
+function fuso(pts, { y: Y = [-1e9, 1e9], inizio = true } = {}) {
+  const F = new Float32Array(N).fill(1), lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
+  for (const q of pts) for (let c = 0; c < 3; c++) { lo[c] = Math.min(lo[c], q.p[c] - 0.8); hi[c] = Math.max(hi[c], q.p[c] + 0.8); }
+  const i0 = [0, 1, 2].map(c => Math.max(0, Math.floor((lo[c] - G.O[c]) / PASSO))), i1 = [0, 1, 2].map(c => Math.min([NX, NY, NZ][c] - 1, Math.ceil((hi[c] - G.O[c]) / PASSO)));
+  for (let k = i0[2]; k <= i1[2]; k++) for (let j = i0[1]; j <= i1[1]; j++) for (let i = i0[0]; i <= i1[0]; i++) {
+    const x = G.O[0] + (i + 0.5) * PASSO, y = G.O[1] + (j + 0.5) * PASSO, z = G.O[2] + (k + 0.5) * PASSO;
+    if (y > Y[1] || y < Y[0]) continue;
+    let best = 0, bd = 1e9; for (let m = 0; m < pts.length; m++) { const d = (pts[m].p[0] - x) ** 2 + (pts[m].p[1] - y) ** 2 + (pts[m].p[2] - z) ** 2; if (d < bd) { bd = d; best = m; } }
+    const q = pts[best], t = best < pts.length - 1 ? [pts[best + 1].p[0] - q.p[0], pts[best + 1].p[1] - q.p[1], pts[best + 1].p[2] - q.p[2]] : [q.p[0] - pts[best - 1].p[0], q.p[1] - pts[best - 1].p[1], q.p[2] - pts[best - 1].p[2]];
+    const tl = Math.hypot(...t), T = t.map(v => v / tl), dn = q.n[0] * T[0] + q.n[2] * T[2], Nn = [q.n[0] - dn * T[0], -dn * T[1], q.n[2] - dn * T[2]], nl = Math.hypot(...Nn), Nu = Nn.map(v => v / nl);
+    const B = [T[1] * Nu[2] - T[2] * Nu[1], T[2] * Nu[0] - T[0] * Nu[2], T[0] * Nu[1] - T[1] * Nu[0]], d = [x - q.p[0], y - q.p[1], z - q.p[2]];
+    const s = d[0] * T[0] + d[1] * T[1] + d[2] * T[2], u = d[0] * Nu[0] + d[1] * Nu[1] + d[2] * Nu[2], v = d[0] * B[0] + d[1] * B[1] + d[2] * B[2];
+    const a = q.th / 2, b = q.wd / 2, e = Math.hypot(u / a, v / b), sd = (e - 1) * Math.min(a, b);
+    const fine = best === pts.length - 1 ? Math.max(0, s) : best === 0 && inizio ? Math.max(0, -s) : 0;   // estremità arrotondate (oltre l'ultimo punto s > 0, prima del primo s < 0)
+    const val = Math.hypot(Math.max(sd, 0), fine) + Math.min(sd, 0), qq = i + NX * j + NXY * k; if (val < F[qq]) F[qq] = val;
+  }
+  return F;
+}
+
+/* ============ Tendine d'inserzione del pronatore rotondo ============ */
+// linea d'asse: dal baricentro delle sezioni del ventre (y da[0]…da[1]) al punto di contatto sulla faccia anterolaterale del radio (il più
+// vicino al ventre), che poi scende lungo l'osso fino a y = a; sezione ellittica appiattita contro l'osso (spessore e larghezza dalle tabelle)
+function tendinePT() {
+  const pt = daPartenza('pt').pos, ra = REAL('radio').pos;   // punto di contatto: il vertice della sezione che dal centro dell'osso sta nella `direzione` (angolo anterolaterale)
+  const centro = y => { let n = 0, x = 0, z = 0; for (let i = 0; i < pt.length; i += 3) if (Math.abs(pt[i + 1] - y) < 0.12) { n++; x += pt[i]; z += pt[i + 2]; } return n ? [x / n, y, z / n] : null; };
+  const sezRadio = y => { let n = 0, x = 0, z = 0; const V = []; for (let i = 0; i < ra.length; i += 3) if (Math.abs(ra[i + 1] - y) < 0.1) { n++; x += ra[i]; z += ra[i + 2]; V.push([ra[i], ra[i + 2]]); } return { c: [x / n, z / n], V }; };
+  const c0 = centro(INS_PT.da[1]);
+  const contatto = y => {   // punto della superficie del radio più vicino al ventre, spostato in fuori di metà spessore + gioco
+    const { c, V } = sezRadio(y); let best = null, bd = -1e9; for (const v of V) { const l = Math.hypot(v[0] - c[0], v[1] - c[1]) || 1, d = ((v[0] - c[0]) * INS_PT.direzione[0] + (v[1] - c[1]) * INS_PT.direzione[1]) / l; if (d > bd) { bd = d; best = v; } }
+    const n = [best[0] - c[0], best[1] - c[1]], l = Math.hypot(...n); return { p: [best[0], y, best[1]], n: [n[0] / l, 0, n[1] / l] };
+  };
+  const pts = [], ys = [];
+  for (let y = INS_PT.da[0]; y >= INS_PT.a - 1e-9; y -= 0.05) ys.push(y);
+  for (const y of ys) {
+    const w = sstep(INS_PT.da[0], INS_PT.contatto, y), cv = centro(Math.max(y, INS_PT.da[1])) || c0, k = contatto(Math.min(y, INS_PT.contatto - 0.0)), th = INS_PT.spessore[0] + (INS_PT.spessore[1] - INS_PT.spessore[0]) * w;
+    const sopra = [k.p[0] + k.n[0] * (th / 2 + GIOCO.osso), y, k.p[2] + k.n[2] * (th / 2 + GIOCO.osso)];
+    pts.push({ p: [cv[0] + (sopra[0] - cv[0]) * w, y, cv[2] + (sopra[2] - cv[2]) * w], n: k.n, th, wd: INS_PT.larghezza[0] + (INS_PT.larghezza[1] - INS_PT.larghezza[0]) * w });
+  }
+  // levigatura della linea d'asse (raccordo dolce tra ventre e osso)
+  for (let it = 0; it < 30; it++) for (let k = 1; k < pts.length - 1; k++) for (const c of [0, 2]) pts[k].p[c] = (pts[k - 1].p[c] + 2 * pts[k].p[c] + pts[k + 1].p[c]) / 4;
+  // poi ogni punto della parte appoggiata all'osso sta esattamente a metà spessore + gioco dalla superficie (distanza esatta dall'osso)
+  for (const q of pts) {
+    if (q.p[1] > INS_PT.da[1]) continue;
+    for (let it = 0; it < 20; it++) {
+      const d = G.sample(campi.osso, ...q.p), voluto = q.th / 2 + GIOCO.osso + 0.01; if (Math.abs(d - voluto) < 0.003) break;
+      const e = PASSO, g = [G.sample(campi.osso, q.p[0] + e, q.p[1], q.p[2]) - G.sample(campi.osso, q.p[0] - e, q.p[1], q.p[2]), 0, G.sample(campi.osso, q.p[0], q.p[1], q.p[2] + e) - G.sample(campi.osso, q.p[0], q.p[1], q.p[2] - e)], l = Math.hypot(...g) || 1;
+      q.p[0] += g[0] / l * (voluto - d) * 0.8; q.p[2] += g[2] / l * (voluto - d) * 0.8; q.n = [g[0] / l, 0, g[2] / l];
+    }
+  }
+  return fuso(pts, { y: [INS_PT.a - 0.6, INS_PT.da[0] + 0.3], inizio: false });
+}
+{ const T = tendinePT(), F = f0.get('pt'); for (let q = 0; q < N; q++) if (T[q] < 0.5) F[q] = smin(F[q], T[q], INS_PT.raccordo);
+  log('pronatore rotondo: tendine d\'inserzione sul radio'); }
+
+/* ============ Capo omerale del pronatore rotondo ============ */
+// nella mesh di partenza si strozza (0,25 cm² a y 0,6–0,8) e salta davanti al nervo mediano: qui è un fuso continuo dalla cresta
+// sopracondiloidea mediale al ventre, che passa sul lato mediale del nervo e poi davanti (il nervo resta profondo al capo omerale)
+{
+  const A = CAPO_OMERALE_PT.asse, med = NVP.pts.n_mediano;
+  const nervo = y => { for (let s = 0; s + 1 < med.length; s++) { const a = med[s], b = med[s + 1]; if ((a[1] - y) * (b[1] - y) <= 0 && a[1] !== b[1]) { const f = (a[1] - y) / (a[1] - b[1]); return [a[0] + (b[0] - a[0]) * f, a[2] + (b[2] - a[2]) * f]; } } return null; };
+  const cr = (p0, p1, p2, p3, t) => 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t * t * t);   // Catmull-Rom
+  const pts = [];
+  for (let k = 0; k + 1 < A.length; k++) for (let t = 0; t < 1 - 1e-9; t += 0.125) {
+    const P = [A[Math.max(0, k - 1)], A[k], A[k + 1], A[Math.min(A.length - 1, k + 2)]], p = [1, 0, 2].map(c => cr(P[0][c], P[1][c], P[2][c], P[3][c], t));
+    const sc = A[k][3] + (A[k + 1][3] - A[k][3]) * t, nv = nervo(p[1]), n = [nv[0] - p[0], 0, nv[1] - p[2]], l = Math.hypot(n[0], n[2]);
+    pts.push({ p, n: [n[0] / l, 0, n[2] / l], th: CAPO_OMERALE_PT.spessore * sc, wd: CAPO_OMERALE_PT.larghezza * sc });
+  }
+  { const u = A[A.length - 1], nv = nervo(u[0]), n = [nv[0] - u[1], 0, nv[1] - u[2]], l = Math.hypot(n[0], n[2]); pts.push({ p: [u[1], u[0], u[2]], n: [n[0] / l, 0, n[2] / l], th: CAPO_OMERALE_PT.spessore * u[3], wd: CAPO_OMERALE_PT.larghezza * u[3] }); }
+  const T = fuso(pts), F = f0.get('pt'); for (let q = 0; q < N; q++) if (T[q] < 0.5) F[q] = smin(F[q], T[q], CAPO_OMERALE_PT.raccordo);
+  // la parte alta della mesh di partenza e il fuso diventano una massa unica: chiusura (riempie tasche e pieghe tra i due) sopra y ≈ 0,5
+  { const M = new Uint8Array(N); for (let q = 0; q < N; q++) M[q] = F[q] < 0 ? 1 : 0;
+    const Fc = G.chiuso(G.sdf(M).Do, CAPO_OMERALE_PT.chiusura[0]), Y = CAPO_OMERALE_PT.chiusura[1];
+    for (let q = 0; q < N; q++) { const w = sstep(Y[0], Y[1], yDi(q)); if (w > 0) F[q] = Math.min(F[q], Fc[q] + (1 - w)); } }
+  log('pronatore rotondo: capo omerale continuo attorno al nervo mediano');
+}
+
 /* ============ Ritagli e competizione tra muscoli (con o senza i tubi) ============ */
-function vincoli(id, tubi) {
+const centroRadio = (() => {   // centro (x, z) della sezione del radio a ogni y, levigato
+  const ra = REAL('radio').pos, c = new Float64Array(2 * NY), n = new Float64Array(NY);
+  for (let i = 0; i < ra.length; i += 3) { const j = Math.round((ra[i + 1] - G.O[1]) / PASSO - 0.5); if (j >= 0 && j < NY) { c[2 * j] += ra[i]; c[2 * j + 1] += ra[i + 2]; n[j]++; } }
+  const v = Array.from({ length: NY }, (_, j) => { let x = 0, z = 0, m = 0; for (let k = -6; k <= 6; k++) { const jj = j + k; if (jj >= 0 && jj < NY && n[jj]) { x += c[2 * jj]; z += c[2 * jj + 1]; m += n[jj]; } } return m ? [x / m, z / m] : [0, -99]; });
+  return y => v[clamp(Math.round((y - G.O[1]) / PASSO - 0.5), 0, NY - 1)];
+})();
+function vincoli(id) {
   const C = new Float32Array(N);
-  if (!tubi && id === 'fcu') tubi = campoTubi(TUBI_FCU);   // il FCU non ingloba mai nervo e arteria ulnare (corrono nello spazio tra FCU e FDP/FDS)
-  for (let q = 0; q < N; q++) C[q] = Math.max(GIOCO.osso - campi.osso[q], GIOCO.struttura - campi.struttura[q], GIOCO.muscolo - campi.muscolo[q], GIOCO.cft - campi.cft[q], tubi ? GIOCO.tubo - tubi[q] : -1, GIOCO.cute + campi.cute[q], Y_TAGLIO - yDi(q));
+  const T = id === 'fcu' ? (campi.tubiFcu ||= campoTubi(TUBI_FCU)) : null;   // il FCU non ingloba mai nervo e arteria ulnare (corrono nello spazio tra FCU e FDP/FDS)
+  for (let q = 0; q < N; q++) C[q] = Math.max(GIOCO.osso - campi.osso[q], GIOCO.struttura - campi.struttura[q], GIOCO.muscolo - campi.muscolo[q], GIOCO.cft - campi.cft[q], T ? GIOCO.tubo - T[q] : -1, GIOCO.cute + campi.cute[jDi(q) < J_CUTE ? q + (J_CUTE - jDi(q)) * NX : q]);
   for (let q = 0; q < N; q++) { const zm = zMio[q % NXY]; if (zm === zm) C[q] = Math.max(C[q], zm + GIOCO.struttura - (G.O[2] + (((q / NXY) | 0) + 0.5) * PASSO)); }
   if (id === 'fcu') for (let q = 0; q < N; q++) { const [x, y, z] = vox(q); C[q] = Math.max(C[q], limiteFcu(x, y) - z); }
+  if (LATO_RADIO.sopra[id]) for (let q = 0; q < N; q++) {
+    const [x, y, z] = vox(q), w = sstep(LATO_RADIO.da[0], LATO_RADIO.da[1], y); if (w <= 0) continue;
+    const [xc, zc] = centroRadio(y), c = Math.min(xc - LATO_RADIO.margine - x, zc + LATO_RADIO.sopra[id] - z);
+    C[q] = Math.max(C[q], c + GIOCO.muscolo - (1 - w));
+  }
   return C;
 }
 function apri(F, r) {   // apertura morfologica: F resta un campo con segno, solo ridotto dove il solido è più sottile di 2r
@@ -282,43 +409,79 @@ function apri(F, r) {   // apertura morfologica: F resta un campo con segno, sol
   for (let q = 0; q < N; q++) if (M[q]) { const v = Dd[q] - r; if (v >= 0) { F[q] = v + 0.02; tolti++; } }   // solo dove il solido viene tolto: altrove F resta quello esatto
   return tolti;
 }
-function costruisciCampi(tubi, deltaFisso) {
-  const f1 = new Map(), f2 = new Map();
-  for (const id of ALTRI) { const C = vincoli(id, tubi), F = Float32Array.from(f0.get(id)); for (let q = 0; q < N; q++) F[q] = Math.max(F[q], C[q]); f1.set(id, F); }
-  // dove due muscoli si sovrappongono si dividono (vince chi è più dentro), con uno spazio tra loro
-  for (const id of ALTRI) {
+// crescita nel piano della sezione: δ(y) ≥ 0 (levigato lungo y) tale che l'area del solido max(F0 − δ, C) torni ≈ quella di partenza
+function crescita(F0, C, A, max) {
+  const delta = new Float32Array(NY), fatto = new Uint8Array(NY);
+  const area = d => { const a = new Float64Array(NY); for (let q = 0; q < N; q++) if (Math.max(F0[q] - d, C[q]) < 0) a[jDi(q)] += PASSO * PASSO; return a; };
+  for (let d = 0; d <= max + 1e-9; d += 0.02) { const a = area(d); for (let j = 0; j < NY; j++) if (!fatto[j] && (a[j] >= A[j] * 0.97 || d > max - 1e-3)) { delta[j] = d; fatto[j] = 1; } }
+  const ker = [], sg = CRESCITA.sigma / PASSO, R = Math.ceil(3 * sg); for (let k = -R; k <= R; k++) ker.push(Math.exp(-k * k / (2 * sg * sg)));
+  const g = Float32Array.from(delta); for (let j = 0; j < NY; j++) { let a = 0, w = 0; for (let k = -R; k <= R; k++) { const jj = clamp(j + k, 0, NY - 1); a += g[jj] * ker[k + R]; w += ker[k + R]; } delta[j] = a / w; }
+  return delta;
+}
+const areaDi = F => { const a = new Float64Array(NY); for (let q = 0; q < N; q++) if (F[q] < 0) a[jDi(q)] += PASSO * PASSO; return a; };
+// tubi: solco raccordato (massimo morbido) invece di un cilindro a spigolo vivo
+function ritagliaTubi(F, T) { if (!T) return; for (let q = 0; q < N; q++) { const c = GIOCO.tubo - T[q]; if (c > -RACCORDO.tubo) F[q] = smax(F[q], c, RACCORDO.tubo); } }
+// precedenze nella divisione: +1 se j prevale su id, −1 se id prevale su j, 0 se si dividono a metà. Il tendine d'inserzione del pronatore
+// (sottile, perderebbe la divisione con i ventri vicini) e il FPL, strato profondo sulla faccia anteriore del radio, sotto il FDS
+const PRECEDENZE = [['pt', y => y < INS_PT.da[0] - 0.3], ['fpl', () => true]];
+function precedenza(id, j, y) {
+  for (const [m, dove] of PRECEDENZE) if (dove(y)) { if (j === m && id !== m) return 1; if (id === m && j !== m && j !== 'pt') return -1; }
+  return 0;
+}
+// ordine della crescita (dal profondo al superficiale): ogni muscolo cresce solo nello spazio lasciato libero dagli altri
+const ORDINE_CRESCITA = ['fdp', 'fpl', 'fds', 'pt', 'fcr', 'pl', 'fcu'];
+function costruisciCampi(tubi, delte) {
+  const f1 = new Map(), f2 = new Map(), C0 = new Map(), nuoveDelte = new Map();
+  for (const id of MUSCOLI) { const C = vincoli(id), F0 = f0.get(id), F = new Float32Array(N); for (let q = 0; q < N; q++) F[q] = smax(F0[q], C[q], RACCORDO.ostacolo); ritagliaTubi(F, tubi); f1.set(id, F); C0.set(id, C); }
+  // 1) ripartizione: dove due muscoli si sovrappongono si dividono (vince chi è più dentro), con uno spazio tra loro e margini arrotondati;
+  //    il FCU (spostato) cede il posto agli altri
+  for (const id of MUSCOLI) {
     const F = Float32Array.from(f1.get(id));
-    for (const j of ALTRI) if (j !== id) { const Fj = f1.get(j); for (let q = 0; q < N; q++) { const c = (F[q] - Fj[q] + GIOCO.muscolo * 2) / 2; if (c > F[q]) F[q] = c; } }
-    gauss(F, LISCIA2); if (id !== 'fpl') apri(F, APERTURA.altri); f2.set(id, F);
+    for (const j of MUSCOLI) if (j !== id) {
+      const Fj = f1.get(j);
+      if (id === 'fcu') { for (let q = 0; q < N; q++) { const c = GIOCO.muscolo - Fj[q]; if (c > F[q] - RACCORDO.muscolo) F[q] = smax(F[q], c, RACCORDO.muscolo); } }
+      else if (j !== 'fcu') for (let q = 0; q < N; q++) {
+        const prec = precedenza(id, j, yDi(q));
+        if (prec < 0) continue;
+        const c = prec > 0 ? GIOCO.muscolo - Fj[q] : (F[q] - Fj[q] + GIOCO.muscolo * 2) / 2; if (c > F[q] - RACCORDO.muscolo) F[q] = smax(F[q], c, RACCORDO.muscolo);
+      }
+    }
+    f2.set(id, F);
   }
-  // FCU: cede il posto agli altri; la crescita nel piano della sezione ne ripristina l'area di partenza
-  const C = vincoli('fcu', tubi); for (const j of ALTRI) { const Fj = f2.get(j); for (let q = 0; q < N; q++) { const c = GIOCO.muscolo - Fj[q]; if (c > C[q]) C[q] = c; } }
-  const Fpre = f0.get('fcu'), delta = deltaFisso || new Float32Array(NY), fatto = new Uint8Array(NY);
-  const area = d => { const a = new Float64Array(NY); for (let q = 0; q < N; q++) if (Math.max(Fpre[q] - d, C[q]) < 0) a[jDi(q)] += PASSO * PASSO; return a; };
-  if (!deltaFisso) {   // la crescita si calcola senza i tubi e poi resta quella: i tubi ritagliano soltanto, il FCU non può richiudersi attorno a loro
-    for (let d = 0; d <= CRESCITA.max + 1e-9; d += 0.02) { const a = area(d); for (let j = 0; j < NY; j++) if (!fatto[j] && (a[j] >= A0fcu[j] * 0.97 || d > CRESCITA.max - 1e-3)) { delta[j] = d; fatto[j] = 1; } }
-    const ker = []; const sg = CRESCITA.sigma / PASSO, R = Math.ceil(3 * sg); let sk = 0; for (let k = -R; k <= R; k++) { const w = Math.exp(-k * k / (2 * sg * sg)); ker.push(w); sk += w; }
-    const g = Float32Array.from(delta); for (let j = 0; j < NY; j++) { let a = 0, w = 0; for (let k = -R; k <= R; k++) { const jj = clamp(j + k, 0, NY - 1); a += g[jj] * ker[k + R]; w += ker[k + R]; } delta[j] = a / w; }
+  // 2) crescita nel piano della sezione, uno alla volta, solo nello spazio libero (ossa, strutture, altri muscoli e tubi restano ostacoli):
+  //    l'area di ogni sezione torna ≈ quella di partenza dove c'è posto
+  for (const id of ORDINE_CRESCITA) {
+    const C = Float32Array.from(C0.get(id));
+    for (const j of MUSCOLI) if (j !== id) { const Fj = f2.get(j); for (let q = 0; q < N; q++) { const c = GIOCO.muscolo - Fj[q]; if (c > C[q]) C[q] = c; } }
+    if (tubi) for (let q = 0; q < N; q++) { const c = GIOCO.tubo - tubi[q]; if (c > C[q]) C[q] = c; }
+    const F0 = f0.get(id), d = delte ? delte.get(id) : crescita(F0, C, A0.get(id), id === 'fcu' ? CRESCITA.max : CRESCITA.maxAltri); nuoveDelte.set(id, d);
+    const F = new Float32Array(N); for (let q = 0; q < N; q++) F[q] = Math.min(f2.get(id)[q], smax(F0[q] - d[jDi(q)], C[q], RACCORDO.ostacolo));
+    // solo lo spazio libero: il nuovo solido non entra negli altri muscoli (raccordo arrotondato)
+    for (const j of MUSCOLI) if (j !== id) { const Fj = f2.get(j); for (let q = 0; q < N; q++) { const c = GIOCO.muscolo - Fj[q]; if (c > F[q]) F[q] = c; } }   // spigolo vivo: i raccordi sono già nella ripartizione e qui assottiglierebbero le lamine
+    ritagliaTubi(F, tubi);
+    gauss(F, LISCIA2); if (id !== 'fpl') apri(F, APERTURA[id] || APERTURA.altri);
+    f2.set(id, F);
   }
-  const F = Float32Array.from(Fpre); for (let q = 0; q < N; q++) F[q] = Math.max(Fpre[q] - delta[jDi(q)], C[q]);
-  gauss(F, LISCIA2); apri(F, APERTURA.fcu); f2.set('fcu', F);
-  const fin = (() => { const a = new Float64Array(NY); for (let q = 0; q < N; q++) if (F[q] < 0) a[jDi(q)] += PASSO * PASSO; return a; })();
-  const rap = [-1, -3, -5, -7, -9, -11].map(y => { const j = Math.round((y - G.O[1]) / PASSO - 0.5); return `${y}: ${(fin[j] / A0fcu[j] * 100).toFixed(0)}%`; }).join(', ');
-  log(`campi dei muscoli${tubi ? ' (con i tubi)' : ''}; crescita del FCU fino a ${(Math.max(...delta) * 10).toFixed(1)} mm; area del FCU rispetto a quella di partenza (y: %): ${rap}`);
-  f2.delta = delta; return f2;
+  // piano di taglio a spigolo vivo (dopo le levigature): i muscoli arrivano fino a y = −12 come le altre strutture
+  for (const id of MUSCOLI) { const F = f2.get(id); for (let q = 0; q < N; q++) F[q] = Math.max(F[q], Y_TAGLIO - yDi(q)); }
+  const righe = MUSCOLI.map(id => { const a = areaDi(f2.get(id)), A = A0.get(id); return id + ' ' + [2, 1, 0, -2, -4, -6, -8, -10, -11.9].map(y => { const j = Math.round((y - G.O[1]) / PASSO - 0.5); return A[j] > 0.02 ? (a[j] / A[j] * 100).toFixed(0) : '–'; }).join('/'); });
+  log(`campi dei muscoli${tubi ? ' (con i tubi)' : ''}; area rispetto a quella di partenza in % (y 2/1/0/−2/−4/−6/−8/−10/−11,9): ${righe.join('; ')}`);
+  f2.delte = nuoveDelte; return f2;
 }
 
 /* ============ Spostamento di nervi e vasi fuori dai muscoli ============ */
 // un tubo può affondare in un muscolo al più per `AFFONDA` volte il proprio raggio (allora il solco resta aperto, nessun tunnel);
 // se è più dentro, si sposta verso l'uscita più vicina; il tratto si sposta con continuità e gli estremi restano fermi
-const AFFONDA = 0.8, TAPERA = 0.7, SIGMA_T = 0.55;   // TAPERA: cm dagli estremi fermi su cui lo spostamento sfuma; SIGMA_T: levigatura dello spostamento lungo il tubo (cm)
+const AFFONDA = 0.3, FUORI_SUP = 0.04, TAPERA = 0.7, SIGMA_T = 0.55;   // AFFONDA: profondità massima (× raggio) dei tubi profondi; FUORI_SUP: distanza (cm) dei superficiali dai muscoli
+   // TAPERA: cm dagli estremi fermi su cui lo spostamento sfuma; SIGMA_T: levigatura dello spostamento lungo il tubo (cm)
 function spostaTubi(f2) {
-  const ALTRI_CAMPI = [campi.osso, campi.struttura, campi.muscolo].map(F => [F, Object.fromEntries(Object.entries(NVP.pts).map(([id, P]) => [id, P.map(q => G.sample(F, q[0], q[1], q[2]))]))]);
+  const ALTRI_CAMPI = [campi.osso, campi.struttura, campi.muscolo, campi.cuteDentro].map(F => [F, Object.fromEntries(Object.entries(NVP.pts).map(([id, P]) => [id, P.map(q => G.sample(F, q[0], q[1], q[2]))]))]);
   const U = new Float32Array(N).fill(1); for (const id of MUSCOLI) { const F = f2.get(id); for (let q = 0; q < N; q++) if (F[q] < U[q]) U[q] = F[q]; }
   const dentroGriglia = p => p[0] > AREA.lo[0] + 0.3 && p[0] < AREA.hi[0] - 0.3 && p[1] > AREA.lo[1] + 0.3 && p[1] < AREA.hi[1] - 0.3 && p[2] > AREA.lo[2] + 0.3 && p[2] < AREA.hi[2] - 0.3;
   const grad = (F, p) => { const e = PASSO, g = [G.sample(F, p[0] + e, p[1], p[2]) - G.sample(F, p[0] - e, p[1], p[2]), G.sample(F, p[0], p[1] + e, p[2]) - G.sample(F, p[0], p[1] - e, p[2]), G.sample(F, p[0], p[1], p[2] + e) - G.sample(F, p[0], p[1], p[2] - e)], l = Math.hypot(...g) || 1; return g.map(v => v / l); };
   for (const [id, P] of Object.entries(NVP.pts)) {
-    const r = reff(id), n = P.length; if (!P.some(dentroGriglia)) continue;
+    const r = reff(id), n = P.length, sup = SUPERFICIALI.includes(id); if (!P.some(dentroGriglia)) continue;
+    const z = SOPRA[id], limiteDi = y => sup || (z && y >= z[0] && y <= z[1]) ? r + FUORI_SUP : -AFFONDA * r;   // valore minimo del campo dei muscoli sull'asse del tubo
     const arc = [0]; for (let k = 1; k < n; k++) arc.push(arc[k - 1] + Math.hypot(P[k][0] - P[k - 1][0], P[k][1] - P[k - 1][1], P[k][2] - P[k - 1][2]));
     // gli estremi fermi sono quelli attaccati al vaso d'origine, al piano di taglio o a un altro tubo (anastomosi); l'altro estremo è libero
     const altri = Object.entries(NVP0.pts).filter(([k]) => k !== id).flatMap(([, Q]) => Q);
@@ -334,7 +497,7 @@ function spostaTubi(f2) {
       maxV = 0; const C = P.map(() => [0, 0, 0]);
       for (let k = 0; k < n; k++) {
         if (!dentroGriglia(P[k])) continue;
-        const v = -AFFONDA * r - G.sample(U, P[k][0], P[k][1], P[k][2]);   // v > 0: troppo dentro un muscolo
+        const v = limiteDi(P0[k][1]) - G.sample(U, P[k][0], P[k][1], P[k][2]);   // v > 0: troppo dentro (o, per i superficiali, troppo vicino a) un muscolo
         if (it === 0) max0 = Math.max(max0, v);
         if (v > 0) { maxV = Math.max(maxV, v * (peso[k] > 0.05 ? 1 : 0)); const g = grad(U, P[k]); for (let c = 0; c < 3; c++) C[k][c] += g[c] * (v + 0.005); }
         // ossa, strutture e muscoli vicini: il tubo non va più dentro di quanto stava
@@ -344,7 +507,7 @@ function spostaTubi(f2) {
       const T = D.map((d, k) => d.map((x, c) => x + C[k][c] * 0.7));
       for (let k = 0; k < n; k++) for (let c = 0; c < 3; c++) { let a = 0, w = 0; for (let j = -R; j <= R; j++) { const kk = k + j; if (kk < 0 || kk >= n) continue; a += T[kk][c] * ker[j + R]; w += ker[j + R]; } D[k][c] = a / w * peso[k]; P[k][c] = P0[k][c] + D[k][c]; }
     }
-    if (max0 > 0) log(`tubi: ${id} ${(max0 * 10).toFixed(1)} mm dentro i muscoli, residuo ${(maxV * 10).toFixed(1)} mm`);
+    if (max0 > 0) log(`tubi: ${id}${sup ? ' (superficiale)' : ''} da spostare di ${(max0 * 10).toFixed(1)} mm, residuo ${(maxV * 10).toFixed(1)} mm`);
   }
 }
 // i rami che nascono da un altro vaso (PARENT) restano attaccati al punto d'origine se questo si è spostato
@@ -375,12 +538,12 @@ function componenti(M, valore) {
 function pulisci(F) {
   const M = new Uint8Array(N); for (let q = 0; q < N; q++) M[q] = F[q] < 0 ? 1 : 0;
   const A = componenti(M, 1); let big = 0; A.dim.forEach((d, i) => { if (d.n > A.dim[big].n) big = i; });
-  const B = componenti(M, 0); let isole = 0, cavita = 0;
+  const B = componenti(M, 0); let isole = 0, cavita = 0; const dove = [0, 0, 0];
   for (let q = 0; q < N; q++) {
-    if (M[q] && A.lab[q] !== big) { F[q] = 0.01; isole++; }
+    if (M[q] && A.lab[q] !== big) { F[q] = 0.01; isole++; const v = vox(q); for (let c = 0; c < 3; c++) dove[c] += v[c]; }
     else if (!M[q] && !B.dim[B.lab[q]].tocca) { F[q] = -0.01; cavita++; }
   }
-  return { isole, cavita };
+  return { isole, cavita, dove: isole ? dove.map(v => +(v / isole).toFixed(2)) : null };
 }
 
 /* ============ Mesh dal campo ============ */
@@ -417,6 +580,7 @@ function costruisci(id, F) {
   G.setGriglia(fine.O, PASSO, NX, NY, NZ);
   const n2 = out.pos.length / 3;
   let pos = out.pos;
+  pos = G.taubin(pos, out.idx, TAUBIN);
   const e = PASSO * 0.75;
   for (let i = 0; i < n2; i++) {   // Newton verso F = 0 con il gradiente del campo fine
     let p = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]];
@@ -426,7 +590,6 @@ function costruisci(id, F) {
     }
     pos[3 * i] = p[0]; pos[3 * i + 1] = p[1]; pos[3 * i + 2] = p[2];
   }
-  pos = G.taubin(pos, out.idx, TAUBIN);
   for (let i = 0; i < n2; i++) if (pos[3 * i + 1] < Y_TAGLIO + 0.05) pos[3 * i + 1] = Y_TAGLIO;   // sul piano di taglio
   // tag (0–200 muscolo → tendine; 250/251 sezioni di taglio) e fibre: media pesata dei vertici di partenza vicini
   const tagF = new Float32Array(n2), fd = new Float32Array(3 * n2), sezione = new Uint8Array(n2);
@@ -455,6 +618,7 @@ function costruisci(id, F) {
   }
   for (let p = 0; p < 6; p++) { const T = Float32Array.from(tagF); for (let i = 0; i < n2; i++) { let s = tagF[i] * 2, c = 2; for (const j of nb[i]) { s += tagF[j]; c++; } T[i] = s / c; } tagF.set(T); }
   const tag = new Uint8Array(n2), fdir = new Int8Array(3 * n2);
+  if (id === 'pt') for (let i = 0; i < n2; i++) tagF[i] = Math.max(tagF[i], 200 * sstep(INS_PT.tendine[0], INS_PT.tendine[1], pos[3 * i + 1]));
   for (let i = 0; i < n2; i++) { tag[i] = sezione[i] || Math.round(clamp(tagF[i], 0, 200)); for (let k = 0; k < 3; k++) fdir[3 * i + k] = Math.round(clamp(fd[3 * i + k], -1, 1) * 127); }
   return { pos, idx: out.idx, tag, fdir };
 }
@@ -463,13 +627,56 @@ function costruisci(id, F) {
 let f2 = costruisciCampi(null);
 if (CON_TUBI) {
   spostaTubi(f2); allineaRami();
-  f2 = costruisciCampi(campoTubi(), f2.delta);
+  f2 = costruisciCampi(campoTubi(null, SUPERFICIALI), f2.delte);
   G.M.html = G.M.html.replace(/const NVP=\{.*?\};\n/s, () => `const NVP=${pyJson(NVP)};\n`);
 }
 for (const id of MUSCOLI) {
   const pul = pulisci(f2.get(id));
   const r = costruisci(id, f2.get(id));
   setMesh(id, r);
-  log(`${id}: ${r.pos.length / 3} vertici (${pul.isole} voxel isolati rimossi, ${pul.cavita} cavità riempite)`);
+  log(`${id}: ${r.pos.length / 3} vertici (${pul.isole} voxel isolati rimossi${pul.isole > 300 ? ' — ATTENZIONE: parte staccata dal muscolo, attorno a ' + JSON.stringify(pul.dove) : ''}, ${pul.cavita} cavità riempite)`);
 }
+
+/* ============ Lacerto fibroso adagiato sui flessori ============ */
+// il lacerto è un'aponeurosi superficiale che dal tendine del bicipite si porta medialmente sopra arteria brachiale, nervo mediano e origine dei
+// flessori-pronatori, fondendosi con la fascia antibrachiale. Nella mesh di partenza il suo margine mediale affondava tra pronatore e FCR e
+// dentro il palmare lungo: i muscoli ne portavano l'impronta (solchi e fessure, ben visibili mostrando solo i flessori). Ora i muscoli non lo
+// considerano un ostacolo e il lacerto è sollevato sull'involucro dei flessori (chiusura: le fessure tra i ventri restano colmate, come dalla
+// fascia), con uno spostamento levigato sulla mesh che conserva lo spessore della lamina; l'origine dal bicipite non si muove
+const LACERTO = { chiusura: 0.3, gioco: 0.03, vicinato: 0.2, iter: 6, passate: 15 };
+function adagiaLacerto() {
+  const m = daPartenza('lacerto'), pos = Float32Array.from(m.pos), nv = pos.length / 3;
+  const { Do } = G.sdf(G.unione(MUSCOLI)), U = G.chiuso(Do, LACERTO.chiusura); gauss(U, 0.05);
+  const adj = Array.from({ length: nv }, () => new Set());
+  for (let t = 0; t < m.idx.length; t += 3) for (let e = 0; e < 3; e++) { const a = m.idx[t + e], b = m.idx[t + (e + 1) % 3]; adj[a].add(b); adj[b].add(a); }
+  const A = adj.map(s => [...s]);
+  const vicini = (() => {   // vertici entro `vicinato` (l'altra faccia della lamina)
+    const c = LACERTO.vicinato, key = (x, y, z) => `${Math.floor(x / c)},${Math.floor(y / c)},${Math.floor(z / c)}`, H = new Map();
+    for (let i = 0; i < nv; i++) { const k = key(pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]); if (!H.has(k)) H.set(k, []); H.get(k).push(i); }
+    return Array.from({ length: nv }, (_, i) => { const r = [], [x, y, z] = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]];
+      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) for (const j of H.get(key(x + dx * c, y + dy * c, z + dz * c)) || []) if (Math.hypot(pos[3 * j] - x, pos[3 * j + 1] - y, pos[3 * j + 2] - z) < c) r.push(j);
+      return r; });
+  })();
+  const grad = (x, y, z) => { const e = PASSO, g = [G.sample(U, x + e, y, z) - G.sample(U, x - e, y, z), G.sample(U, x, y + e, z) - G.sample(U, x, y - e, z), G.sample(U, x, y, z + e) - G.sample(U, x, y, z - e)], l = Math.hypot(...g) || 1; return g.map(v => v / l); };
+  let mosso = 0, max = 0;
+  for (let it = 0; it < LACERTO.iter; it++) {
+    const need = new Float32Array(nv); for (let i = 0; i < nv; i++) need[i] = Math.max(0, LACERTO.gioco - G.sample(U, pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]));
+    const N2 = new Float32Array(nv); for (let i = 0; i < nv; i++) { let v = 0; for (const j of vicini[i]) v = Math.max(v, need[j]); N2[i] = v; }
+    let D = new Float32Array(3 * nv), g = new Float32Array(3 * nv);
+    for (let i = 0; i < nv; i++) { const n = grad(pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]); for (let c = 0; c < 3; c++) { g[3 * i + c] = n[c]; D[3 * i + c] = n[c] * N2[i]; } }
+    for (let k = 0; k < LACERTO.passate; k++) {
+      const E = new Float32Array(3 * nv);
+      for (let i = 0; i < nv; i++) { const a = A[i]; for (let c = 0; c < 3; c++) { let s = 0; for (const j of a) s += D[3 * j + c]; E[3 * i + c] = a.length ? 0.5 * D[3 * i + c] + 0.5 * s / a.length : D[3 * i + c]; } }
+      for (let i = 0; i < nv; i++) { const pr = E[3 * i] * g[3 * i] + E[3 * i + 1] * g[3 * i + 1] + E[3 * i + 2] * g[3 * i + 2], manca = N2[i] - pr; if (manca > 0) for (let c = 0; c < 3; c++) E[3 * i + c] += manca * g[3 * i + c]; }
+      D = E;
+    }
+    let n = 0; for (let i = 0; i < nv; i++) { const l = Math.hypot(D[3 * i], D[3 * i + 1], D[3 * i + 2]); if (l > 1e-4) n++; for (let c = 0; c < 3; c++) pos[3 * i + c] += D[3 * i + c]; }
+    if (!n) break; mosso = Math.max(mosso, n);
+  }
+  for (let i = 0; i < nv; i++) max = Math.max(max, Math.hypot(pos[3 * i] - m.pos[3 * i], pos[3 * i + 1] - m.pos[3 * i + 1], pos[3 * i + 2] - m.pos[3 * i + 2]));
+  let dentro = 0, cute = 0; for (let i = 0; i < nv; i++) { const p = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]]; if (G.sample(U, ...p) < 0) dentro++; if (G.sample(campi.cute, ...p) > -0.05) cute++; }
+  setMesh('lacerto', { pos, idx: m.idx, tag: m.tag, fdir: m.fdir });
+  log(`lacerto fibroso: ${mosso} vertici su ${nv} sollevati sui flessori (al più ${(max * 10).toFixed(1)} mm); ancora dentro l'involucro ${dentro}, a meno di 0,5 mm dalla cute ${cute}`);
+}
+adagiaLacerto();
 saveFile(repack());
