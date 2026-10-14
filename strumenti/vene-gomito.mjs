@@ -25,12 +25,12 @@ const NVP = JSON.parse(G.M.html.match(/const NVP=(\{.*?\});\n/s)[1]);
 // `r`: raggio di partenza (cm) quando nessun affluente confluisce all'inizio; `rEst`: raggio stimato per gli ostacoli.
 const VENE = {
   v_cefalica: { r: 0.15, rEst: 0.14, taglio: [1, 1], sup: [-13, 13], g: [[-4.94, -11.95, 2.28], [-4.85, -11.37, 2.29], [-4.62, -9.6, 2.21], [-4.82, -7.85, 2.02], [-5.54, -5.99, 2.13], [-5.71, -4.01, 2.5], [-5.39, -2.1, 2.56], [-4.92, -0.3, 2.38], [-4.4, 1.39, 2.06], [-3.83, 3.0, 1.63], [-3.22, 4.56, 1.19], [-2.51, 6.29, 0.98], [-1.89, 8.31, 1.26], [-1.56, 10.2, 1.61], [-1.19, 11.93, 1.74]] },
-  v_basilica: { r: 0.16, rEst: 0.19, taglio: [1, 1], sup: [-13, 3.6], g: [[0.84, -11.83, 2.24], [1.2, -9.92, 2.38], [1.53, -8.08, 2.38], [1.91, -6.25, 2.3], [2.35, -4.4, 2.23], [2.88, -2.66, 2.0], [3.33, -0.97, 1.64], [3.46, 0.76, 1.28], [3.15, 2.52, 0.9], [2.87, 4.42, 0.47], [2.96, 6.27, 0.18], [3.01, 8.06, 0.11], [2.88, 9.87, 0.09], [2.69, 11.72, 0.04]] },
+  v_basilica: { r: 0.16, rEst: 0.19, taglio: [1, 1], sup: [-13, 3.6], g: [[0.84, -11.83, 2.24], [1.2, -9.92, 2.38], [1.53, -8.08, 2.38], [1.91, -6.25, 2.3], [2.35, -4.4, 2.23], [2.88, -2.66, 2.0], [3.33, -0.97, 1.64], [3.46, 0.76, 1.28], [3.15, 2.52, 0.92], [2.98, 4.4, 0.6], [3.02, 6.2, 0.42], [3.0, 8.0, 0.3], [2.88, 9.87, 0.16], [2.69, 11.72, 0.04]] },
   v_mediana_avambraccio: { r: 0.13, rEst: 0.14, sup: [-13, 13], taglio: [1, 0], fork: ['v_mediana_cefalica', 'v_mediana_basilica'], g: [[0.02, -11.88, 3.92], [0.72, -10.27, 4.26], [0.85, -8.3, 4.61], [0.7, -6.9, 4.68], [0.62, -5.6, 4.5]] },
   v_mediana_cefalica: { r: 0.108, rEst: 0.11, sup: [-13, 13], g: [[0.62, -5.6, 4.5], [-0.8, -4.9, 4.35], [-2.5, -3.9, 4.0], [-4.0, -2.8, 3.35], [-5.4, -1.6, 2.6]] },
   v_mediana_basilica: { r: 0.108, rEst: 0.11, sup: [-13, 13], g: [[0.62, -5.6, 4.5], [1.5, -4.6, 4.3], [2.3, -3.4, 3.6], [2.95, -2.2, 2.7], [3.3, -1.1, 1.75]] },
   v_mediana_cub: { r: 0.14, rEst: 0.15, sup: [-13, 13], g: [[-4.92, -0.3, 2.38], [-4.0, 0.1, 2.95], [-3.0, 0.45, 3.15], [-1.9, 0.8, 3.22], [-0.7, 1.15, 3.22], [0.5, 1.5, 3.15], [1.5, 1.8, 2.95], [2.4, 2.1, 2.5], [3.0, 2.35, 1.85], [3.2, 2.55, 1.0]] },
-  v_perforante: { r: 0.075, rEst: 0.075, g: [[-0.3, 1.15, 3.2], [-0.25, 1.0, 2.9], [0.0, 0.85, 2.6], [0.5, 0.8, 2.4], [1.09, 0.7, 2.59]] },
+  v_perforante: { r: 0.075, rEst: 0.075, turnoMax: 8, g: [[1.2, 1.7, 3.05], [1.12, 2.1, 2.85], [1.15, 2.5, 2.55], [1.35, 2.8, 2.3]] },
 };
 // comitanti della brachiale: guide dal file di partenza (in ordine di flusso: l'ordine del file va dalla radice al piano di taglio, qui invertito)
 const COMITANTI = {
@@ -53,6 +53,7 @@ const GIUNZIONI = [
 const GIOCO = { profondo: 0.03, cute: 0.0, vaso: 0.025 };   // cm oltre il raggio
 const K_PROF = 0.8, K_CUTE = 0.1;                              // frazione del raggio che deve stare libera dalle strutture profonde e dalla cute
 const PASSO_P = 0.1;                                           // cm, campionamento dei tracciati
+const TURNO_SUP = 4, TURNO_PROF = 6;   // gradi massimi di svolta tra segmenti di 1 mm (raggio di curvatura ≥ ~1,4 cm le superficiali, ~1 cm le profonde)
 const RMIN = 0.07, ZONA_GIUNZIONE = 1.3, TAIL = 2.2;   // TAIL: lunghezza (cm) del raccordo tangente alle confluenze
 const ID_VENE = Object.keys(NVP.pts).filter(k => k.startsWith('v_'));   // vene già presenti (verranno sostituite)
 
@@ -120,9 +121,17 @@ for (const [id, art, lato, padre] of COM_ART) {
   VENE[id].g = VENE[id].g.slice(0, -1);
 }
 
+// la brachiale nasce "dentro" una delle sue comitanti (la più vicina): ne ripercorre l'ultimo tratto con raggio minore, così non c'è un giunto
+// testa a testa; l'altra comitante la raggiunge come un normale affluente (`cont`: continuazione, nessun salto di calibro)
+for (const padre of ['v_comitante_lat', 'v_comitante_med']) {
+  const tribs = COM_ART.filter(c => c[3] === padre).map(c => c[0]); let best = null, bd = 1e9;
+  for (const t of tribs) { const d = len(sub(VENE[t].g.at(-1), VENE[padre].g[0])); if (d < bd) { bd = d; best = t; } }
+  VENE[padre].g = [...VENE[best].g.slice(-6), ...VENE[padre].g]; VENE[padre].r = 0.068; VENE[padre].da = best; VENE[best].cont = true;
+}
+
 /* ============ Tracciati ============ */
 const V = {};   // id → { P (punti), fissoY: [ini, fin] }
-for (const [id, d] of Object.entries(VENE)) V[id] = { P: catmull(d.g, PASSO_P), G0: null, d };
+for (const [id, d] of Object.entries(VENE)) { d.turnoMax = d.turnoMax || (d.sup ? TURNO_SUP : TURNO_PROF); V[id] = { P: catmull(d.g, PASSO_P), G0: null, d }; }
 for (const v of Object.values(V)) v.G0 = v.P.map(p => p.slice());
 const raggioEst = id => VENE[id].rEst;
 // nodi di confluenza: veine che si incontrano in un punto (esentate tra loro vicino al punto)
@@ -171,6 +180,11 @@ function ottimizza(iter) {
       // smussatura
       let Q = P.map((p, i) => add(p, D[i]));
       for (let pass = 0; pass < 2; pass++) Q = Q.map((p, i) => { if (i === 0 || i === n - 1) return p; const m = mul(add(Q[i - 1], Q[i + 1]), 0.5); return add(p, mul(sub(m, p), 0.5)); });
+      // curvatura massima: dove la svolta tra segmenti supera `turnoMax` il punto va sulla media dei vicini (tre passate)
+      for (let pass = 0; pass < 3; pass++) { const R = Q.map(p => p.slice());
+        for (let i = 1; i < n - 1; i++) { const a = nrm(sub(Q[i], Q[i - 1])), b = nrm(sub(Q[i + 1], Q[i])), th = Math.acos(clamp(dot(a, b), -1, 1)) * 180 / Math.PI;
+          if (th > v.d.turnoMax) { const w = Math.min(1, (th - v.d.turnoMax) / v.d.turnoMax); R[i] = add(Q[i], mul(sub(mul(add(Q[i - 1], Q[i + 1]), 0.5), Q[i]), w)); } }
+        Q = R; }
       const S = Q;
       for (let i = 0; i < n; i++) { const fissoY = (i === 0 && v.d.taglio?.[0]) || (i === n - 1 && v.d.taglio?.[1]); P[i] = S[i]; if (fissoY) P[i][1] = v.G0[i][1]; }
     }
@@ -192,14 +206,22 @@ function ottimizza(iter) {
 }
 log('ottimizzazione');
 ottimizza(Number(process.env.ITER || 300));
+// parte iniziale della brachiale = copia esatta del tratto finale della comitante da cui nasce (tubi coincidenti, la brachiale più sottile dentro): nessun moncone
+for (const [padre, v] of Object.entries(V)) if (v.d.da) {
+  const T = V[v.d.da].P, m = proiezione(v.P, T.at(-1)).i + 1;
+  v.P = [...T.slice(-m), ...v.P.slice(m)];
+  for (let pass = 0; pass < 12; pass++) for (let i = Math.max(1, m - 2); i < Math.min(v.P.length - 1, m + 10); i++) v.P[i] = add(v.P[i], mul(sub(mul(add(v.P[i - 1], v.P[i + 1]), 0.5), v.P[i]), 0.4));
+}
 for (const v of Object.values(V)) v.P = risampiona(v.P, PASSO_P);
 
 /* ============ Raggi: legge di Murray alle confluenze ============ */
+const raggioDa = (k, s) => { const x = clamp(s, 0, 1) * (k.length - 1), i = Math.min(k.length - 2, Math.floor(x)); return k[i] + (k[i + 1] - k[i]) * (x - i); };
+const CAP_GIUNZIONE = 0.78;   // il tributario (o il figlio) arriva alla confluenza con raggio ≤ questa frazione di quello del padre e vi si fonde
+const RAMPA = 1.2;            // cm: il padre cambia calibro nei RAMPA cm che precedono (tributari) o seguono (rami) la confluenza
 function profili() {
-  const Q = {};   // id → { q0, eventi:[{s,dq}], qFine }
   const eventi = {}; for (const id of Object.keys(V)) eventi[id] = [];
-  const qIni = id => V[id].d.r ** 3;
-  const memoFine = {};
+  const L = {}; for (const id of Object.keys(V)) L[id] = arco(V[id].P).at(-1);
+  const qIni = id => V[id].d.r ** 3, memoFine = {}, inizio = {};
   const qFine = id => {
     if (memoFine[id] !== undefined) return memoFine[id];
     const d = V[id].d; let q;
@@ -207,24 +229,41 @@ function profili() {
     else { q = qInizio(id); for (const e of eventi[id]) q += e.dq(); }
     return memoFine[id] = q;
   };
-  const inizio = {};
   const qInizio = id => { if (inizio[id] !== undefined) return inizio[id]; const dentro = GIUNZIONI.filter(g => g.t !== id && g.p === id && g.tipo === 'in' && proiezione(V[id].P, V[g.t].P[V[g.t].P.length - 1]).s < 0.04);
     return inizio[id] = dentro.length ? dentro.reduce((a, g) => a + qFine(g.t), 0) : qIni(id); };
+  const giu = [];   // giunzioni con la posizione sul padre
   for (const g of GIUNZIONI) {
     const X = V[g.t], P = V[g.p], e0 = g.tipo === 'in' ? X.P.length - 1 : 0, s = proiezione(P.P, X.P[e0]).s;
-    if (g.tipo === 'in' && s >= 0.04) eventi[g.p].push({ s, dq: () => qFine(g.t) });
-    if (g.tipo === 'out' && s < 0.96 && !V[g.p].d.fork?.includes(g.t)) eventi[g.p].push({ s, dq: () => -qIni(g.t) });
+    giu.push({ ...g, s });
+    if (g.tipo === 'in' && s >= 0.04 && !V[g.t].d.cont) eventi[g.p].push({ a: s - RAMPA / L[g.p], b: s, dq: () => qFine(g.t) });
+    if (g.tipo === 'out' && s < 0.96 && !V[g.p].d.fork?.includes(g.t)) eventi[g.p].push({ a: s, b: s + RAMPA / L[g.p], dq: () => -qIni(g.t) });
   }
-  const M = 25, out = {};
+  const out = {};
   for (const id of Object.keys(V)) {
-    const q0 = qInizio(id), ev = eventi[id].sort((a, b) => a.s - b.s), fork = V[id].d.fork ? qFine(id) : null, k = [];
-    for (let j = 0; j < M; j++) { const s = j / (M - 1); let q = q0;
-      for (const e of ev) q += e.dq() * sstep(e.s - 0.035, e.s + 0.035, s);
-      if (fork !== null) q = q0 + (fork - q0) * s;
-      if (V[id].d.crescita) q *= 1 + V[id].d.crescita * s;
+    const M = Math.max(25, Math.ceil(L[id] / 0.25) + 1), q0 = qInizio(id), ev = eventi[id], fork = V[id].d.fork ? qFine(id) : null, k = [];
+    for (let j = 0; j < M; j++) { const sj = j / (M - 1); let q = q0;
+      for (const e of ev) q += e.dq() * sstep(e.a, e.b, sj);
+      if (fork !== null) q = q0 + (fork - q0) * sj;
+      if (V[id].d.crescita) q *= 1 + V[id].d.crescita * sj;
       k.push(Math.cbrt(Math.max(q, RMIN ** 3))); }
     out[id] = k;
   }
+  // tetto del raggio vicino alle confluenze + estremo affusolato (la calotta resta dentro il padre)
+  const base = {}; for (const id of Object.keys(out)) base[id] = out[id].slice();
+  for (const g of giu) {
+    if (V[g.t].d.cont) continue;
+    const k = out[g.t], M = k.length, rP = raggioDa(base[g.p], g.s), cap0 = CAP_GIUNZIONE * rP;
+    for (let j = 0; j < M; j++) { const sj = j / (M - 1), d = (g.tipo === 'in' ? 1 - sj : sj) * L[g.t];
+      const cap = cap0 + (k[j] - cap0) * sstep(0.25 * TAIL, TAIL, d);
+      const fuso = V[g.p].d.fork?.includes(g.t) || (g.tipo === 'in' && g.s < 0.04);   // confluenza proprio all'estremo del padre: stesso raggio, nessuna calotta
+      k[j] = Math.min(k[j], cap) * (fuso ? 1 : 0.6 + 0.4 * sstep(0, 0.4, d)); }
+  }
+  // biforcazione: il tronco si restringe fino al raggio con cui partono i rami, così la sua calotta non sporge
+  for (const id of Object.keys(V)) if (V[id].d.fork) { const k = out[id], M = k.length, rEnd = CAP_GIUNZIONE * k[M - 1];
+    for (let j = 0; j < M; j++) { const d = (1 - j / (M - 1)) * L[id]; k[j] = k[j] + (Math.min(k[j], rEnd) - k[j]) * (1 - sstep(0, RAMPA, d)); } }
+  // padre che nasce dalla confluenza di tributari: parte con il raggio con cui questi arrivano e cresce fino al valore di Murray
+  for (const g of giu) if (g.tipo === 'in' && g.s < 0.04) { const k = out[g.p], M = k.length, rS = CAP_GIUNZIONE * base[g.p][0];
+    for (let j = 0; j < M; j++) { const d = j / (M - 1) * L[g.p]; k[j] = rS + (k[j] - rS) * sstep(0, RAMPA, d); } }
   return out;
 }
 const RAGGI = profili();
@@ -242,7 +281,8 @@ function statistiche(tubi) {   // tubi: id → { P, r(i) }
     if (process.env.DETTAGLI) { const run = []; let cur = null;
       T.P.forEach((p, i) => { const r = T.r(i), dp = distStrutt(T.d, p) - K_PROF * r; if (dp < -0.004) { if (!cur) run.push(cur = { y0: p[1], y1: p[1], m: dp, p }); cur.y1 = p[1]; if (dp < cur.m) { cur.m = dp; cur.p = p; } } else cur = null; });
       righe.push(`  ${id}: ` + run.map(c => `y ${c.y0.toFixed(1)}→${c.y1.toFixed(1)} (${(c.m * 10).toFixed(1)} mm @ ${c.p.map(v => v.toFixed(2)).join(',')})`).join('; ')); }
-    righe.push(`${id.padEnd(24)} punti ${String(T.P.length).padStart(3)}  profondo<0: ${String(nDeep).padStart(3)} (min ${(mDeep * 10).toFixed(1)} mm)  cute<0: ${String(nSkin).padStart(3)} (min ${(mSkin * 10).toFixed(1)} mm)  vasi: ${String(nVaso).padStart(3)} (min ${(mVaso * 10).toFixed(1)} mm ${peggio})`);
+    let svolta = 0; for (let i = 1; i < T.P.length - 1; i++) svolta = Math.max(svolta, Math.acos(clamp(dot(nrm(sub(T.P[i], T.P[i - 1])), nrm(sub(T.P[i + 1], T.P[i]))), -1, 1)) * 180 / Math.PI);
+    righe.push(`${id.padEnd(24)} svolta max ${svolta.toFixed(1).padStart(4)}°  punti ${String(T.P.length).padStart(3)}  profondo<0: ${String(nDeep).padStart(3)} (min ${(mDeep * 10).toFixed(1)} mm)  cute<0: ${String(nSkin).padStart(3)} (min ${(mSkin * 10).toFixed(1)} mm)  vasi: ${String(nVaso).padStart(3)} (min ${(mVaso * 10).toFixed(1)} mm ${peggio})`);
   }
   // vene tra loro
   const ids = Object.keys(tubi), nodi = VERIFICA ? [] : trovaNodi();
@@ -254,7 +294,6 @@ function statistiche(tubi) {   // tubi: id → { P, r(i) }
   }
   return righe.join('\n');
 }
-const raggioDa = (k, s) => { const x = clamp(s, 0, 1) * (k.length - 1), i = Math.min(k.length - 2, Math.floor(x)); return k[i] + (k[i + 1] - k[i]) * (x - i); };
 if (VERIFICA) {
   const tubi = {}; for (const id of Object.keys(NVP.pts).filter(k => k.startsWith('v_'))) { const rp = NVP.rp?.[id], P = NVP.pts[id];
     tubi[id] = { P, d: VENE[id] || {}, r: i => NVP.r[id] * (rp ? raggioDa(rp, i / (P.length - 1)) : 1) }; }
@@ -264,7 +303,7 @@ const rmax = {}, rp = {}, tubi = {};
 for (const [id, v] of Object.entries(V)) { const k = RAGGI[id], m = Math.max(...k); rmax[id] = Math.round(m * 1000) / 1000; rp[id] = k.map(x => Math.round(x / m * 1000) / 1000);
   tubi[id] = { P: v.P, d: v.d, r: i => m * raggioDa(k.map(x => x / m), i / (v.P.length - 1)) }; }
 log('statistiche'); console.log(statistiche(tubi));
-for (const id of Object.keys(V)) console.log(id, 'r max', (rmax[id] * 10).toFixed(2), 'mm; r inizio/fine', (RAGGI[id][0] * 10).toFixed(2), (RAGGI[id][24] * 10).toFixed(2), 'lunghezza', arco(V[id].P).at(-1).toFixed(1), 'cm');
+for (const id of Object.keys(V)) console.log(id, 'r max', (rmax[id] * 10).toFixed(2), 'mm; r inizio/fine', (RAGGI[id][0] * 10).toFixed(2), (RAGGI[id].at(-1) * 10).toFixed(2), 'lunghezza', arco(V[id].P).at(-1).toFixed(1), 'cm');
 if (argv.includes('prova')) { writeFileSync(argv.find(a => a.startsWith('--prova='))?.split('=')[1] || 'vene-prova.json', JSON.stringify({ pts: Object.fromEntries(Object.entries(V).map(([k, v]) => [k, v.P])), r: rmax, rp })); process.exit(0); }
 
 const round = P => P.map(p => p.map(x => Math.round(x * 1000) / 1000));
