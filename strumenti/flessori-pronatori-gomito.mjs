@@ -759,3 +759,4 @@ adagiaLacerto();
   sost("info:\"Dal tendine comune dei flessori, medialmente al pronatore rotondo;", "info:\"Dall’origine tendinea comune dei flessori sull’epicondilo mediale (sede dell’epicondilite mediale, meno frequente della laterale; il fascio anteriore del collaterale ulnare decorre subito in profondità), medialmente al pronatore rotondo;");
 }
 saveFile(repack());
+if (CON_TUBI) console.log('Attenzione: le vene sono tornate a quelle della revisione di partenza: rilanciare `node strumenti/vene-gomito.mjs`.');
