@@ -25,7 +25,7 @@ const NVP = JSON.parse(G.M.html.match(/const NVP=(\{.*?\});\n/s)[1]);
 // `r`: raggio di partenza (cm) quando nessun affluente confluisce all'inizio; `rEst`: raggio stimato per gli ostacoli.
 const VENE = {
   v_cefalica: { r: 0.15, rEst: 0.14, taglio: [1, 1], sup: [-13, 13], g: [[-4.94, -11.95, 2.28], [-4.85, -11.37, 2.29], [-4.62, -9.6, 2.21], [-4.82, -7.85, 2.02], [-5.54, -5.99, 2.13], [-5.71, -4.01, 2.5], [-5.39, -2.1, 2.56], [-4.92, -0.3, 2.38], [-4.4, 1.39, 2.06], [-3.83, 3.0, 1.63], [-3.22, 4.56, 1.19], [-2.51, 6.29, 0.98], [-1.89, 8.31, 1.26], [-1.56, 10.2, 1.61], [-1.19, 11.93, 1.74]] },
-  v_basilica: { r: 0.16, rEst: 0.19, taglio: [1, 1], sup: [-13, 3.6], g: [[0.84, -11.83, 2.24], [1.2, -9.92, 2.38], [1.53, -8.08, 2.38], [1.91, -6.25, 2.3], [2.35, -4.4, 2.23], [2.88, -2.66, 2.0], [3.33, -0.97, 1.64], [3.46, 0.76, 1.28], [3.15, 2.52, 0.92], [2.98, 4.4, 0.6], [3.02, 6.2, 0.42], [3.0, 8.0, 0.3], [2.88, 9.87, 0.16], [2.69, 11.72, 0.04]] },
+  v_basilica: { r: 0.16, rEst: 0.19, taglio: [1, 1], sup: [-13, 3.6], g: [[0.84, -11.83, 2.24], [1.2, -9.92, 2.38], [1.53, -8.08, 2.38], [1.91, -6.25, 2.3], [2.35, -4.4, 2.23], [2.88, -2.66, 2.0], [3.33, -0.97, 1.64], [3.46, 0.76, 1.28], [3.15, 2.52, 0.92], [2.98, 4.4, 0.6], [3.0, 6.2, 0.45], [3.0, 8.0, 0.35], [3.0, 10.0, 0.22], [2.95, 11.95, 0.12]] },
   v_mediana_avambraccio: { r: 0.13, rEst: 0.14, sup: [-13, 13], taglio: [1, 0], fork: ['v_mediana_cefalica', 'v_mediana_basilica'], g: [[0.02, -11.88, 3.92], [0.72, -10.27, 4.26], [0.85, -8.3, 4.61], [0.7, -6.9, 4.68], [0.62, -5.6, 4.5]] },
   v_mediana_cefalica: { r: 0.108, rEst: 0.11, sup: [-13, 13], g: [[0.62, -5.6, 4.5], [-0.8, -4.9, 4.35], [-2.5, -3.9, 4.0], [-4.0, -2.8, 3.35], [-5.4, -1.6, 2.6]] },
   v_mediana_basilica: { r: 0.108, rEst: 0.11, sup: [-13, 13], g: [[0.62, -5.6, 4.5], [1.5, -4.6, 4.3], [2.3, -3.4, 3.6], [2.95, -2.2, 2.7], [3.3, -1.1, 1.75]] },
@@ -104,9 +104,11 @@ const Fh = (() => { const F = new Float32Array(G.N).fill(5); G.esatta(F, SHEET, 
 log('campi: cute');
 const Fk = G.campo(['cute']).F;
 const profondo = p => Math.min(G.sample(Fs, p[0], p[1], p[2]), G.sample(Fh, p[0], p[1], p[2]));
-const sopraFascia = p => Math.min(G.sample(Fc, p[0], p[1], p[2]), G.sample(Fh, p[0], p[1], p[2]));
+const MARGINE_LAMINE = 0.2;   // cm: le vene superficiali possono sfiorare i bordi delle lamine sottili (setti, lacerto) di questa quantità: seguire il bordo del setto faceva ondeggiare il tracciato
+const sopraFascia = p => Math.min(G.sample(Fc, p[0], p[1], p[2]), G.sample(Fh, p[0], p[1], p[2]) + MARGINE_LAMINE);
 // distanza dalle strutture che contano per la vena `d` nel punto p (le superficiali stanno sopra la fascia, nei tratti `sup`)
-const distStrutt = (d, p) => d.sup && p[1] >= d.sup[0] && p[1] <= d.sup[1] ? sopraFascia(p) : profondo(p);
+const profondoLamine = p => Math.min(G.sample(Fs, p[0], p[1], p[2]), G.sample(Fh, p[0], p[1], p[2]) + MARGINE_LAMINE);   // vene superficiali fuori dal tratto `sup`
+const distStrutt = (d, p) => !d.sup ? profondo(p) : p[1] >= d.sup[0] && p[1] <= d.sup[1] ? sopraFascia(p) : profondoLamine(p);
 const dentroCute = p => -G.sample(Fk, p[0], p[1], p[2]);   // > 0 dentro la cute
 const gradP = (d, p) => G.grad({ s: q => distStrutt(d, q) }, p, 0.05), gradK = p => G.grad({ s: dentroCute }, p, 0.05);
 
@@ -172,6 +174,8 @@ function ottimizza(iter) {
           if (id2 === id) continue; const w = V[id2], q = proiezione(w.P, p), need = r + raggioEst(id2) + GIOCO.vaso;
           if (q.d < need && !inNodo(id, id2, p, q.p)) { const dir = q.d > 1e-4 ? mul(sub(p, q.p), 1 / q.d) : [0, 0, 1]; f = add(f, mul(dir, 0.5 * (need - q.d))); }
         }
+        if (process.env.DEBUGF && it === iter - 1 && id === process.env.DEBUGF.split(':')[0]) { const [y0, y1] = process.env.DEBUGF.split(':')[1].split(',').map(Number);
+          if (p[1] >= y0 && p[1] <= y1 && i % 3 === 0) console.log(`  F ${id} y ${p[1].toFixed(2)} z ${p[2].toFixed(2)} forza ${f.map(v => (v * 10).toFixed(2)).join(',')} guida ${v.G0[i].map(c => c.toFixed(2)).join(',')}`); }
         // richiamo verso la guida
         f = add(f, mul(sub(v.G0[i], p), 0.02));
         if (fisso) f[1] = 0;
@@ -281,6 +285,8 @@ function statistiche(tubi) {   // tubi: id → { P, r(i) }
     if (process.env.DETTAGLI) { const run = []; let cur = null;
       T.P.forEach((p, i) => { const r = T.r(i), dp = distStrutt(T.d, p) - K_PROF * r; if (dp < -0.004) { if (!cur) run.push(cur = { y0: p[1], y1: p[1], m: dp, p }); cur.y1 = p[1]; if (dp < cur.m) { cur.m = dp; cur.p = p; } } else cur = null; });
       righe.push(`  ${id}: ` + run.map(c => `y ${c.y0.toFixed(1)}→${c.y1.toFixed(1)} (${(c.m * 10).toFixed(1)} mm @ ${c.p.map(v => v.toFixed(2)).join(',')})`).join('; ')); }
+    if (process.env.PUNTI && id === process.env.PUNTI.split(':')[0]) { const [y0, y1] = process.env.PUNTI.split(':')[1].split(',').map(Number);
+      T.P.forEach((p, i) => { if (i % 3 === 0 && p[1] >= y0 && p[1] <= y1) console.log(`  ${id} y ${p[1].toFixed(2)} x ${p[0].toFixed(2)} z ${p[2].toFixed(2)} r ${(T.r(i) * 10).toFixed(2)}: solidi ${(G.sample(Fs, p[0], p[1], p[2]) * 10).toFixed(1)} fascia ${(G.sample(Fc, p[0], p[1], p[2]) * 10).toFixed(1)} lamine ${(G.sample(Fh, p[0], p[1], p[2]) * 10).toFixed(1)} cute ${(dentroCute(p) * 10).toFixed(1)} mm`); }); }
     let svolta = 0; for (let i = 1; i < T.P.length - 1; i++) svolta = Math.max(svolta, Math.acos(clamp(dot(nrm(sub(T.P[i], T.P[i - 1])), nrm(sub(T.P[i + 1], T.P[i]))), -1, 1)) * 180 / Math.PI);
     righe.push(`${id.padEnd(24)} svolta max ${svolta.toFixed(1).padStart(4)}°  punti ${String(T.P.length).padStart(3)}  profondo<0: ${String(nDeep).padStart(3)} (min ${(mDeep * 10).toFixed(1)} mm)  cute<0: ${String(nSkin).padStart(3)} (min ${(mSkin * 10).toFixed(1)} mm)  vasi: ${String(nVaso).padStart(3)} (min ${(mVaso * 10).toFixed(1)} mm ${peggio})`);
   }
