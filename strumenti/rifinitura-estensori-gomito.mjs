@@ -47,8 +47,9 @@ const PASSO = Number(process.env.PASSO || 0.06);
 const GIOCO = { osso: 0.045, struttura: 0.02, muscolo: 0.025, tubo: 0.045, cute: 0.2, setto: 0.012 };   // cm
 const Y_TAGLIO = -12;
 // anconeo: apice (faccia posteriore dell'epicondilo laterale), angolo superiore sull'olecrano, angolo inferiore sul margine posteriore dell'ulna;
-// (margine del triangolo), spessore dal letto (ai margini → al centro, profilo a cupola), chiusura del letto, lunghezza del tendine d'origine
-const ANCONEO = { A: [-2.5, 1.55, -1.05], B: [-0.45, 1.25, -1.6], C: [-0.65, -4.6, -1.15], margine: 0.1, spessore: [0.15, 0.7], letto: 0.5, tendine: [0.35, 0.9] };
+// (margine del triangolo: arriva a contatto con l'ECU), spessore dal letto (ai margini → al centro, profilo a cupola), chiusura del letto, profondità
+// massima sotto il letto chiuso (il muscolo riempie la fossetta tra olecrano, capo radiale e supinatore fino alle strutture reali), lunghezza del tendine
+const ANCONEO = { A: [-2.5, 1.55, -1.05], B: [-0.45, 1.25, -1.6], C: [-0.65, -4.6, -1.15], margine: 0.15, spessore: [0.15, 0.7], letto: 0.5, fondo: 1.0, tendine: [0.35, 0.9] };
 // strato profondo (APL + EPL): spessore dal letto (ulna, radio, membrana) [y, cm], estremità prossimale sul lato ulnare e radiale, limiti nella
 // coordinata s (0 = centro del radio, 1 = centro dell'ulna), riduzione ai margini (fuso), setto APL/EPL [y, s], estremità prossimale dell'EPL
 // e raccordo (cm) tra estremità e setto (l'EPL comincia arrotondato accanto all'APL)
@@ -62,6 +63,7 @@ const EDM = { larghezza: [[0.75, 0.2], [0.2, 0.35], [-1, 0.5], [-3, 0.7], [-6, 0
 // (tra supinatore e APL), così non attraversa l'APL
 const TUBI = { n_pin: [-5.8, -7.0], a_interossea_post: [-4.5, -5.3], dx: 0.32, gioco: 0.03, fuori: 0.3, lisci: 6 };
 const SUP = { liscia: 0.15, allarga: 0.07 };
+const SOLCO = { chiusura: 0.45, fascia: [-0.5, 0.6] };
 const ECU_LATERALE = [-0.5, -2.2, 0.15];   // y sopra cui la traslazione è piena, y dove si annulla, gioco dal margine (cm)
 const MESH = { passo: 0.12, passoNuovi: 0.1, taubin: 20 };
 const FIBRE = { sigma: 0.5, sigmaTag: 0.22, passate: 6 };
@@ -227,7 +229,8 @@ function apri(Fm, r) {
 
 /* ============ (1) Anconeo ============ */
 {
-  // letto teso: ossa, capsula, legamenti laterali e supinatore, chiusi (la lamina non entra nelle fessure tra le ossa)
+  // letto teso: ossa, capsula, legamenti laterali e supinatore, chiusi; la faccia superficiale segue il letto chiuso, quella profonda le strutture
+  // reali (ostacoli comuni): niente vuoto sotto il muscolo dove il letto chiuso scavalca la fossetta
   const Mb = G.unione(['omero', 'ulna', 'radio', 'caps', 'anulare', 'lucl', 'rcl', 'sup']), Bed = G.chiuso(G.sdf(Mb).Do, ANCONEO.letto); gauss(Bed, 0.05);
   // cupola liscia: prodotto delle coordinate baricentriche (1 al baricentro, 0 sui lati; niente creste sull'asse mediale del triangolo)
   const den = (T2[1][1] - T2[2][1]) * (T2[0][0] - T2[2][0]) + (T2[2][0] - T2[1][0]) * (T2[0][1] - T2[2][1]);
@@ -235,10 +238,10 @@ function apri(Fm, r) {
     return Math.cbrt(clamp(27 * Math.max(l1, 0) * Math.max(l2, 0) * Math.max(l3, 0), 0, 1)); };
   const Fn = new Float32Array(N).fill(1);
   for (let q = 0; q < N; q++) {
-    const p = G.voxel(q), h = dot(sub(p, A), nOut); if (h < -2 || h > 1.5 || Bed[q] > 1) continue;
+    const p = G.voxel(q), h = dot(sub(p, A), nOut); if (h < -2 || h > 1.5 || Bed[q] > 1 || Bed[q] < -ANCONEO.fondo - 0.3) continue;
     const w = uv(p), t = sdTri(w) - ANCONEO.margine; if (t > 0.5) continue;
     const T = ANCONEO.spessore[0] + (ANCONEO.spessore[1] - ANCONEO.spessore[0]) * cupola(w);
-    let f = smax(GIOCO.osso - Bed[q], Bed[q] - T, 0.1); f = smax(f, t, 0.15);
+    let f = smax(-ANCONEO.fondo - Bed[q], Bed[q] - T, 0.1); f = smax(f, t, 0.15);
     Fn[q] = f;
   }
   gauss(Fn, 0.04); nuovo('anc', Fn);
@@ -354,6 +357,33 @@ for (const id of CEDONO) {
 {
   const copie = new Map(CEDONO.map(id => [id, Float32Array.from(F.get(id))]));
   for (const id of CEDONO) { const Fm = F.get(id); for (const j of CEDONO) if (j !== id) { const Fj = copie.get(j); for (let q = 0; q < N; q++) { const c = (Fm[q] - Fj[q] + GIOCO.setto * 2) / 2; if (c > Fm[q]) Fm[q] = c; } } }
+}
+/* ============ Solco tra anconeo ed ECU ============ */
+// tra il margine laterale dell'anconeo e l'ECU restava un solco profondo fino al supinatore (fessura scura nella vista posteriore): l'unione di
+// anconeo, ECU, ossa e supinatore è chiusa (`SOLCO.chiusura`) e lo spazio vuoto aggiunto dalla chiusura in una fascia attorno al margine
+// laterale (da `SOLCO.fascia[0]` cm dentro a `SOLCO.fascia[1]` cm fuori dalla retta apice → angolo ulnare) va all'anconeo fino al margine del
+// triangolo (`ANCONEO.margine`) e all'ECU oltre: i due muscoli si toccano e l'anconeo resta triangolare
+{
+  const Fa = F.get('anc'), Fu = F.get('ecu'), M = new Uint8Array(N);
+  for (let q = 0; q < N; q++) if (Fa[q] < 0 || Fu[q] < 0 || campi.osso[q] < 0 || campi.sup[q] < 0) M[q] = 1;
+  const Cl = G.chiuso(G.sdf(M).Do, SOLCO.chiusura); gauss(Cl, 0.05);
+  const altri = ['edm', 'apl', 'epl', 'edc', 'ecrb'].map(id => F.get(id)), Fa0 = Float32Array.from(Fa), Fu0 = Float32Array.from(Fu);
+  const a = T2[0], c = T2[2], ac = [c[0] - a[0], c[1] - a[1]], l = Math.hypot(...ac); let n2 = [ac[1] / l, -ac[0] / l];
+  if ((T2[1][0] - a[0]) * n2[0] + (T2[1][1] - a[1]) * n2[1] > 0) n2 = n2.map(v => -v);   // verso l'esterno (lato dell'ECU)
+  const [dentro, fuori] = SOLCO.fascia, mezzo = (fuori - dentro) / 2, centro = (fuori + dentro) / 2;
+  let n = 0;
+  for (let q = 0; q < N; q++) {
+    if (Cl[q] > 0.2) continue; const p = G.voxel(q); if (p[1] > A[1] + 0.3 || p[1] < C[1] - 0.3) continue;
+    const w = uv(p), d = (w[0] - a[0]) * n2[0] + (w[1] - a[1]) * n2[1], lungo = ((w[0] - a[0]) * ac[0] + (w[1] - a[1]) * ac[1]) / l;
+    if (Math.abs(d - centro) > mezzo + 0.3) continue;
+    let v = smax(Cl[q], Math.abs(d - centro) - mezzo, 0.1); v = smax(v, Math.max(-lungo, lungo - l), 0.2); v = Math.max(v, C0[q]);
+    for (const Fo of altri) v = Math.max(v, GIOCO.muscolo - Fo[q]);
+    const lato = (d - ANCONEO.margine) * 1;   // < 0: anconeo, > 0: ECU
+    const va = Math.max(v, lato + GIOCO.setto, GIOCO.muscolo - Fu0[q]), vu = Math.max(v, -lato + GIOCO.setto, GIOCO.muscolo - Fa0[q]);
+    if (va < Fa[q]) { if (Fa[q] >= 0 && va < 0) n++; Fa[q] = va; }
+    if (vu < Fu[q]) { if (Fu[q] >= 0 && vu < 0) n++; Fu[q] = vu; }
+  }
+  log(`solco tra anconeo ed ECU: ${(n * PASSO ** 3).toFixed(2)} cm³ colmati`);
 }
 for (const id of MUSCOLI) { const Fm = F.get(id); for (let q = 0; q < N; q++) Fm[q] = Math.max(Fm[q], Y_TAGLIO - yDi(q)); }
 log(`area finale (cm², y 1/0/−2/−4/−6/−8/−10/−11,9): ${righeArea()}`);
