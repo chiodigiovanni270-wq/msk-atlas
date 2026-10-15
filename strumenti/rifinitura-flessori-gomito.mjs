@@ -36,7 +36,7 @@ const FILE_REPO = 'modelli/gomito-3d.html';
 const MUSCOLI = ['fpl', 'fdp', 'fds', 'pt', 'fcr', 'pl', 'fcu'];
 const ORIGINE = ['pt', 'fcr', 'pl', 'fds', 'fcu'];
 const PASSO = Number(process.env.PASSO || 0.06);
-const GIOCO = { osso: 0.045, struttura: 0.02, muscolo: 0.025, tubo: 0.045, cute: 0.2, setto: 0.012 };   // cm
+const GIOCO = { osso: 0.045, struttura: 0.02, muscolo: 0.025, tubo: 0.045, cute: 0.2, setto: 0.02 };   // cm
 const Y_TAGLIO = -12;
 // FPL: estremità prossimale (y), tratto in cui si allarga, spessore dalla superficie del radio [y, cm], margini (cm) dal bordo laterale e oltre il
 // bordo mediale del radio, piano posteriore (sotto il centro del radio non va: dietro c'è la membrana)
@@ -45,14 +45,14 @@ const FPL = { cima: -3.6, rampa: 2.4, spessore: [[-3.6, 0.35], [-5, 0.48], [-8, 
 const ZONA = { E: [2.75, 0.9, 0.5], r0: 1.8, r1: 2.8, sopra: [2.9, 3.4] };
 // involucro: la cupola tendinea (forma di tendine-comune-gomito.mjs, spessore `cupola`) unita ai muscoli, chiusa, levigata e aperta; dietro
 // l'epicondilo (punto d'appoggio sull'omero con z < `dietro`, sopra y = `dietroDa`) non va: lì c'è il solco del nervo ulnare
-const INVOLUCRO = { cupola: [0.42, 0.26], chiusura: 0.45, liscia: 0.13, apertura: 0.15, vicino: 0.4, dietro: -0.45, dietroDa: 0.4 };
+const INVOLUCRO = { cupola: [0.42, 0.26], chiusura: 0.45, liscia: 0.2, apertura: 0.18, dopoApertura: 0.08, vicino: 0.4, dietro: -0.45, dietroDa: 0.4, dietroLiscia: 0.12 };
 // capo omerale del FCU: il ventre finiva ~5 mm sotto e dietro l'apice dell'epicondilo; un fuso [da, a, raggio] lo porta all'apice (versante
 // postero-inferiore), superficiale al legamento di Osborne e al nervo ulnare, che restano ostacoli
 const CAPO_OMERALE_FCU = [[2.7, 0.45, -0.55], [3.12, 1.2, -0.15], 0.27];
 // setti: ogni voxel dell'involucro va al muscolo che si incontra proseguendo dalla sua posizione in direzione opposta all'apice (`TENDINE.verso`),
 // a passi `passi` (cm): i setti convergono sull'epicondilo; etichette levigate (sigma) e convertite in distanza (scala)
-const SETTI = { sigma: 0.12, scala: 0.3, passi: [0, 0.25, 0.5, 0.8, 1.1, 1.5, 2.0] };
-const TENDINE = { fcr: [0.5, 1.6], pl: [0.5, 1.6], fds: [0.5, 1.5], fcu: [0.5, 1.5], pt: [0.45, 1.3], verso: [3.0, 1.1, 0.25] };   // distanza dall'omero (cm) a cui il colore va da tendine a muscolo; punto d'origine delle fibre
+const SETTI = { sigma: 0.22, raccordo: 0.12, finale: 0.05, taglio: 0.1, scala: 0.3, passi: [0, 0.25, 0.5, 0.8, 1.1, 1.5, 2.0] };
+const TENDINE = { fcr: [0.3, 1.0], pl: [0.3, 1.0], fds: [0.3, 0.95], fcu: [0.3, 0.95], pt: [0.25, 0.85], verso: [3.0, 1.1, 0.25] };   // distanza dall'omero (cm) a cui il colore va da tendine a muscolo; punto d'origine delle fibre
 const MESH = { passo: 0.15, passoOrigine: 0.1, taubin: 20 };
 const FIBRE = { sigma: 0.5, sigmaTag: 0.22, passate: 6 };
 const SUPERFICIALI = ['v_cefalica', 'v_basilica', 'v_mediana_cub', 'v_mediana_avambraccio', 'n_cut_med_avambraccio', 'n_cut_med_braccio', 'n_cut_post_avambraccio', 'n_cut_lat'];
@@ -197,14 +197,18 @@ const WZ = new Float32Array(N); for (let q = 0; q < N; q++) WZ[q] = pesoZona(...
   // no; poi si toglie l'osso e l'involucro resta entro `vicino` cm dall'unione di partenza
   const Uo = G.sdf(U).Do, Ub = Uint8Array.from(U), Mo = G.unione(['omero', 'ulna', 'ucl_ant', 'ucl_trasv']); for (let q = 0; q < N; q++) if (Mo[q]) Ub[q] = 1;
   const Env = G.chiuso(G.sdf(Ub).Do, INVOLUCRO.chiusura); gauss(Env, INVOLUCRO.liscia);
-  const tolti = apri(Env, INVOLUCRO.apertura);
+  const tolti = apri(Env, INVOLUCRO.apertura); gauss(Env, INVOLUCRO.dopoApertura);   // la distanza dei voxel è a gradini: senza levigatura i bordi escono a dente di sega
   for (let q = 0; q < N; q++) Env[q] = smax(Env[q], Uo[q] - INVOLUCRO.vicino, 0.1);
   const C = ostacoli(campi.tubi), Fdp = F.get('fdp'), Ffl = F.get('fpl');
   for (let q = 0; q < N; q++) C[q] = Math.max(C[q], GIOCO.muscolo - Fdp[q], GIOCO.muscolo - Ffl[q]);
-  for (let q = 0; q < N; q++) {   // niente dietro l'epicondilo
-    const d = campi.omero[q]; if (d > 0.9 || WZ[q] <= 0) continue; const p = G.voxel(q); if (p[1] < INVOLUCRO.dietroDa) continue;
-    const g = G.grad(campi.omero, p), gl = Math.hypot(...g) || 1, zs = p[2] - g[2] / gl * d;
-    C[q] = Math.max(C[q], smax(INVOLUCRO.dietro - zs, (INVOLUCRO.dietroDa - p[1]) * 0.5, 0.1) * 0.5);
+  { // niente dietro l'epicondilo: vincolo valutato sul punto d'appoggio (rumoroso voxel per voxel), quindi levigato prima di usarlo
+    const D = new Float32Array(N).fill(-1);
+    for (let q = 0; q < N; q++) {
+      const d = campi.omero[q]; if (d > 0.9 || WZ[q] <= 0) continue; const p = G.voxel(q); if (p[1] < INVOLUCRO.dietroDa) continue;
+      const g = G.grad(campi.omero, p), gl = Math.hypot(...g) || 1, zs = p[2] - g[2] / gl * d;
+      D[q] = smax(INVOLUCRO.dietro - zs, (INVOLUCRO.dietroDa - p[1]) * 0.5, 0.1) * 0.5;
+    }
+    gauss(D, INVOLUCRO.dietroLiscia); for (let q = 0; q < N; q++) C[q] = Math.max(C[q], D[q]);
   }
   for (let q = 0; q < N; q++) Env[q] = smax(Env[q], C[q], 0.05);
   // divisione: ogni voxel dell'involucro al muscolo più vicino (campo minore), etichette levigate → setti lisci
@@ -225,16 +229,18 @@ const WZ = new Float32Array(N); for (let q = 0; q < N; q++) WZ[q] = pesoZona(...
       const w = WZ[q]; if (w <= 0) continue;
       let altro = 0; for (let j = 0; j < ORIGINE.length; j++) if (j !== k && L[j][q] > altro) altro = L[j][q];
       const part = W[q] > 1e-4 ? (altro - L[k][q]) * SETTI.scala + GIOCO.setto : 1;
-      const Fz = Math.max(Env[q], part);
+      const Fz = smax(Env[q], part, SETTI.raccordo);   // spigoli arrotondati tra involucro e setto: fasci a margini smussati
       R[q] = (1 - w) * Fm[q] + w * Fz;
     }
     return R;
   });
+  // levigatura finale nella zona (i tagli degli ostacoli lasciano orli), poi di nuovo gli ostacoli
+  for (const R of nuovo) { const L0 = Float32Array.from(R); gauss(R, SETTI.finale); for (let q = 0; q < N; q++) { const w = WZ[q]; R[q] = w > 0 ? Math.max(w * R[q] + (1 - w) * L0[q], C[q]) : L0[q]; } }
   ORIGINE.forEach((id, k) => F.set(id, nuovo[k]));
   // nel raccordo tra zona e resto i muscoli non devono sovrapporsi: dove due si toccano si dividono a metà
   const copie = new Map(ORIGINE.map(id => [id, Float32Array.from(F.get(id))]));
   for (const id of ORIGINE) { const Fm = F.get(id); for (const j of ORIGINE) if (j !== id) { const Fj = copie.get(j); for (let q = 0; q < N; q++) { const c = (Fm[q] - Fj[q] + GIOCO.setto * 2) / 2; if (c > Fm[q]) Fm[q] = c; } } }
-  for (const id of ORIGINE) { const Fm = F.get(id); for (let q = 0; q < N; q++) if (WZ[q] > 0) Fm[q] = Math.max(Fm[q], C[q]); }
+  for (const id of ORIGINE) { const Fm = F.get(id); for (let q = 0; q < N; q++) if (WZ[q] > 0) Fm[q] = smax(Fm[q], C[q], SETTI.taglio); }   // tagli degli ostacoli arrotondati (niente lembi affilati)
   let nenv = 0; for (let q = 0; q < N; q++) if (Env[q] < 0) nenv++;
   log(`origine comune: involucro di ${(nenv * PASSO ** 3).toFixed(2)} cm³ (${tolti} voxel tolti dall'apertura)`);
 }
