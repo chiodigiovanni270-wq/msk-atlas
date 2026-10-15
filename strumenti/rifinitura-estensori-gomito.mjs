@@ -63,7 +63,7 @@ const EDM = { larghezza: [[0.75, 0.2], [0.2, 0.35], [-1, 0.5], [-3, 0.7], [-6, 0
 // (tra supinatore e APL), così non attraversa l'APL
 const TUBI = { n_pin: [-5.8, -7.0], a_interossea_post: [-4.5, -5.3], dx: 0.32, gioco: 0.03, fuori: 0.3, lisci: 6 };
 const SUP = { liscia: 0.15, allarga: 0.07 };
-const SOLCO = { chiusura: 0.45, fascia: [-0.5, 0.6] };
+const SOLCO = { chiusura: 0.45, fascia: [0.1, 0.8], raccordo: 1.5 };
 const ECU_LATERALE = [-0.5, -2.2, 0.15];   // y sopra cui la traslazione è piena, y dove si annulla, gioco dal margine (cm)
 const MESH = { passo: 0.12, passoNuovi: 0.1, taubin: 20 };
 const FIBRE = { sigma: 0.5, sigmaTag: 0.22, passate: 6 };
@@ -360,30 +360,31 @@ for (const id of CEDONO) {
 }
 /* ============ Solco tra anconeo ed ECU ============ */
 // tra il margine laterale dell'anconeo e l'ECU restava un solco profondo fino al supinatore (fessura scura nella vista posteriore): l'unione di
-// anconeo, ECU, ossa e supinatore è chiusa (`SOLCO.chiusura`) e lo spazio vuoto aggiunto dalla chiusura in una fascia attorno al margine
-// laterale (da `SOLCO.fascia[0]` cm dentro a `SOLCO.fascia[1]` cm fuori dalla retta apice → angolo ulnare) va all'anconeo fino al margine del
-// triangolo (`ANCONEO.margine`) e all'ECU oltre: i due muscoli si toccano e l'anconeo resta triangolare
+// anconeo, ECU, ossa e supinatore è chiusa (`SOLCO.chiusura`) e lo spazio vuoto aggiunto dalla chiusura, in una fascia fuori dal margine laterale
+// (retta apice → angolo ulnare, da `SOLCO.fascia[0]` a `SOLCO.fascia[1]` cm), va all'ECU, che si appoggia all'anconeo; la fascia si assottiglia
+// gradualmente verso le due estremità (`SOLCO.raccordo` cm) e il campo dell'ECU è poi levigato: niente bordi tronchi. L'anconeo resta triangolare.
 {
   const Fa = F.get('anc'), Fu = F.get('ecu'), M = new Uint8Array(N);
   for (let q = 0; q < N; q++) if (Fa[q] < 0 || Fu[q] < 0 || campi.osso[q] < 0 || campi.sup[q] < 0) M[q] = 1;
   const Cl = G.chiuso(G.sdf(M).Do, SOLCO.chiusura); gauss(Cl, 0.05);
-  const altri = ['edm', 'apl', 'epl', 'edc', 'ecrb'].map(id => F.get(id)), Fa0 = Float32Array.from(Fa), Fu0 = Float32Array.from(Fu);
+  const altri = ['anc', 'edm', 'apl', 'epl', 'edc', 'ecrb'].map(id => F.get(id));
   const a = T2[0], c = T2[2], ac = [c[0] - a[0], c[1] - a[1]], l = Math.hypot(...ac); let n2 = [ac[1] / l, -ac[0] / l];
   if ((T2[1][0] - a[0]) * n2[0] + (T2[1][1] - a[1]) * n2[1] > 0) n2 = n2.map(v => -v);   // verso l'esterno (lato dell'ECU)
-  const [dentro, fuori] = SOLCO.fascia, mezzo = (fuori - dentro) / 2, centro = (fuori + dentro) / 2;
+  const [d0, d1] = SOLCO.fascia, R = SOLCO.raccordo, Fn = new Float32Array(N).fill(1);
+  for (let q = 0; q < N; q++) {
+    if (Cl[q] > 0.3) continue; const p = G.voxel(q); if (p[1] > A[1] + 0.3 || p[1] < C[1] - 0.3) continue;
+    const w = uv(p), d = (w[0] - a[0]) * n2[0] + (w[1] - a[1]) * n2[1], lungo = ((w[0] - a[0]) * ac[0] + (w[1] - a[1]) * ac[1]) / l;
+    const k = sstep(0, R, lungo) * sstep(l, l - R, lungo), centro = (d0 + d1) / 2, mezzo = (d1 - d0) / 2 * k;   // fascia che si stringe agli estremi
+    if (Math.abs(d - centro) > mezzo + 0.4) continue;
+    Fn[q] = smax(Cl[q], Math.abs(d - centro) - mezzo, 0.15);
+  }
+  gauss(Fn, 0.06);
   let n = 0;
   for (let q = 0; q < N; q++) {
-    if (Cl[q] > 0.2) continue; const p = G.voxel(q); if (p[1] > A[1] + 0.3 || p[1] < C[1] - 0.3) continue;
-    const w = uv(p), d = (w[0] - a[0]) * n2[0] + (w[1] - a[1]) * n2[1], lungo = ((w[0] - a[0]) * ac[0] + (w[1] - a[1]) * ac[1]) / l;
-    if (Math.abs(d - centro) > mezzo + 0.3) continue;
-    let v = smax(Cl[q], Math.abs(d - centro) - mezzo, 0.1); v = smax(v, Math.max(-lungo, lungo - l), 0.2); v = Math.max(v, C0[q]);
-    for (const Fo of altri) v = Math.max(v, GIOCO.muscolo - Fo[q]);
-    const lato = (d - ANCONEO.margine) * 1;   // < 0: anconeo, > 0: ECU
-    const va = Math.max(v, lato + GIOCO.setto, GIOCO.muscolo - Fu0[q]), vu = Math.max(v, -lato + GIOCO.setto, GIOCO.muscolo - Fa0[q]);
-    if (va < Fa[q]) { if (Fa[q] >= 0 && va < 0) n++; Fa[q] = va; }
-    if (vu < Fu[q]) { if (Fu[q] >= 0 && vu < 0) n++; Fu[q] = vu; }
+    let v = Math.max(Fn[q], C0[q]); for (const Fo of altri) v = Math.max(v, GIOCO.muscolo - Fo[q]);
+    if (v < Fu[q]) { if (Fu[q] >= 0 && v < 0) n++; Fu[q] = v; }
   }
-  log(`solco tra anconeo ed ECU: ${(n * PASSO ** 3).toFixed(2)} cm³ colmati`);
+  log(`solco tra anconeo ed ECU: ${(n * PASSO ** 3).toFixed(2)} cm³ aggiunti all'ECU`);
 }
 for (const id of MUSCOLI) { const Fm = F.get(id); for (let q = 0; q < N; q++) Fm[q] = Math.max(Fm[q], Y_TAGLIO - yDi(q)); }
 log(`area finale (cm², y 1/0/−2/−4/−6/−8/−10/−11,9): ${righeArea()}`);
