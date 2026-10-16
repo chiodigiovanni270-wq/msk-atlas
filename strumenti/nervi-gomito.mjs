@@ -63,6 +63,8 @@ const CUTANEI = {
   n_cut_med_avambraccio: { coda: [[2.5, 6.4, 0.5], [2.55, 7.6, 0.45], [2.6, 9.0, 0.4], [2.6, 10.5, 0.3], [2.6, 12.0, 0.25]], sup: true, fin: 'taglio' },
   n_cut_med_braccio: { coda: [[2.93, 6.0, -0.33], [2.97, 5.0, -0.36], [3.0, 4.2, -0.4]], sup: true, fin: 'punta', ini: 'taglio', tutto: true },
 };
+// Nervi che nel decorso di partenza affondano nell'osso: spostamento liscio (gaussiana `sigma` cm lungo l'arco) lungo il gradiente della distanza dall'osso, finché restano a 0,8 r + 0,02 cm.
+const SGOMBRA_OSSO = { n_rad_sup: { sigma: 0.7 }, n_pin: { sigma: 0.7 }, n_interosseo_ant: { sigma: 0.7 } };
 const RACCORDO = 8;   // punti (0,8 cm) del decorso di partenza vicini al tratto nuovo lasciati liberi per raccordare le tangenti
 const GIOCO = 0.03, K_PROF = 0.8, K_CUTE = 0.1, MARGINE_LAMINE = 0.2, TURNO = 5;   // cm; frazione del raggio libera dalle strutture; gradi massimi di svolta per segmento di 1 mm
 const TAGLIO_Y = 11.6;   // oltre |y| = 11.6 l'estremo del tubo sta sul piano di taglio (come in vessel())
@@ -118,6 +120,9 @@ log('campi: strutture profonde');
 const Fs = sdfDa(SOLIDI);
 const ESENTI_TUTTI = [...new Set(Object.values(CUTANEI).flatMap(c => c.esenti || []))];
 const FsEsenti = ESENTI_TUTTI.length ? sdfDa(SOLIDI.filter(n => !ESENTI_TUTTI.includes(n))) : Fs;
+const OSSA = ['omero', 'ulna', 'radio', 'cart_omero', 'cart_ulna', 'cart_radio'];
+const Fo = sdfDa(OSSA);
+const dOsso = p => G.sample(Fo, p[0], p[1], p[2]);
 const Fc = (() => { const M = G.unione(SOLIDI), { Do } = G.sdf(M); const F = G.chiuso(Do, 0.4); G.esatta(F, SOLIDI, 0); return F; })();
 const Fh = (() => { const F = new Float32Array(G.N).fill(5); G.esatta(F, SHEET, BANDA); for (let q = 0; q < G.N; q++) F[q] = Math.abs(F[q]); return F; })();
 log('campi: cute');
@@ -138,6 +143,20 @@ const vicinoAltri = (p, extra) => { let m = 9, id = ''; for (const [k, o] of Obj
 const T = {};
 const nervi0 = Object.keys(NVP0.pts).filter(k => k.startsWith('n_'));
 for (const id of nervi0) T[id] = { P: catmull(NVP0.pts[id], PASSO), r: NVP0.r[id], k: () => 1, ini: Math.abs(NVP0.pts[id][0][1]) > TAGLIO_Y ? 'taglio' : 'punta', fin: Math.abs(NVP0.pts[id].at(-1)[1]) > TAGLIO_Y ? 'taglio' : 'punta' };
+function sgombraOsso(id, cfg) {
+  const t = T[id], r = t.r, n = t.P.length; let P = t.P.map(p => p.slice()), pen = 0;
+  const fissoY = i => (i === 0 && t.ini === 'taglio') || (i === n - 1 && t.fin === 'taglio');
+  for (let giro = 0; giro < 6; giro++) {
+    const D = P.map(p => { const d = dOsso(p) - (0.8 * r + 0.02); if (d >= 0) return [0, 0, 0]; const g = G.grad({ s: dOsso }, p, 0.05), l = len(g) || 1; return mul(g, -d / l * 1.1); });
+    const c = arco(P); const S = P.map((_, i) => { let w = 0, s = [0, 0, 0]; for (let j = 0; j < n; j++) { const dd = c[j] - c[i]; if (Math.abs(dd) > 3 * cfg.sigma) continue; const g = Math.exp(-0.5 * (dd / cfg.sigma) ** 2); w += g; s = add(s, mul(D[j], g)); } return mul(s, 1 / w); });
+    // la gaussiana attenua lo spostamento: lo si scala perché il picco resti pari alla compenetrazione
+    const mxD = Math.max(...D.map(len)), mxS = Math.max(...S.map(len)); const k = mxS > 1e-9 ? Math.min(3, mxD / mxS) : 0;
+    P = P.map((p, i) => { const q = add(p, mul(S[i], k)); if (fissoY(i)) q[1] = p[1]; return q; });
+  }
+  P.forEach((p, i) => { if (dOsso(p) < 0.8 * r) pen++; });
+  t.P = P; log('sgombra osso', id, 'punti ancora in osso:', pen);
+}
+if (!VERIFICA) for (const [id, cfg] of Object.entries(SGOMBRA_OSSO)) sgombraOsso(id, cfg);
 const PARENT_NUOVI = {};   // id → padre (per la pagina)
 
 /* --- continuazione (NIP) e rami laterali (ramo superficiale, NIA) --- */
@@ -213,11 +232,20 @@ if (!VERIFICA) costruisciCutanei();
 const muscoliPos = {};
 const posMuscolo = n => muscoliPos[n] || (muscoliPos[n] = G.REAL(n).pos);
 function piuVicino(pos, q) { let d = 1e18, k = 0; for (let j = 0; j < pos.length; j += 3) { const x = pos[j] - q[0], y = pos[j + 1] - q[1], z = pos[j + 2] - q[2], dd = x * x + y * y + z * z; if (dd < d) { d = dd; k = j; } } return { d: Math.sqrt(d), p: [pos[k], pos[k + 1], pos[k + 2]] }; }
+// punto d'ingresso nel muscolo: il vertice più vicino a `rif` il cui segmento dall'origine `Pe` non attraversa l'osso (altrimenti il ramo passerebbe nell'epicondilo)
+function ingressoLibero(pos, rif, Pe, r) {
+  const cand = []; for (let j = 0; j < pos.length; j += 3) cand.push({ d: Math.hypot(pos[j] - rif[0], pos[j + 1] - rif[1], pos[j + 2] - rif[2]), p: [pos[j], pos[j + 1], pos[j + 2]] });
+  cand.sort((a, b) => a.d - b.d);
+  for (const c of cand.slice(0, 4000)) { const L = len(sub(c.p, Pe)); let ok = true;
+    for (let s = 0.1; s <= L && ok; s += 0.05) if (dOsso(lerp3(Pe, c.p, s / L)) < r + 0.03) ok = false;
+    if (ok) return c.p; }
+  return cand[0].p;
+}
 function costruisciRami() {
   for (const R of RAMI) {
     if (!T[R.padre]) throw new Error('padre mancante ' + R.padre);
     const Pd = new Curva(T[R.padre].P), rP = T[R.padre].r, sIn = Pd.sArrivoY(R.yIn), s0 = Math.max(0, sIn - R.run), Pe = Pd.at(sIn);
-    const pos = posMuscolo(R.muscolo), Q = piuVicino(pos, R.guida ? R.guida : Pe).p;
+    const pos = posMuscolo(R.muscolo), Q = ingressoLibero(pos, R.guida ? R.guida : Pe, Pe, R.r);
     let u = nrm(sub(Q, Pe)); const tg = Pd.tan(sIn); u = nrm(sub(u, mul(tg, dot(u, tg))));   // direzione laterale, perpendicolare al tronco
     const pts = [];
     for (let s = s0; s <= sIn + 1e-9; s += PASSO) { const off = (rP * (T[R.padre].k(s) || 1) + 0.6 * R.r) * sstep(s0, s0 + 0.55 * R.run, s); pts.push(add(Pd.at(s), mul(u, off))); }
@@ -229,6 +257,8 @@ function costruisciRami() {
     const tail = hermite(fine, mul(tg, Math.max(0.3, dT)), tip, mul(dirT, Math.max(0.3, dT)));
     let P = risampiona([...pts, ...tail.slice(1)], PASSO);
     for (let pass = 0; pass < 4; pass++) P = P.map((p, i) => i < 3 || i === P.length - 1 ? p : add(p, mul(sub(mul(add(P[i - 1], P[i + 1]), 0.5), p), 0.35)));
+    for (let it = 0; it < 40; it++) { for (let i = 3; i < P.length - 1; i++) { const d = dOsso(P[i]) - R.r - 0.02; if (d < 0) { const g = G.grad({ s: dOsso }, P[i], 0.05), l = len(g) || 1; P[i] = add(P[i], mul(g, -d / l)); } }
+      P = P.map((p, i) => i < 3 || i === P.length - 1 ? p : add(p, mul(sub(mul(add(P[i - 1], P[i + 1]), 0.5), p), 0.2))); }
     const L = arco(P).at(-1);
     T[R.id] = { P, r: R.r, k: s => 0.5 + 0.5 * sstep(0, 0.5, s), ini: 'dentro', fin: 'punta', muscolo: R.muscolo }; PARENT_NUOVI[R.id] = R.padre;
     T[R.id].k = s => (0.5 + 0.5 * sstep(0, 0.45, s)) * (L - s < 0.45 ? 0.35 + 0.65 * Math.sqrt(Math.max(0, 1 - ((0.45 - (L - s)) / 0.45) ** 2)) : 1);
@@ -259,14 +289,14 @@ const PARENTELA = id => PARENT_NUOVI[id] || PARENT_PAGINA[id];
 function statistiche(tubi) {   // tubi: id → { P, r(i) }
   const righe = [], ids = Object.keys(tubi);
   for (const id of ids) {
-    const X = tubi[id]; let nD = 0, nK = 0, nV = 0, mD = 9, mK = 9, mV = 9, vId = '', svolta = 0;
+    const X = tubi[id]; let nO = 0, mO = 9, nD = 0, nK = 0, nV = 0, mD = 9, mK = 9, mV = 9, vId = '', svolta = 0;
     const sup = CUTANEI[id]?.sup, supSotto = CUTANEI[id]?.supSotto;
     for (let i = 0; i < X.P.length; i++) {
       const p = X.P[i], r = X.r(i), dp = (sup || (supSotto !== undefined && p[1] < supSotto) ? dSopraFascia(p) : dSolidi(p)) - K_PROF * r, dk = dentroCute(p) - K_CUTE * r, v = vicinoAltri(p), dv = v.d - r;
-      if (dp < -0.002) nD++; if (dk < -0.002) nK++; if (dv < -0.002) nV++; mD = Math.min(mD, dp); mK = Math.min(mK, dk); if (dv < mV) { mV = dv; vId = v.id + ' @' + p.map(c => c.toFixed(1)).join(','); }
+      const dO = dOsso(p) - 0.8 * r; if (dO < -0.003) nO++; mO = Math.min(mO, dO); if (dp < -0.002) nD++; if (dk < -0.002) nK++; if (dv < -0.002) nV++; mD = Math.min(mD, dp); mK = Math.min(mK, dk); if (dv < mV) { mV = dv; vId = v.id + ' @' + p.map(c => c.toFixed(1)).join(','); }
     }
     for (let i = 1; i < X.P.length - 1; i++) svolta = Math.max(svolta, Math.acos(clamp(dot(nrm(sub(X.P[i], X.P[i - 1])), nrm(sub(X.P[i + 1], X.P[i]))), -1, 1)) * 180 / Math.PI * (0.1 / (len(sub(X.P[i + 1], X.P[i - 1])) / 2 || 0.1)));
-    righe.push(`${id.padEnd(24)} svolta ${svolta.toFixed(1).padStart(4)}°/mm  prof<0: ${String(nD).padStart(3)} (min ${(mD * 10).toFixed(1)} mm)  cute<0: ${String(nK).padStart(3)} (min ${(mK * 10).toFixed(1)} mm)  vasi: ${String(nV).padStart(3)} (min ${(mV * 10).toFixed(1)} mm ${vId})`);
+    righe.push(`${id.padEnd(24)} svolta ${svolta.toFixed(1).padStart(4)}°/mm  osso<0: ${String(nO).padStart(3)} (min ${(mO * 10).toFixed(1)} mm)  prof<0: ${String(nD).padStart(3)} (min ${(mD * 10).toFixed(1)} mm)  cute<0: ${String(nK).padStart(3)} (min ${(mK * 10).toFixed(1)} mm)  vasi: ${String(nV).padStart(3)} (min ${(mV * 10).toFixed(1)} mm ${vId})`);
   }
   for (const id of ids.filter(i => i.startsWith('n_rm_'))) { const P = tubi[id].P, tip = P.at(-1), d = G.sample(Fs, tip[0], tip[1], tip[2]); righe.push(`  ${id}: punta a ${(d * 10).toFixed(1)} mm dalla superficie (negativo = dentro un muscolo o un osso)`); }
   for (let a = 0; a < ids.length; a++) for (let b = a + 1; b < ids.length; b++) {
