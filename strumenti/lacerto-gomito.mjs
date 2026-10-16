@@ -43,7 +43,7 @@ const INVILUPPO = {
   carta: { th0: -70, th1: 130, dth: 1, y0: -7, y1: 5, dy: 0.1 },   // gradi e cm
 };
 const SOFFITTO_VENE = false;                         // true: la faccia superiore resta sotto vene e nervi superficiali (la lamina si abbassa); false: sono le vene a essere sollevate
-const ATTACCO = { estendi: 0.6, tratto: 0.3, sopra: -0.12 };   // cm: estensione del livello del tendine oltre il suo margine; tratto (frazione di s) in cui la lamina passa dal tendine all'inviluppo; quota sul tendine
+const ATTACCO = { passate: 10, tratto: 0.3, sopra: -0.02 };   // passate di estensione del livello locale del tendine oltre il suo margine (≈ 0,6 cm); tratto (frazione di s) in cui la lamina passa dal tendine all'inviluppo; quota sul tendine (cm)
 const MARGINE = { vene: 0.03, cute: 0.05 };          // cm: la faccia superiore resta sotto vene/nervi superficiali e cute di questa distanza
 // vene e nervi che passano sopra il lacerto: se lo incrociano senza spazio, sono sollevati con un raccordo
 const SUPERFICIALI = ['v_basilica', 'v_mediana_cub', 'v_mediana_basilica', 'v_mediana_cefalica', 'v_mediana_avambraccio', 'v_cefalica', 'n_cut_med_avambraccio', 'n_cut_med_braccio', 'n_cut_lat'];
@@ -139,13 +139,14 @@ for (let i = 0; i < Renv.length; i++) Renv[i] = Math.max(Renv[i], Rraw[i] + 0.00
 const bil = (A, th, y) => { const fx = clamp((th - C.th0) / C.dth - 0.5, 0, nT - 1.001), fy = clamp((y - C.y0) / C.dy - 0.5, 0, nY - 1.001), i = Math.floor(fx), j = Math.floor(fy), tx = fx - i, ty = fy - j;
   const g = (a, b) => A[b * nT + a]; return (g(i, j) * (1 - tx) + g(i + 1, j) * tx) * (1 - ty) + (g(i, j + 1) * (1 - tx) + g(i + 1, j + 1) * tx) * ty; };
 // tendine del bicipite: all'origine la lamina segue la sua faccia (non l'inviluppo teso, che sta sopra la fossa e lascerebbe uno spazio tra tendine e lacerto);
-// il livello del tendine è esteso di `ATTACCO.estendi` cm oltre il suo margine, poi la lamina sale all'inviluppo (peso 1 → 0 tra s = 0 e `ATTACCO.tratto`)
+// il livello locale del tendine è prolungato oltre il suo margine con il valore del bordo, poi la lamina sale all'inviluppo (peso 1 → 0 tra s = 0 e `ATTACCO.tratto`)
 const Rbic = cartaRaggi((() => { const F = G.sdf(G.solid('bic')).F; G.sfoca(F, 1); return F; })());
-const massimoPiatto = (A, raggio) => { const ni = Math.ceil(raggio / da), nj = Math.ceil(raggio / C.dy), L = [], O2 = new Float32Array(A.length);   // massimo su un disco (elemento piatto)
-  for (let dj = -nj; dj <= nj; dj++) for (let di = -ni; di <= ni; di++) if ((di * da) ** 2 + (dj * C.dy) ** 2 <= raggio * raggio) L.push([di, dj]);
-  for (let jy = 0; jy < nY; jy++) for (let it = 0; it < nT; it++) { let v = 0; for (const [di, dj] of L) { const i = it + di, j = jy + dj; if (i >= 0 && j >= 0 && i < nT && j < nY && A[j * nT + i] > v) v = A[j * nT + i]; } O2[jy * nT + it] = v; }
-  return O2; };
-const Rbx = massimoPiatto(Rbic, ATTACCO.estendi);
+const estendi = (A, passate) => { let R = A.slice();   // il livello locale del tendine si prolunga oltre il suo margine con il valore del bordo (nessun plateau sopra la fossa)
+  for (let g = 0; g < passate; g++) { const N2 = R.slice();
+    for (let jy = 0; jy < nY; jy++) for (let it = 0; it < nT; it++) if (R[jy * nT + it] === 0) { let m = 0, k = 0; for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const i = it + a, j = jy + b; if (i >= 0 && j >= 0 && i < nT && j < nY && R[j * nT + i] > 0) { m += R[j * nT + i]; k++; } } if (k) N2[jy * nT + it] = m / k; }
+    R = N2; }
+  return R; };
+const Rbx = estendi(Rbic, ATTACCO.passate);
 const rEnv = (th, y) => bil(Renv, th, y);
 const raggio = (th, y, s) => { let r = rEnv(th, y); const b = 1 - sstep(0, ATTACCO.tratto, s), rb = bil(Rbx, th, y);
   if (b > 0 && rb > 0.5) r = (1 - b) * r + b * Math.min(r, rb + ATTACCO.sopra);
