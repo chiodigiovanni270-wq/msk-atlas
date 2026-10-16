@@ -53,6 +53,7 @@ const CAPO_OMERALE_FCU = [[2.7, 0.45, -0.55], [3.12, 1.2, -0.15], 0.27];
 // a passi `passi` (cm): i setti convergono sull'epicondilo; etichette levigate (sigma) e convertite in distanza (scala)
 const SETTI = { sigma: 0.22, raccordo: 0.12, finale: 0.05, taglio: 0.1, scala: 0.3, passi: [0, 0.25, 0.5, 0.8, 1.1, 1.5, 2.0] };
 const TENDINE = { fcr: [0.3, 1.0], pl: [0.3, 1.0], fds: [0.3, 0.95], fcu: [0.3, 0.95], pt: [0.25, 0.85], verso: [3.0, 1.1, 0.25] };   // distanza dall'omero (cm) a cui il colore va da tendine a muscolo; punto d'origine delle fibre
+const CAPO_PT = { arteria: [1.2, 3.4, 1.0], chiusura: 0.5, piega: 0.35, apertura: 0.15, vicino: 1.0, da: 0.4 };   // tratto [y da, y a, raggio] in cui vale il piano dell'arteria; raggi di chiusura (con l'omero, del solo pronatore) e apertura, distanza massima da omero e pronatore, y minima (cm)
 const MESH = { passo: 0.15, passoOrigine: 0.1, taubin: 20 };
 const FIBRE = { sigma: 0.5, sigmaTag: 0.22, passate: 6 };
 const SUPERFICIALI = ['v_cefalica', 'v_basilica', 'v_mediana_cub', 'v_mediana_avambraccio', 'n_cut_med_avambraccio', 'n_cut_med_braccio', 'n_cut_post_avambraccio', 'n_cut_lat'];
@@ -243,6 +244,50 @@ const WZ = new Float32Array(N); for (let q = 0; q < N; q++) WZ[q] = pesoZona(...
   for (const id of ORIGINE) { const Fm = F.get(id); for (let q = 0; q < N; q++) if (WZ[q] > 0) Fm[q] = smax(Fm[q], C[q], SETTI.taglio); }   // tagli degli ostacoli arrotondati (niente lembi affilati)
   let nenv = 0; for (let q = 0; q < N; q++) if (Env[q] < 0) nenv++;
   log(`origine comune: involucro di ${(nenv * PASSO ** 3).toFixed(2)} cm³ (${tolti} voxel tolti dall'apertura)`);
+}
+/* ============ Capo omerale del pronatore aderente all'osso ============ */
+// sopra l'epicondilo il pronatore avvolgeva l'arteria collaterale ulnare inferiore con un lobo postero-mediale: un anello attorno al vaso,
+// con un foro (il tunnel dell'arteria). In anatomia il ramo anteriore dell'arteria scende davanti all'epicondilo a contatto con il pronatore,
+// e il capo omerale nasce con un'inserzione continua dalla cresta sopracondiloidea mediale e dal tendine comune. (a) Vicino all'arteria il
+// pronatore resta dalla sua parte del vaso: non supera il piano per l'arteria con normale dal baricentro della sezione del muscolo verso il vaso
+// (raccordo levigato, `CAPO_PT.arteria`); (b) l'unione di pronatore e omero è chiusa (`CAPO_PT.chiusura`) e lo spazio vuoto aggiunto, vicino
+// all'omero e al pronatore, va al pronatore; (c) apertura e levigatura (niente bozzi)
+{
+  const Fp = F.get('pt'), M = new Uint8Array(N), Mp = new Uint8Array(N);
+  { // (a) piano dell'arteria
+    const id = 'a_collat_ulnare_inf', P = NVP.pts[id], ra = reff(id), [y0, y1, raggio] = CAPO_PT.arteria, Pl = new Float32Array(N).fill(-1);
+    const aDi = y => { for (let i = 0; i + 1 < P.length; i++) { const a = P[i], b = P[i + 1]; if ((a[1] - y) * (b[1] - y) <= 0 && a[1] !== b[1]) { const t = (y - a[1]) / (b[1] - a[1]); return [a[0] + (b[0] - a[0]) * t, a[2] + (b[2] - a[2]) * t]; } } return null; };
+    for (let j = 0; j < NY; j++) {
+      const y = G.O[1] + (j + 0.5) * PASSO, wy = sstep(y0 - 0.4, y0, y) * (1 - sstep(y1, y1 + 0.4, y)); if (wy <= 0) continue;
+      const a = aDi(y); if (!a) continue;
+      let sx = 0, sz = 0, nn = 0;   // baricentro della sezione del pronatore entro `raggio` dall'arteria
+      for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) { const q = i + NX * j + NXY * k; if (Fp[q] >= 0) continue; const x = G.O[0] + (i + 0.5) * PASSO, z = G.O[2] + (k + 0.5) * PASSO; if (Math.hypot(x - a[0], z - a[1]) > raggio * 1.5) continue; sx += x; sz += z; nn++; }
+      if (!nn) continue;
+      const nx0 = a[0] - sx / nn, nz0 = a[1] - sz / nn, nl = Math.hypot(nx0, nz0) || 1, nx = nx0 / nl, nz = nz0 / nl;
+      for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) {
+        const x = G.O[0] + (i + 0.5) * PASSO, z = G.O[2] + (k + 0.5) * PASSO, d = Math.hypot(x - a[0], z - a[1]); if (d > raggio) continue;
+        const w = wy * (1 - sstep(raggio * 0.6, raggio, d)), v = (x - a[0]) * nx + (z - a[1]) * nz + ra + GIOCO.tubo;
+        Pl[i + NX * j + NXY * k] = w * v + (1 - w) * -1;
+      }
+    }
+    gauss(Pl, 0.06); let tolti = 0; for (let q = 0; q < N; q++) if (Pl[q] > Fp[q]) { if (Fp[q] < 0 && Pl[q] >= 0) tolti++; Fp[q] = Pl[q]; }
+    CAPO_PT.piano = Pl; log(`capo omerale del pronatore: ${(tolti * PASSO ** 3).toFixed(2)} cm³ tolti oltre l'arteria collaterale ulnare inferiore`);
+  }
+  for (let q = 0; q < N; q++) { if (Fp[q] < 0) Mp[q] = M[q] = 1; else if (campi.omero[q] < 0) M[q] = 1; }
+  // chiusura del solo pronatore (colma la piega tra lobo e ventre) e dell'unione con l'omero (colma il foro sotto il lobo)
+  const Cp = G.chiuso(G.sdf(Mp).Do, CAPO_PT.piega), Co = G.chiuso(G.sdf(M).Do, CAPO_PT.chiusura), Cl = new Float32Array(N);
+  for (let q = 0; q < N; q++) Cl[q] = Math.min(Cp[q], Co[q]); gauss(Cl, 0.05);
+  const C = ostacoli(campi.tubi), altri = MUSCOLI.filter(id => id !== 'pt').map(id => F.get(id)), P0 = Float32Array.from(Fp);
+  for (let q = 0; q < N; q++) C[q] = Math.max(C[q], CAPO_PT.piano[q]);   // la chiusura non ricrea il lobo
+  let n = 0;
+  for (let q = 0; q < N; q++) {
+    if (Cl[q] > 0.1 || campi.omero[q] > CAPO_PT.vicino || P0[q] > CAPO_PT.vicino || yDi(q) < CAPO_PT.da) continue;
+    let v = Math.max(Cl[q], C[q]); for (const Fo of altri) v = Math.max(v, GIOCO.muscolo - Fo[q]);
+    if (v < Fp[q]) { if (Fp[q] >= 0 && v < 0) n++; Fp[q] = v; }
+  }
+  const L = Float32Array.from(Fp); apri(L, CAPO_PT.apertura); gauss(L, 0.06);   // niente bozzo sporgente (l'apertura vale solo nella zona, sotto)
+  for (let q = 0; q < N; q++) if (campi.omero[q] < CAPO_PT.vicino + 0.3 && yDi(q) > CAPO_PT.da - 0.3) { let v = Math.max(L[q], C[q]); for (const Fo of altri) v = Math.max(v, GIOCO.muscolo - Fo[q]); Fp[q] = v; }
+  log(`capo omerale del pronatore: ${(n * PASSO ** 3).toFixed(2)} cm³ aggiunti tra muscolo e omero`);
 }
 for (const id of MUSCOLI) { const Fm = F.get(id); for (let q = 0; q < N; q++) Fm[q] = Math.max(Fm[q], Y_TAGLIO - yDi(q)); }
 log(`area finale (cm², y 1/0/−2/−4/−6/−8/−10/−11,9): ${righeArea()}`);
