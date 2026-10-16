@@ -26,7 +26,7 @@ const FORMA = {
   A: [[0.3, 2.4], [0.1, 1.7], [-0.1, 1.0]],
   B: [[0.3, 2.4], [1.2, 2.2], [2.1, 1.85], [2.8, 1.45], [3.25, 0.95]],
   C: [[-0.1, 1.0], [0.12, -0.5], [0.62, -1.7], [1.3, -2.8], [2.2, -3.5]],
-  D: [[3.25, 0.95], [3.45, 0.3], [3.42, -0.6], [3.3, -1.5], [3.0, -2.35], [2.62, -3.05], [2.2, -3.5]],
+  D: [[3.25, 0.95], [3.3, 0.3], [3.05, -0.6], [2.75, -1.5], [2.5, -2.3], [2.35, -2.95], [2.2, -3.5]],
   mesh: { ns: 48, nu: 64 },                         // maglie lungo le fibre (dall'origine al margine D) e attraverso
   Tm: 0.035, T0: 0.08, origine: 0.2, labbro: 0.02,  // cm: spessore nel corpo, all'origine, frazione dello spessore sulla linea d'origine (si fonde col tendine), cordone del margine libero
   bordo: { B: 0.06, C: 0.25, D: 0.5 },              // cm: larghezza dell'arrotondamento dello spessore sui margini (lo spessore va a zero sul bordo)
@@ -140,7 +140,8 @@ const pos3 = (th, y, off) => { const [cx, cz] = asse(y), r = rEnv(th, y) + off, 
 
 /* ============ Forma: superficie di Coons ============ */
 // coordinate frontali (x, y) → angolo sull'inviluppo (monotona da th0 fino al punto più mediale)
-const thetaDi = (x, y) => { let prev = pos3(C.th0 + 5, y, 0)[0]; for (let th = C.th0 + 5.5; th < 125; th += 0.5) { const xx = pos3(th, y, 0)[0]; if (xx >= x && prev < x) return th - 0.5 + 0.5 * (x - prev) / (xx - prev); prev = xx; } return 125; };
+const TH_MAX = 100;   // gradi: il lacerto non gira oltre il margine mediale dell'avambraccio (se x non è raggiungibile a quella quota, il punto sta sul limite)
+const thetaDi = (x, y) => { let prev = pos3(C.th0 + 5, y, 0)[0]; for (let th = C.th0 + 5.5; th < 125; th += 0.5) { const xx = pos3(th, y, 0)[0]; if (xx >= x && prev < x) return Math.min(th - 0.5 + 0.5 * (x - prev) / (xx - prev), TH_MAX); prev = xx; } return TH_MAX; };
 const lato = pts => { const q = pts.map(([x, y]) => [thetaDi(x, y), y]), p = q.map(([t, y]) => [t * INVILUPPO.R0 * rad, y]), L = [0];   // spline di Catmull-Rom per lunghezza di corda (cm nel piano srotolato)
   for (let i = 1; i < p.length; i++) L.push(L[i - 1] + Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]));
   const tot = L.at(-1);
