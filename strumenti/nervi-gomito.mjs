@@ -293,14 +293,14 @@ const PARENTELA = id => PARENT_NUOVI[id] || PARENT_PAGINA[id];
 function statistiche(tubi) {   // tubi: id → { P, r(i) }
   const righe = [], ids = Object.keys(tubi);
   for (const id of ids) {
-    const X = tubi[id]; let nO = 0, mO = 9, nD = 0, nK = 0, nV = 0, mD = 9, mK = 9, mV = 9, vId = '', svolta = 0;
+    const X = tubi[id]; let mDp = null, nO = 0, mO = 9, nD = 0, nK = 0, nV = 0, mD = 9, mK = 9, mV = 9, vId = '', svolta = 0;
     const sup = CUTANEI[id]?.sup, supSotto = CUTANEI[id]?.supSotto;
     for (let i = 0; i < X.P.length; i++) {
       const p = X.P[i], r = X.r(i), dp = (sup || (supSotto !== undefined && p[1] < supSotto) ? dSopraFascia(p) : dSolidi(p)) - K_PROF * r, dk = dentroCute(p) - K_CUTE * r, v = vicinoAltri(p), dv = v.d - r;
-      const dO = dOsso(p) - 0.8 * r; if (dO < -0.003) nO++; mO = Math.min(mO, dO); if (dp < -0.002) nD++; if (dk < -0.002) nK++; if (dv < -0.002) nV++; mD = Math.min(mD, dp); mK = Math.min(mK, dk); if (dv < mV) { mV = dv; vId = v.id + ' @' + p.map(c => c.toFixed(1)).join(','); }
+      const dO = dOsso(p) - 0.8 * r; if (dO < -0.003) nO++; mO = Math.min(mO, dO); if (dp < -0.002) nD++; if (dp < mD) mDp = p; if (dk < -0.002) nK++; if (dv < -0.002) nV++; mD = Math.min(mD, dp); mK = Math.min(mK, dk); if (dv < mV) { mV = dv; vId = v.id + ' @' + p.map(c => c.toFixed(1)).join(','); }
     }
     for (let i = 1; i < X.P.length - 1; i++) svolta = Math.max(svolta, Math.acos(clamp(dot(nrm(sub(X.P[i], X.P[i - 1])), nrm(sub(X.P[i + 1], X.P[i]))), -1, 1)) * 180 / Math.PI * (0.1 / (len(sub(X.P[i + 1], X.P[i - 1])) / 2 || 0.1)));
-    righe.push(`${id.padEnd(24)} svolta ${svolta.toFixed(1).padStart(4)}°/mm  osso<0: ${String(nO).padStart(3)} (min ${(mO * 10).toFixed(1)} mm)  prof<0: ${String(nD).padStart(3)} (min ${(mD * 10).toFixed(1)} mm)  cute<0: ${String(nK).padStart(3)} (min ${(mK * 10).toFixed(1)} mm)  vasi: ${String(nV).padStart(3)} (min ${(mV * 10).toFixed(1)} mm ${vId})`);
+    righe.push(`${id.padEnd(24)} svolta ${svolta.toFixed(1).padStart(4)}°/mm  osso<0: ${String(nO).padStart(3)} (min ${(mO * 10).toFixed(1)} mm)  prof<0: ${String(nD).padStart(3)} (min ${(mD * 10).toFixed(1)} mm${process.env.DETTAGLI && mDp ? ' @' + mDp.map(c => c.toFixed(1)).join(',') : ''})  cute<0: ${String(nK).padStart(3)} (min ${(mK * 10).toFixed(1)} mm)  vasi: ${String(nV).padStart(3)} (min ${(mV * 10).toFixed(1)} mm ${vId})`);
   }
   for (const id of ids.filter(i => i.startsWith('n_rm_'))) { const P = tubi[id].P, tip = P.at(-1), d = G.sample(Fs, tip[0], tip[1], tip[2]); righe.push(`  ${id}: punta a ${(d * 10).toFixed(1)} mm dalla superficie (negativo = dentro un muscolo o un osso)`); }
   for (let a = 0; a < ids.length; a++) for (let b = a + 1; b < ids.length; b++) {
