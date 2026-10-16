@@ -24,7 +24,7 @@ const VERIFICA = process.argv.slice(2).includes('verifica');
 // margine distale), D (da B a C). B(1)=D(0), C(1)=D(1).
 const FORMA = {
   A: [[-0.05, 2.4], [-0.25, 1.7], [-0.45, 1.0]],
-  B: [[-0.05, 2.4], [1.2, 2.2], [2.1, 1.85], [2.8, 1.45], [3.25, 0.95]],
+  B: [[-0.05, 2.4], [0.5, 2.2], [1.0, 1.7], [1.5, 1.45], [2.1, 1.5], [2.7, 1.35], [3.25, 0.95]],
   C: [[-0.45, 1.0], [0.0, -0.5], [0.62, -1.7], [1.3, -2.8], [2.2, -3.5]],
   D: [[3.25, 0.95], [3.3, 0.3], [3.05, -0.6], [2.75, -1.5], [2.5, -2.3], [2.35, -2.95], [2.2, -3.5]],
   mesh: { ns: 48, nu: 64 },                         // maglie lungo le fibre (dall'origine al margine D) e attraverso
@@ -218,7 +218,7 @@ function controlla(pos, etichetta) {
   for (let i = 0; i < pos.length; i += 3) { const f = G.sample(Fp, pos[i], pos[i + 1], pos[i + 2]); if (f < minF) minF = f; if (f < 0) dentro++; const c = G.sample(Fc, pos[i], pos[i + 1], pos[i + 2]); if (c > maxC) maxC = c; if (c > 0) fuori++; if (c > -0.1) vicino++; }
   righe.push(`  strutture profonde: ${dentro} vertici dentro su ${pos.length / 3}, distanza minima ${(minF * 10).toFixed(2)} mm`);
   righe.push(`  cute: ${fuori} vertici fuori (al più ${(Math.max(0, maxC) * 10).toFixed(2)} mm), ${vicino} a meno di 1 mm`);
-  for (const id of SUPERFICIALI) { if (!NVP.pts[id]) continue; let best = 1e9; for (let i = 0; i < pos.length; i += 3) { const d = distanzaTubo(id, [pos[i], pos[i + 1], pos[i + 2]]); if (d < best) best = d; } if (best < 0.3) righe.push(`  ${id}: distanza minima dal lacerto ${(best * 10).toFixed(2)} mm`); }
+  for (const id of [...SUPERFICIALI, ...ATTRAVERSA]) { if (!NVP.pts[id]) continue; let best = 1e9; for (let i = 0; i < pos.length; i += 3) { const d = distanzaTubo(id, [pos[i], pos[i + 1], pos[i + 2]]); if (d < best) best = d; } if (best < 0.3) righe.push(`  ${id}: distanza minima dal lacerto ${(best * 10).toFixed(2)} mm`); }
   console.log(`${etichetta}\n${righe.join('\n')}`);
 }
 if (VERIFICA) { const m = REAL('lacerto'); controlla(m.pos, 'verifica del lacerto nel file'); process.exit(0); }
