@@ -281,4 +281,9 @@ if (!G.M.html.includes('LACERTO_FADE')) {
 }
 G.M.html = G.M.html.replace(/const LACERTO_FADE=[0-9.]+,LACERTO_LUCE=[0-9.]+;/, () => `const LACERTO_FADE=${PAGINA.fade},LACERTO_LUCE=${PAGINA.luce};`);
 G.M.html = G.M.html.replace("m.opacity=s.id==='lacerto'?0.82:0.94;", () => `m.opacity=s.id==='lacerto'?${PAGINA.opacita}:0.94;`);
+// il lacerto è una lamina sottile e in parte quasi trasparente: non deve ombreggiare i muscoli sotto (né con l'ombra portata né con l'occlusione ambientale
+// precalcolata, che li scuriva fino al nero dove la lamina è trasparente) e non riceve l'occlusione ambientale (resterebbe grigio scuro)
+{ const ao = "if(SKIP.has(s.cat))return;", ao2 = "if(SKIP.has(s.cat)||s.id==='lacerto')return;";
+  if (!G.M.html.includes(ao2)) G.M.html = G.M.html.split("items.forEach(({s,g})=>{" + ao).join("items.forEach(({s,g})=>{" + ao2);
+  if (!G.M.html.includes("m.castShadow=!tr&&s.id!=='lacerto';")) G.M.html = G.M.html.replace("m.castShadow=!tr;", () => "m.castShadow=!tr&&s.id!=='lacerto';"); }
 G.saveFile(G.repack());
