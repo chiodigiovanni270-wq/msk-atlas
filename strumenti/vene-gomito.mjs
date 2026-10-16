@@ -314,7 +314,7 @@ if (argv.includes('prova')) { writeFileSync(argv.find(a => a.startsWith('--prova
 
 const round = P => P.map(p => p.map(x => Math.round(x * 1000) / 1000));
 for (const id of ID_VENE) { delete NVP.pts[id]; delete NVP.r[id]; }
-NVP.rp = {};
+NVP.rp = Object.fromEntries(Object.entries(NVP.rp || {}).filter(([k]) => !k.startsWith('v_')));   // i profili dei nervi (nervi-gomito.mjs) restano
 for (const [id, v] of Object.entries(V)) { NVP.pts[id] = round(v.P); NVP.r[id] = rmax[id]; NVP.rp[id] = rp[id]; }
 G.M.html = G.M.html.replace(/const NVP=\{.*?\};\n/s, () => `const NVP=${JSON.stringify(NVP)};\n`);
 G.saveFile(G.repack());
