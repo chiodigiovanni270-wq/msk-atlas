@@ -49,7 +49,7 @@ const RAMI = [
   { id: 'n_rm_br', padre: 'n_radiale', muscolo: 'br', yIn: 5.6, run: 1.6, r: 0.045, affonda: 0.14 },
   { id: 'n_rm_ecrl', padre: 'n_radiale', muscolo: 'ecrl', yIn: 3.8, run: 1.6, r: 0.04, affonda: 0.14 },
   { id: 'n_rm_sup', padre: 'n_pin', muscolo: 'sup', yIn: -2.8, run: 1.2, r: 0.04, affonda: 0.12 },
-  { id: 'n_rm_ecrb', padre: 'n_radiale', muscolo: 'ecrb', yIn: 0.0, run: 1.3, r: 0.035, affonda: 0.14, guida: [-3.18, -1.2, 0.6] },
+  { id: 'n_rm_ecrb', padre: 'n_pin', muscolo: 'ecrb', yIn: -5.6, run: 1.2, r: 0.035, affonda: 0.14, guida: [-3.18, -5.67, 0.08], evita: ['sup'] },
   { id: 'n_rm_bic', padre: 'n_cut_lat', muscolo: 'bic', yIn: 10.0, run: 1.4, r: 0.05, affonda: 0.16 },
   { id: 'n_rm_brach', padre: 'n_cut_lat', muscolo: 'brach', yIn: 8.4, run: 1.4, r: 0.05, affonda: 0.16 },
 ];
@@ -123,6 +123,9 @@ const FsEsenti = ESENTI_TUTTI.length ? sdfDa(SOLIDI.filter(n => !ESENTI_TUTTI.in
 const OSSA = ['omero', 'ulna', 'radio', 'cart_omero', 'cart_ulna', 'cart_radio'];
 const Fo = sdfDa(OSSA);
 const dOsso = p => G.sample(Fo, p[0], p[1], p[2]);
+// muscoli che un ramo non deve attraversare (`evita` in RAMI): distanza con segno, calcolata solo se serve
+const FEvita = {};
+const dEvita = (nomi, p) => Math.min(...nomi.map(n => G.sample(FEvita[n] || (FEvita[n] = sdfDa([n])), p[0], p[1], p[2])));
 const Fc = (() => { const M = G.unione(SOLIDI), { Do } = G.sdf(M); const F = G.chiuso(Do, 0.4); G.esatta(F, SOLIDI, 0); return F; })();
 const Fh = (() => { const F = new Float32Array(G.N).fill(5); G.esatta(F, SHEET, BANDA); for (let q = 0; q < G.N; q++) F[q] = Math.abs(F[q]); return F; })();
 log('campi: cute');
@@ -233,11 +236,11 @@ const muscoliPos = {};
 const posMuscolo = n => muscoliPos[n] || (muscoliPos[n] = G.REAL(n).pos);
 function piuVicino(pos, q) { let d = 1e18, k = 0; for (let j = 0; j < pos.length; j += 3) { const x = pos[j] - q[0], y = pos[j + 1] - q[1], z = pos[j + 2] - q[2], dd = x * x + y * y + z * z; if (dd < d) { d = dd; k = j; } } return { d: Math.sqrt(d), p: [pos[k], pos[k + 1], pos[k + 2]] }; }
 // punto d'ingresso nel muscolo: il vertice più vicino a `rif` il cui segmento dall'origine `Pe` non attraversa l'osso (altrimenti il ramo passerebbe nell'epicondilo)
-function ingressoLibero(pos, rif, Pe, r) {
+function ingressoLibero(pos, rif, Pe, r, evita = []) {
   const cand = []; for (let j = 0; j < pos.length; j += 3) cand.push({ d: Math.hypot(pos[j] - rif[0], pos[j + 1] - rif[1], pos[j + 2] - rif[2]), p: [pos[j], pos[j + 1], pos[j + 2]] });
   cand.sort((a, b) => a.d - b.d);
   for (const c of cand.slice(0, 4000)) { const L = len(sub(c.p, Pe)); let ok = true;
-    for (let s = 0.1; s <= L && ok; s += 0.05) if (dOsso(lerp3(Pe, c.p, s / L)) < r + 0.03) ok = false;
+    for (let s = 0.1; s <= L && ok; s += 0.05) { const q = lerp3(Pe, c.p, s / L); if (dOsso(q) < r + 0.03 || (evita.length && dEvita(evita, q) < r + 0.03)) ok = false; }
     if (ok) return c.p; }
   return cand[0].p;
 }
@@ -245,7 +248,7 @@ function costruisciRami() {
   for (const R of RAMI) {
     if (!T[R.padre]) throw new Error('padre mancante ' + R.padre);
     const Pd = new Curva(T[R.padre].P), rP = T[R.padre].r, sIn = Pd.sArrivoY(R.yIn), s0 = Math.max(0, sIn - R.run), Pe = Pd.at(sIn);
-    const pos = posMuscolo(R.muscolo), Q = ingressoLibero(pos, R.guida ? R.guida : Pe, Pe, R.r);
+    const pos = posMuscolo(R.muscolo), Q = ingressoLibero(pos, R.guida ? R.guida : Pe, Pe, R.r, R.evita || []);
     let u = nrm(sub(Q, Pe)); const tg = Pd.tan(sIn); u = nrm(sub(u, mul(tg, dot(u, tg))));   // direzione laterale, perpendicolare al tronco
     const pts = [];
     for (let s = s0; s <= sIn + 1e-9; s += PASSO) { const off = (rP * (T[R.padre].k(s) || 1) + 0.6 * R.r) * sstep(s0, s0 + 0.55 * R.run, s); pts.push(add(Pd.at(s), mul(u, off))); }
@@ -257,7 +260,8 @@ function costruisciRami() {
     const tail = hermite(fine, mul(tg, Math.max(0.3, dT)), tip, mul(dirT, Math.max(0.3, dT)));
     let P = risampiona([...pts, ...tail.slice(1)], PASSO);
     for (let pass = 0; pass < 4; pass++) P = P.map((p, i) => i < 3 || i === P.length - 1 ? p : add(p, mul(sub(mul(add(P[i - 1], P[i + 1]), 0.5), p), 0.35)));
-    for (let it = 0; it < 40; it++) { for (let i = 3; i < P.length - 1; i++) { const d = dOsso(P[i]) - R.r - 0.02; if (d < 0) { const g = G.grad({ s: dOsso }, P[i], 0.05), l = len(g) || 1; P[i] = add(P[i], mul(g, -d / l)); } }
+    const dNo = p => R.evita ? Math.min(dOsso(p), dEvita(R.evita, p)) : dOsso(p);   // ossa e muscoli da evitare
+    for (let it = 0; it < 40; it++) { for (let i = 3; i < P.length - 1; i++) { const d = dNo(P[i]) - R.r - 0.02; if (d < 0) { const g = G.grad({ s: dNo }, P[i], 0.05), l = len(g) || 1; P[i] = add(P[i], mul(g, -d / l)); } }
       P = P.map((p, i) => i < 3 || i === P.length - 1 ? p : add(p, mul(sub(mul(add(P[i - 1], P[i + 1]), 0.5), p), 0.2))); }
     const L = arco(P).at(-1);
     T[R.id] = { P, r: R.r, k: s => 0.5 + 0.5 * sstep(0, 0.5, s), ini: 'dentro', fin: 'punta', muscolo: R.muscolo }; PARENT_NUOVI[R.id] = R.padre;
