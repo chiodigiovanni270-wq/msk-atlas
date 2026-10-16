@@ -30,7 +30,7 @@ const FORMA = {
   mesh: { ns: 48, nu: 64 },                         // maglie lungo le fibre (dall'origine al margine D) e attraverso
   Tm: 0.035, T0: 0.08, origine: 0.2, labbro: 0.02,  // cm: spessore nel corpo, all'origine, frazione dello spessore sulla linea d'origine (si fonde col tendine), cordone del margine libero
   bordo: { B: 0.06, C: 0.25, D: 0.5 },              // cm: larghezza dell'arrotondamento dello spessore sui margini (lo spessore va a zero sul bordo)
-  dissolvenza: { D: 1.2, C: 0.6, kC: 0.5 },         // cm: distanza dal margine D (e C) entro cui il lacerto si dissolve (tag 0-255 = opacità persa; margine B netto)
+  dissolvenza: { da: 0.15, potenza: 1.3 },          // tag 0-255 = opacità persa: nulla fino a s = da (vicino al tendine), poi cresce con continuità fino al margine più lontano dal tendine
   gioco: 0.03, incasso: 0.06,                        // cm: gioco dalle strutture profonde, e quanto la linea d'origine entra nel tendine (si fonde: niente bordo visibile)
 };
 const INVILUPPO = {
@@ -52,7 +52,7 @@ const SOLLEVA = { sigma: 0.5, pendenza: 0.12, fermo: 1.2 };   // sigma (cm) dell
 const MESH = ['omero', 'ulna', 'radio', 'cart_omero', 'cart_ulna', 'cart_radio', 'caps', 'fat_ant', 'bic', 'brach', 'pt', 'fcr', 'pl', 'fds', 'fdp', 'fcu', 'fpl', 'br', 'ecrl', 'ecrb', 'sup', 'tri_med'];
 const PASSO = 0.05;                                   // cm, griglia dei voxel
 const AREA = { lo: [-3.8, -7, -0.8], hi: [4.8, 5, 5.8] };
-const PAGINA = { fade: 0.7, luce: 1.12, opacita: 0.88 };   // pagina: opacità persa dal tag massimo (LACERTO_FADE), moltiplicatore del colore (LACERTO_LUCE), opacità di base del lacerto
+const PAGINA = { fade: 0.93, luce: 1.12, opacita: 0.88 };   // pagina: opacità persa dal tag massimo (LACERTO_FADE), moltiplicatore del colore (LACERTO_LUCE), opacità di base del lacerto
 
 const NVP = JSON.parse(G.M.html.match(/const NVP=(\{.*?\});\n/s)[1]);
 const reff = id => NVP.r[id] * (id.startsWith('v_') ? 1.1 : id.startsWith('n_') ? 1.08 : 1.05);
@@ -178,7 +178,7 @@ for (let is = 0; is <= Ns; is++) { const row = [];
 const spessore = g => { const T = (FORMA.Tm + (FORMA.T0 - FORMA.Tm) * Math.pow(1 - g.s, 2.5)) * (FORMA.origine + (1 - FORMA.origine) * sstep(0, 0.2, g.s)) + FORMA.labbro * Math.exp(-((g.dB / 0.2) ** 2));
   const e = Math.min(clamp(g.dB / FORMA.bordo.B, 0, 1), clamp(g.dC / FORMA.bordo.C, 0, 1), clamp(g.dD / FORMA.bordo.D, 0, 1)); return Math.max(0, T * Math.sqrt(1 - (1 - e) * (1 - e))); };
 const gioco = g => FORMA.gioco - FORMA.incasso * (1 - sstep(0, 0.2, g.s));
-const dissolve = g => Math.max(1 - sstep(0, FORMA.dissolvenza.D, g.dD), FORMA.dissolvenza.kC * (1 - sstep(0, FORMA.dissolvenza.C, g.dC)));
+const dissolve = g => Math.pow(clamp((g.s - FORMA.dissolvenza.da) / (1 - FORMA.dissolvenza.da), 0, 1), FORMA.dissolvenza.potenza);   // progressiva con la distanza dal tendine lungo le fibre
 const pb = grid.map(row => row.map(g => pos3(g.th, g.y, gioco(g), g.s)));   // faccia profonda
 const nrm = grid.map((row, i) => row.map((g, j) => { const a = pb[Math.min(Ns, i + 1)][j], b = pb[Math.max(0, i - 1)][j], c = pb[i][Math.min(Nu, j + 1)], d = pb[i][Math.max(0, j - 1)];
   const t1 = [a[0] - b[0], a[1] - b[1], a[2] - b[2]], t2 = [c[0] - d[0], c[1] - d[1], c[2] - d[2]]; let n = [t1[1] * t2[2] - t1[2] * t2[1], t1[2] * t2[0] - t1[0] * t2[2], t1[0] * t2[1] - t1[1] * t2[0]]; const l = Math.hypot(...n) || 1; n = n.map(v => v / l);
@@ -279,5 +279,6 @@ if (!G.M.html.includes('LACERTO_FADE')) {
   if (!G.M.html.includes(vecchio)) throw new Error('finishGeo non trovata nella pagina');
   G.M.html = G.M.html.replace(vecchio, () => nuovo).replace('const THMAP=', () => `const LACERTO_FADE=${PAGINA.fade},LACERTO_LUCE=${PAGINA.luce};\nconst THMAP=`);
 }
+G.M.html = G.M.html.replace(/const LACERTO_FADE=[0-9.]+,LACERTO_LUCE=[0-9.]+;/, () => `const LACERTO_FADE=${PAGINA.fade},LACERTO_LUCE=${PAGINA.luce};`);
 G.M.html = G.M.html.replace("m.opacity=s.id==='lacerto'?0.82:0.94;", () => `m.opacity=s.id==='lacerto'?${PAGINA.opacita}:0.94;`);
 G.saveFile(G.repack());
