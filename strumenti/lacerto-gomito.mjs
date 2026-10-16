@@ -23,15 +23,15 @@ const VERIFICA = process.argv.slice(2).includes('verifica');
 // Quattro lati di una superficie di Coons: A (origine, dall'alto in basso), B (da A in alto verso il margine mediale), C (da A in basso verso il
 // margine distale), D (da B a C). B(1)=D(0), C(1)=D(1).
 const FORMA = {
-  A: [[0.3, 2.4], [0.1, 1.7], [-0.1, 1.0]],
-  B: [[0.3, 2.4], [1.2, 2.2], [2.1, 1.85], [2.8, 1.45], [3.25, 0.95]],
-  C: [[-0.1, 1.0], [0.12, -0.5], [0.62, -1.7], [1.3, -2.8], [2.2, -3.5]],
+  A: [[-0.05, 2.4], [-0.25, 1.7], [-0.45, 1.0]],
+  B: [[-0.05, 2.4], [1.2, 2.2], [2.1, 1.85], [2.8, 1.45], [3.25, 0.95]],
+  C: [[-0.45, 1.0], [0.0, -0.5], [0.62, -1.7], [1.3, -2.8], [2.2, -3.5]],
   D: [[3.25, 0.95], [3.3, 0.3], [3.05, -0.6], [2.75, -1.5], [2.5, -2.3], [2.35, -2.95], [2.2, -3.5]],
   mesh: { ns: 48, nu: 64 },                         // maglie lungo le fibre (dall'origine al margine D) e attraverso
   Tm: 0.035, T0: 0.08, origine: 0.2, labbro: 0.02,  // cm: spessore nel corpo, all'origine, frazione dello spessore sulla linea d'origine (si fonde col tendine), cordone del margine libero
   bordo: { B: 0.06, C: 0.25, D: 0.5 },              // cm: larghezza dell'arrotondamento dello spessore sui margini (lo spessore va a zero sul bordo)
   dissolvenza: { D: 1.2, C: 0.6, kC: 0.5 },         // cm: distanza dal margine D (e C) entro cui il lacerto si dissolve (tag 0-255 = opacità persa; margine B netto)
-  gioco: 0.03, incasso: 0.1,                        // cm: gioco dalle strutture profonde, e quanto la linea d'origine entra nel tendine (si fonde: niente bordo visibile)
+  gioco: 0.03, incasso: 0.06,                        // cm: gioco dalle strutture profonde, e quanto la linea d'origine entra nel tendine (si fonde: niente bordo visibile)
 };
 const INVILUPPO = {
   R0: 3.2,            // cm: raggio nominale per passare da gradi a lunghezza nella carta (cm per radiante)
@@ -43,6 +43,7 @@ const INVILUPPO = {
   carta: { th0: -70, th1: 130, dth: 1, y0: -7, y1: 5, dy: 0.1 },   // gradi e cm
 };
 const SOFFITTO_VENE = false;                         // true: la faccia superiore resta sotto vene e nervi superficiali (la lamina si abbassa); false: sono le vene a essere sollevate
+const ATTACCO = { estendi: 0.6, tratto: 0.3, sopra: -0.12 };   // cm: estensione del livello del tendine oltre il suo margine; tratto (frazione di s) in cui la lamina passa dal tendine all'inviluppo; quota sul tendine
 const MARGINE = { vene: 0.03, cute: 0.05 };          // cm: la faccia superiore resta sotto vene/nervi superficiali e cute di questa distanza
 // vene e nervi che passano sopra il lacerto: se lo incrociano senza spazio, sono sollevati con un raccordo
 const SUPERFICIALI = ['v_basilica', 'v_mediana_cub', 'v_mediana_basilica', 'v_mediana_cefalica', 'v_mediana_avambraccio', 'v_cefalica', 'n_cut_med_avambraccio', 'n_cut_med_braccio', 'n_cut_lat'];
@@ -75,9 +76,9 @@ const capsula = (M, id, extra = 0) => {            // tubo di raggio reff(id) + 
   }
 };
 const TUBI_PROFONDI = Object.keys(NVP.pts).filter(id => !SUPERFICIALI.includes(id) && !ATTRAVERSA.includes(id));
-const profondo = new Uint8Array(N);
-for (const n of MESH) { const m = G.solid(n); for (let q = 0; q < N; q++) profondo[q] |= m[q]; }
-for (const id of TUBI_PROFONDI) capsula(profondo, id);
+const profondo = new Uint8Array(N), senzaBic = new Uint8Array(N);   // senzaBic: l'origine del lacerto può entrare nel tendine
+for (const n of MESH) { const m = G.solid(n); for (let q = 0; q < N; q++) { profondo[q] |= m[q]; if (n !== 'bic') senzaBic[q] |= m[q]; } }
+for (const id of TUBI_PROFONDI) { capsula(profondo, id); capsula(senzaBic, id); }
 const Fp = G.sdf(profondo).F; G.sfoca(Fp, 1);        // distanza con segno dalle strutture profonde (negativa dentro)
 const Fc = G.sdf(G.solid('cute')).F; G.sfoca(Fc, 1); // dalla cute (negativa dentro)
 log('campi');
@@ -102,6 +103,7 @@ const cartaRaggi = F => { const R = new Float32Array(nT * nY);
       R[jy * nT + it] = rr; } }
   return R; };
 const Rraw = cartaRaggi(Fp); for (let i = 0; i < Rraw.length; i++) if (Rraw[i] === 0) Rraw[i] = 2.5;
+const Rsb = (() => { const F = G.sdf(senzaBic).F; G.sfoca(F, 1); const R = cartaRaggi(F); for (let i = 0; i < R.length; i++) if (R[i] === 0) R[i] = 2.5; return R; })();   // come Rraw, senza il bicipite
 const Rcute = cartaRaggi(Fc);                         // cute (fuori = 0 dove la carta non la incontra)
 // vene e nervi superficiali: primo ingresso lungo il raggio
 const Mv = new Uint8Array(N); for (const id of SUPERFICIALI) capsula(Mv, id, MARGINE.vene);
@@ -134,9 +136,21 @@ let Renv = new Float32Array(Rraw.length); for (let i = 0; i < Renv.length; i++) 
   const R2 = sfoca(Renv, 0.1); for (let i = 0; i < Renv.length; i++) Renv[i] = Math.min(R2[i], Math.max(lim[i], Rraw[i] + 0.004));
   log(`inviluppo: ${n} pixel della carta limitati da vene superficiali e cute`); }
 for (let i = 0; i < Renv.length; i++) Renv[i] = Math.max(Renv[i], Rraw[i] + 0.004);
-const rEnv = (th, y) => { const fx = clamp((th - C.th0) / C.dth - 0.5, 0, nT - 1.001), fy = clamp((y - C.y0) / C.dy - 0.5, 0, nY - 1.001), i = Math.floor(fx), j = Math.floor(fy), tx = fx - i, ty = fy - j;
-  const g = (a, b) => Renv[b * nT + a]; return (g(i, j) * (1 - tx) + g(i + 1, j) * tx) * (1 - ty) + (g(i, j + 1) * (1 - tx) + g(i + 1, j + 1) * tx) * ty; };
-const pos3 = (th, y, off) => { const [cx, cz] = asse(y), r = rEnv(th, y) + off, t = th * rad; return [cx + r * Math.sin(t), y, cz + r * Math.cos(t)]; };
+const bil = (A, th, y) => { const fx = clamp((th - C.th0) / C.dth - 0.5, 0, nT - 1.001), fy = clamp((y - C.y0) / C.dy - 0.5, 0, nY - 1.001), i = Math.floor(fx), j = Math.floor(fy), tx = fx - i, ty = fy - j;
+  const g = (a, b) => A[b * nT + a]; return (g(i, j) * (1 - tx) + g(i + 1, j) * tx) * (1 - ty) + (g(i, j + 1) * (1 - tx) + g(i + 1, j + 1) * tx) * ty; };
+// tendine del bicipite: all'origine la lamina segue la sua faccia (non l'inviluppo teso, che sta sopra la fossa e lascerebbe uno spazio tra tendine e lacerto);
+// il livello del tendine è esteso di `ATTACCO.estendi` cm oltre il suo margine, poi la lamina sale all'inviluppo (peso 1 → 0 tra s = 0 e `ATTACCO.tratto`)
+const Rbic = cartaRaggi((() => { const F = G.sdf(G.solid('bic')).F; G.sfoca(F, 1); return F; })());
+const massimoPiatto = (A, raggio) => { const ni = Math.ceil(raggio / da), nj = Math.ceil(raggio / C.dy), L = [], O2 = new Float32Array(A.length);   // massimo su un disco (elemento piatto)
+  for (let dj = -nj; dj <= nj; dj++) for (let di = -ni; di <= ni; di++) if ((di * da) ** 2 + (dj * C.dy) ** 2 <= raggio * raggio) L.push([di, dj]);
+  for (let jy = 0; jy < nY; jy++) for (let it = 0; it < nT; it++) { let v = 0; for (const [di, dj] of L) { const i = it + di, j = jy + dj; if (i >= 0 && j >= 0 && i < nT && j < nY && A[j * nT + i] > v) v = A[j * nT + i]; } O2[jy * nT + it] = v; }
+  return O2; };
+const Rbx = massimoPiatto(Rbic, ATTACCO.estendi);
+const rEnv = (th, y) => bil(Renv, th, y);
+const raggio = (th, y, s) => { let r = rEnv(th, y); const b = 1 - sstep(0, ATTACCO.tratto, s), rb = bil(Rbx, th, y);
+  if (b > 0 && rb > 0.5) r = (1 - b) * r + b * Math.min(r, rb + ATTACCO.sopra);
+  return Math.max(r, (1 - b) * bil(Rraw, th, y) + b * bil(Rsb, th, y) + 0.004); };
+const pos3 = (th, y, off, s = 1) => { const [cx, cz] = asse(y), r = raggio(th, y, s) + off, t = th * rad; return [cx + r * Math.sin(t), y, cz + r * Math.cos(t)]; };
 
 /* ============ Forma: superficie di Coons ============ */
 // coordinate frontali (x, y) → angolo sull'inviluppo (monotona da th0 fino al punto più mediale)
@@ -164,7 +178,7 @@ const spessore = g => { const T = (FORMA.Tm + (FORMA.T0 - FORMA.Tm) * Math.pow(1
   const e = Math.min(clamp(g.dB / FORMA.bordo.B, 0, 1), clamp(g.dC / FORMA.bordo.C, 0, 1), clamp(g.dD / FORMA.bordo.D, 0, 1)); return Math.max(0, T * Math.sqrt(1 - (1 - e) * (1 - e))); };
 const gioco = g => FORMA.gioco - FORMA.incasso * (1 - sstep(0, 0.2, g.s));
 const dissolve = g => Math.max(1 - sstep(0, FORMA.dissolvenza.D, g.dD), FORMA.dissolvenza.kC * (1 - sstep(0, FORMA.dissolvenza.C, g.dC)));
-const pb = grid.map(row => row.map(g => pos3(g.th, g.y, gioco(g))));   // faccia profonda
+const pb = grid.map(row => row.map(g => pos3(g.th, g.y, gioco(g), g.s)));   // faccia profonda
 const nrm = grid.map((row, i) => row.map((g, j) => { const a = pb[Math.min(Ns, i + 1)][j], b = pb[Math.max(0, i - 1)][j], c = pb[i][Math.min(Nu, j + 1)], d = pb[i][Math.max(0, j - 1)];
   const t1 = [a[0] - b[0], a[1] - b[1], a[2] - b[2]], t2 = [c[0] - d[0], c[1] - d[1], c[2] - d[2]]; let n = [t1[1] * t2[2] - t1[2] * t2[1], t1[2] * t2[0] - t1[0] * t2[2], t1[0] * t2[1] - t1[1] * t2[0]]; const l = Math.hypot(...n) || 1; n = n.map(v => v / l);
   const [cx, cz] = asse(g.y); if (n[0] * (pb[i][j][0] - cx) + n[2] * (pb[i][j][2] - cz) < 0) n = n.map(v => -v); return n; }));
@@ -219,7 +233,7 @@ function sollevaTubi() {
   for (let is = 0; is <= Ns * FIT; is++) for (let iu = 0; iu <= Nu * FIT; iu++) {
     const s = is / (Ns * FIT), u = iu / (Nu * FIT), [th, y] = coons(s, u), g = { s, dB: 0, dC: 0, dD: 0 };
     // spessore interpolato dalla griglia più vicina
-    const gi = grid[Math.round(s * Ns)][Math.round(u * Nu)], t = spessore(gi), p = pos3(th, y, gioco(gi)), [cx, cz] = asse(y), r = Math.hypot(p[0] - cx, p[2] - cz) + t;
+    const gi = grid[Math.round(s * Ns)][Math.round(u * Nu)], t = spessore(gi), p = pos3(th, y, gioco(gi), gi.s), [cx, cz] = asse(y), r = Math.hypot(p[0] - cx, p[2] - cz) + t;
     const it = Math.floor((th - C.th0) / C.dth), jy = Math.floor((y - C.y0) / C.dy);
     if (it >= 0 && it < nT && jy >= 0 && jy < nY && r > Rtop[jy * nT + it]) Rtop[jy * nT + it] = r;
   }
