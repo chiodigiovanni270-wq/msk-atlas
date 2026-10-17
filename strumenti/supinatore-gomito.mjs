@@ -28,6 +28,7 @@ const AREA = { lo: [-5.8, -10.4, -1.7], hi: [0.3, 2.2, 3.0] };
 // si scava il letto (tubo di raggio r + `gioco`); il passaggio del NIP (la parte in cui il muscolo lo avvolge per ≥ `imbocco.nucleo` della circonferenza)
 // ha i bordi arrotondati: il campo del muscolo si sfoca (`imbocco.passate`) entro `imbocco.raggio` cm dall'asse e `imbocco.zona` cm oltre le estremità del passaggio; il gioco intorno al nervo (raggio locale + `gioco`) si rimette lungo tutto il passaggio; la sfocatura può solo aggiungere muscolo (le lamine sottili non si bucano) e svanisce a meno di `imbocco.osso` cm dal radio. Nel brachioradiale (`letto`) i vertici entro il letto vanno sulla semicirconferenza interna del tubo (mesh suddivisa dove serve).
 const SUP = { nervo: 'n_rad_sup', yDa: -2.0, rampa: 0.9, yDistale: -7.0, rampaDistale: 2.0, maxLift: 1.0, chiusura: 0.4, riempi: 0.28, gioco: 0.03, sigmaPercorso: 0.35, nip: 'n_pin', arteria: 'a_interossea_post', letto: ['br'], bed: { margine: 0.02, lato: 0.05, suddividi: 10, cicli: 6 },
+  capi: { semiFessura: 0.04, uMin: 0.4, uMax: 0.6, tMin: 0.6, tRampa: 0.08, yProssimale: -1.0, sfoca: 20, levigaCampo: 2, minimo: 0.03, passoMesh: 0.07 },
   imbocco: { nucleo: 0.9, zona: 0.5, passate: 8, raggio: 0.7, osso: 0.15 } };
 const FIBRE = { sigma: 0.5, sigmaTag: 0.22, passate: 6 };
 
@@ -78,8 +79,11 @@ function campoDistanza(P, rho) {
 const eulero = (nv, idx) => { const E = new Set(); for (let t = 0; t < idx.length; t += 3) for (let e = 0; e < 3; e++) { const a = idx[t + e], b = idx[t + (e + 1) % 3]; E.add(Math.min(a, b) * 4e6 + Math.max(a, b)); } return nv - E.size + idx.length / 3; };
 
 /* ============ Dati di partenza ============ */
+
 const r = NVP0.r[SUP.nervo], rP = NVP.r[SUP.nip], rA = NVP.r[SUP.arteria];
 const vecchio = catmull(NVP0.pts[SUP.nervo], PASSO), pin = catmull(NVP.pts[SUP.nip], 0.1), arteria = catmull(NVP.pts[SUP.arteria], 0.1);
+const rpv = NVP.rp?.[SUP.nip];   // raggio locale del NIP lungo il decorso (profilo relativo)
+const rLoc = i => rpv ? rP * (() => { const x = i / (pin.length - 1) * (rpv.length - 1), k = Math.min(rpv.length - 2, Math.floor(x)); return rpv[k] + (rpv[k + 1] - rpv[k]) * (x - k); })() : rP;
 const baseSup = realDaRevisione(BASE, 'sup', FILE_REPO), baseLetto = Object.fromEntries(SUP.letto.map(id => [id, realDaRevisione(BASE, id, FILE_REPO)]));
 
 /* ============ Verifica ============ */
@@ -91,14 +95,15 @@ function verificaStato(nome, nervo, sup, muscoli) {
       for (let u = 1; u < 4; u++) for (let v = 1; v < 4 - u; v++) { const q = add(add(mul(A[0], u / 4), mul(A[1], v / 4)), mul(A[2], (4 - u - v) / 4)), d = rr - vicino(P, q).d; if (d > 0.003) { n++; mx = Math.max(mx, d); } } }
     return [n, mx]; };
   const nv = sup.pos.length / 3, chi = eulero(nv, sup.idx);
-  out.push(`  supinatore: ${nv} vertici, genere ${(2 - chi) / 2} (caratteristica di Eulero ${chi})`);
+  out.push(`  capo superficiale (sup): ${nv} vertici, genere ${(2 - chi) / 2} (caratteristica di Eulero ${chi})`);
+  if ('sup_prof' in muscoli) { const p = muscoli.sup_prof, c2 = eulero(p.pos.length / 3, p.idx); out.push(`  capo profondo (sup_prof): ${p.pos.length / 3} vertici, genere ${(2 - c2) / 2} (caratteristica di Eulero ${c2})`); }
   for (const [n, m] of [['sup', sup], ...Object.entries(muscoli)]) { const [c, mx] = conta(m.pos, nervo, r, m.idx); out.push(`  punti di ${n} dentro il ramo superficiale (r ${(r * 10).toFixed(1)} mm): ${c}, max ${(mx * 10).toFixed(2)} mm`); }
   for (const id of ['ecrb', 'ecrl', 'pt', 'anc', 'radio', 'br'].filter(i => !(i in muscoli))) { const m = REAL(id), [c, mx] = conta(m.pos, nervo, r, m.idx); out.push(`  punti di ${id} dentro il ramo superficiale: ${c}, max ${(mx * 10).toFixed(2)} mm`); }
   return out.join('\n');
 }
 if (VERIFICA) {
   const nervo = catmull(NVP.pts[SUP.nervo], 0.05);
-  console.log(verificaStato('stato attuale', nervo, REAL('sup'), Object.fromEntries(SUP.letto.map(id => [id, REAL(id)])))); process.exit(0);
+  console.log(verificaStato('stato attuale', nervo, REAL('sup'), { ...Object.fromEntries(SUP.letto.map(id => [id, REAL(id)])), ...(G.man.meshes.some(m => m.n === 'sup_prof') ? { sup_prof: REAL('sup_prof') } : {}) })); process.exit(0);
 }
 
 /* ============ Campi sulla griglia fine ============ */
@@ -143,9 +148,10 @@ log('decorso: spostamento massimo', Math.max(...spost.map(len)).toFixed(2), 'cm'
 /* ============ Letto nel supinatore ============ */
 const Dnuovo = campoDistanza(nuovo, r + 0.5), F2 = new Float32Array(G.N), rr = r + SUP.gioco;
 for (let q = 0; q < G.N; q++) F2[q] = Math.max(F1[q], rr - Dnuovo[q]);
+const Rb0 = rP + SUP.gioco, Fr = G.campo(['radio']).F;   // distanza con segno dal radio (negativa dentro l'osso)
 /* ============ Imbocchi del passaggio del NIP: bordi arrotondati ============ */
 {
-  const { nucleo, zona, passate, raggio, osso } = SUP.imbocco, Rb = rP + SUP.gioco, Fr = G.campo(['radio']).F;
+  const { nucleo, zona, passate, raggio, osso } = SUP.imbocco, Rb = rP + SUP.gioco;
   const T = pin.map((p, i) => nrm(sub(pin[Math.min(pin.length - 1, i + 1)], pin[Math.max(0, i - 1)])));
   const frazione = i => { const t = T[i], u = nrm(cross(t, Math.abs(t[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0])), v = cross(t, u); let n = 0;
     for (let a = 0; a < 16; a++) { const th = a / 16 * 2 * Math.PI, R = rP + 0.12, q = add(pin[i], add(mul(u, R * Math.cos(th)), mul(v, R * Math.sin(th)))); if (campFine(F2, ...q) < 0) n++; }
@@ -161,7 +167,6 @@ for (let q = 0; q < G.N; q++) F2[q] = Math.max(F1[q], rr - Dnuovo[q]);
       F2[q] = nf; }
   }
   // gioco intorno al NIP lungo tutto il passaggio, con il raggio locale del nervo (profilo `rp`): nessun vertice del muscolo dentro il tubo
-  const rpv = NVP.rp?.[SUP.nip], rLoc = i => rpv ? rP * (() => { const x = i / (pin.length - 1) * (rpv.length - 1), k = Math.min(rpv.length - 2, Math.floor(x)); return rpv[k] + (rpv[k + 1] - rpv[k]) * (x - k); })() : rP;
   for (let q = 0; q < G.N; q++) { if (Dpin[q] > Rb) continue; const v = vicino(pin, G.voxel(q)); F2[q] = Math.max(F2[q], rLoc(v.i) + SUP.gioco - v.d); }
 }
 // isole e cavità (come negli altri strumenti): una sola componente, nessun vuoto chiuso
@@ -178,8 +183,38 @@ for (let q = 0; q < G.N; q++) F2[q] = Math.max(F1[q], rr - Dnuovo[q]);
   log('pulizia: isole', isole, 'cavità', cavita);
 }
 
+/* ============ Due capi: superficiale e profondo, con il NIP nel mezzo ============ */
+// Posizione relativa nel muscolo u = d_osso / (d_osso + d_superficie) (0 sul radio, 1 sulla superficie esterna), spessore T = d_osso + d_superficie. La lamina di separazione sta a
+// u = u0: la u del NIP alla stessa quota (levigata, tra `uMin` e `uMax`), così il nervo corre tra i due capi; dove il muscolo (spessore levigato con `sfoca` passate) è più sottile di `tMin` (± `tRampa`) u0 sale oltre 1
+// e tutto il muscolo è capo profondo: il capo superficiale finisce lì con un margine libero di spessore finito (non a filo di lama, che la mesh non rappresenta), come l'arcata di Frohse; sopra `yProssimale` (margine prossimale del capo superficiale) tutto il muscolo è capo profondo. Fessura `2·semiFessura` cm.
+const { semiFessura: sf, uMin, uMax, tMin, tRampa, yProssimale } = SUP.capi;
+const un = pin.map(p => { const d = campFine(Fr, ...p), f = -campFine(F2, ...p); return f <= 0 ? uMax : clamp(d / (d + f), uMin, uMax); }), ul = un.map((_, i) => { let s = 0, n = 0; for (let j = Math.max(0, i - 6); j <= Math.min(un.length - 1, i + 6); j++) { s += un[j]; n++; } return s / n; });
+const u0Nervo = y => { let a = 0, b = pin.length - 1; while (b - a > 1) { const m = (a + b) >> 1; if (pin[m][1] >= y) a = m; else b = m; } const t = clamp((pin[a][1] - y) / ((pin[a][1] - pin[b][1]) || 1), 0, 1); return ul[a] + (ul[b] - ul[a]) * t; };
+const Tf = new Float32Array(G.N); for (let q = 0; q < G.N; q++) Tf[q] = Math.max(Fr[q], 0) - F2[q]; G.sfoca(Tf, SUP.capi.sfoca);   // spessore levigato: il margine libero del capo superficiale è regolare
+const Fsup = new Float32Array(G.N), Fprof = new Float32Array(G.N);
+for (let q = 0; q < G.N; q++) {
+  if (F2[q] >= 0.3) { Fsup[q] = Fprof[q] = F2[q]; continue; }
+  const pt = G.voxel(q), T = Math.max(Fr[q], 0) - F2[q], Ts = Tf[q], u0 = u0Nervo(pt[1]) + (1.2 - u0Nervo(pt[1])) * Math.max(1 - sstep(tMin - tRampa, tMin + tRampa, Ts), sstep(yProssimale, yProssimale + 0.1, pt[1])), g = Fr[q] - u0 * T;
+  let a = Math.max(F2[q], sf - g, tMin - Ts, pt[1] - yProssimale), b = Math.max(F2[q], g + sf);
+  Fsup[q] = a; Fprof[q] = b;
+}
+G.sfoca(Fsup, SUP.capi.levigaCampo); G.sfoca(Fprof, SUP.capi.levigaCampo);   // bordi del taglio meno frastagliati
+for (let q = 0; q < G.N; q++) { if (Dpin[q] >= Rb0) continue; const v = vicino(pin, G.voxel(q)), c = rLoc(v.i) + SUP.gioco - v.d; Fsup[q] = Math.max(Fsup[q], c); Fprof[q] = Math.max(Fprof[q], c); }
+// componenti piccole (schegge dove la lamina taglia il muscolo sottile): tolte
+function togliSchegge(F, nome) {
+  const M = new Uint8Array(G.N); for (let q = 0; q < G.N; q++) M[q] = F[q] < 0 ? 1 : 0;
+  const lab = new Int32Array(G.N).fill(-1), st = new Int32Array(G.N), dim = [], { NX, NY, NZ, NXY } = G;
+  for (let s0 = 0; s0 < G.N; s0++) { if (!M[s0] || lab[s0] >= 0) continue; let sp = 0, n = 0; const l = dim.length; st[sp++] = s0; lab[s0] = l;
+    while (sp) { const q = st[--sp]; n++; const i = q % NX, j = ((q / NX) | 0) % NY, k = (q / NXY) | 0;
+      for (const [d, ok] of [[1, i < NX - 1], [-1, i > 0], [NX, j < NY - 1], [-NX, j > 0], [NXY, k < NZ - 1], [-NXY, k > 0]]) { if (!ok) continue; const rq = q + d; if (M[rq] && lab[rq] < 0) { lab[rq] = l; st[sp++] = rq; } } }
+    dim.push(n); }
+  const big = Math.max(...dim); let tolte = 0; for (let q = 0; q < G.N; q++) if (M[q] && dim[lab[q]] < SUP.capi.minimo * big) { F[q] = 0.01; tolte++; }
+  log(nome + ': componenti', dim.length, 'schegge tolte (voxel)', tolte);
+}
+togliSchegge(Fsup, 'capo superficiale'); togliSchegge(Fprof, 'capo profondo');
+
 /* ============ Mesh del supinatore, colore e fibre ============ */
-function costruisci(Fm, m) {
+function costruisci(Fm, m, passoMesh = PASSO_MESH) {
   const nv0 = m.pos.length / 3, cella = 0.25, hash = new Map(), ch = (x, y, z) => `${Math.floor(x / cella)},${Math.floor(y / cella)},${Math.floor(z / cella)}`;
   for (let i = 0; i < nv0; i++) { const c = ch(m.pos[3 * i], m.pos[3 * i + 1], m.pos[3 * i + 2]); if (!hash.has(c)) hash.set(c, []); hash.get(c).push(i); }
   const RC = Math.ceil(3 * FIBRE.sigma / cella);
@@ -187,8 +222,8 @@ function costruisci(Fm, m) {
     for (let a = -RC; a <= RC; a++) for (let b = -RC; b <= RC; b++) for (let c = -RC; c <= RC; c++) for (const i of hash.get(`${cx + a},${cy + b},${cz + c}`) || []) Lc.push([i, (m.pos[3 * i] - p[0]) ** 2 + (m.pos[3 * i + 1] - p[1]) ** 2 + (m.pos[3 * i + 2] - p[2]) ** 2]);
     return Lc.sort((u, v) => u[1] - v[1]); };
   const f = (x, y, z) => campFine(Fm, x, y, z), e = PASSO * 0.75;
-  const nc = [0, 1, 2].map(k => Math.ceil((AREA.hi[k] - AREA.lo[k]) / PASSO_MESH));
-  G.setGriglia(AREA.lo, PASSO_MESH, nc[0], nc[1], nc[2]);
+  const nc = [0, 1, 2].map(k => Math.ceil((AREA.hi[k] - AREA.lo[k]) / passoMesh));
+  G.setGriglia(AREA.lo, passoMesh, nc[0], nc[1], nc[2]);
   const out = G.nets(G.valuta(p => f(p[0], p[1], p[2])), () => [0, 1, 0]);
   G.setGriglia(FINE.O, FINE.H, FINE.NX, FINE.NY, FINE.NZ);
   const n2 = out.pos.length / 3, pos = G.taubin(out.pos, out.idx, TAUBIN);
@@ -222,8 +257,8 @@ function costruisci(Fm, m) {
   for (let i = 0; i < n2; i++) { tag[i] = Math.round(clamp(tagF[i], 0, 200)); for (let k = 0; k < 3; k++) fdir[3 * i + k] = Math.round(clamp(fd[3 * i + k], -1, 1) * 127); }
   return { pos, idx: out.idx, tag, fdir };
 }
-const nuovoSup = costruisci(F2, baseSup);
-log('supinatore:', nuovoSup.pos.length / 3, 'vertici');
+const nuovoSup = costruisci(Fsup, baseSup, SUP.capi.passoMesh), nuovoProf = costruisci(Fprof, baseSup, SUP.capi.passoMesh);
+log('capo superficiale:', nuovoSup.pos.length / 3, 'vertici; capo profondo:', nuovoProf.pos.length / 3);
 
 /* ============ Letto nel brachioradiale: vertici spinti fuori dal tubo, spostamento levigato ============ */
 // suddivisione conforme dei triangoli vicini al nervo (spigoli più lunghi di `lmax` con il punto medio entro `zona` dall'asse): 1→2, 1→3 o 1→4 triangoli, senza crepe;
@@ -286,10 +321,10 @@ function lettoMuscolo(id) {
 const meshLetto = Object.fromEntries(SUP.letto.map(id => [id, lettoMuscolo(id)]));
 
 /* ============ Stato finale, verifica e scrittura ============ */
-const ver = verificaStato('nuovo stato', nuovo, nuovoSup, meshLetto);
+const ver = verificaStato('nuovo stato', nuovo, nuovoSup, { ...meshLetto, sup_prof: nuovoProf });
 console.log(ver);
 // i vertici di ecrb, ecrl, pt, anc e radio vengono letti dal file, che non cambia
-setMesh('sup', nuovoSup); for (const id of SUP.letto) setMesh(id, meshLetto[id]);
+setMesh('sup', nuovoSup); if (!G.man.meshes.some(m => m.n === 'sup_prof')) G.man.meshes.push({ n: 'sup_prof' }); setMesh('sup_prof', nuovoProf); for (const id of SUP.letto) setMesh(id, meshLetto[id]);
 const round = P => P.map(p => p.map(x => Math.round(x * 1000) / 1000));
 NVP.pts[SUP.nervo] = round(risampiona(nuovo, 0.15));
 G.M.html = G.M.html.replace(/const NVP=\{.*?\};\n/s, () => `const NVP=${JSON.stringify(NVP)};\n`);
