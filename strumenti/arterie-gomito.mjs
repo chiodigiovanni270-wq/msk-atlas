@@ -103,6 +103,11 @@ const BANDA = 0.22;
 log('campi: strutture profonde');
 const Fs = (() => { const M = G.unione(SOLIDI), { F } = G.sdf(M); G.esatta(F, SOLIDI, BANDA); for (let q = 0; q < G.N; q++) if (Math.abs(F[q]) <= BANDA) F[q] = (M[q] ? -1 : 1) * Math.abs(F[q]); return F; })();
 const Fh = (() => { const F = new Float32Array(G.N).fill(5); G.esatta(F, SHEET, BANDA); for (let q = 0; q < G.N; q++) F[q] = Math.abs(F[q]); return F; })();
+const Fo = (() => { const N3 = ['omero', 'ulna', 'radio'], M = G.unione(N3), { F } = G.sdf(M); G.esatta(F, N3, BANDA); for (let q = 0; q < G.N; q++) if (Math.abs(F[q]) <= BANDA) F[q] = (M[q] ? -1 : 1) * Math.abs(F[q]); return F; })();   // ossa (con segno)
+const Fm = (() => { const F = new Float32Array(G.N).fill(5); G.esatta(F, ['mio'], BANDA); for (let q = 0; q < G.N; q++) F[q] = Math.abs(F[q]); return F; })();   // membrana interossea
+const osso = p => G.sample(Fo, p[0], p[1], p[2]), membrana = p => G.sample(Fm, p[0], p[1], p[2]);
+const gradO = p => G.grad({ s: osso }, p, 0.05), gradM = p => G.grad({ s: membrana }, p, 0.05);
+const GIOCO_RIGIDO = 0.02;   // cm: ossa, membrana interossea e nervi sono ostacoli rigidi (l'asse sta a ≥ raggio + gioco; i muscoli possono sfiorare 0,2 · raggio)
 const MARGINE_LAMINE = 0.1;   // le lamine sottili (setti, membrana interossea) si possono sfiorare di poco: l'arteria non deve seguirne il bordo
 const profondo = p => Math.min(G.sample(Fs, p[0], p[1], p[2]), G.sample(Fh, p[0], p[1], p[2]) + MARGINE_LAMINE);
 const gradP = p => G.grad({ s: profondo }, p, 0.05);
@@ -116,7 +121,7 @@ for (const [id, P] of Object.entries(NVP.pts)) if (!id.startsWith('a_')) {
 
 /* ============ Raggi ============ */
 const rt = (id, s, L) => { const t = TUBI[id]; return (t.d[0] + (t.d[1] - t.d[0]) * clamp(s / L, 0, 1)) / 20; };   // raggio in cm da diametro in mm
-const RAGGIO_STIMA = { T1: 0.2, RAD: 0.13, T2: 0.09, PIA: 0.06, ARC_R: 0.08, ARC_UA: 0.06, ARC_UP: 0.07 };
+const RAGGIO_STIMA = { T1: 0.21, RAD: 0.135, T2: 0.095, PIA: 0.065, ARC_R: 0.095, ARC_UA: 0.07, ARC_UP: 0.085 };   // raggio massimo (cm) di ogni percorso
 
 /* ============ Tracciati ============ */
 const V = {};
@@ -160,10 +165,12 @@ function ottimizza(iter, liscio = 2) {   // liscio: passate di levigatura per it
       for (let i = 0; i < n; i++) {
         const p = P[i]; let f = [0, 0, 0];
         const dp = profondo(p); if (dp < cd) { const g = gradP(p), l = len(g) || 1; f = add(f, mul(g, 0.3 * (cd - dp) / l)); }
+        { const dO = osso(p), nO = r + GIOCO_RIGIDO; if (dO < nO) { const g = gradO(p), l = len(g) || 1; f = add(f, mul(g, 0.7 * (nO - dO) / l)); }
+          const dM = membrana(p); if (dM < nO) { const g = gradM(p), l = len(g) || 1; f = add(f, mul(g, 0.7 * (nO - dM) / l)); } }
         for (const o of Object.values(ALTRI)) {
           if (p[0] < o.lo[0] || p[0] > o.hi[0] || p[1] < o.lo[1] || p[1] > o.hi[1] || p[2] < o.lo[2] || p[2] > o.hi[2]) continue;
           const q = proiezione(o.pts, p), need = r + o.r + GIOCO_VASO;
-          if (q.d < need) { const dir = q.d > 1e-4 ? mul(sub(p, q.p), 1 / q.d) : [0, 0, 1]; f = add(f, mul(dir, 0.4 * (need - q.d))); }
+          if (q.d < need) { const dir = q.d > 1e-4 ? mul(sub(p, q.p), 1 / q.d) : [0, 0, 1]; f = add(f, mul(dir, 0.7 * (need - q.d))); }
         }
         for (const id2 of ids) {
           if (id2 === id) continue; const w = V[id2], q = proiezione(w.P, p), need = r + RAGGIO_STIMA[id2] + GIOCO_VASO;
@@ -185,7 +192,37 @@ function ottimizza(iter, liscio = 2) {   // liscio: passate di levigatura per it
     if (it % 50 === 0) log('iterazione', it);
   }
 }
-if (!VERIFICA) { log('ottimizzazione'); raccordi(); ottimizza(ITER); for (const v of Object.values(V)) v.P = risampiona(v.P, PASSO); raccordi(); }
+// proiezione rigida finale: ossa, membrana interossea e nervi non si attraversano (l'ottimizzazione li evita con forze morbide e può lasciare 1 mm di compenetrazione);
+// gli spostamenti sono levigati lungo il tracciato per non creare gomiti; gli estremi (piano di taglio, asse del padre) non si muovono
+function rigido(iter) {
+  for (let it = 0; it < iter; it++) {
+    let peggio = 0;
+    for (const [id, v] of Object.entries(V)) {
+      const P = v.P, n = P.length, r = RAGGIO_STIMA[id], D = P.map(() => [0, 0, 0]), need = r + GIOCO_RIGIDO;
+      for (let i = 1; i < n - 1; i++) {
+        const p = P[i]; let f = [0, 0, 0];
+        const dO = osso(p); if (dO < need) { const g = gradO(p), l = len(g) || 1; f = add(f, mul(g, (need - dO) / l)); peggio = Math.max(peggio, need - dO); }
+        const dM = membrana(p); if (dM < need) { const g = gradM(p), l = len(g) || 1; f = add(f, mul(g, (need - dM) / l)); peggio = Math.max(peggio, need - dM); }
+        for (const [oid, o] of Object.entries(ALTRI)) {
+          if (!oid.startsWith('n_') || p[0] < o.lo[0] || p[0] > o.hi[0] || p[1] < o.lo[1] || p[1] > o.hi[1] || p[2] < o.lo[2] || p[2] > o.hi[2]) continue;
+          const q = proiezione(o.pts, p), nn = r + o.r + GIOCO_RIGIDO;
+          if (q.d < nn) { const dir = q.d > 1e-4 ? mul(sub(p, q.p), 1 / q.d) : [0, 0, 1]; f = add(f, mul(dir, nn - q.d)); peggio = Math.max(peggio, nn - q.d); }
+        }
+        D[i] = f;
+      }
+      for (let pass = 0; pass < 3; pass++) for (let i = 1; i < n - 1; i++) D[i] = add(mul(D[i], 0.5), mul(add(D[Math.max(0, i - 1)], D[Math.min(n - 1, i + 1)]), 0.25));
+      for (let i = 1; i < n - 1; i++) P[i] = add(P[i], mul(D[i], 1.6 * Math.min(1, i / 8, (n - 1 - i) / 8)));   // peso nullo agli estremi: nessun gomito vicino ai punti fissi
+      for (let pass = 0; pass < 3; pass++) { const R = P.map(q => q.slice());   // limite di curvatura, come nell'ottimizzazione
+        for (let i = 1; i < n - 1; i++) { const a = nrm(sub(P[i], P[i - 1])), b = nrm(sub(P[i + 1], P[i])), th = Math.acos(clamp(dot(a, b), -1, 1)) * 180 / Math.PI;
+          if (th > v.d.turno) { const w = Math.min(1, (th - v.d.turno) / v.d.turno); R[i] = add(P[i], mul(sub(mul(add(P[i - 1], P[i + 1]), 0.5), P[i]), w)); } }
+        for (let i = 1; i < n - 1; i++) P[i] = R[i]; }
+    }
+    raccordi();   // i rami ripartono dall'asse del padre appena spostato (altrimenti l'origine resta fuori dal vaso)
+    if (it % 10 === 0) log('proiezione rigida', it, 'compenetrazione max', (peggio * 10).toFixed(2), 'mm');
+    if (peggio < 0.001) break;
+  }
+}
+if (!VERIFICA) { log('ottimizzazione'); raccordi(); ottimizza(ITER); for (const v of Object.values(V)) v.P = risampiona(v.P, PASSO); raccordi(); rigido(120); }
 
 /* ============ Tubi: punti e raggi ============ */
 // indice del punto di anastomosi M (punto più vicino alla guida iM) e nodi di diramazione (sul padre, proiezione dell'estremo del figlio)
@@ -243,11 +280,11 @@ for (const [id, tb] of Object.entries(T)) {
 function statistiche() {
   const righe = [];
   for (const id of Object.keys(T)) {
-    const tb = T[id], P = tb.P; let nD = 0, mD = 9, nV = 0, mV = 9, pe = '', svolta = 0, rc = 1e9;
-    for (let i = 0; i < P.length; i++) { const p = P[i], r = tb.r[i], dp = profondo(p) - K_PROF * r; if (dp < -0.002) nD++; mD = Math.min(mD, dp);
+    const tb = T[id], P = tb.P; let nD = 0, mD = 9, nV = 0, mV = 9, pe = '', svolta = 0, rc = 1e9, mO = 9, mMe = 9;
+    for (let i = 0; i < P.length; i++) { const p = P[i], r = tb.r[i], dp = profondo(p) - K_PROF * r; if (dp < -0.002) nD++; mD = Math.min(mD, dp); mO = Math.min(mO, osso(p) - r); mMe = Math.min(mMe, membrana(p) - r);
       for (const [oid, o] of Object.entries(ALTRI)) { if (p[0] < o.lo[0] || p[0] > o.hi[0] || p[1] < o.lo[1] || p[1] > o.hi[1] || p[2] < o.lo[2] || p[2] > o.hi[2]) continue; const d = proiezione(o.pts, p).d - r - o.r; if (d < -0.002) nV++; if (d < mV) { mV = d; pe = oid; } } }
     for (let i = 1; i < P.length - 1; i++) { const th = Math.acos(clamp(dot(nrm(sub(P[i], P[i - 1])), nrm(sub(P[i + 1], P[i]))), -1, 1)); svolta = Math.max(svolta, th * 180 / Math.PI); rc = Math.min(rc, th > 1e-6 ? PASSO / th : 1e9); }
-    righe.push(`${id.padEnd(26)} r ${(rmax[id] * 20).toFixed(1).padStart(4)} mm  svolta max ${svolta.toFixed(1).padStart(4)}°/mm  R curv min ${rc.toFixed(2)} cm  punti ${String(P.length).padStart(3)}  profondo<0: ${String(nD).padStart(3)} (min ${(mD * 10).toFixed(1)} mm)  nervi/vene<0: ${String(nV).padStart(3)} (min ${(mV * 10).toFixed(1)} mm ${pe})`);
+    righe.push(`${id.padEnd(26)} r ${(rmax[id] * 20).toFixed(1).padStart(4)} mm  svolta max ${svolta.toFixed(1).padStart(4)}°/mm  R curv min ${rc.toFixed(2)} cm  punti ${String(P.length).padStart(3)}  profondo<0: ${String(nD).padStart(3)} (min ${(mD * 10).toFixed(1)} mm)  nervi/vene<0: ${String(nV).padStart(3)} (min ${(mV * 10).toFixed(1)} mm ${pe})  ossa ${(mO * 10).toFixed(1)} mm  membrana ${(mMe * 10).toFixed(1)} mm`);
   }
   return righe.join('\n');
 }
