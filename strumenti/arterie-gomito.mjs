@@ -51,11 +51,11 @@ const TUBI = {
   a_interossea_ant: { p: 'T2', da: 'nodo:PIA', a: 'fine', ov: 0.5, d: [1.9, 1.15], spalla: [1.4, 0.8] },
   a_interossea_post: { p: 'PIA', da: 0, a: 'fine', d: [1.3, 1.0], tromba: 'T2' },
   a_ricorrente_radiale: { p: 'ARC_R', da: 0, a: 'M', ovFin: 0.4, d: [1.8, 1.3], tromba: 'RAD' },
-  a_collat_radiale: { p: 'ARC_R', da: 'fine', a: 'M', rev: true, d: [1.9, 1.3] },
+  a_collat_radiale: { p: 'ARC_R', da: 'fine', a: 'M', rev: true, ovFin: 0.4, d: [1.9, 1.3] },
   a_ricorrente_ulnare_ant: { p: 'ARC_UA', da: 0, a: 'M', ovFin: 0.4, d: [1.3, 1.0], tromba: 'T1' },
-  a_collat_ulnare_inf: { p: 'ARC_UA', da: 'fine', a: 'M', rev: true, d: [1.4, 1.0], tromba: 'T1' },
+  a_collat_ulnare_inf: { p: 'ARC_UA', da: 'fine', a: 'M', rev: true, ovFin: 0.4, d: [1.4, 1.0], tromba: 'T1' },
   a_ricorrente_ulnare_post: { p: 'ARC_UP', da: 0, a: 'M', ovFin: 0.4, d: [1.5, 1.1], tromba: 'T1' },
-  a_collat_ulnare_sup: { p: 'ARC_UP', da: 'fine', a: 'M', rev: true, d: [1.7, 1.1], tromba: 'T1' },
+  a_collat_ulnare_sup: { p: 'ARC_UP', da: 'fine', a: 'M', rev: true, ovFin: 0.4, d: [1.7, 1.1], tromba: 'T1' },
 };
 const PASSO = 0.1;                 // cm, campionamento dei tracciati
 const K_PROF = 0.8, GIOCO = 0.03, GIOCO_VASO = 0.03;   // frazione del raggio libera dalle strutture; cm
@@ -235,10 +235,11 @@ for (const [id, s] of Object.entries(TUBI)) {
   const iM = gM ? Math.round(proiezione(v.P, gM).s / PASSO) : null;
   const idx = k => k === 'fine' ? n - 1 : k === 'M' ? iM : typeof k === 'number' ? k : nodo(k);
   let a = idx(s.da), b = idx(s.a);
-  if (s.rev) { [a, b] = [b, a]; }
   const ov = s.ov ? Math.round(s.ov / PASSO) : 0, of = s.ovFin ? Math.round(s.ovFin / PASSO) : 0;
-  let pts = a <= b ? v.P.slice(Math.max(0, a - ov), Math.min(n, b + 1 + of)) : v.P.slice(b, a + 1).reverse();
-  T[id] = { P: pts.map(p => p.slice()), ov: a <= b ? a - Math.max(0, a - ov) : 0, of: a <= b ? Math.min(n, b + 1 + of) - (b + 1) : 0 };
+  // tubi che vanno da valle a monte nell'ordine del percorso (collaterali: origine → M) si leggono al contrario; la coda sovrapposta `ovFin` prosegue oltre M dentro l'altro ramo
+  const b2 = Math.max(0, b - of);
+  let pts = a <= b ? v.P.slice(Math.max(0, a - ov), Math.min(n, b + 1 + of)) : v.P.slice(b2, a + 1).reverse();
+  T[id] = { P: pts.map(p => p.slice()), ov: a <= b ? a - Math.max(0, a - ov) : 0, of: a <= b ? Math.min(n, b + 1 + of) - (b + 1) : b - b2 };
 }
 // raggi per punto
 for (const [id, s] of Object.entries(TUBI)) {
