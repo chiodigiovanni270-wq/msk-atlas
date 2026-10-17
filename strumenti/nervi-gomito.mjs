@@ -41,6 +41,7 @@ const LATERALI = [
 ];
 // Rami muscolari: nascono nel tronco `run` cm a monte del punto d'ingresso (yIn = quota sul padre), corrono accostati al tronco dal lato del muscolo
 // e entrano nel ventre (la punta affonda `affonda` cm). `guida` = punto di riferimento nel muscolo (si prende il vertice del muscolo più vicino a quel punto);
+// `dentro` = il ramo nasce dal padre già dentro il muscolo e vi resta (lunghezza `lung` cm: nel supinatore nasce dal NIP nel tunnel, senza tratto sulla superficie);
 // `via` = punti di passaggio negli spazi tra i muscoli (il ramo dell'ECRB nasce dal NIP prima dell'arcata di Frohse e gira lateralmente al supinatore, tra supinatore ed ECRL).
 const RAMI = [
   { id: 'n_rm_pt', padre: 'n_mediano', muscolo: 'pt', yIn: 0.9, run: 1.5, r: 0.045, affonda: 0.14 },
@@ -52,7 +53,7 @@ const RAMI = [
   { id: 'n_rm_fdp_u', padre: 'n_ulnare', muscolo: 'fdp', yIn: -5.6, run: 1.8, r: 0.04, affonda: 0.14 },
   { id: 'n_rm_br', padre: 'n_radiale', muscolo: 'br', yIn: 5.6, run: 1.6, r: 0.045, affonda: 0.14 },
   { id: 'n_rm_ecrl', padre: 'n_radiale', muscolo: 'ecrl', yIn: 3.8, run: 1.6, r: 0.04, affonda: 0.14 },
-  { id: 'n_rm_sup', padre: 'n_pin', muscolo: 'sup', yIn: -1.5, run: 1.0, r: 0.04, affonda: 0.12 },
+  { id: 'n_rm_sup', padre: 'n_pin', muscolo: 'sup', yIn: -2.6, dentro: true, lung: 0.55, r: 0.04 },
   { id: 'n_rm_ecrb', padre: 'n_pin', muscolo: 'ecrb', yIn: -1.3, run: 1.0, r: 0.035, affonda: 0.14, guida: [-3.35, -1.8, -0.45], via: [[-3.45, -1.5, 0.65], [-3.45, -1.68, 0.05]], evita: ['sup'] },
   { id: 'n_rm_bic', padre: 'n_cut_lat', muscolo: 'bic', yIn: 10.0, run: 1.4, r: 0.05, affonda: 0.16 },
   { id: 'n_rm_brach', padre: 'n_cut_lat', muscolo: 'brach', yIn: 8.4, run: 1.4, r: 0.05, affonda: 0.16 },
@@ -293,6 +294,16 @@ function costruisciRami() {
   for (const R of RAMI) {
     if (!T[R.padre]) throw new Error('padre mancante ' + R.padre);
     const Pd = new Curva(T[R.padre].P), rP = T[R.padre].r, sIn = Pd.sArrivoY(R.yIn), s0 = Math.max(0, sIn - R.run), Pe = Pd.at(sIn);
+    if (R.dentro) {   // ramo che nasce dal padre già dentro il muscolo (NIP nel supinatore) e resta tutto nel ventre: nessun tratto visibile sulla superficie
+      const tg = Pd.tan(sIn), u0 = nrm(sub([1, 0, 0], mul(tg, tg[0]))), v0 = [tg[1] * u0[2] - tg[2] * u0[1], tg[2] * u0[0] - tg[0] * u0[2], tg[0] * u0[1] - tg[1] * u0[0]];
+      let bu = null, bv = -9;   // direzione nel piano perpendicolare al nervo (con una lieve componente distale) che massimizza la profondità nel muscolo a `lung` cm
+      for (let a = 0; a < 72; a++) { const th = a / 72 * 2 * Math.PI, d = nrm(add(add(mul(u0, Math.cos(th)), mul(v0, Math.sin(th))), mul(tg, 0.25))), q = add(Pe, mul(d, R.lung));
+        const v = Math.min(-dEvita([R.muscolo], q) - 0.02, dOsso(q) - (R.r + 0.03), dEvita([R.muscolo], add(Pe, mul(d, R.lung * 0.5))) * -1 - 0.01); if (v > bv) { bv = v; bu = d; } }
+      const tip = add(Pe, mul(bu, R.lung)), L = R.lung, P = hermite(Pe, mul(nrm(add(mul(tg, 0.6), mul(bu, 0.4))), L), tip, mul(bu, L));
+      T[R.id] = { P, r: R.r, k: s => 0.5 + 0.5 * sstep(0, 0.3, s), ini: 'dentro', fin: 'punta', muscolo: R.muscolo }; PARENT_NUOVI[R.id] = R.padre;
+      const Ln = arco(P).at(-1); T[R.id].k = s => (0.5 + 0.5 * sstep(0, 0.3, s)) * (Ln - s < 0.3 ? 0.35 + 0.65 * Math.sqrt(Math.max(0, 1 - ((0.3 - (Ln - s)) / 0.3) ** 2)) : 1);
+      log(R.id, 'tutto nel muscolo: profondità della punta', (bv * 10).toFixed(1), 'mm'); continue;
+    }
     const pos = posMuscolo(R.muscolo), Q = ingressoLibero(pos, R.guida ? R.guida : Pe, Pe, R.r, R.evita || []);
     let u = nrm(sub(Q, Pe)); const tg = Pd.tan(sIn); u = nrm(sub(u, mul(tg, dot(u, tg))));   // direzione laterale, perpendicolare al tronco
     const pts = [];
