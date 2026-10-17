@@ -5,10 +5,10 @@
      MODELLO=/tmp/copia.html node strumenti/nervi-gomito.mjs   → lavora su una copia
      node strumenti/nervi-gomito.mjs verifica     → non scrive: distanze dei nervi dal resto del modello
 
-   Metodo e parametri: GUIDA_MODELLI.md. Va lanciato dopo vene-gomito.mjs e prima di lacerto-gomito.mjs (che solleva i nervi superficiali sopra il
-   lacerto e usa i nervi profondi come ostacoli). I tronchi (mediano, radiale, ulnare, NIP, ramo superficiale) ripartono dal decorso della revisione
+   Metodo e parametri: GUIDA_MODELLI.md. Va lanciato dopo vene-gomito.mjs e prima di supinatore-gomito.mjs (che scava nel supinatore il tunnel del NIP
+   portato qui dentro il muscolo) e di lacerto-gomito.mjs (che solleva i nervi superficiali sopra il lacerto e usa i nervi profondi come ostacoli). I tronchi (mediano, radiale, ulnare, NIP, ramo superficiale) ripartono dal decorso della revisione
    `PARTENZA` (già scavato dai muscoli dagli strumenti precedenti); lo strumento cambia solo le divisioni, aggiunge i rami e rifà i cutanei.
-   Idempotente: legge sempre `PARTENZA` per i nervi e il file attuale per tutto il resto. */
+   Idempotente: legge sempre `PARTENZA` per i nervi, `MUSCOLI_DA` per supinatore e brachioradiale e il file attuale per tutto il resto. */
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeFileSync } from 'node:fs';
@@ -24,6 +24,9 @@ const PARTENZA = '0e33d52';   // revisione da cui si leggono i tubi dei nervi (p
 const leggiNVP = html => JSON.parse(html.match(/const NVP=(\{.*?\});\n/s)[1]);
 const NVP = leggiNVP(G.M.html);
 const NVP0 = VERIFICA ? NVP : leggiNVP(execFileSync('git', ['show', `${PARTENZA}:modelli/gomito-3d.html`], { cwd: ROOT, maxBuffer: 1 << 30 }).toString('utf8'));
+// supinatore e brachioradiale come erano prima di supinatore-gomito.mjs (che li riscrive dopo questo strumento): ostacoli e campo del NIP non dipendono dal suo risultato
+const MUSCOLI_DA = '37e1992', MUSCOLI_RIPRESI = ['sup', 'br'];
+for (const id of MUSCOLI_RIPRESI) G.setMesh(id, G.realDaRevisione(MUSCOLI_DA, id, 'modelli/gomito-3d.html'));
 
 /* ============ Tabelle ============ */
 const PASSO = 0.1;   // cm, campionamento dei tracciati
@@ -37,7 +40,8 @@ const LATERALI = [
   { id: 'n_interosseo_ant', padre: 'n_mediano', Ld: 1.4, Lb: 1.5, k0: 0.4, rampa: 2.6 },
 ];
 // Rami muscolari: nascono nel tronco `run` cm a monte del punto d'ingresso (yIn = quota sul padre), corrono accostati al tronco dal lato del muscolo
-// e entrano nel ventre (la punta affonda `affonda` cm). `guida` = punto di riferimento nel muscolo (si prende il vertice del muscolo più vicino a quel punto).
+// e entrano nel ventre (la punta affonda `affonda` cm). `guida` = punto di riferimento nel muscolo (si prende il vertice del muscolo più vicino a quel punto);
+// `via` = punti di passaggio negli spazi tra i muscoli (il ramo dell'ECRB nasce dal NIP prima dell'arcata di Frohse e gira lateralmente al supinatore, tra supinatore ed ECRL).
 const RAMI = [
   { id: 'n_rm_pt', padre: 'n_mediano', muscolo: 'pt', yIn: 0.9, run: 1.5, r: 0.045, affonda: 0.14 },
   { id: 'n_rm_fcr', padre: 'n_mediano', muscolo: 'fcr', yIn: -1.2, run: 1.4, r: 0.04, affonda: 0.14 },
@@ -48,8 +52,8 @@ const RAMI = [
   { id: 'n_rm_fdp_u', padre: 'n_ulnare', muscolo: 'fdp', yIn: -5.6, run: 1.8, r: 0.04, affonda: 0.14 },
   { id: 'n_rm_br', padre: 'n_radiale', muscolo: 'br', yIn: 5.6, run: 1.6, r: 0.045, affonda: 0.14 },
   { id: 'n_rm_ecrl', padre: 'n_radiale', muscolo: 'ecrl', yIn: 3.8, run: 1.6, r: 0.04, affonda: 0.14 },
-  { id: 'n_rm_sup', padre: 'n_pin', muscolo: 'sup', yIn: -2.8, run: 1.2, r: 0.04, affonda: 0.12 },
-  { id: 'n_rm_ecrb', padre: 'n_pin', muscolo: 'ecrb', yIn: -5.6, run: 1.2, r: 0.035, affonda: 0.14, guida: [-3.18, -5.67, 0.08], evita: ['sup'] },
+  { id: 'n_rm_sup', padre: 'n_pin', muscolo: 'sup', yIn: -1.5, run: 1.0, r: 0.04, affonda: 0.12 },
+  { id: 'n_rm_ecrb', padre: 'n_pin', muscolo: 'ecrb', yIn: -1.3, run: 1.0, r: 0.035, affonda: 0.14, guida: [-3.35, -1.8, -0.45], via: [[-3.45, -1.5, 0.65], [-3.45, -1.68, 0.05]], evita: ['sup'] },
   { id: 'n_rm_bic', padre: 'n_cut_lat', muscolo: 'bic', yIn: 10.0, run: 1.4, r: 0.05, affonda: 0.16 },
   { id: 'n_rm_brach', padre: 'n_cut_lat', muscolo: 'brach', yIn: 8.4, run: 1.4, r: 0.05, affonda: 0.16 },
 ];
@@ -63,6 +67,11 @@ const CUTANEI = {
   n_cut_med_avambraccio: { coda: [[2.5, 6.4, 0.5], [2.55, 7.6, 0.45], [2.6, 9.0, 0.4], [2.6, 10.5, 0.3], [2.6, 12.0, 0.25]], sup: true, fin: 'taglio' },
   n_cut_med_braccio: { coda: [[2.93, 6.0, -0.33], [2.97, 5.0, -0.36], [3.0, 4.2, -0.4]], sup: true, fin: 'punta', ini: 'taglio', tutto: true },
 };
+// Tratto intramuscolare (NIP nel supinatore): tra `yEntra` e `yEsce` (rampe in cm di quota) il nervo è spostato, nel piano perpendicolare al decorso, del minimo che lo porta
+// tutto dentro il muscolo (mesh `MUSCOLI_DA` con il solco del decorso di partenza riempito: chiusura morfologica `chiusura` cm entro `riempi` cm dal vecchio asse) con `parete` cm di muscolo intorno, lontano
+// dall'osso, dalle altre strutture e dai vasi `evita` (almeno `distVasi` cm tra le superfici: il passaggio del vaso nel muscolo resta separato dal tunnel); spostamenti levigati lungo l'arco (gaussiana `sigma` cm), `giri` iterazioni. Entra al margine prossimale (arcata di Frohse)
+// ed esce da quello distale: il tunnel nel muscolo lo scava supinatore-gomito.mjs.
+const INTRAMUSCOLARE = { n_pin: { muscolo: 'sup', yEntra: [-1.5, -2.6], yEsce: [-7.0, -8.2], parete: 0.13, chiusura: 0.4, riempi: 0.28, cerca: 1.0, sigma: 1.0, evita: ['a_interossea_post'], distVasi: 0.32, giri: 25 } };
 // Nervi che nel decorso di partenza affondano nell'osso: spostamento liscio (gaussiana `sigma` cm lungo l'arco) lungo il gradiente della distanza dall'osso, finché restano a 0,8 r + 0,02 cm.
 const SGOMBRA_OSSO = { n_rad_sup: { sigma: 0.7 }, n_pin: { sigma: 0.7 }, n_interosseo_ant: { sigma: 0.7 } };
 const RACCORDO = 8;   // punti (0,8 cm) del decorso di partenza vicini al tratto nuovo lasciati liberi per raccordare le tangenti
@@ -112,7 +121,7 @@ function hermite(p0, m0, p1, m1, passo = PASSO) {
 /* ============ Campi (strutture profonde, fascia, cute) ============ */
 const SHEET = ['lacerto', 'cet', 'osborne', 'mio', 'setto_med', 'setto_lat', 'quadrato', 'ucl_ant', 'ucl_post', 'ucl_trasv', 'rcl', 'lucl', 'anulare', 'caps', 'bor_olecr', 'bor_bicrad', 'cart_omero', 'cart_ulna', 'cart_radio'];
 G.griglia([-6.4, -12.2, -5.0], [4.6, 12.2, 6.1], 0.08, 0);
-const tutte = G.man.meshes.map(m => m.n).filter((n, i, a) => a.indexOf(n) === i);
+const tutte = G.man.meshes.map(m => m.n).filter((n, i, a) => a.indexOf(n) === i && n !== 'sup_prof');
 const SOLIDI = tutte.filter(n => n !== 'cute' && !SHEET.includes(n));
 const BANDA = 0.22;
 const sdfDa = nomi => { const M = G.unione(nomi), { F } = G.sdf(M); G.esatta(F, nomi, BANDA); for (let q = 0; q < G.N; q++) if (Math.abs(F[q]) <= BANDA) F[q] = (M[q] ? -1 : 1) * Math.abs(F[q]); return F; };
@@ -178,6 +187,42 @@ for (const C of CONTINUAZIONI) {
   tp.P = [...tp.P, ...ext]; tp.fin = 'dentro'; tp.sE = sE;
   tp.k = kT;
 }
+
+/* --- tratto intramuscolare (NIP nel supinatore) --- */
+function intramuscolare(id, C) {
+  const t = T[id], n = t.P.length, M = G.unione([C.muscolo]), { F: Fm0, Do } = G.sdf(M), Fcl = G.chiuso(Do, C.chiusura), Fa = sdfDa(SOLIDI.filter(k => k !== C.muscolo && !OSSA.includes(k)));
+  G.esatta(Fm0, [C.muscolo], BANDA);
+  // muscolo con il solco del decorso di partenza riempito (chiusura solo entro `riempi` cm dal vecchio asse, come in supinatore-gomito.mjs): altrove la superficie è quella vera
+  const Fm = new Float32Array(G.N), Cv = new Curva(t.P), lo = [0, 1, 2].map(k => Math.min(...t.P.map(p => p[k])) - 0.6), hi = [0, 1, 2].map(k => Math.max(...t.P.map(p => p[k])) + 0.6);
+  for (let q = 0; q < G.N; q++) { Fm[q] = Fm0[q]; const p = G.voxel(q); if (p[0] < lo[0] || p[0] > hi[0] || p[1] < lo[1] || p[1] > hi[1] || p[2] < lo[2] || p[2] > hi[2] || Fcl[q] >= Fm0[q]) continue;
+    const w = 1 - sstep(t.r + C.riempi * 0.7, t.r + C.riempi, Cv.proietta(p).d); if (w > 0) Fm[q] = Math.min(Fm0[q], Fcl[q] + 3 * (1 - w)); }
+  const dM = p => -G.sample(Fm, p[0], p[1], p[2]), dA = p => G.sample(Fa, p[0], p[1], p[2]);
+  const peso = y => sstep(C.yEntra[0], C.yEntra[1], y) * (1 - sstep(C.yEsce[0], C.yEsce[1], y));
+  const vasi = C.evita.map(k => ALTRI[k]).filter(Boolean), dVasi = p => Math.min(9, ...vasi.map(o => o.c.proietta(p).d - o.r));
+  const P0 = t.P.map(p => p.slice()); let D = P0.map(() => [0, 0, 0]);
+  const c0 = arco(P0), raggio = i => t.r * t.k(c0[i]);
+  const valuta = (p, i) => { const ri = raggio(i); return Math.min(Math.min(dM(p), dOsso(p), dA(p)) - (ri + C.parete), dVasi(p) - (ri + C.distVasi)); };   // parete di muscolo anche verso i muscoli vicini
+  for (let giro = 0; giro < C.giri; giro++) {
+    const P = P0.map((p, i) => add(p, D[i])), V = P.map(() => [0, 0, 0]);
+    for (let i = 0; i < n; i++) {
+      // nel tratto avvolto: dentro il muscolo con la parete; dopo l'inizio della rampa distale: solo fuori da ossa e altri muscoli (le code della gaussiana non lo spingono nell'APL)
+      const y = P[i][1], distale = peso(y) < 0.999 && y < C.yEsce[0] && y > C.yEsce[1] - 1.0, w = distale ? 1 : peso(y);
+      const f = distale ? q => Math.min(dA(q), dOsso(q)) - (raggio(i) + GIOCO) : q => valuta(q, i); if (w <= 0 || f(P[i]) >= 0) continue;
+      const T0 = nrm(sub(P[Math.min(n - 1, i + 1)], P[Math.max(0, i - 1)])), u = nrm(sub([1, 0, 0], mul(T0, T0[0]))), v = [T0[1] * u[2] - T0[2] * u[1], T0[2] * u[0] - T0[0] * u[2], T0[0] * u[1] - T0[1] * u[0]];
+      // spostamento minimo: il primo anello con posizioni valide; sull'anello, la posizione più interna (margine massimo)
+      let best = null, bv = -9, ok = false;
+      for (let rr = 0.025; rr <= C.cerca + 1e-9 && !ok; rr += 0.025) for (let a = 0; a < 48; a++) { const th = a / 48 * 2 * Math.PI, o = add(mul(u, rr * Math.cos(th)), mul(v, rr * Math.sin(th))), val = f(add(P[i], o));
+        if (val >= 0 && (!ok || val > bv)) { ok = true; bv = val; best = o; } else if (!ok && val > bv) { bv = val; best = o; } }
+      V[i] = mul(best, w);
+    }
+    const S = V.map((_, i) => { let ws = 0, acc = [0, 0, 0]; for (let j = 0; j < n; j++) { const dd = c0[j] - c0[i]; if (Math.abs(dd) > 3 * C.sigma) continue; const g = Math.exp(-0.5 * (dd / C.sigma) ** 2); ws += g; acc = add(acc, mul(V[j], g)); } return mul(acc, 1 / ws); });
+    D = D.map((d, i) => add(d, S[i]));   // la gaussiana attenua il picco: le iterazioni successive completano lo spostamento
+  }
+  t.P = P0.map((p, i) => add(p, D[i])); sgombraOsso(id, { sigma: 0.7 });   // le code della gaussiana non devono portarlo nell'osso
+  let fuori = 0, mx = 0; t.P.forEach((p, i) => { if (peso(p[1]) >= 0.999) { const v = valuta(p, i); if (v < -0.005) { fuori++; mx = Math.max(mx, -v); } } });
+  log('intramuscolare', id, 'spostamento massimo', Math.max(...D.map(len)).toFixed(2), 'cm; punti senza parete piena', fuori, '(max', (mx * 10).toFixed(2), 'mm)');
+}
+if (!VERIFICA) for (const [id, C] of Object.entries(INTRAMUSCOLARE)) intramuscolare(id, C);
 for (const Lt of LATERALI) {
   const Pd = new Curva(T[Lt.padre].P), c = T[Lt.id], Cc = new Curva(c.P), pr = Pd.proietta(c.P[0]), sO = Lt.daFine ? (T[Lt.padre].sE ?? Pd.L) : pr.s, S0s = Math.max(0, sO - Lt.Ld), S0 = Pd.at(S0s), tS0 = Pd.tan(S0s);
   const C1 = Cc.at(Lt.Lb), tC1 = Cc.tan(Lt.Lb), ch = len(sub(C1, S0));
@@ -257,7 +302,7 @@ function costruisciRami() {
     let tip = add(Q, mul(nIn, R.affonda)); for (let e = 0; e <= 0.8 && G.sample(Fs, tip[0], tip[1], tip[2]) > -0.12; e += 0.03) tip = add(Q, mul(nIn, R.affonda + e));   // la punta sta sempre dentro il muscolo (almeno 1,2 mm sotto la superficie)
     const dirT = nrm(sub(tip, fine)), dT = len(sub(tip, fine));
     // raccordo dalla corsa accostata al tronco fino al punto d'ingresso nel muscolo
-    const tail = hermite(fine, mul(tg, Math.max(0.3, dT)), tip, mul(dirT, Math.max(0.3, dT)));
+    const tail = R.via ? catmull([fine, add(fine, mul(tg, 0.15)), ...R.via, tip], PASSO) : hermite(fine, mul(tg, Math.max(0.3, dT)), tip, mul(dirT, Math.max(0.3, dT)));   // `via`: punti di passaggio (spazi tra i muscoli)
     let P = risampiona([...pts, ...tail.slice(1)], PASSO);
     for (let pass = 0; pass < 4; pass++) P = P.map((p, i) => i < 3 || i === P.length - 1 ? p : add(p, mul(sub(mul(add(P[i - 1], P[i + 1]), 0.5), p), 0.35)));
     const dNo = p => R.evita ? Math.min(dOsso(p), dEvita(R.evita, p)) : dOsso(p);   // ossa e muscoli da evitare
@@ -329,4 +374,5 @@ for (const id of Object.keys(NVP.pts).filter(k => k.startsWith('n_'))) { delete 
 NVP.rp = NVP.rp || {};
 for (const [id, t] of Object.entries(T)) { NVP.pts[id] = round(risc(t.P)); NVP.r[id] = rmax[id]; NVP.rp[id] = rp[id]; }
 G.M.html = G.M.html.replace(/const NVP=\{.*?\};\n/s, () => `const NVP=${JSON.stringify(NVP)};\n`);
+for (const id of MUSCOLI_RIPRESI) G.ripristina(id);   // nel file restano le mesh attuali
 G.saveFile(G.repack());
