@@ -91,7 +91,7 @@ function proiezione(P, q) {   // punto più vicino di una polilinea: { p, s (fra
 const arco = P => { const c = [0]; for (let i = 1; i < P.length; i++) c.push(c[i - 1] + len(sub(P[i], P[i - 1]))); return c; };
 
 /* ============ Campi (strutture profonde e cute) ============ */
-const SHEET = ['lacerto', 'cet', 'osborne', 'mio', 'setto_med', 'setto_lat', 'quadrato', 'ucl_ant', 'ucl_post', 'ucl_trasv', 'rcl', 'lucl', 'anulare', 'caps', 'bor_olecr', 'bor_bicrad', 'cart_omero', 'cart_ulna', 'cart_radio'];
+const SHEET = ['lacerto', 'osborne', 'mio', 'setto_med', 'setto_lat', 'quadrato', 'ucl_ant', 'ucl_post', 'ucl_trasv', 'rcl', 'lucl', 'anulare', 'caps', 'bor_olecr', 'bor_bicrad', 'cart_omero', 'cart_ulna', 'cart_radio'];
 G.griglia([-6.4, -12.2, -5.0], [4.6, 12.2, 6.1], 0.08, 0);
 const tutte = G.man.meshes.map(m => m.n).filter((n, i, a) => a.indexOf(n) === i);
 const SOLIDI = tutte.filter(n => n !== 'cute' && !SHEET.includes(n));
