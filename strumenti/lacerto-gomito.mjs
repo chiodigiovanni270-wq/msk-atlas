@@ -262,6 +262,22 @@ function sollevaTubi() {
 }
 const sollevate = sollevaTubi();
 for (const r of sollevate) log(r);
+// la perforante nasce dalla mediana del gomito, che è stata sollevata: il suo primo tratto segue lo spostamento e l'estremo resta sull'asse della mediana
+// (senza questo passaggio si staccherebbe dalla vena fino a 3 mm)
+function riagganciaPerforante() {
+  const Pf = NVP.pts.v_perforante, Cb = NVP.pts.v_mediana_cub; if (!Pf || !Cb) return;
+  let bd = 1e9, bp = null;
+  for (let i = 0; i + 1 < Cb.length; i++) { const a = Cb[i], b = Cb[i + 1], u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], L2 = u[0] ** 2 + u[1] ** 2 + u[2] ** 2 || 1e-12;
+    const t = clamp(((Pf[0][0] - a[0]) * u[0] + (Pf[0][1] - a[1]) * u[1] + (Pf[0][2] - a[2]) * u[2]) / L2, 0, 1), q = [a[0] + u[0] * t, a[1] + u[1] * t, a[2] + u[2] * t], d = Math.hypot(q[0] - Pf[0][0], q[1] - Pf[0][1], q[2] - Pf[0][2]);
+    if (d < bd) { bd = d; bp = q; } }
+  if (bd < 1e-4) return;
+  const dl = [bp[0] - Pf[0][0], bp[1] - Pf[0][1], bp[2] - Pf[0][2]]; let arc = 0;
+  for (let k = 0; k < Pf.length - 1; k++) { if (k) arc += Math.hypot(Pf[k][0] - Pf[k - 1][0], Pf[k][1] - Pf[k - 1][1], Pf[k][2] - Pf[k - 1][2]);
+    const w = 1 - sstep(0, 0.8, arc); if (w < 1e-3) break; Pf[k] = Pf[k].map((x, c) => Math.round((x + dl[c] * w) * 1000) / 1000); }
+  Pf[0] = bp.map(x => Math.round(x * 1000) / 1000);
+  log(`v_perforante riagganciata alla mediana del gomito (spostamento iniziale ${(bd * 10).toFixed(1)} mm)`);
+}
+riagganciaPerforante();
 G.M.html = G.M.html.replace(/const NVP=\{.*?\};\n/s, () => `const NVP=${JSON.stringify(NVP)};\n`);
 controlla(P, 'controlli sul nuovo lacerto');
 
