@@ -25,8 +25,10 @@ const AREA = { lo: [-5.8, -10.4, -1.7], hi: [0.3, 2.2, 3.0] };
 // tra `yDistale` e `yDistale − rampaDistale` (più in basso il nervo resta dov'era: lì tra radio ed ECRB non c'è spazio per un letto). `maxLift`: spostamento massimo (cm).
 // Il tunnel si riempie con la chiusura morfologica (`chiusura`, cm) del muscolo, solo entro `riempi` cm dal vecchio decorso e lontano da NIP e arteria
 // interossea posteriore (i cui passaggi sono anatomici). Il nervo si porta sulla superficie del muscolo riempito, dal lato opposto al radio; nel supinatore
-// si scava il letto (tubo di raggio r + `gioco`), nel brachioradiale (`letto`) i vertici entro il letto vanno sulla semicirconferenza interna del tubo (mesh suddivisa dove serve).
-const SUP = { nervo: 'n_rad_sup', yDa: -2.0, rampa: 0.9, yDistale: -7.0, rampaDistale: 2.0, maxLift: 1.0, chiusura: 0.4, riempi: 0.28, gioco: 0.03, sigmaPercorso: 0.35, nip: 'n_pin', arteria: 'a_interossea_post', letto: ['br'], bed: { margine: 0.02, lato: 0.05, suddividi: 10, cicli: 6 } };
+// si scava il letto (tubo di raggio r + `gioco`); il passaggio del NIP (la parte in cui il muscolo lo avvolge per ≥ `imbocco.nucleo` della circonferenza)
+// ha i bordi arrotondati: il campo del muscolo si sfoca (`imbocco.passate`) entro `imbocco.raggio` cm dall'asse e `imbocco.zona` cm oltre le estremità del passaggio; il gioco intorno al nervo (raggio locale + `gioco`) si rimette lungo tutto il passaggio; la sfocatura può solo aggiungere muscolo (le lamine sottili non si bucano) e svanisce a meno di `imbocco.osso` cm dal radio. Nel brachioradiale (`letto`) i vertici entro il letto vanno sulla semicirconferenza interna del tubo (mesh suddivisa dove serve).
+const SUP = { nervo: 'n_rad_sup', yDa: -2.0, rampa: 0.9, yDistale: -7.0, rampaDistale: 2.0, maxLift: 1.0, chiusura: 0.4, riempi: 0.28, gioco: 0.03, sigmaPercorso: 0.35, nip: 'n_pin', arteria: 'a_interossea_post', letto: ['br'], bed: { margine: 0.02, lato: 0.05, suddividi: 10, cicli: 6 },
+  imbocco: { nucleo: 0.9, zona: 0.5, passate: 8, raggio: 0.7, osso: 0.15 } };
 const FIBRE = { sigma: 0.5, sigmaTag: 0.22, passate: 6 };
 
 const leggiNVP = html => JSON.parse(html.match(/const NVP=(\{.*?\});\n/s)[1]);
@@ -35,7 +37,7 @@ const NVP0 = VERIFICA ? NVP : leggiNVP(execFileSync('git', ['show', `${BASE}:${F
 
 /* ============ Geometria ============ */
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
-const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], len = a => Math.hypot(a[0], a[1], a[2]), nrm = a => { const l = len(a) || 1; return mul(a, 1 / l); };
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], len = a => Math.hypot(a[0], a[1], a[2]), nrm = a => { const l = len(a) || 1; return mul(a, 1 / l); };
 function catmull(W, passo) {
   const out = [], n = W.length, P = i => W[clamp(i, 0, n - 1)];
   for (let s = 0; s < n - 1; s++) {
@@ -141,6 +143,27 @@ log('decorso: spostamento massimo', Math.max(...spost.map(len)).toFixed(2), 'cm'
 /* ============ Letto nel supinatore ============ */
 const Dnuovo = campoDistanza(nuovo, r + 0.5), F2 = new Float32Array(G.N), rr = r + SUP.gioco;
 for (let q = 0; q < G.N; q++) F2[q] = Math.max(F1[q], rr - Dnuovo[q]);
+/* ============ Imbocchi del passaggio del NIP: bordi arrotondati ============ */
+{
+  const { nucleo, zona, passate, raggio, osso } = SUP.imbocco, Rb = rP + SUP.gioco, Fr = G.campo(['radio']).F;
+  const T = pin.map((p, i) => nrm(sub(pin[Math.min(pin.length - 1, i + 1)], pin[Math.max(0, i - 1)])));
+  const frazione = i => { const t = T[i], u = nrm(cross(t, Math.abs(t[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0])), v = cross(t, u); let n = 0;
+    for (let a = 0; a < 16; a++) { const th = a / 16 * 2 * Math.PI, R = rP + 0.12, q = add(pin[i], add(mul(u, R * Math.cos(th)), mul(v, R * Math.sin(th)))); if (campFine(F2, ...q) < 0) n++; }
+    return n / 16; };
+  let y0 = -1e9, y1 = 1e9; pin.forEach((p, i) => { if (frazione(i) >= nucleo) { y0 = Math.max(y0, p[1]); y1 = Math.min(y1, p[1]); } });
+  if (y0 < y1) log('imbocchi: nessun passaggio chiuso'); else {
+    log('imbocchi: passaggio chiuso del NIP da y', y0.toFixed(2), 'a', y1.toFixed(2));
+    const Fb = G.sfoca(Float32Array.from(F2), passate);
+    for (let q = 0; q < G.N; q++) { if (Dpin[q] > raggio) continue;
+      const v = vicino(pin, G.voxel(q)), w = (1 - sstep(raggio - 0.15, raggio, Dpin[q])) * sstep(y1 - zona - 0.3, y1 - zona, v.p[1]) * (1 - sstep(y0 + zona, y0 + zona + 0.3, v.p[1])) * sstep(osso, 2 * osso, Fr[q]);
+      if (w <= 0) continue;
+      let nf = Math.min(F2[q], F2[q] + w * (Fb[q] - F2[q]));   // la sfocatura può solo aggiungere muscolo (le lamine sottili non si bucano)
+      F2[q] = nf; }
+  }
+  // gioco intorno al NIP lungo tutto il passaggio, con il raggio locale del nervo (profilo `rp`): nessun vertice del muscolo dentro il tubo
+  const rpv = NVP.rp?.[SUP.nip], rLoc = i => rpv ? rP * (() => { const x = i / (pin.length - 1) * (rpv.length - 1), k = Math.min(rpv.length - 2, Math.floor(x)); return rpv[k] + (rpv[k + 1] - rpv[k]) * (x - k); })() : rP;
+  for (let q = 0; q < G.N; q++) { if (Dpin[q] > Rb) continue; const v = vicino(pin, G.voxel(q)); F2[q] = Math.max(F2[q], rLoc(v.i) + SUP.gioco - v.d); }
+}
 // isole e cavità (come negli altri strumenti): una sola componente, nessun vuoto chiuso
 {
   const M = new Uint8Array(G.N); for (let q = 0; q < G.N; q++) M[q] = F2[q] < 0 ? 1 : 0;
