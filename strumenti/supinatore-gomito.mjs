@@ -29,7 +29,7 @@ const AREA = { lo: [-5.8, -10.4, -1.7], hi: [0.3, 2.2, 3.0] };
 // (raggio locale + `gioco`), con una parete di almeno `pareteNip` cm dentro l'involucro del muscolo (che può superare al più di `rilievoNip` cm); agli imbocchi il campo si sfoca aggiungendo solo muscolo (`imbocchi`). Nel brachioradiale (`letto`) i vertici entro il letto del ramo superficiale vanno sulla semicirconferenza interna del tubo (mesh suddivisa
 // dove serve). Mesh del supinatore a passo `passoMesh` cm: le pareti del tunnel sono sottili (≥ 0,9 mm).
 const SUP = { nervo: 'n_rad_sup', yDa: -2.0, rampa: 0.9, yDistale: -7.0, rampaDistale: 2.0, maxLift: 1.0, chiusura: 0.4, riempi: 0.28, gioco: 0.03, sigmaPercorso: 0.35, nip: 'n_pin', arteria: 'a_interossea_post', letto: ['br'], bed: { margine: 0.02, lato: 0.05, suddividi: 10, cicli: 6 },
- riempiNip: [0.15, 0.45], leviga: 2, pareteNip: 0.12, rilievoNip: 0.04, imbocchi: { passate: 6, raggio: 0.7, fascia: 0.6 }, passoMesh: 0.08 };
+ riempiNip: [0.15, 0.45], leviga: 2, ramiIngresso: { n_rm_sup: { coda: 0.7, profondita: 0.3 } }, pareteNip: 0.12, rilievoNip: 0.04, imbocchi: { passate: 6, raggio: 0.7, fascia: 0.6 }, passoMesh: 0.08 };
 const FIBRE = { sigma: 0.5, sigmaTag: 0.22, passate: 6 };
 
 const leggiNVP = html => JSON.parse(html.match(/const NVP=(\{.*?\});\n/s)[1]);
@@ -241,8 +241,19 @@ function costruisci(Fm, m, passoMesh = PASSO_MESH) {
   for (let i = 0; i < n2; i++) { tag[i] = Math.round(clamp(tagF[i], 0, 200)); for (let k = 0; k < 3; k++) fdir[3 * i + k] = Math.round(clamp(fd[3 * i + k], -1, 1) * 127); }
   return { pos, idx: out.idx, tag, fdir };
 }
+const round = P => P.map(p => p.map(x => Math.round(x * 1000) / 1000));
 const nuovoSup = costruisci(F2, baseSup, SUP.passoMesh);
 log('supinatore:', nuovoSup.pos.length / 3, 'vertici');
+// rami nervosi che entrano nel supinatore (`ramiIngresso`): il muscolo ricostruito può arretrare di qualche decimo di millimetro e lasciare la punta fuori dalla superficie;
+// negli ultimi `coda` cm il ramo è spinto verso l'interno (gradiente del campo, spostamento crescente verso la punta) finché la punta sta `profondita` cm sotto la superficie
+for (const [id, C] of Object.entries(SUP.ramiIngresso)) {
+  let P = catmull(NVP.pts[id], 0.05); const c = arco(P), L = c.at(-1), prof = p => -campFine(F2, ...p), e = PASSO * 0.75;
+  for (let giro = 0; giro < 6; giro++) P = P.map((p, i) => { const w = sstep(L - C.coda, L, c[i]), need = C.profondita * w, d = prof(p); if (w <= 0 || d >= need) return p;
+    const g = [campFine(F2, p[0] + e, p[1], p[2]) - campFine(F2, p[0] - e, p[1], p[2]), campFine(F2, p[0], p[1] + e, p[2]) - campFine(F2, p[0], p[1] - e, p[2]), campFine(F2, p[0], p[1], p[2] + e) - campFine(F2, p[0], p[1], p[2] - e)];
+    const l = len(g) || 1; return add(p, mul(g, -(need - d) / l * 0.8)); });
+  log(id + ': punta a', (prof(P.at(-1)) * 10).toFixed(2), 'mm sotto la superficie del supinatore');
+  NVP.pts[id] = round(risampiona(P, 0.15));
+}
 
 /* ============ Letto nel brachioradiale: vertici spinti fuori dal tubo, spostamento levigato ============ */
 // suddivisione conforme dei triangoli vicini al nervo (spigoli più lunghi di `lmax` con il punto medio entro `zona` dall'asse): 1→2, 1→3 o 1→4 triangoli, senza crepe;
@@ -310,7 +321,6 @@ console.log(ver);
 // i vertici di ecrb, ecrl, pt, anc e radio vengono letti dal file, che non cambia
 setMesh('sup', nuovoSup); G.man.meshes = G.man.meshes.filter(m => m.n !== 'sup_prof');   // la divisione in due capi (versione precedente) non c'è più
 for (const id of SUP.letto) setMesh(id, meshLetto[id]);
-const round = P => P.map(p => p.map(x => Math.round(x * 1000) / 1000));
 NVP.pts[SUP.nervo] = round(risampiona(nuovo, 0.15));
 G.M.html = G.M.html.replace(/const NVP=\{.*?\};\n/s, () => `const NVP=${JSON.stringify(NVP)};\n`);
 G.saveFile(G.repack());
