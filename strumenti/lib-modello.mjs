@@ -62,7 +62,8 @@ const override = new Map();
 export function setPos(name, pos) { override.set(name, pos); const t = topo.get(name); if (t) t.pos = pos; }
 // mesh con topologia nuova (posizioni, indici, tag, direzioni delle fibre)
 const topo = new Map();
-export function setMesh(name, mesh) { topo.set(name, mesh); override.set(name, mesh.pos); }
+// (una mesh che non è nell'indice si aggiunge in fondo: altrimenti repack() la ignorerebbe senza avvisare)
+export function setMesh(name, mesh) { if (!man.meshes.some(m => m.n === name)) man.meshes.push({ n: name }); topo.set(name, mesh); override.set(name, mesh.pos); }
 // scarta le modifiche in memoria a una mesh: al salvataggio resta quella incorporata nel file
 export function ripristina(name) { topo.delete(name); override.delete(name); }
 // attributi per vertice originali: tag (colore muscolo/tendine) e direzione delle fibre
@@ -71,7 +72,15 @@ export function attrs(name) {
   const m = man.meshes.findLast(x => x.n === name);
   return { tag: m.t !== undefined ? new Uint8Array(ab, m.t, m.nv).slice() : null, fdir: m.d !== undefined ? new Int8Array(ab, m.d, m.nv * 3).slice() : null };
 }
+// mesh divise in parti (gomito: bicipite in capo lungo e capo breve, bicipite-capi-gomito.mjs): il nome di prima restituisce le parti unite,
+// per gli strumenti che la usano come ostacolo
+const UNITE = { bic: ['bic_lungo', 'bic_lungo_setto', 'bic_breve', 'bic_breve_setto'] };
 export function REAL(name) {
+  if (UNITE[name] && !topo.has(name) && !man.meshes.some(x => x.n === name) && UNITE[name].every(n => man.meshes.some(x => x.n === n))) {
+    const parti = UNITE[name].map(REAL), nv = parti.reduce((s, p) => s + p.nv, 0), pos = new Float32Array(nv * 3), idx = new Uint32Array(parti.reduce((s, p) => s + p.idx.length, 0));
+    let o = 0, oi = 0; for (const p of parti) { pos.set(p.pos.subarray(0, p.nv * 3), o * 3); for (let k = 0; k < p.idx.length; k++) idx[oi + k] = p.idx[k] + o; o += p.nv; oi += p.idx.length; }
+    return { pos, idx, nv };
+  }
   const t = topo.get(name); if (t) return { pos: t.pos, idx: t.idx, nv: t.pos.length / 3 };
   const m = man.meshes.findLast(x => x.n === name), mn = man.min, mx = man.max;
   let pos = override.get(name);
@@ -304,12 +313,14 @@ export function repack() {
     const e = { ...m }, isLive = live.get(m.n) === i, T = isLive && topo.get(m.n), P = isLive && override.get(m.n);
     if (T) {
       const nv = T.pos.length / 3, i16 = nv < 65536; e.nv = nv; e.ni = T.idx.length; e.i16 = i16 ? 1 : 0;
-      e.p = push(quant(T.pos)); delete e.t; delete e.d;
+      e.p = push(quant(T.pos)); delete e.t; delete e.d; delete e.nm;
       if (T.tag) e.t = push(Buffer.from(Uint8Array.from(T.tag).buffer)); if (T.fdir) e.d = push(Buffer.from(Int8Array.from(T.fdir).buffer));
+      if (T.nrm) e.nm = push(Buffer.from(Int8Array.from(T.nrm).buffer));   // normali di vertice scritte (int8 × 127): la pagina non le ricalcola
       e.i = push(Buffer.from((i16 ? Uint16Array.from(T.idx) : Uint32Array.from(T.idx)).buffer));
     } else {
       e.p = P ? push(quant(P)) : old(m.p, m.nv * 6);
       if (m.t !== undefined) e.t = old(m.t, m.nv); if (m.d !== undefined) e.d = old(m.d, m.nv * 3);
+      if (m.nm !== undefined) { if (P) delete e.nm; else e.nm = old(m.nm, m.nv * 3); }   // posizioni nuove: le normali scritte non valgono più
       e.i = old(m.i, m.ni * (m.i16 ? 2 : 4));
     }
     return e;
