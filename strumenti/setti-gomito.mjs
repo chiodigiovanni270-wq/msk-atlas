@@ -38,13 +38,15 @@ const FORMA = {
   tubi: { da: 0.04, a: 0.12 },     // cm: distanza dal bordo dei tubi (vasi e nervi): attorno ai tubi si apre un'asola, dove il nervo (o il vaso) attraversa il setto
   cute: { da: 0.04, a: 0.14 },     // cm: profondità sotto la cute oltre la quale il setto è pieno
   testa: { da: 11.88, a: 12.0 },   // cm: la finestra del modello finisce a y = 12: la lamina sfuma prima, senza bordo aperto sul piano di taglio
-  fondo: { da: -0.95, a: -0.7 },   // cm: stesso discorso verso il basso (estremo distale della griglia a y = −1,2)
   soglia: 0.05,       // w sotto cui i vertici contano come "fuori": i triangoli con tutti i vertici fuori si scartano (bordo)
   minimoArea: 0.6,    // cm²: le componenti più piccole (una faccia) sono scartate
   levigatura: 14,     // passate di Taubin sulla superficie media, con i vertici di bordo trattenuti
 };
-const GRIGLIA = { lo: [-5.4, -1.2, -4.7], hi: [4.8, 12.05, 3.7], passo: 0.05 };
-const REGIONE = { med: { xmin: 0.2 }, lat: { xmax: 0.9 } };   // dove cercare le due lamine (x mediale +): la divisione tra l'una e l'altra passa sull'omero
+const GRIGLIA = { lo: [-5.4, 0.6, -4.7], hi: [4.8, 12.05, 3.7], passo: 0.05 };
+// dove cercare le due lamine (x mediale +): la divisione tra l'una e l'altra passa sull'omero; `fondo` = quote (y, cm) tra cui la lamina sfuma verso il basso:
+// i setti finiscono sugli epicondili (apice del mediale a y = 1,4, del laterale a y = 1,9) e si perdono nelle origini comuni dei flessori e degli estensori:
+// sotto l'epicondilo non c'è setto (la faccia dell'avambraccio ha altre fasce, non modellate)
+const REGIONE = { med: { xmin: 0.2, fondo: { da: 1.45, a: 2.0 } }, lat: { xmax: 0.9, fondo: { da: 1.9, a: 2.5 } } };
 
 const NVP = JSON.parse(G.M.html.match(/const NVP=(\{.*?\});\n/s)[1]);
 const reff = id => NVP.r[id] * 1.08;
@@ -81,12 +83,12 @@ G.sfoca(F, 1);
 
 /* ============ Peso (0-1) in un punto: 1 = lamina piena, 0 = nessuna lamina ============ */
 const campiona = (A, p) => G.sample(A, p[0], p[1], p[2]);
-const pesi = p => {
+const pesi = (p, fondo) => {
   const dp = campiona(Fpost, p), da = campiona(Fant, p), spazio = dp + da;
   const wSpazio = 1 - sstep(FORMA.spazio.da, FORMA.spazio.a, spazio);
   const wMuscoli = sstep(FORMA.muscoli.da, FORMA.muscoli.a, Math.min(dp, da));
   const wFascia = sstep(FORMA.fascia.da, FORMA.fascia.a, -campiona(Ftutto, p));
-  const wTesta = (1 - sstep(FORMA.testa.da, FORMA.testa.a, p[1])) * sstep(FORMA.fondo.da, FORMA.fondo.a, p[1]);
+  const wTesta = (1 - sstep(FORMA.testa.da, FORMA.testa.a, p[1])) * sstep(fondo.da, fondo.a, p[1]);
   const wOsso = sstep(FORMA.osso.da, FORMA.osso.a, campiona(Fomero, p));
   const wAltri = sstep(FORMA.altri.da, FORMA.altri.a, campiona(Faltri, p));
   const wTubi = sstep(FORMA.tubi.da, FORMA.tubi.a, campiona(Ftubi, p));
@@ -115,7 +117,7 @@ function lamina(regione, nome) {
   for (let i = 0; i < nv0; i++) {
     const p = [P0[3 * i], P0[3 * i + 1], P0[3 * i + 2]];
     if (fuori(p)) continue;
-    const r = pesi(p); W[i] = r.w; SP[i] = r.spazio;
+    const r = pesi(p, regione.fondo); W[i] = r.w; SP[i] = r.spazio;
   }
   // triangoli con almeno un vertice dentro; componenti connesse (per vertici con peso)
   let tri = []; for (let t = 0; t < I0.length; t += 3) if (W[I0[t]] > FORMA.soglia || W[I0[t + 1]] > FORMA.soglia || W[I0[t + 2]] > FORMA.soglia) tri.push(t);
@@ -131,7 +133,7 @@ function lamina(regione, nome) {
   let idx = []; for (const t of tri) idx.push(nuovo[I0[t]], nuovo[I0[t + 1]], nuovo[I0[t + 2]]);
   // levigatura (Taubin) trattenendo i vertici di bordo, poi pesi ricalcolati sulla superficie levigata
   pos = lisciaConBordo(pos, idx, FORMA.levigatura);
-  for (let i = 0; i < n; i++) { const p = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]]; w[i] = fuori(p) ? 0 : pesi(p).w; }
+  for (let i = 0; i < n; i++) { const p = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]]; w[i] = fuori(p) ? 0 : pesi(p, regione.fondo).w; }
   { const f = []; for (let t = 0; t < idx.length; t += 3) if (w[idx[t]] > FORMA.soglia || w[idx[t + 1]] > FORMA.soglia || w[idx[t + 2]] > FORMA.soglia) f.push(idx[t], idx[t + 1], idx[t + 2]); idx = f; }   // il bordo segue i pesi sulla superficie levigata
   // normali della superficie media (per vertice, dalle facce), orientate come il gradiente di F (verso l'anteriore)
   const nrm = new Float32Array(n * 3);
@@ -142,7 +144,7 @@ function lamina(regione, nome) {
   for (let i = 0; i < n; i++) { const l = Math.hypot(nrm[3 * i], nrm[3 * i + 1], nrm[3 * i + 2]) || 1; for (let k = 0; k < 3; k++) nrm[3 * i + k] /= l; }
   // spessore per vertice
   const T = new Float32Array(n);
-  for (let i = 0; i < n; i++) { const r = pesi([pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]]);
+  for (let i = 0; i < n; i++) { const r = pesi([pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]], regione.fondo);
     const tmax = Math.max(FORMA.spessoreMin, Math.min(FORMA.spessore, r.spazio - 2 * FORMA.gioco));
     T[i] = w[i] > FORMA.soglia ? tmax * sstep(FORMA.soglia, 0.6, w[i]) : 0; }
   // lastra chiusa: faccia posteriore (−n) e anteriore (+n); sul bordo lo spessore va a zero e le due facce coincidono
