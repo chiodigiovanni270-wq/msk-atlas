@@ -327,7 +327,7 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
         <p class="kicker">L'atlante</p>
         <p class="lit">Ogni tavola è un modello tridimensionale da ruotare, scomporre per strati e consultare struttura per struttura, con note di anatomia e di interesse radiologico. Direttamente nel browser, anche da smartphone.</p>
         <ul class="stats">
-          <li><b data-count-models>3</b><span>Tavole interattive: ginocchio, polso e dito, gomito, ognuna una pagina indipendente</span></li>
+          <li><b data-count-models>4</b><span>Tavole interattive: spalla, polso e dito, gomito, ginocchio, ognuna una pagina indipendente</span></li>
           <li><b data-count-structures>298</b><span>Strutture anatomiche con scheda: ossa, legamenti, muscoli, vasi e nervi</span></li>
           <li><b>360°</b><span>Rotazione libera, zoom e strati da mostrare o nascondere</span></li>
         </ul>
@@ -345,6 +345,22 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       <!-- CARD MODELLO: per aggiungere un modello duplica questo blocco e cambia immagine, alt, distretto, link e titolo.
            Il numero "Tav." e il conteggio dei modelli sono automatici.
            Imposta data-strutture sul <li>: numero di strutture con scheda del modello (riga "N strutture" della card e somma in "L'atlante" automatiche). -->
+      <!-- CARD MODELLO -->
+      <li class="card" data-strutture="59">
+        <figure class="card-media">
+          <img src="assets/anteprime/spalla-3d.jpg" width="1600" height="1000" loading="lazy"
+               alt="Anteprima del modello 3D della spalla destra in vista anteriore">
+        </figure>
+        <span class="chip card-num glass"></span>
+        <span class="chip card-region glass">Arto superiore</span>
+        <div class="card-body glass">
+          <h3><a class="card-link" href="modelli/spalla-3d.html">Spalla</a><span class="go" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></span></h3>
+          <p class="meta"></p>
+        </div>
+      </li>
+      <!-- /CARD MODELLO -->
+
+      <!-- CARD MODELLO -->
       <li class="card" data-strutture="141">
         <figure class="card-media">
           <img src="assets/anteprime/polso-dito-3d.jpg" width="1600" height="1000" loading="lazy"
@@ -377,20 +393,6 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       </li>
       <!-- /CARD MODELLO -->
 
-      <!-- CARD MODELLO -->
-      <li class="card" data-strutture="59">
-        <figure class="card-media">
-          <img src="assets/anteprime/spalla-3d.jpg" width="1600" height="1000" loading="lazy"
-               alt="Anteprima del modello 3D della spalla destra in vista anteriore">
-        </figure>
-        <span class="chip card-num glass"></span>
-        <span class="chip card-region glass">Arto superiore</span>
-        <div class="card-body glass">
-          <h3><a class="card-link" href="modelli/spalla-3d.html">Spalla</a><span class="go" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></span></h3>
-          <p class="meta"></p>
-        </div>
-      </li>
-      <!-- /CARD MODELLO -->
       <!-- CARD MODELLO -->
       <li class="card" data-strutture="79">
         <figure class="card-media">
