@@ -10,10 +10,11 @@ a scopo didattico (anatomia muscolo-scheletrica per radiologia). Lingua dell'int
 - "Atlante anatomico 3D" è il sottotitolo/descrizione, non il nome.
 - `<title>`: homepage "MSK Atlas — Atlante anatomico 3D"; modelli "<Distretto> 3D | MSK Atlas" (es. "Ginocchio 3D | MSK Atlas").
 
-## Materiale di partenza
-La cartella `modelli/` contiene pagine HTML autocontenute, nate come artifact di Claude:
-- `ginocchio-3d.html` — ginocchio 3D interattivo (three.js r128 da CDN)
-- `polso-dito-3d.html` — polso destro + dito in sezione separata (three.js r128 da CDN)
+## Modelli
+La cartella `modelli/` contiene pagine HTML autocontenute (three.js r128 da CDN), nate come artifact di Claude:
+- `polso-dito-3d.html` — polso destro + dito medio in sezione separata (`#dito`)
+- `gomito-3d.html` — gomito destro, con regioni guidate (tunnel cubitale, fossa cubitale) e piano di taglio
+- `ginocchio-3d.html` — ginocchio destro
 
 Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi (2–8 MB), è normale.
 
@@ -35,7 +36,10 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
 ## Requisiti di contenuto
 - Ogni pagina riporta un disclaimer breve: "Materiale didattico. Non destinato a uso clinico o diagnostico."
   Nei modelli sta in una sola riga nel pannello strutture (riga `.credit`) e nel pannello "i" (`assets/nav.js`), non in alto. Crediti, attribuzione BodyParts3D ed elenco delle strutture (da BodyParts3D / ricostruite / non incluse, via `<meta name="strutture-bp3d|strutture-modellate|strutture-escluse">`) stanno solo nel pannello "i".
-- Al momento i modelli sono due, ma ne verranno aggiunti altri nel tempo: la struttura del sito deve permettere di aggiungere un nuovo modello in modo semplice e ripetibile, senza riorganizzare tutto.
+- Schede delle strutture (card che si apre toccando una struttura), uguali in tutti i modelli: nota `info` breve (decorso essenziale e uno o due rilievi clinico-radiologici);
+  per muscoli, legamenti, retinacoli, aponeurosi e membrane anche i campi `o`, `ins`, `fn` (Origine, Inserzione, Funzione), che la nota non ripete;
+  per i nervi solo la nota, che dice se sono motori, sensitivi o misti e cosa innervano. Dettagli in `GUIDA_MODELLI.md` (sezione "Dati").
+- Al momento i modelli sono tre, ma ne verranno aggiunti altri nel tempo: la struttura del sito deve permettere di aggiungere un nuovo modello in modo semplice e ripetibile, senza riorganizzare tutto.
 
 ## Aggiungere un modello
 1. Copia il file in `modelli/<nome>-3d.html` (nome minuscolo, parole separate da trattini).
@@ -46,8 +50,19 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
    salva `assets/anteprime/<nome>-3d.jpg`, 1600×1000. Istruzioni e opzioni in testa allo script.
 4. In `index.html` duplica un blocco `<!-- CARD MODELLO -->` e aggiorna distretto, immagine, alt,
    link e titolo, e imposta `data-strutture` sul `<li class="card">` (numero di strutture con scheda del modello: righe dell'elenco "Strutture").
+   Ordine delle card: prima l'arto superiore (polso e dito, gomito), poi l'inferiore (ginocchio).
    La card non ha descrizione: solo titolo con freccia e riga "N strutture". Numero "Tav.", riga "N strutture", conteggio dei modelli e totale delle strutture sono automatici.
 5. Verifica in locale, poi commit (`Aggiunge modello <nome>`) e push su `main`.
+
+## Strumenti (`strumenti/`)
+- Script Node (`.mjs`, Node 22+, senza dipendenze) che rigenerano o correggono le mesh incorporate nei modelli; non sono pubblicati sul sito.
+  Le geometrie si modificano con uno script, non a mano nel base64: per cambiarle si regolano i parametri dello script e lo si rilancia.
+- Nome `<struttura>-<modello>.mjs` (es. `nervi-gomito.mjs`, `legamenti-polso.mjs`); funzioni comuni in `lib-modello.mjs`
+  (lettura/scrittura di `bpdat`/`bpman`, `REAL`, `setMesh`) e nelle `lib-*.mjs` di distretto. `MODELLO=<file>` fa lavorare lo script su una copia.
+- In testa a ogni script: uso, eventuali modalità che non scrivono (`verifica`, `prova`) e, se riparte dalle mesh di una revisione git
+  (es. `PARTENZA`, `BASE`), quale: così si può rilanciare con lo stesso risultato; altrimenti va detto se si può rilanciare. Gli script di un modello vanno lanciati nell'ordine indicato in `GUIDA_MODELLI.md`.
+- Ogni script nuovo o modificato va descritto in `GUIDA_MODELLI.md` (sezione "Dati": cosa fa, metodo, parametri, ordine nella catena).
+- Strumenti del sito: `anteprima.mjs` e `sequenza-home.mjs` (con `lib-chrome.mjs`, Chrome headless), `icone.mjs`.
 
 ## Anteprime e animazione della homepage
 - Anteprima e animazione NON vanno rigenerate a ogni modifica di un modello: si fanno alla fine, quando lo chiedo.
@@ -59,5 +74,5 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
 
 ## Modo di lavorare
 - Prima di modifiche ampie, proponi un piano e attendi conferma.
-- Commit piccoli e descrittivi, in italiano.
+- Commit piccoli e descrittivi, in italiano; per le modifiche a un modello il messaggio inizia con il distretto (es. "Gomito: …").
 - Dopo ogni modifica, indicami come verificarla in locale.
