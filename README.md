@@ -61,9 +61,9 @@ Cosa controllare dopo una modifica:
    per fare prove senza sovrascrivere: `--out=/tmp/prova.jpg`. Richiede Node 22+ e Google Chrome.
    Va rigenerata anche quando si modifica un modello, perché l'anteprima resti aggiornata.
 4. **Card** — in `index.html` duplica un blocco `<!-- CARD MODELLO -->` e aggiorna distretto, immagine,
-   testo alternativo, link, titolo e descrizione. Il numero "Tav." e il conteggio
-   dei modelli sono automatici. Il blocco `.sub` (link alle sezioni) è facoltativo e sostituisce il pulsante
-   "Apri il modello".
+   testo alternativo, link e titolo, e imposta `data-strutture` sul `<li class="card">`. Il numero "Tav.",
+   la riga "N strutture" e il conteggio dei modelli sono automatici. Il blocco `.sub` (link alle sezioni)
+   è facoltativo.
 5. **Verifica e pubblica** — controlla in locale, poi:
    ```bash
    git add modelli/<nome>-3d.html assets/anteprime/<nome>-3d.jpg index.html
