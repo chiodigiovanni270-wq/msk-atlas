@@ -1,10 +1,9 @@
 /* Cutaneo laterale dell'avambraccio (modelli/gomito-3d.html): relazione con le vene superficiali nei due incroci.
 
-   Anatomia (Standring, Gray's Anatomy 42ª ed.; Yamada et al., Clin Anat 2008;21:307-313): il nervo emerge lateralmente al tendine del bicipite, buca la fascia
-   e scende nel sottocute DIETRO (in profondità a) la vena cefalica e la mediana del gomito, davanti al brachioradiale. Nei 128 arti di Yamada era più profondo
-   della mediana del gomito in 56 casi e la mediana lo scavalcava in 8; non risultano casi con il nervo sopra la vena. La variabilità sopra/sotto riguarda il
-   cutaneo mediale. Nel modello di partenza il nervo passava SOPRA la mediana del gomito (x −2,0; y +0,8) e sotto la mediana cefalica (x −3,2; y −3,4) con i
-   tubi sovrapposti.
+   Anatomia (Yamada et al., Clin Anat 2008;21:307-313): rispetto alla mediana del gomito il nervo è più profondo in 56 arti su 128 e la mediana lo scavalca in 8; non
+   risultano casi con il nervo sopra la vena (la variabilità sopra/sotto riguarda il cutaneo mediale). Nel modello di partenza il nervo passava SOPRA la mediana del
+   gomito (x −2,0; y +0,8) e sotto la mediana cefalica (x −3,2; y −3,4) con i tubi sovrapposti. Il rapporto con la cefalica (nervo mediale e a contatto, non «dietro»)
+   è in `cefalica-gomito.mjs`, da lanciare dopo questo strumento.
 
    Uso (dalla cartella del progetto):
      node strumenti/cutaneo-laterale-gomito.mjs verifica   → non scrive: posizione del nervo rispetto alle vene agli incroci e distanze dalle strutture
@@ -15,7 +14,7 @@
    (1) mediana del gomito: il nervo scende sotto la vena fino a lasciare `GIOCO` tra le superfici (la vena non si sposta: tra muscolo e cute c'è lo spazio);
    (2) mediana cefalica: il nervo poggia sul brachioradiale e la vena viene sollevata sopra di lui (il nervo sale solo quanto serve per uscire dal muscolo).
    Va lanciato dopo `nervi-gomito.mjs`, `vene-gomito.mjs` e `lacerto-gomito.mjs`; se si rilanciano, rilanciare anche questo (idempotente: il bersaglio è assoluto,
-   due lanci danno lo stesso file). Cefalica: la vena sta sul margine laterale del brachioradiale, quindi nessun incrocio (vedi GUIDA_MODELLI.md). */
+   due lanci danno lo stesso file). La sistemazione della mediana cefalica (punto 2) è sostituita da `cefalica-gomito.mjs`, che rilegge quella vena dalla revisione `BASE`. */
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeFileSync } from 'node:fs';
