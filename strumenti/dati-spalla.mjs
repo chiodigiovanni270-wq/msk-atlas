@@ -31,6 +31,10 @@ export const STR = [
   // ---------- CARTILAGINE ----------
   { id: 'cart_cost', cat: 'cart', mesh: [['cc1', 7875], ['cc2', 7886], ['cc3', 7913], ['cc4', 7976], ['cc5', 8070]], name: 'Cartilagini costali I–V',
     info: 'Prolungano le coste verso lo sterno. La prima si unisce direttamente al manubrio (sincondrosi); le altre formano articolazioni sternocostali sinoviali (dalla seconda alla settima).' },
+  { id: 'cart_omero', cat: 'cart', mesh: [['cart_omero', null]], name: 'Cartilagine della testa omerale',
+    info: 'Riveste la testa, più spessa al centro che ai margini, e termina al collo anatomico. In artro-RM si valutano spessore e continuità. Dopo una lussazione anteriore può associarsi la lesione di Hill-Sachs, impronta ossea (con cartilagine) della parte posterosuperiore della testa contro il margine anteriore della glenoide.' },
+  { id: 'cart_glen', cat: 'cart', mesh: [['cart_glen', null]], name: 'Cartilagine glenoidea',
+    info: 'Riveste la cavità glenoidea; al contrario della testa è più sottile al centro e più spessa in periferia. Il labbro la circonda. Nell’instabilità anteriore ripetuta la glenoide può perdere osso (Bankart osseo) e assumere la forma di una pera rovesciata.' },
   // ---------- CUFFIA ----------
   { id: 'supra', cat: 'cuf', mesh: [['supra', 32544]], osso: 'omero', modo: 'conv', name: 'Sovraspinato',
     info: 'Passa sotto l’arco coracoacromiale e l’articolazione acromioclavicolare, nello spazio sottoacromiale: è la sede più frequente di tendinopatia, conflitto e rottura della cuffia, soprattutto nella zona critica a circa 1 cm dall’inserzione. Nervo soprascapolare (C5–C6).',

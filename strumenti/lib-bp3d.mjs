@@ -194,3 +194,59 @@ export function impacchetta(mesh) { // mesh: [{n, pos(cm), idx, tag?, fdir?, nrm
   const dat = gzipSync(Buffer.concat(parts), { level: Z.Z_BEST_COMPRESSION });
   return { man: { min: mn, max: mx, meshes }, dat: dat.toString('base64') };
 }
+
+/* ---- ritaglio di una mesh con un campo scalare per vertice: resta s >= 0, sul bordo s = 0 (vertici nuovi per interpolazione).
+   `attr`: array per vertice (stride k) da interpolare. Restituisce { pos, idx, s, attr, orig } con orig[i] = vertice di partenza (o -1 se nuovo). */
+export function ritagliaCampo(pos, idx, s, attr = [], k = 3) {
+  const nv = pos.length / 3, P = Array.from(pos), A = Array.from(attr), S = Array.from(s), orig = Array.from({ length: nv }, (_, i) => i), cache = new Map(), I = [];
+  const mk = (a, b) => {
+    const key = a < b ? a + '_' + b : b + '_' + a; let v = cache.get(key); if (v !== undefined) return v;
+    const t = s[a] / (s[a] - s[b]); v = P.length / 3;
+    for (let q = 0; q < 3; q++) P.push(pos[3 * a + q] + (pos[3 * b + q] - pos[3 * a + q]) * t);
+    for (let q = 0; q < k && attr.length; q++) A.push(attr[k * a + q] + (attr[k * b + q] - attr[k * a + q]) * t);
+    S.push(0); orig.push(-1); cache.set(key, v); return v;
+  };
+  for (let t = 0; t < idx.length; t += 3) {
+    const v = [idx[t], idx[t + 1], idx[t + 2]], inn = v.map(q => s[q] >= 0), c = inn[0] + inn[1] + inn[2];
+    if (c === 3) I.push(...v);
+    else if (c === 1) { const q = inn.indexOf(true), a = v[q], b = v[(q + 1) % 3], d = v[(q + 2) % 3]; I.push(a, mk(a, b), mk(d, a)); }
+    else if (c === 2) { const q = inn.indexOf(false), d = v[q], a = v[(q + 1) % 3], b = v[(q + 2) % 3], p = mk(b, d), r = mk(d, a); I.push(a, b, p, a, p, r); }
+  }
+  const nvN = P.length / 3, ex = [Float64Array.from(S), Float64Array.from(A)];
+  const c = compatta(Float64Array.from(P), Uint32Array.from(I), [ex[0], ex[1].length ? ex[1] : new Float64Array(nvN)]);
+  const map = new Int32Array(nvN).fill(-1); let n = 0; for (const i of I) if (map[i] < 0) map[i] = n++;
+  const og = new Int32Array(n); for (let i = 0; i < nvN; i++) if (map[i] >= 0) og[map[i]] = orig[i];
+  return { pos: c.pos, idx: c.idx, s: c.extra[0], attr: attr.length ? c.extra[1] : null, orig: og };
+}
+
+/* ---- adiacenza dei vertici (liste di vicini) e diffusione di un campo ---- */
+export function vicini(nv, idx) {
+  const nb = Array.from({ length: nv }, () => new Set());
+  for (let t = 0; t < idx.length; t += 3) { const a = idx[t], b = idx[t + 1], c = idx[t + 2]; nb[a].add(b).add(c); nb[b].add(a).add(c); nb[c].add(a).add(b); }
+  return nb.map(x => [...x]);
+}
+export function diffondi(f, nb, passate) {
+  let a = Float64Array.from(f), b = new Float64Array(a.length);
+  for (let p = 0; p < passate; p++) { for (let i = 0; i < a.length; i++) { const L = nb[i]; let s = 0; for (const j of L) s += a[j]; b[i] = L.length ? (a[i] + s / L.length) / 2 : a[i]; } [a, b] = [b, a]; }
+  return a;
+}
+
+/* ---- una suddivisione a punti medi (ogni triangolo in 4); le posizioni nuove sono sul piano dei vecchi triangoli ---- */
+export function suddividi(pos, idx) {
+  const P = Array.from(pos), cache = new Map(), I = [];
+  const mid = (a, b) => { const k = a < b ? a * 4294967296 + b : b * 4294967296 + a; let v = cache.get(k); if (v === undefined) { v = P.length / 3; for (let q = 0; q < 3; q++) P.push((pos[3 * a + q] + pos[3 * b + q]) / 2); cache.set(k, v); } return v; };
+  for (let t = 0; t < idx.length; t += 3) { const a = idx[t], b = idx[t + 1], c = idx[t + 2], ab = mid(a, b), bc = mid(b, c), ca = mid(c, a); I.push(a, ab, ca, ab, b, bc, ca, bc, c, ab, bc, ca); }
+  return { pos: Float64Array.from(P), idx: Uint32Array.from(I) };
+}
+
+/* ---- smussatura di Taubin (non restringe la forma) ---- */
+export function taubin(pos, I, iter) {
+  const nv = pos.length / 3, NB = vicini(nv, I);
+  for (let it = 0; it < iter; it++) {
+    const lam = it % 2 ? -0.53 : 0.5, q = pos.slice();
+    for (let i = 0; i < nv; i++) { const L = NB[i]; if (!L.length) continue; let x = 0, y = 0, z = 0; for (const j of L) { x += pos[3 * j]; y += pos[3 * j + 1]; z += pos[3 * j + 2]; }
+      q[3 * i] += lam * (x / L.length - pos[3 * i]); q[3 * i + 1] += lam * (y / L.length - pos[3 * i + 1]); q[3 * i + 2] += lam * (z / L.length - pos[3 * i + 2]); }
+    pos = q;
+  }
+  return pos;
+}

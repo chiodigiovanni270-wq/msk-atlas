@@ -3,6 +3,7 @@
    Uso (dalla cartella del progetto, Node 22+, `curl`):
      node strumenti/bozza-spalla.mjs              → scarica gli STL (cache in $BP3D_DIR, default tmp/bp3d-stl) e scrive modelli/spalla-3d.html
      node strumenti/bozza-spalla.mjs --prova=f    → scrive in f invece che nel modello
+     node strumenti/bozza-spalla.mjs --pagina     → rifà solo pagina, elenco delle strutture e schede (da dati-spalla.mjs), lasciando le mesh del file
    ATTENZIONE: riscrive tutto il file (mesh, schede, pagina). Serve solo per partire; dopo, il modello si migliora con gli
    altri strumenti `*-spalla.mjs` (che leggono e riscrivono le mesh) e modificando le schede nella pagina.
 
@@ -10,6 +11,7 @@
    - Strutture e schede in `dati-spalla.mjs`. Coordinate: BodyParts3D (mm; x verso sinistra, y indietro, z in alto) → modello (cm):
      x = x, y = z, z = −y, con origine nel centro della testa omerale (sfera adattata ai 45 mm superiori dell'omero, ≈ (−164,8; −72,0; 1324,6) mm).
      Come negli altri modelli: y lungo l'arto (in alto = verso la testa), z in avanti, x negativo = lato laterale del lato destro.
+   - L'omero è allontanato di 2,2 mm dalla glenoide (`DISTRAZIONE`): lo spazio tra le ossa in BodyParts3D (~1 mm) non basta per due cartilagini.
    - Tutto è ritagliato al piano y = −14 cm (braccio e torace), con sezione chiusa da anelli (colore corticale/midollare per le ossa, rosso per i muscoli).
    - Mesh ridotte con collasso di spigoli a quadriche (`TRIANGOLI`), sezione non toccata.
    - Muscoli: tag (0–200) = gradiente muscolo→tendine sull'ultimo 20% verso l'osso d'inserzione; fdir = direzione delle fibre
@@ -24,6 +26,7 @@ import { CATS, STR } from './dati-spalla.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = (process.argv.find(a => a.startsWith('--prova=')) || '').slice(8) || resolve(ROOT, 'modelli', 'spalla-3d.html');
+const SOLO_PAGINA = process.argv.includes('--pagina');   // rifà solo pagina e schede, tenendo le mesh già nel file
 const ORIGINE = [-164.8, -72.0, 1324.6];       // centro della testa omerale (mm, BodyParts3D)
 const Y_TAGLIO = -14;                          // piano di taglio (cm)
 const TRIANGOLI = { scapola: 30000, serratus: 25000, default: 12000, ossa: 9000 };
@@ -35,7 +38,20 @@ const carica = (n, fma) => { const m = leggiSTL(scarica(fma)); return { n, pos: 
 
 /* ---- 1. ossa (servono anche come riferimento per le inserzioni) ---- */
 const grezze = new Map();      // nome mesh → mesh intera (cm)
-for (const s of STR) for (const [n, f] of s.mesh) if (!grezze.has(n)) grezze.set(n, carica(n, f));
+if (!SOLO_PAGINA) for (const s of STR) for (const [n, f] of s.mesh) if (f && !grezze.has(n)) grezze.set(n, carica(n, f));
+// Spazio articolare: in BodyParts3D tra glenoide e testa omerale restano ~1 mm, troppo poco per due cartilagini. L'omero viene allontanato
+// dalla glenoide di DISTRAZIONE cm lungo la congiungente (come nella radiografia, dove lo spazio articolare è di 3–5 mm).
+const DISTRAZIONE = 0.22;
+if (!SOLO_PAGINA) {
+  const sc = grezze.get('scapola').pos, dm = [];
+  for (let i = 0; i < sc.length; i += 3) dm.push([Math.hypot(sc[i], sc[i + 1], sc[i + 2]), i]);
+  dm.sort((a, b) => a[0] - b[0]);
+  const g = [0, 0, 0], N = dm.filter(x => x[0] < dm[0][0] + 0.25).length;
+  for (const [, i] of dm.slice(0, N)) for (let q = 0; q < 3; q++) g[q] += sc[i + q] / N;
+  const l = Math.hypot(...g), u = g.map(x => -x / l), om = grezze.get('omero').pos;       // dalla glenoide verso il centro della testa (origine)
+  for (let i = 0; i < om.length; i += 3) for (let q = 0; q < 3; q++) om[i + q] += u[q] * DISTRAZIONE;
+  log('omero allontanato di', DISTRAZIONE, 'cm lungo', u.map(x => x.toFixed(2)).join(','), '(distanza minima glenoide-testa prima:', (dm[0][0] - 2.36).toFixed(2), 'cm)');
+}
 const puntiOsso = nome => { const s = STR.find(x => x.id === nome), pts = []; for (const [n] of s.mesh) { const p = grezze.get(n).pos; for (let i = 0; i < p.length; i += 3 * 5) pts.push([p[i], p[i + 1], p[i + 2]]); } return pts; };
 const dMin = (p, pts) => { let m = 1e9; for (const q of pts) { const d = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2; if (d < m) m = d; } return Math.sqrt(m); };
 
@@ -48,9 +64,10 @@ function asse(P) { // asse principale (iterazione di potenza sulla covarianza)
   return { c, v };
 }
 const mesh = [];
-for (const s of STR) {
+for (const s of SOLO_PAGINA ? [] : STR) {
   const osso = s.cat === 'ossa', musc = ['cuf', 'cin', 'tor', 'brac'].includes(s.cat);
-  for (const [n] of s.mesh) {
+  for (const [n, f] of s.mesh) {
+    if (!f) continue;                                  // struttura costruita da uno strumento successivo
     const g = grezze.get(n);
     const r = ritaglia(g.pos, g.idx, [0, 1, 0], Y_TAGLIO);
     if (!r.idx.length) { log('vuota dopo il taglio:', n); continue; }
@@ -97,8 +114,11 @@ for (const s of STR) {
     log(n.padEnd(12), String(g.idx.length / 3).padStart(7), '→', String(idx.length / 3).padStart(6), 'triangoli');
   }
 }
-const { man, dat } = impacchetta(mesh);
-log('mesh', mesh.length, 'dati', Math.round(dat.length / 1024), 'KB (gzip+base64)');
+let man, dat;
+if (SOLO_PAGINA) {
+  const e = readFileSync(OUT, 'utf8'); man = JSON.parse(e.match(/<script id="bpman" type="application\/json">(.*?)<\/script>/s)[1]); dat = e.match(/<script id="bpdat" type="text\/plain">(.*?)<\/script>/s)[1];
+} else ({ man, dat } = impacchetta(mesh));
+log('mesh', man.meshes.length, 'dati', Math.round(dat.length / 1024), 'KB (gzip+base64)');
 
 /* ---- 3. pagina: guscio di gomito-3d.html con strutture, schede e camera della spalla ---- */
 const src = readFileSync(resolve(ROOT, 'modelli', 'gomito-3d.html'), 'utf8');
