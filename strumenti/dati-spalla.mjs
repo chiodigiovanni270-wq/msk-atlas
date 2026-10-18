@@ -6,6 +6,7 @@
 export const CATS = [
   { id: 'ossa', name: 'Ossa', color: '#e8dcc0' },
   { id: 'cart', name: 'Cartilagine', color: '#c3dae6' },
+  { id: 'caps', name: 'Capsula', color: '#b9cfe0' },
   { id: 'cuf', name: 'Cuffia dei rotatori', color: '#8e2f28' },
   { id: 'cin', name: 'Muscoli della spalla', color: '#8e2f28' },
   { id: 'tor', name: 'Muscoli del torace e del dorso', color: '#8e2f28' },
@@ -35,6 +36,12 @@ export const STR = [
     info: 'Riveste la testa, più spessa al centro che ai margini, e termina al collo anatomico. In artro-RM si valutano spessore e continuità. Dopo una lussazione anteriore può associarsi la lesione di Hill-Sachs, impronta ossea (con cartilagine) della parte posterosuperiore della testa contro il margine anteriore della glenoide.' },
   { id: 'cart_glen', cat: 'cart', mesh: [['cart_glen', null]], name: 'Cartilagine glenoidea',
     info: 'Riveste la cavità glenoidea; al contrario della testa è più sottile al centro e più spessa in periferia. Il labbro la circonda. Nell’instabilità anteriore ripetuta la glenoide può perdere osso (Bankart osseo) e assumere la forma di una pera rovesciata.' },
+  { id: 'labbro', cat: 'cart', mesh: [['labbro', null]], name: 'Labbro glenoideo',
+    info: 'Anello di fibrocartilagine a sezione triangolare che circonda il margine della glenoide e ne aumenta profondità e superficie. In alto si continua con il tendine del capo lungo del bicipite, in basso e in avanti con il legamento gleno-omerale inferiore. In artro-RM si cercano lesioni di Bankart (antero-inferiore, dopo lussazione anteriore), SLAP (superiore) e lesioni ossee associate.',
+    o: 'Margine della cavità glenoidea (si fonde con la cartilagine e con il periostio del collo della scapola).', ins: 'Anello chiuso sul margine glenoideo; in alto accoglie il tendine del capo lungo del bicipite, in basso il legamento gleno-omerale inferiore.', fn: 'Approfondisce la cavità glenoidea (stabilità concavità-compressione) e fa da ancoraggio ai legamenti gleno-omerali.' },
+  { id: 'caps', cat: 'caps', mesh: [['caps', null]], name: 'Capsula articolare',
+    info: 'Manicotto sottile e lasso che dalla glenoide e dal labbro raggiunge il collo anatomico dell’omero; inferiormente forma il recesso ascellare, che si distende in abduzione. È rinforzata dai legamenti gleno-omerali e dal tendine della cuffia, che vi aderisce. In artro-RM la distensione con mezzo di contrasto o le pieghe del recesso ascellare ispessite sono segno di capsulite adesiva.',
+    o: 'Margine della glenoide e labbro glenoideo (e base del processo coracoideo per il capo lungo del bicipite).', ins: 'Collo anatomico dell’omero; inferiormente scende fino al collo chirurgico (recesso ascellare).', fn: 'Contiene la sinovia e il liquido articolare, limita le escursioni estreme (in rotazione esterna si tende anteriormente) e collabora alla stabilità statica.' },
   // ---------- CUFFIA ----------
   { id: 'supra', cat: 'cuf', mesh: [['supra', 32544]], osso: 'omero', modo: 'conv', name: 'Sovraspinato',
     info: 'Passa sotto l’arco coracoacromiale e l’articolazione acromioclavicolare, nello spazio sottoacromiale: è la sede più frequente di tendinopatia, conflitto e rottura della cuffia, soprattutto nella zona critica a circa 1 cm dall’inserzione. Nervo soprascapolare (C5–C6).',
