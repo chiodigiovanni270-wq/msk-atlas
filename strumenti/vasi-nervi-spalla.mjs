@@ -61,21 +61,18 @@ const SPEC = [
   { id: 'a_asc', cat: 'art', r: [Ea.r, 0.27, 0.21], guide: [Ea.c, [6.3, 1.7, 3.5], AX, [1.5, -2.6, 2.2], [0.9, -5, 1.4], [0.4, -9, 0.7], [0.0, -12, 0.2], [-0.3, TAGLIO, 0.0]], fisso: [true, false] },
   { id: 'v_asc', cat: 'ven', r: [Ev.r, 0.36, 0.28], guide: [Ev.c, [6.6, 1.5, 3.9], add(AX, [0.45, -0.15, 0.2]), [2.0, -2.6, 2.6], [1.5, -5, 1.9], [1.1, -9, 1.2], [0.8, -12, 0.8], [0.7, TAGLIO, 0.6]], fisso: [true, false] },
   { id: 'plesso', cat: 'ner', multi: true },
-  { id: 'n_soprascapolare', cat: 'ner', r: [0.1, 0.07], guide: [[9.0, 3.8, 2.4], [6.3, 3.5, 1.8], notch, [3.4, 3.1, -0.5], [1.6, 2.5, -1.6]], fisso: [false, false] },
-  { id: 'n_ascellare', cat: 'ner', r: [0.14, 0.1], guide: [[3.4, -1.0, 2.3], [2.0, -2.0, 0.6], [0.8, -2.9, -1.2], [-1.4, -3.4, -1.6], [-3.4, -3.3, -0.8], [-4.6, -3.0, 0.6]], fisso: [false, false] },
-  { id: 'n_muscolocutaneo', cat: 'ner', r: [0.11, 0.1], guide: [[3.6, -0.5, 3.3], [2.4, -2.6, 2.8], [0.6, -5.5, 2.4], [-1.2, -9.5, 2.0], [-2.2, TAGLIO, 1.6]], fisso: [false, false] },
-  { id: 'n_radiale', cat: 'ner', r: [0.19, 0.15], guide: [[3.0, -1.2, 1.4], [1.8, -3.6, 0.3], [0.4, -5.6, -1.0], [-1.8, -7.8, -1.6], [-3.6, -10.0, -1.1], [-4.8, -12.2, -0.2], [-5.0, TAGLIO, 0.6]], fisso: [false, false] },
-  { id: 'n_mediano', cat: 'ner', r: [0.16, 0.15], guide: [[3.5, -0.4, 3.5], [2.3, -2.7, 2.7], [1.3, -5.5, 1.9], [0.5, -9.5, 1.2], [0.1, TAGLIO, 1.0]], fisso: [false, false] },
-  { id: 'n_ulnare', cat: 'ner', r: [0.13, 0.12], guide: [[3.0, -0.2, 2.9], [2.3, -3.0, 2.0], [1.7, -6.5, 1.0], [1.0, -10, 0.1], [0.4, TAGLIO, -0.6]], fisso: [false, false] },
+  { id: 'n_soprascapolare', cat: 'ner', da: 'A', quota: [0.2, 0.28], r: [0.1, 0.07], guide: [[9.0, 3.8, 2.4], [6.3, 3.5, 1.8], notch, [3.4, 3.1, -0.5], [1.6, 2.5, -1.6]], fisso: [false, false] },
+  { id: 'n_ascellare', cat: 'ner', da: 'B', r: [0.14, 0.1], guide: [[3.4, -1.0, 2.3], [2.0, -2.0, 0.6], [0.8, -2.9, -1.2], [-1.4, -3.4, -1.6], [-3.4, -3.3, -0.8], [-4.1, -4.0, 0.5]], fisso: [false, false] },
+  { id: 'n_muscolocutaneo', cat: 'ner', da: 'A', r: [0.11, 0.1], guide: [[3.6, -0.5, 3.3], [2.4, -2.6, 2.8], [0.6, -5.5, 2.4], [-1.2, -9.5, 2.0], [-2.2, TAGLIO, 1.6]], fisso: [false, false] },
+  { id: 'n_radiale', cat: 'ner', da: 'B', r: [0.19, 0.15], guide: [[3.0, -1.2, 1.4], [1.8, -3.6, 0.3], [0.4, -5.6, -1.0], [-1.8, -7.8, -1.6], [-3.6, -10.0, -1.1], [-4.8, -12.2, -0.2], [-5.0, TAGLIO, 0.6]], fisso: [false, false] },
+  { id: 'n_mediano', cat: 'ner', da: 'A', r: [0.16, 0.15], guide: [[3.5, -0.4, 3.5], [1.9, -2.9, 3.2], [0.9, -5.8, 2.5], [0.1, -9.8, 1.7], [-0.2, TAGLIO, 1.3]], fisso: [false, false] },
+  { id: 'n_ulnare', cat: 'ner', da: 'C', r: [0.13, 0.12], guide: [[3.0, -0.2, 2.9], [2.3, -3.0, 2.0], [1.7, -6.5, 1.0], [1.0, -10, 0.1], [0.4, TAGLIO, -0.6]], fisso: [false, false] },
 ];
 // plesso: tre tronchi sopra la prima costa che convergono sotto la clavicola, poi tre fasci attorno all'arteria (laterale, posteriore, mediale)
 const PLESSO = [
-  { r: [0.2, 0.17], guide: [[10.8, 4.6, 2.4], [9.2, 3.6, 2.7], [7.6, 2.5, 3.2]] },               // tronco superiore
-  { r: [0.2, 0.17], guide: [[11.0, 4.0, 1.8], [9.4, 3.2, 2.4], [7.6, 2.3, 3.0]] },               // tronco medio
-  { r: [0.19, 0.16], guide: [[11.2, 3.4, 1.4], [9.5, 2.8, 2.2], [7.6, 2.1, 2.9]] },              // tronco inferiore
-  { r: [0.2, 0.17], guide: [[7.6, 2.4, 3.2], [5.6, 1.4, 3.6], [3.6, -0.4, 3.5]] },               // fascio laterale (davanti e lateralmente all'arteria)
-  { r: [0.2, 0.17], guide: [[7.6, 2.3, 3.0], [5.6, 1.1, 2.7], [3.2, -1.0, 1.7]] },               // fascio posteriore (dietro l'arteria)
-  { r: [0.18, 0.15], guide: [[7.6, 2.1, 2.9], [5.8, 0.9, 3.1], [3.4, -0.6, 3.0]] },              // fascio mediale (medialmente all'arteria)
+  { r: [0.2, 0.17], guide: [[10.8, 4.6, 2.4], [9.2, 3.6, 2.7], [7.6, 2.5, 3.3], [5.6, 1.5, 3.7], [3.8, 0.4, 3.8], [2.5, -0.7, 3.7]], nome: 'A' },       // tronco superiore → fascio laterale (davanti e lateralmente all'arteria)
+  { r: [0.2, 0.17], guide: [[11.0, 4.0, 1.8], [9.4, 3.2, 2.4], [7.6, 2.3, 3.0], [5.6, 1.1, 2.4], [4.0, -0.3, 1.9], [3.2, -1.0, 1.8]], nome: 'B' },     // tronco medio → fascio posteriore (dietro l'arteria)
+  { r: [0.19, 0.16], guide: [[11.2, 3.4, 1.4], [9.5, 2.8, 2.2], [7.6, 2.1, 2.9], [5.8, 0.9, 3.2], [4.8, 0.2, 3.1], [4.2, -0.5, 3.0]], nome: 'C' },    // tronco inferiore → fascio mediale (medialmente all'arteria)
 ];
 
 /* ---- campo di distanza degli ostacoli ---- */
@@ -85,23 +82,31 @@ griglia(lo, hi, 0.05, 0);
 const N = G.N;
 log('griglia', G.NX, G.NY, G.NZ, (N / 1e6).toFixed(1), 'M voxel');
 const MESH = {}, CHECK = {}, ASSI = {}, FATTI = [];
-const campoOstacoli = () => { const nomi = [...OSSA, ...FISSI, ...FATTI], M = unione(nomi); return esatta(sfoca(sdf(M).F, 1), nomi, 0.12); };
+const campoOstacoli = (escludi = []) => { const nomi = [...OSSA, ...FISSI, ...FATTI.filter(f => !escludi.includes(f))], M = unione(nomi); return esatta(sfoca(sdf(M).F, 1), nomi, 0.12); };
 
 /* ---- tubi ---- */
 const catmull = (P, step = 0.1) => { const Q = [P[0], ...P, P[P.length - 1]], out = []; for (let k = 0; k < P.length - 1; k++) { const [p0, p1, p2, p3] = [Q[k], Q[k + 1], Q[k + 2], Q[k + 3]], n = Math.max(2, Math.ceil(len(sub(p2, p1)) / step));
     for (let i = 0; i < n; i++) { const t = i / n; out.push([0, 1, 2].map(a => 0.5 * (2 * p1[a] + (-p0[a] + p2[a]) * t + (2 * p0[a] - 5 * p1[a] + 4 * p2[a] - p3[a]) * t * t + (-p0[a] + 3 * p1[a] - 3 * p2[a] + p3[a]) * t * t * t))); } } out.push(P[P.length - 1]); return out; };
 const ricampiona = (P, step) => { const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + len(sub(P[i], P[i - 1]))); const n = Math.max(2, Math.round(L[L.length - 1] / step)), o = []; for (let k = 0; k <= n; k++) { const x = L[L.length - 1] * k / n; let i = 1; while (i < L.length - 1 && L[i] < x) i++; o.push(add(P[i - 1], sub(P[i], P[i - 1]), clamp((x - L[i - 1]) / ((L[i] - L[i - 1]) || 1), 0, 1))); } return o; };
 const raggio = (r, u) => r.length === 2 ? lerp(r[0], r[1], u) : u < 0.5 ? lerp(r[0], r[1], u * 2) : lerp(r[1], r[2], (u - 0.5) * 2);
-function percorso(guide, r, fisso, Fo) {
-  let P = ricampiona(catmull(guide), 0.1); const n = P.length, P0 = P.map(p => p.slice());
-  for (let it = 0; it < 150; it++) {
-    for (let k = 0; k < n; k++) { if (k === 0 && fisso[0] || k === n - 1 && fisso[1]) continue; const u = k / (n - 1), m = raggio(r, u) + 0.03, d = sample(Fo, ...P[k]);
+const curvaturaMin = (P, passo = 5) => { let m = 1e9; for (let k = passo; k < P.length - passo; k += 2) { const a = P[k - passo], b = P[k], c = P[k + passo], ab = len(sub(b, a)), bc = len(sub(c, b)), ac = len(sub(c, a)), s = (ab + bc + ac) / 2, A = Math.sqrt(Math.max(0, s * (s - ab) * (s - bc) * (s - ac))); if (A > 1e-9) m = Math.min(m, ab * bc * ac / (4 * A)); } return m; };
+const curvaturaDove = (P, passo = 5) => { let m = 1e9, u = 0; for (let k = passo; k < P.length - passo; k += 2) { const a = P[k - passo], b = P[k], c = P[k + passo], ab = len(sub(b, a)), bc = len(sub(c, b)), ac = len(sub(c, a)), s = (ab + bc + ac) / 2, A = Math.sqrt(Math.max(0, s * (s - ab) * (s - bc) * (s - ac))); if (A > 1e-9 && ab * bc * ac / (4 * A) < m) { m = ab * bc * ac / (4 * A); u = k / (P.length - 1); } } return u; };
+/* `prefisso`: punti iniziali già fissati (tratto in comune con la struttura madre: il tubo vi entra e poi se ne stacca); `Rmin`: raggio di curvatura minimo
+   richiesto (cm): se dopo il rilassamento il percorso è più stretto si aggiungono passate di levigatura (con proiezione sugli ostacoli) fino a raggiungerlo. */
+function percorso(guide, r, fisso, Fo, prefisso = [], Rmin = 1.5) {
+  const base = ricampiona(catmull(guide), 0.1), Lp = prefisso.reduce((l, q, i) => i ? l + len(sub(q, prefisso[i - 1])) : 0, 0), nf = prefisso.length ? Math.round(Lp / 0.1) + 1 : 0;
+  let P = nf ? ricampiona([...prefisso, ...base.slice(1)], 0.1) : base; const n = P.length, P0 = P.map(p => p.slice());
+  const bloccato = k => k < nf || (k === 0 && fisso[0]) || (k === n - 1 && fisso[1]);
+  let ancora = 0.004;
+  const passa = (w) => {
+    for (let k = 0; k < n; k++) { if (bloccato(k)) continue; const u = k / (n - 1), m = raggio(r, u) + 0.03, d = sample(Fo, ...P[k]);
       if (d < m) P[k] = add(P[k], nor(grad(Fo, P[k])), m - d);
-      else { const a = P0[k], dd = sub(a, P[k]); P[k] = add(P[k], dd, 0.01); } }                       // richiamo debole verso la guida
-    P = P.map((p, k) => k === 0 || k === n - 1 ? p : mul(add(add(P[k - 1], P[k + 1]), p, 2), 0.25));
-    if (it % 10 === 9) P = P.map((p, k) => (k === 0 && fisso[0] || k === n - 1 && fisso[1]) ? p : p);
-  }
-  // le estremità libere restano a quota TAGLIO se la guida termina sul ritaglio
+      else P[k] = add(P[k], sub(P0[k], P[k]), ancora); }                                              // richiamo debole verso la guida
+    P = P.map((p, k) => (k === 0 || k === n - 1 || bloccato(k)) ? p : mul(add(add(P[k - 1], P[k + 1]), p, w), 1 / (2 + w)));
+  };
+  for (let it = 0; it < 150; it++) passa(2);
+  ancora = 0.0005;
+  for (let giro = 0; giro < 40 && curvaturaMin(P) < Rmin; giro++) for (let it = 0; it < 250; it++) passa(0.4);   // levigatura più forte (media a 3 punti quasi uniforme)
   if (Math.abs(guide[guide.length - 1][1] - TAGLIO) < 1e-6) P[n - 1][1] = TAGLIO;
   return P;
 }
@@ -118,16 +123,19 @@ function tubo(P, r, lati = 14, tappoIni = true) {
   return { pos: p, idx: Uint32Array.from(idx), tag: null, fdir: f };
 }
 const unisci = ms => { let o = 0; const pos = [], idx = [], fd = []; for (const m of ms) { pos.push(...m.pos); fd.push(...m.fdir); for (const i of m.idx) idx.push(i + o); o += m.pos.length / 3; } return { pos: Float32Array.from(pos), idx: Uint32Array.from(idx), tag: null, fdir: Int8Array.from(fd) }; };
-const curvaturaMin = P => { let m = 1e9; for (let k = 2; k < P.length - 2; k += 2) { const a = P[k - 2], b = P[k], c = P[k + 2], ab = len(sub(b, a)), bc = len(sub(c, b)), ac = len(sub(c, a)), s = (ab + bc + ac) / 2, A = Math.sqrt(Math.max(0, s * (s - ab) * (s - bc) * (s - ac))); if (A > 1e-9) m = Math.min(m, ab * bc * ac / (4 * A)); } return m; };
 
+const CORDE = {};
 let Fo = campoOstacoli();
 for (const s of SPEC) {
   const gruppi = s.multi ? PLESSO : [s], parti = [];
   for (const g of gruppi) {
-    const P = percorso(g.guide, g.r, s.fisso || [false, false], Fo); ASSI[s.id] = (ASSI[s.id] || []).concat([{ P, r: g.r }]);
+    const Fo2 = g.da ? campoOstacoli(['plesso']) : null;   // i nervi nascono dai fasci: i fasci non sono ostacoli per loro
+    let prefisso = [];
+    if (g.da) { const Pa = CORDE[g.da], [q0, q1] = g.quota || [0.88, 1]; prefisso = [Pa[Math.floor(q1 * (Pa.length - 1))]]; const tg0 = nor(sub(Pa[Math.floor(q1 * (Pa.length - 1))], Pa[Math.max(0, Math.floor(q1 * (Pa.length - 1)) - 8)])); const e = prefisso[0]; g.guide = [e, add(e, tg0, 1.6), ...g.guide.slice(1).filter(q => dot(sub(q, e), tg0) > 1.9)]; }   // il nervo prosegue 16 mm (le guide che restano dietro vengono scartate) nella direzione della struttura madre prima di staccarsi (nessun gomito all'origine)
+    const P = percorso(g.guide, g.r, s.fisso || [false, false], g.da ? Fo2 : Fo, prefisso, s.cat === 'ner' ? 1.8 : 2.0); if (g.nome) CORDE[g.nome] = P; ASSI[s.id] = (ASSI[s.id] || []).concat([{ P, r: g.r }]);
     parti.push(tubo(P, g.r));
-    const dMin = Math.min(...P.map((p, k) => sample(Fo, ...p) - raggio(g.r, k / (P.length - 1))));
-    CHECK[s.id + (s.multi ? '#' + parti.length : '')] = { lunghezza_cm: +P.reduce((l, p, k) => k ? l + len(sub(p, P[k - 1])) : 0, 0).toFixed(2), distanza_min_da_ossa_e_legamenti_mm: +(dMin * 10).toFixed(2), raggio_curvatura_min_cm: +curvaturaMin(P).toFixed(2) };
+    const dMin = Math.min(...P.map((p, k) => k < 15 ? 1e9 : sample(Fo, ...p) - raggio(g.r, k / (P.length - 1))));
+    CHECK[s.id + (s.multi ? '#' + parti.length : '')] = { lunghezza_cm: +P.reduce((l, p, k) => k ? l + len(sub(p, P[k - 1])) : 0, 0).toFixed(2), distanza_min_da_ossa_e_legamenti_mm: +(dMin * 10).toFixed(2), raggio_curvatura_min_cm: +curvaturaMin(P).toFixed(2), dove_u: +curvaturaDove(P).toFixed(2) };
   }
   MESH[s.id] = parti.length === 1 ? parti[0] : unisci(parti); setMesh(s.id, MESH[s.id]); FATTI.push(s.id);
   log(s.id, MESH[s.id].pos.length / 3, 'vertici', JSON.stringify(CHECK[s.id] || CHECK[s.id + '#1']));
