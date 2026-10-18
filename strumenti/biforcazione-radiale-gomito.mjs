@@ -48,7 +48,7 @@ if (VERIFICA) { const { m, dove } = margine(); console.log(`margine minimo tronc
 // 0) l'inizio del NIP (che nasce dentro il tronco, coassiale) si riporta sull'asse del tronco: il suo imbocco aperto resta dentro il tronco (prima i
 //    primi campioni erano fuori asse di 0,6 mm e l'imbocco affiorava sulla parete come un anello bianco)
 for (let j = 0; j < I.length; j++) {
-  const w = 1 - sstep(PARTENZA.da, PARTENZA.a, I[j][1]); if (w <= 0) continue;
+  const w = sstep(PARTENZA.da, PARTENZA.a, I[j][1]); if (w <= 0) continue;
   const pr = proietta(I[j], T);
   I[j] = I[j].map((x, k) => Math.round((x + (pr.q[k] - x) * w) * 1000) / 1000);
 }
