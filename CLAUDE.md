@@ -14,6 +14,7 @@ a scopo didattico (anatomia muscolo-scheletrica per radiologia). Lingua dell'int
 La cartella `modelli/` contiene pagine HTML autocontenute (three.js r128 da CDN), nate come artifact di Claude:
 - `polso-dito-3d.html` — polso destro + dito medio in sezione separata (`#dito`)
 - `gomito-3d.html` — gomito destro, con regioni guidate (tunnel cubitale, fossa cubitale) e piano di taglio
+- `spalla-3d.html` — spalla destra (costruita da BodyParts3D a strati con gli script `*-spalla.mjs`)
 - `ginocchio-3d.html` — ginocchio destro
 
 Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi (2–8 MB), è normale.
@@ -39,7 +40,7 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
 - Schede delle strutture (card che si apre toccando una struttura), uguali in tutti i modelli: nota `info` breve (decorso essenziale e uno o due rilievi clinico-radiologici);
   per muscoli, legamenti, retinacoli, aponeurosi e membrane anche i campi `o`, `ins`, `fn` (Origine, Inserzione, Funzione), che la nota non ripete;
   per i nervi solo la nota, che dice se sono motori, sensitivi o misti e cosa innervano. Dettagli in `GUIDA_MODELLI.md` (sezione "Dati").
-- Al momento i modelli sono tre, ma ne verranno aggiunti altri nel tempo: la struttura del sito deve permettere di aggiungere un nuovo modello in modo semplice e ripetibile, senza riorganizzare tutto.
+- Al momento i modelli sono quattro, ma ne verranno aggiunti altri nel tempo: la struttura del sito deve permettere di aggiungere un nuovo modello in modo semplice e ripetibile, senza riorganizzare tutto.
 
 ## Aggiungere un modello
 1. Copia il file in `modelli/<nome>-3d.html` (nome minuscolo, parole separate da trattini).
