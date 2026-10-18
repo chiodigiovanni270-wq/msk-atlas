@@ -14,6 +14,7 @@ export const CATS = [
   { id: 'brac', name: 'Muscoli del braccio', color: '#8e2f28' },
   { id: 'art', name: 'Arterie', color: '#b0221d' },
   { id: 'ven', name: 'Vene', color: '#3a4a86' },
+  { id: 'ner', name: 'Nervi', color: '#ecc85a' },
 ];
 
 const NERVO_ASC = 'Nervo ascellare (C5–C6), che emerge dallo spazio quadrangolare e gira attorno al collo chirurgico dell’omero con l’arteria circonflessa posteriore.';
@@ -166,4 +167,22 @@ export const STR = [
     info: 'A destra nasce dal tronco brachiocefalico; passa tra scaleno anteriore e medio, sopra la prima costa, e diventa ascellare al margine laterale della prima costa. Il plesso brachiale le passa dietro e in alto.' },
   { id: 'v_succ', cat: 'ven', mesh: [['v_succ', 4755]], name: 'Vena succlavia',
     info: 'Davanti allo scaleno anteriore e all’arteria, sopra la prima costa; si unisce alla giugulare interna formando la vena brachiocefalica. Sede di accesso venoso centrale; trombosi da sforzo (sindrome di Paget-Schroetter).' },
+  { id: 'a_asc', cat: 'art', mesh: [['a_asc', null]], name: 'Arteria ascellare e brachiale',
+    info: 'Continua la succlavia dal margine laterale della prima costa e diventa brachiale al margine inferiore del grande rotondo. Passa dietro il piccolo pettorale (che la divide in tre porzioni) e davanti al sottoscapolare; il plesso brachiale la circonda con i suoi fasci. Dà toracoacromiale, toracica laterale, sottoscapolare e le circonflesse omerali (la posteriore accompagna il nervo ascellare). Nelle fratture del collo chirurgico può lesionarsi la circonflessa; in angio-TC o angio-RM si studia il calibro e il decorso.' },
+  { id: 'v_asc', cat: 'ven', mesh: [['v_asc', null]], name: 'Vena ascellare e brachiale',
+    info: 'Medialmente e davanti all’arteria; riceve le vene brachiali e la basilica, la cefalica la raggiunge sotto la clavicola e si continua nella succlavia al margine laterale della prima costa. Trombosi da catetere o da sforzo causano gonfiore dell’arto; in ecografia si comprime con la sonda (la mancata comprimibilità indica trombosi).' },
+  { id: 'plesso', cat: 'ner', mesh: [['plesso', null]], name: 'Plesso brachiale (tronchi e fasci)',
+    info: 'Nasce dai rami anteriori di C5–T1: tre tronchi (superiore, medio, inferiore) tra scaleno anteriore e medio, sopra la prima costa; sotto la clavicola ognuno si divide in una porzione anteriore e una posteriore, che formano i fasci laterale, posteriore e mediale (così chiamati dalla relazione con l’arteria ascellare). In RM si studia sul piano coronale obliquo e sagittale; si comprime nello stretto toracico (sindrome dello stretto toracico superiore) e nei tumori dell’apice polmonare (sindrome di Pancoast).' },
+  { id: 'n_soprascapolare', cat: 'ner', mesh: [['n_soprascapolare', null]], name: 'Nervo soprascapolare',
+    info: 'Nervo misto (C5–C6) dal tronco superiore. Passa nell’incisura soprascapolare sotto il legamento trasverso superiore (l’arteria resta sopra), innerva il sovraspinato, poi aggira il margine laterale della spina nell’incisura spinoglenoidea per innervare il sottospinato e dare rami articolari alla spalla. Una cisti paralabrale può comprimerlo e causare atrofia selettiva di sovraspinato o sottospinato, visibile in RM come edema o atrofia muscolare.' },
+  { id: 'n_ascellare', cat: 'ner', mesh: [['n_ascellare', null]], name: 'Nervo ascellare',
+    info: 'Nervo misto (C5–C6) dal fascio posteriore. Esce dallo spazio quadrangolare (sottospinato e piccolo rotondo sopra, grande rotondo sotto, capo lungo del tricipite medialmente, collo chirurgico lateralmente), con l’arteria circonflessa posteriore; innerva deltoide e piccolo rotondo e dà il nervo cutaneo laterale superiore del braccio (sensibilità del moncone della spalla). Lo spazio quadrangolare è sede di sindrome da compressione; è a rischio nelle lussazioni anteriori e nelle fratture del collo chirurgico.' },
+  { id: 'n_muscolocutaneo', cat: 'ner', mesh: [['n_muscolocutaneo', null]], name: 'Nervo muscolocutaneo',
+    info: 'Nervo misto (C5–C7) dal fascio laterale. Perfora il coracobrachiale, che innerva, e scende tra bicipite e brachiale (anch’essi innervati); continua come nervo cutaneo laterale dell’avambraccio (sensitivo per il lato radiale dell’avambraccio). Un decorso alto del nervo è un rischio nelle vie d’accesso anteriori della spalla.' },
+  { id: 'n_radiale', cat: 'ner', mesh: [['n_radiale', null]], name: 'Nervo radiale',
+    info: 'Nervo misto (C5–T1) dal fascio posteriore. Passa sotto il grande rotondo con l’arteria profonda del braccio, aggira l’omero nel solco del nervo radiale (tra capo lungo e mediale del tricipite) e a metà braccio perfora il setto intermuscolare laterale. Innerva il tricipite e, più in basso, i muscoli estensori; sensitivo per il dorso del braccio, dell’avambraccio e della mano radiale. La frattura della diafisi dell’omero lo lesiona tipicamente (mano cadente).' },
+  { id: 'n_mediano', cat: 'ner', mesh: [['n_mediano', null]], name: 'Nervo mediano',
+    info: 'Nervo misto (C6–T1) dai fasci laterale e mediale, che si uniscono davanti all’arteria ascellare. Nel braccio scende con l’arteria brachiale (prima lateralmente, poi medialmente) e non dà rami; motorio per i flessori dell’avambraccio e i muscoli tenari, sensitivo per la mano palmare radiale. Siti di compressione: al polso (tunnel carpale) e sotto il pronatore rotondo.' },
+  { id: 'n_ulnare', cat: 'ner', mesh: [['n_ulnare', null]], name: 'Nervo ulnare',
+    info: 'Nervo misto (C8–T1) dal fascio mediale. Scende medialmente all’arteria; a metà braccio perfora il setto intermuscolare mediale e passa dietro l’epicondilo mediale. Nel braccio non dà rami; motorio per il flessore ulnare del carpo, parte del flessore profondo delle dita e i muscoli intrinseci della mano, sensitivo per il bordo ulnare della mano. Sede di compressione al gomito (tunnel cubitale).' },
 ];
