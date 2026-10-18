@@ -14,6 +14,8 @@
               a distanza dal centro entro [R − 5 mm, R + 1,5 mm]. Il margine inferiore è il collo anatomico.
        glenoide: vertici della scapola a meno di `D_GLEN` dal centro della testa e con la normale rivolta verso di esso (cos > `COS_GLEN`);
               componente connessa più grande che contiene il punto più vicino al centro.
+   - Base levigata: prima di costruire campo e guscio le ossa suddivise passano `PRE_LEVIGA_*` iterazioni di Taubin, così il margine non segue il rumore della mesh
+     ossea; le normali di spessore sono levigate (`LEVIGA_N`) e al margine lo spessore sale in fretta (`T_BORDO`, rampa di 3 mm) per un bordo netto.
    - Guscio chiuso: faccia esterna a distanza t(s) lungo la normale, faccia interna 0,3 mm sotto l'osso, bordo raccordato.
        testa: spessore da `T_BORDO` al margine a `T_TESTA` al centro (più spessa al centro);
        glenoide: spessore `T_GLEN_C` al centro e `T_GLEN_B` verso il bordo (più sottile al centro, come in letteratura).
@@ -30,10 +32,12 @@ const B = await import('./lib-bp3d.mjs');
 const ALFA = 1.42;                 // semiapertura del territorio sulla testa (rad, ≈ 81°)
 const D_GLEN = 3.3;               // distanza massima dal centro della testa per la glenoide (cm)
 const COS_GLEN = 0.3;
-const T_TESTA = 0.14, T_BORDO = 0.045;
+const T_TESTA = 0.14, T_BORDO = 0.10;
 const T_GLEN_C = 0.07, T_GLEN_B = 0.12;
-const SOTTO = 0.03;                // faccia interna sotto l'osso (cm): le ossa nella pagina sono increspate di ~±0,13 mm
+const SOTTO = 0.05;                // faccia interna sotto l'osso (cm): le ossa nella pagina sono increspate di ~±0,13 mm
 const PASSATE = 24;                // diffusione del campo s (passate sui vertici suddivisi, ~0,7 mm)
+const PRE_LEVIGA_OMERO = 40, PRE_LEVIGA_SCAPOLA = 20;   // passate di Taubin sulle ossa suddivise prima di costruire la base
+const LEVIGA_N = 12;                // passate di diffusione delle normali di spessore
 const LEVIGA = 10;                 // passate di Taubin sulla superficie di base (toglie le irregolarità dell'osso prima dello spessore)
 
 const om = REAL('omero'), sc = REAL('scapola');
@@ -71,6 +75,9 @@ log('asse polare', polo.map(x => x.toFixed(2)).join(','));
 /* ---- campi (calcolati sulle ossa suddivise una volta: margine più regolare) ---- */
 const SUB = m => { const r = B.suddividi(m.pos, m.idx); return { pos: r.pos, idx: r.idx }; };
 const omS = SUB(om), scS = SUB(sc);
+// superficie di base levigata (Taubin): il margine della cartilagine non segue più il rumore della mesh ossea (±0,13 mm)
+omS.pos = Float64Array.from(B.taubin(Float32Array.from(omS.pos), omS.idx, PRE_LEVIGA_OMERO));
+scS.pos = Float64Array.from(B.taubin(Float32Array.from(scS.pos), scS.idx, PRE_LEVIGA_SCAPOLA));
 const nbO = B.vicini(omS.pos.length / 3, omS.idx), nbS = B.vicini(scS.pos.length / 3, scS.idx);
 const normO = B.normali(omS.pos, omS.idx), normS = B.normali(scS.pos, scS.idx);
 function campoTesta() {
@@ -113,7 +120,11 @@ function guscio(m, s, spessore, triangoli) {
   const d = B.riduci(r0.pos, r0.idx, triangoli, fissi);
   const c = B.compatta(d.pos, d.idx, [Float64Array.from(r0.s)]);
   const bordo = levigaBordo(c.pos, c.idx, 12);
-  const base = { pos: Float64Array.from(B.taubin(Float32Array.from(bordo), c.idx, LEVIGA)), idx: c.idx }, sv = c.extra[0], nv = base.pos.length / 3, nrm = B.normali(base.pos, base.idx);
+  const base = { pos: Float64Array.from(B.taubin(Float32Array.from(bordo), c.idx, LEVIGA)), idx: c.idx }, sv = c.extra[0], nv = base.pos.length / 3, nrm0 = B.normali(base.pos, base.idx);
+  // normali levigate (la dentellatura del margine veniva dalle normali irregolari dei vertici di bordo spostati di T_BORDO)
+  const nbB = B.vicini(nv, base.idx), nrm = new Float64Array(nv * 3);
+  for (let k = 0; k < 3; k++) { const f = B.diffondi(Float64Array.from({ length: nv }, (_, i) => nrm0[3 * i + k]), nbB, LEVIGA_N); for (let i = 0; i < nv; i++) nrm[3 * i + k] = f[i]; }
+  for (let i = 0; i < nv; i++) { const l = Math.hypot(nrm[3 * i], nrm[3 * i + 1], nrm[3 * i + 2]) || 1; for (let k = 0; k < 3; k++) nrm[3 * i + k] /= l; }
   const pos = new Float64Array(nv * 6), idx = [];
   for (let i = 0; i < nv; i++) { const t = spessore(sv[i]); for (let k = 0; k < 3; k++) { pos[3 * i + k] = base.pos[3 * i + k] + nrm[3 * i + k] * t; pos[3 * (nv + i) + k] = base.pos[3 * i + k] - nrm[3 * i + k] * SOTTO; } }
   for (let t = 0; t < base.idx.length; t += 3) { const a = base.idx[t], b = base.idx[t + 1], e = base.idx[t + 2]; idx.push(a, b, e, nv + a, nv + e, nv + b); }
@@ -123,7 +134,7 @@ function guscio(m, s, spessore, triangoli) {
   return { pos: Float32Array.from(pos), idx: Uint32Array.from(idx), tag: null, fdir: null };
 }
 const sT = campoTesta(), sG = campoGlen();
-const tTesta = s => T_BORDO + (T_TESTA - T_BORDO) * sstep(0, 0.7, s);
+const tTesta = s => T_BORDO + (T_TESTA - T_BORDO) * sstep(0, 0.3, s);
 const tGlen = s => T_GLEN_B + (T_GLEN_C - T_GLEN_B) * sstep(0.1, 0.7, s);
 const cT = guscio(omS, sT, tTesta, 4500), cG = guscio(scS, sG, tGlen, 2500);
 log('cart_omero', cT.idx.length / 3, 'triangoli; cart_glen', cG.idx.length / 3, 'triangoli');

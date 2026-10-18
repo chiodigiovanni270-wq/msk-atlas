@@ -97,12 +97,12 @@ const MESH = {};
 function retto(id, A, Bp, w, t, hint, curva = 0) {
   const a = dentro(A), b = dentro(Bp), mid = add(mul(add(a, b), 0.5), nor(hint), curva);
   let path = catmull([a, mid, b], NP); path = leviga(path, 4);
-  MESH[id] = nastro(path, larghez(w[0], w[1]), () => t, () => nor(hint));
+  MESH[id] = nastro(path, u => (w[0] + (w[1] - w[0]) * u) * (1 - 0.18 * Math.sin(Math.PI * u)), () => t, () => nor(hint));   // larghezza: w[0] all'inserzione di partenza, w[1] a quella d'arrivo
 }
 // coracoclavicolari: dal coracoide alla clavicola, quasi verticali
 const vert = [0, 0, 1];
-retto('cc_conoide', R.co_cor, R.co_cl, [0.9, 0.7], 0.5, [0, 0, 1]);
-retto('cc_trapezoide', R.tz_cor, R.tz_cl, [1.5, 1.2], 0.4, [1, 0, 0]);
+retto('cc_conoide', R.co_cor, R.co_cl, [0.55, 1.1], 0.5, [0, 0, 1]);
+retto('cc_trapezoide', R.tz_cor, R.tz_cl, [1.2, 1.6], 0.4, [1, 0, 0]);
 retto('cal', R.cal_cor, R.cal_ac, [1.9, 0.6], 0.2, [0, 1, 0], -0.05);
 retto('ac_leg', R.ac_cl, R.ac_ac, [1.2, 1.2], 0.3, [0, 0, 1], 0.12);
 retto('sc_leg', R.sc_cl, R.sc_ma, [1.3, 1.1], 0.35, [0, 0, 1], 0.05);
