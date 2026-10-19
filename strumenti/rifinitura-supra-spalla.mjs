@@ -22,11 +22,12 @@ import { fileURLToPath } from 'node:url';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
 const G = await import('./lib-modello.mjs');
 const { vicini } = await import('./lib-bp3d.mjs');
-const { REAL, posDaRevisione, setMesh, saveFile, repack, log } = G;
+const { REAL, posDaRevisione, setMesh, saveFile, repack, log, sstep } = G;
 
 const BASE = 'fc755f7', NOME = 'supra';
 const VISTA = [-1.0, 0.1], RAGGIO = 3.5, PROF = 1.5;                  // cm; PROF: si escludono i vertici più di PROF dietro il punto più basso (lungo la vista)
 const V_ALTO = 1.6, V_FONDO = 0.0, ESP = 2.6, O_SOPRA = 0.3, BANDA = 0.05; // cm
+const ACR = { c: [0.9, 2.55, -0.25], r0: 1.25, r1: 1.8 }, PASSATE_ACR = 150, PASSATE_ACR_FORTI = 20, DIEDRO_ACR = 70, GAP_ACR = 0.03, SPESS_ACR = 0.06, PIEGA_ACR = 0.1;   // sotto l'acromion (cm)
 const GAP_OSSO = 0.05, NBIN = 360, DIEDRO_PIEGA = 130, PASSATE_PIEGA = 15, LEV_PUNTA = 200, DIEDRO_BORDO = 95, LEV_BORDO = 100;
 
 const { nv, idx } = REAL(NOME);
@@ -129,6 +130,92 @@ for (let it = 0; it < LEV_PUNTA; it++) { const lam = it % 2 ? -0.53 : 0.5, q = c
     for (const i of vic) { const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += lam * (s / L.length - cur[3 * i + k]); } }
     cur.set(q); }
   log('contenimento: vertici riportati sul contorno', fuori.length); }
+// sotto l'acromion: la lamina a due strati lasciata da `muscoli-spalla.mjs` ha punte e triangoli che si incrociano (dente di sega visibile dall'alto e di lato);
+// levigatura di Taubin nella sfera `ACR` (peso pieno fino a r0, smoothstep fino a r1) per `PASSATE_ACR` giri, poi media semplice dei vertici con spigoli oltre
+// `DIEDRO_ACR`° e dei loro vicini (`PASSATE_ACR_FORTI` giri), infine distanza minima `GAP_ACR` da acromion, clavicola, cartilagine e capsula
+{ const wA = new Float64Array(nv), zA = [];
+  for (let i = 0; i < nv; i++) { const d = Math.hypot(cur[3 * i] - ACR.c[0], cur[3 * i + 1] - ACR.c[1], cur[3 * i + 2] - ACR.c[2]); wA[i] = 1 - sstep(ACR.r0, ACR.r1, d); if (wA[i] > 0) zA.push(i); }
+  const spigoli = () => { const ins = new Set(zA), nf = new Map(), ef = new Map(), lim = Math.cos(DIEDRO_ACR * Math.PI / 180), out = new Set();
+    for (let t = 0; t < idx.length; t += 3) { const T = [idx[t], idx[t + 1], idx[t + 2]]; if (!T.every(i => ins.has(i))) continue;
+      const a = [0, 1, 2].map(q => cur[3 * T[1] + q] - cur[3 * T[0] + q]), b2 = [0, 1, 2].map(q => cur[3 * T[2] + q] - cur[3 * T[0] + q]), m = [a[1] * b2[2] - a[2] * b2[1], a[2] * b2[0] - a[0] * b2[2], a[0] * b2[1] - a[1] * b2[0]], l = Math.hypot(...m) || 1;
+      nf.set(t, m.map(x => x / l)); for (let k = 0; k < 3; k++) { const x = T[k], y = T[(k + 1) % 3], key = Math.min(x, y) * nv + Math.max(x, y); (ef.get(key) || ef.set(key, []).get(key)).push(t); } }
+    for (const [key, L] of ef) if (L.length === 2) { const [p, q] = [nf.get(L[0]), nf.get(L[1])], c = p[0] * q[0] + p[1] * q[1] + p[2] * q[2]; if (c < lim && c > -0.97) { out.add(Math.floor(key / nv)); out.add(key % nv); } }
+    return out; };
+  const n0 = spigoli().size;
+  for (let it = 0; it < PASSATE_ACR; it++) { const lam = it % 2 ? -0.53 : 0.5, q = cur.slice();
+    for (const i of zA) { const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += wA[i] * lam * (s / L.length - cur[3 * i + k]); } }
+    cur.set(q); }
+  for (let it = 0; it < PASSATE_ACR_FORTI; it++) { const pv = spigoli(), D = new Set(pv); for (const v of pv) for (const j of nb[v]) if (wA[j] > 0) D.add(j); if (!pv.size) break;
+    const q = cur.slice(); for (const i of D) { const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += 0.5 * (s / L.length - cur[3 * i + k]); } } cur.set(q); }
+  // strati che si incrociano: i vertici dello strato profondo (normale verso la testa) che lungo il raggio della testa stanno oltre lo strato superficiale
+  // (meno di `SPESS_ACR` sotto) sono riportati sotto; il raggio dello strato superficiale si trova intersecando il raggio con i suoi triangoli
+  const strati = () => { const nrm = new Float64Array(nv * 3), inZ = new Set(zA);
+    for (let t = 0; t < idx.length; t += 3) { const T = [idx[t], idx[t + 1], idx[t + 2]]; if (!T.some(i => inZ.has(i))) continue;
+      const a = [0, 1, 2].map(q => cur[3 * T[1] + q] - cur[3 * T[0] + q]), b2 = [0, 1, 2].map(q => cur[3 * T[2] + q] - cur[3 * T[0] + q]), m = [a[1] * b2[2] - a[2] * b2[1], a[2] * b2[0] - a[0] * b2[2], a[0] * b2[1] - a[1] * b2[0]];
+      for (const i of T) for (let k = 0; k < 3; k++) nrm[3 * i + k] += m[k]; }
+    const rad = i => { const d = [0, 1, 2].map(k => cur[3 * i + k] - cTesta[k]), l = Math.hypot(...d); return d.map(x => x / l); };
+    const sup = [], prof = [];
+    for (const i of zA) { const r = rad(i), n = [nrm[3 * i], nrm[3 * i + 1], nrm[3 * i + 2]], c = (n[0] * r[0] + n[1] * r[1] + n[2] * r[2]) / (Math.hypot(...n) || 1); if (c > 0.3) sup.push(i); else if (c < -0.3) prof.push(i); }
+    const S = new Set(sup), tris = []; for (let t = 0; t < idx.length; t += 3) if (S.has(idx[t]) && S.has(idx[t + 1]) && S.has(idx[t + 2])) tris.push(t);
+    let n = 0;
+    for (const i of prof) { const o = cTesta, d = rad(i), r0 = Math.hypot(...[0, 1, 2].map(k => cur[3 * i + k] - o[k])); let best = Infinity;
+      for (const t of tris) { const A = [0, 1, 2].map(k => cur[3 * idx[t] + k]), B = [0, 1, 2].map(k => cur[3 * idx[t + 1] + k]), C = [0, 1, 2].map(k => cur[3 * idx[t + 2] + k]);
+        const e1 = B.map((v, k) => v - A[k]), e2 = C.map((v, k) => v - A[k]), pv = [d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]], det = e1[0] * pv[0] + e1[1] * pv[1] + e1[2] * pv[2];
+        if (Math.abs(det) < 1e-12) continue; const tv = o.map((v, k) => v - A[k]), u = (tv[0] * pv[0] + tv[1] * pv[1] + tv[2] * pv[2]) / det; if (u < 0 || u > 1) continue;
+        const qv = [tv[1] * e1[2] - tv[2] * e1[1], tv[2] * e1[0] - tv[0] * e1[2], tv[0] * e1[1] - tv[1] * e1[0]], v = (d[0] * qv[0] + d[1] * qv[1] + d[2] * qv[2]) / det; if (v < 0 || u + v > 1) continue;
+        const tt = (e2[0] * qv[0] + e2[1] * qv[1] + e2[2] * qv[2]) / det; if (tt > 0 && Math.abs(tt - r0) < Math.abs(best - r0)) best = tt; }
+      if (best < Infinity && r0 > best - SPESS_ACR && r0 < best + 0.3) { const r1 = best - SPESS_ACR; for (let k = 0; k < 3; k++) cur[3 * i + k] = o[k] + d[k] * r1; n++; } }
+    return n; };
+  { const ns = []; for (let g = 0; g < 4; g++) { ns.push(strati());
+      for (let it = 0; it < 10; it++) { const lam = it % 2 ? -0.53 : 0.5, q = cur.slice();
+        for (const i of zA) { const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += wA[i] * lam * (s / L.length - cur[3 * i + k]); } }
+        cur.set(q); } }
+    ns.push(strati()); log('sotto l\'acromion: vertici dello strato profondo riportati sotto quello superficiale, per giro', ns.join(' ')); }
+  // pieghe sottili sulla faccia superficiale (fessure chiare a bordo scuro): lungo i raggi verso il centro della testa, due facce affacciate (una dritta e una
+  // rovescia) a meno di `PIEGA_ACR` cm, sopra i due strati della lamina, sono una piega; i loro vertici e due anelli sono mediati con i vicini (senza
+  // compensazione, la piega si appiattisce) finché i raggi non ne trovano più
+  const pieghe = () => { const inZ = new Set(zA), tris = []; for (let t = 0; t < idx.length; t += 3) if (inZ.has(idx[t]) && inZ.has(idx[t + 1]) && inZ.has(idx[t + 2])) tris.push(t);
+    const h = new Map(), C = 0.1, key = (a, b) => a + ',' + b;
+    // griglia in coordinate sferiche attorno alla testa per trovare i triangoli lungo un raggio
+    const sph = p => { const d = [0, 1, 2].map(k => p[k] - cTesta[k]), r = Math.hypot(...d); return [Math.atan2(d[0], d[2]) * r, Math.asin(d[1] / r) * r]; };
+    for (const t of tris) { const S = [0, 1, 2].map(j => sph([0, 1, 2].map(k => cur[3 * idx[t + j] + k]))); const lo = [0, 1].map(q => Math.floor(Math.min(...S.map(x => x[q])) / C)), hi = [0, 1].map(q => Math.floor(Math.max(...S.map(x => x[q])) / C));
+      for (let a = lo[0]; a <= hi[0]; a++) for (let b2 = lo[1]; b2 <= hi[1]; b2++) (h.get(key(a, b2)) || h.set(key(a, b2), []).get(key(a, b2))).push(t); }
+    const out = new Set();
+    for (const i of zA) { const p = [cur[3 * i], cur[3 * i + 1], cur[3 * i + 2]], d0 = [0, 1, 2].map(k => cTesta[k] - p[k]), l0 = Math.hypot(...d0), d = d0.map(x => x / l0), o = p.map((v, k) => v - d[k] * 1.0), sp = sph(p);
+      const cand = h.get(key(Math.floor(sp[0] / C), Math.floor(sp[1] / C))) || [], hits = [];
+      for (const t of cand) { const A = [0, 1, 2].map(k => cur[3 * idx[t] + k]), B = [0, 1, 2].map(k => cur[3 * idx[t + 1] + k]), Cc = [0, 1, 2].map(k => cur[3 * idx[t + 2] + k]);
+        const e1 = B.map((v, k) => v - A[k]), e2 = Cc.map((v, k) => v - A[k]), pv = [d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]], det = e1[0] * pv[0] + e1[1] * pv[1] + e1[2] * pv[2];
+        if (Math.abs(det) < 1e-12) continue; const tv = o.map((v, k) => v - A[k]), u = (tv[0] * pv[0] + tv[1] * pv[1] + tv[2] * pv[2]) / det; if (u < 0 || u > 1) continue;
+        const qv = [tv[1] * e1[2] - tv[2] * e1[1], tv[2] * e1[0] - tv[0] * e1[2], tv[0] * e1[1] - tv[1] * e1[0]], v = (d[0] * qv[0] + d[1] * qv[1] + d[2] * qv[2]) / det; if (v < 0 || u + v > 1) continue;
+        const tt = (e2[0] * qv[0] + e2[1] * qv[1] + e2[2] * qv[2]) / det; if (tt <= 0) continue;
+        const n = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]]; hits.push([tt, t, Math.sign(n[0] * d[0] + n[1] * d[1] + n[2] * d[2])]); }
+      hits.sort((a, b2) => a[0] - b2[0]);
+      if (hits.length >= 4 && hits[1][0] - hits[0][0] < PIEGA_ACR && hits[0][2] !== hits[1][2]) { out.add(hits[0][1]); out.add(hits[1][1]); } }
+    return out; };
+  { const ns = []; for (let g = 0; g < 15; g++) { const T = pieghe(); ns.push(T.size); if (!T.size) break;
+      let D = new Set(); for (const t of T) for (let k = 0; k < 3; k++) D.add(idx[t + k]); for (let r = 0; r < 2; r++) { const E = new Set(D); for (const v of D) for (const j of nb[v]) if (wA[j] > 0) E.add(j); D = E; }
+      for (let it = 0; it < 6; it++) { const q = cur.slice(); for (const i of D) { const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += 0.5 * (s / L.length - cur[3 * i + k]); } } cur.set(q); } }
+    log('sotto l\'acromion: triangoli in pieghe sottili, per giro', ns.join(' ')); }
+  // pieghe rovesciate (si vedeva l'interno della lamina, grigio, in fessure sottili): triangoli con la faccia rivolta al contrario dei tre vicini
+  // rispetto al raggio della testa; i loro vertici e un anello sono mediati con i vicini finché non ne restano
+  const rovesciati = () => { const inZ = new Set(zA), sg = new Map(), adj = new Map(), out = [];
+    for (let t = 0; t < idx.length; t += 3) { const T = [idx[t], idx[t + 1], idx[t + 2]]; if (!T.every(i => inZ.has(i))) continue;
+      const a = [0, 1, 2].map(q => cur[3 * T[1] + q] - cur[3 * T[0] + q]), b2 = [0, 1, 2].map(q => cur[3 * T[2] + q] - cur[3 * T[0] + q]), m = [a[1] * b2[2] - a[2] * b2[1], a[2] * b2[0] - a[0] * b2[2], a[0] * b2[1] - a[1] * b2[0]];
+      const c = [0, 1, 2].map(q => (cur[3 * T[0] + q] + cur[3 * T[1] + q] + cur[3 * T[2] + q]) / 3 - cTesta[q]), d = (m[0] * c[0] + m[1] * c[1] + m[2] * c[2]) / ((Math.hypot(...m) || 1) * Math.hypot(...c));
+      sg.set(t, d); for (let k = 0; k < 3; k++) { const x = T[k], y = T[(k + 1) % 3], key = Math.min(x, y) * nv + Math.max(x, y); (adj.get(key) || adj.set(key, []).get(key)).push(t); } }
+    const vic = new Map(); for (const L of adj.values()) if (L.length === 2) { (vic.get(L[0]) || vic.set(L[0], []).get(L[0])).push(L[1]); (vic.get(L[1]) || vic.set(L[1], []).get(L[1])).push(L[0]); }
+    for (const [t, d] of sg) { const V = vic.get(t) || []; if (V.length === 3 && V.every(u => sg.get(u) * d < 0 && Math.abs(sg.get(u)) > 0.2)) out.push(t); }
+    return out; };
+  { const r0 = rovesciati().length; let g = 0;
+    for (; g < 40; g++) { const R = rovesciati(); if (!R.length) break; const D = new Set(); for (const t of R) for (let k = 0; k < 3; k++) { D.add(idx[t + k]); for (const j of nb[idx[t + k]]) D.add(j); }
+      for (let it = 0; it < 3; it++) { const q = cur.slice(); for (const i of D) { const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += 0.5 * (s / L.length - cur[3 * i + k]); } } cur.set(q); } }
+    log('sotto l\'acromion: triangoli rovesciati', r0, '→', rovesciati().length, 'in', g, 'giri'); }
+  const lo = ACR.c.map(v => v - ACR.r1 - 0.3), hi = ACR.c.map(v => v + ACR.r1 + 0.3); G.griglia(lo, hi, 0.03, 0.1);
+  const OST = ['scapola', 'clavicola', 'cart_omero', 'caps', 'omero'], Fo = G.esatta(G.sdf(G.unione(OST)).F, OST, 0.1); let spinti = 0;
+  for (let r = 0; r < 3; r++) for (const i of zA) { const p = [cur[3 * i], cur[3 * i + 1], cur[3 * i + 2]], d = G.sample(Fo, ...p); if (d >= GAP_ACR) continue;
+    const g = G.grad(Fo, p), l = Math.hypot(...g) || 1; for (let k = 0; k < 3; k++) cur[3 * i + k] += g[k] / l * (GAP_ACR - d); if (!r) spinti++; }
+  for (const i of zA) if (!zona.includes(i)) zona.push(i);
+  log('sotto l\'acromion: vertici nella sfera', zA.length, '; vertici su spigoli vivi', n0, '→', spigoli().size, '; spinti fuori dagli ostacoli', spinti); }
 // omero: i vertici a meno di `GAP_OSSO` dall'osso (l'estremità allargata scende sul trochite) sono spinti fuori lungo il gradiente della distanza
 { G.griglia(C.map(v => v - RAGGIO), C.map(v => v + RAGGIO), 0.03, 0.1);
   const F = G.esatta(G.sdf(G.unione(['omero'])).F, ['omero'], 0.1); let n0 = 0;
@@ -146,7 +233,11 @@ if (nrm) { const toccati = new Set(zona); for (const i of zona) for (const j of 
   for (let t = 0; t < idx.length; t += 3) { const T = [idx[t], idx[t + 1], idx[t + 2]]; if (!T.some(i => acc.has(i))) continue;
     const a = [0, 1, 2].map(q => cur[3 * T[1] + q] - cur[3 * T[0] + q]), b2 = [0, 1, 2].map(q => cur[3 * T[2] + q] - cur[3 * T[0] + q]), f = [a[1] * b2[2] - a[2] * b2[1], a[2] * b2[0] - a[0] * b2[2], a[0] * b2[1] - a[1] * b2[0]];
     for (const i of T) if (acc.has(i)) for (let k = 0; k < 3; k++) acc.get(i)[k] += f[k]; }
-  for (const [i, f] of acc) { const l = Math.hypot(...f) || 1, o = [0, 1, 2].map(k => nrm[3 * i + k]), s = o[0] * f[0] + o[1] * f[1] + o[2] * f[2] < 0 ? -1 : 1;   // segno come quello già scritto
+  // segno: quello della maggioranza delle normali già scritte, uguale per tutti (il verso dei triangoli è coerente; con il segno vertice per vertice le pieghe
+  // spianate sotto l'acromion restavano con normali rovesciate, fessure chiare a bordo scuro)
+  let neg = 0; for (const [i, f] of acc) { const o = [0, 1, 2].map(k => nrm[3 * i + k]); if (o[0] * f[0] + o[1] * f[1] + o[2] * f[2] < 0) neg++; }
+  const s = neg > acc.size / 2 ? -1 : 1;
+  for (const [i, f] of acc) { const l = Math.hypot(...f) || 1;
     for (let k = 0; k < 3; k++) nrm[3 * i + k] = Math.round(127 * s * f[k] / l); } }
 
 if (process.env.PROVA) log('PROVA: nessuna scrittura');

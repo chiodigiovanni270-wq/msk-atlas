@@ -1,12 +1,13 @@
 /* Rifinitura del tendine del sottoscapolare (`subs`) della spalla (modelli/spalla-3d.html): margine superiore più alto (l'intervallo dei rotatori non resta
    uno spazio troppo largo), contorno regolare (superiore convesso con angolo superolaterale arrotondato, laterale verticale, angolo inferolaterale raccordato,
-   inferiore senza propaggini), superficie senza fori passanti; il capo breve del bicipite è spostato in avanti quanto serve per restare davanti al tendine.
+   inferiore senza propaggini), superficie senza fori passanti, estremità fino al capo lungo nel solco, davanti alla capsula; il capo breve del bicipite è spostato in avanti quanto serve per restare davanti al tendine.
 
    Uso (dalla cartella del progetto):
      node strumenti/rifinitura-subs-spalla.mjs                  → riscrive `subs` (e, se serve, `bic_breve`) nel file del modello
      PROVA=1 node strumenti/rifinitura-subs-spalla.mjs          → stampa i controlli senza scrivere
      MODELLO=/tmp/copia.html node strumenti/rifinitura-subs-spalla.mjs   → lavora su una copia
-   Va lanciato dopo `muscoli-spalla.mjs` (con le altre `rifinitura-*-spalla.mjs`, in qualsiasi ordine) e prima di `borsa-spalla.mjs`. Riparte dalle
+   Va lanciato dopo `muscoli-spalla.mjs` (con le altre `rifinitura-*-spalla.mjs`, in qualsiasi ordine) e prima di `capo-lungo-spalla.mjs`
+   e `borsa-spalla.mjs`. Riparte dalle
    posizioni di `subs` della revisione `BASE` con la topologia del file (i fori richiusi cambiano solo i triangoli, non i vertici), quindi si può rilanciare:
    il risultato cambia di meno di 1 mm (la seconda volta i fori sono già richiusi e il capo breve, letto dal file, si sposta ancora di qualche decimo). Se
    si rilancia `muscoli-spalla.mjs` e cambia `subs`, aggiornare `BASE`.
@@ -19,7 +20,8 @@
    2. Contorno regolare (solo la lastra anteriore: vertici entro `PLACCA` dalla faccia più avanzata nella stessa zona della vista). Margine superiore: arco di
       raggio `R_SU` dal margine laterale, tratto piatto all'altezza massima fino a `U_PIATTO`, poi inviluppo convesso del margine di prima fino a `U_FINE`.
       Margine inferiore senza propaggini fino a `U_BASSO` (non scende andando verso l'estremità), media mobile su `MEDIA` bin. Margine laterale verticale a
-      `UL` (il punto più laterale tra `V_VERT` e il margine superiore), raccordato in alto all'arco e in basso con un quarto di ellisse (`AU`, `AV`); più in
+      `UL` (il punto più laterale tra `V_VERT` e il margine superiore, portato fino a `GAP_SOLCO` dal margine mediale del capo lungo nel solco: l'inserzione
+      copre tutto il trochine; mappa nella fascia `BANDA_LAT2`), raccordato in alto all'arco e in basso con un quarto di ellisse (`AU`, `AV`); più in
       basso non torna verso l'esterno. Poi di nuovo il margine inferiore (dopo lo spostamento laterale). Ogni margine è portato sul nuovo con una mappa lineare
       nella sua fascia; ogni vertice spostato torna alla distanza di prima dal centro della testa omerale.
    2b. Contorno raccordato: la spezzata di destinazione (piatto, arco, verticale, ellisse, retta fino al margine inferiore a `U_BASSO`) e il contorno attuale
@@ -32,7 +34,9 @@
    4. Levigatura dove ci si è mossi (Taubin, `LEV`); pieghe (triangoli che si attraversano, o lati fra triangoli quasi capovolti lontano dal bordo: `DENTRO`,
       `CRESTA`) levigate con due anelli finché non ne restano (`GIRI_PIEGHE`).
    5. Omero: sotto l'equatore della vista i vertici spostati più lontani dall'osso di quanto lo fossero prima vi sono riaccostati (sotto la testa l'osso
-      rientra verso il collo); tutti a `GAP_OSSO` dall'omero.
+      rientra verso il collo); tutti a `GAP_OSSO` dall'omero; poi di nuovo le pieghe.
+   5b. Capsula: lungo il raggio dal centro della testa, i vertici che hanno la capsula entro `CAPS_MARCIA` più in fuori (o a meno di `GAP_CAPS`) vanno oltre
+      l'ultimo punto a meno di `GAP_CAPS`; spostamento allargato nello spazio (`R_CAPS`, a scendere) così le due facce si muovono insieme; `GIRI_CAPS` volte.
    6. Capo breve del bicipite: i vertici entro `SEP_BB` dal tendine vanno avanti lungo la vista quanto serve, spostamento allargato sulla mesh (`GIRI_BB`).
    Normali di vertice (`nm`) di `subs` ricalcolate sui vertici spostati e sui vicini; quelle del capo breve le ricalcola la pagina. Controlli stampati:
    margini prima e dopo, fori richiusi, pieghe, spostamento massimo, spostamento del capo breve. Dopo va rilanciato `borsa-spalla.mjs`. */
@@ -41,7 +45,7 @@ import { fileURLToPath } from 'node:url';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
 const G = await import('./lib-modello.mjs');
 const { vicini } = await import('./lib-bp3d.mjs');
-const { REAL, posDaRevisione, setMesh, saveFile, repack, log } = G;
+const { REAL, posDaRevisione, setMesh, saveFile, repack, log, sstep } = G;
 
 const BASE = 'fc755f7', NOME = 'subs';
 const VISTA = [-0.25, 0.15], PROF = 3.0, ZONA = 4.5;                   // cm; vertici entro ZONA dall'estremità (in u) e non più di PROF dietro il davanti
@@ -49,9 +53,11 @@ const A_SU = 0.8, PIENO_SU = 1.2, L_SU = 4.0, BANDA_SU = 1.0, R_ANGOLO = 0.6;   
 const A_LAT = 0.35, MEZZO_LAT = 1.2, BANDA_LAT = 0.8, V_LAT = [-0.6, 0.3];   // cm (V_LAT: quote v della vista)
 const A_GIU = 0.0, L_GIU = 1.5, BANDA_GIU = 0.6;                       // cm
 const BIN = 0.1, LEV = 30, GAP_OSSO = 0.05, U_LISCIO = 2.6, GIRI_PIEGHE = 12;
-const R_SU = 0.45, U_PIATTO = 1.6, U_FINE = 2.8, U_BASSO = 1.6, V_VERT = -0.7, AU = 1.0, AV = 1.2, MEDIA = 4;   // cm (MEDIA in bin)
+const R_SU = 0.45, U_PIATTO = 1.6, U_FINE = 2.8, U_BASSO = 1.6, V_VERT = -0.5, AU = 1.4, AV = 1.4, MEDIA = 4;   // cm (MEDIA in bin)
 const C_RAD = [1.0, -1.4], PASSO_ANG = 3, BANDA_RAD = 0.6, GIRI_RAD = 3;                // cm dall'angolo superolaterale ideale; gradi; cm
-const PLACCA = 0.6, DENTRO = 0.25, CRESTA = -0.3, R_FORO = [0.2], D_FORO = 0.25, GIRI_BORDO = 20, PROF_FORO = 1.0, SEP_BB = 0.03, GIRI_BB = 40;                                     // cm; coseno fra le normali di due triangoli adiacenti
+const Y_SOLCO = 1.0, GAP_SOLCO = 0.1, BANDA_LAT2 = 1.0;                                  // cm
+const GAP_CAPS = 0.06, CAPS_MARCIA = 0.25, R_CAPS = 0.3, GIRI_CAPS = 4;                                 // cm
+const PLACCA = 0.6, DENTRO = 0.25, CRESTA = -0.3, R_FORO = [0.2], D_FORO = 0.25, GIRI_BORDO = 40, PROF_FORO = 1.0, SEP_BB = 0.05, GIRI_BB = 40;                                     // cm; coseno fra le normali di due triangoli adiacenti
 
 let { nv, idx } = REAL(NOME);
 const pos0 = Float64Array.from(posDaRevisione(BASE, NOME, 'modelli/spalla-3d.html')), cur = pos0.slice();
@@ -129,7 +135,13 @@ const sposta = (i, du, dv) => { const r0 = Math.hypot(...[0, 1, 2].map(q => cur[
 const media = (a, k) => a.map((_, i) => { let s = 0, c = 0; for (let d = -k; d <= k; d++) if (a[i + d] !== undefined && isFinite(a[i + d])) { s += a[i + d]; c++; } return s / c; });
 let TP = 0, ULAT = 0;
 { const [SU1, GIU1] = colonne(cur), k = u => Math.round(u / BIN), SX1 = righe(cur), kv = v => Math.round((v - vMin) / BIN);
-  const Tpiatto = Math.max(...SU1.slice(k(Math.max(0, R_SU)), k(U_PIATTO) + 1)), UL = Math.min(...SX1.slice(Math.max(0, kv(V_VERT)), kv(Tpiatto) + 1));
+  const Tpiatto = Math.max(...SU1.slice(k(Math.max(0, R_SU)), k(U_PIATTO) + 1)), UL0 = Math.min(...SX1.slice(Math.max(0, kv(V_VERT)), kv(Tpiatto) + 1));
+  // il margine laterale arriva fino a `GAP_SOLCO` dal margine mediale del tendine del capo lungo nel solco (vertici del tendine sotto `Y_SOLCO`, alle stesse
+  // quote v): l'inserzione copre tutto il trochine
+  const BL = REAL('bic_lungo'); let uSolco = -Infinity;
+  for (let i = 0; i < BL.nv; i++) { if (BL.pos[3 * i + 1] > Y_SOLCO) continue; const v = proj(BL.pos, i, e2); if (v < V_VERT || v > Tpiatto) continue; uSolco = Math.max(uSolco, proj(BL.pos, i, e1) - U0); }
+  const UL = Math.min(UL0, uSolco + GAP_SOLCO);
+  log('margine laterale: era a', UL0.toFixed(2), ', margine mediale del capo lungo a', uSolco.toFixed(2), '→', UL.toFixed(2));
   // inviluppo convesso superiore da (U_PIATTO, Tpiatto) ai margini di prima fino a U_FINE
   const pts = [[U_PIATTO, Tpiatto]]; for (let j = k(U_PIATTO) + 1; j <= k(U_FINE); j++) pts.push([j * BIN, SU1[j]]);
   const hull = []; for (const p of pts) { while (hull.length >= 2) { const [a, b] = hull.slice(-2); if ((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]) >= 0) hull.pop(); else break; } hull.push(p); }
@@ -151,7 +163,7 @@ let TP = 0, ULAT = 0;
     else if (v >= vb) Lsx[j] = UL + AU - AU * Math.sqrt(Math.max(0, 1 - ((V_VERT - v) / AV) ** 2)); }
   for (let j = kv(vb) - 1; j >= 0; j--) Lsx[j] = Math.max(SX2[j], Lsx[j + 1]);
   const Tsx = media(Lsx, MEDIA); let n2 = 0;
-  for (const i of sel) { const [u, v] = uv(cur, i), sx = interp(SX2, v - vMin), Ln = interp(Tsx, v - vMin), m3 = sx + BANDA_LAT; if (u >= m3 || Ln >= m3) continue;
+  for (const i of sel) { const [u, v] = uv(cur, i), sx = interp(SX2, v - vMin), Ln = interp(Tsx, v - vMin), m3 = sx + BANDA_LAT2; if (u >= m3 || Ln >= m3) continue;
     const du = m3 - (m3 - u) * (m3 - Ln) / (m3 - sx) - u; if (Math.abs(du) > 1e-5) { sposta(i, du, 0); n2++; } }
   // di nuovo il margine inferiore senza propaggini, ora che il margine laterale si è spostato (l'angolo inferolaterale non deve sporgere verso il basso)
   { const [, G2] = colonne(cur), B2 = G2.slice(); for (let j = k(U_BASSO) - 1; j >= 0; j--) B2[j] = Math.max(G2[j], B2[j + 1]); const T2 = media(B2, MEDIA);
@@ -240,7 +252,7 @@ for (let it = 0; it < LEV; it++) { const lam = it % 2 ? -0.53 : 0.5, q = cur.sli
   cur.set(q); }
 // pieghe (triangoli che si attraversano: in pagina buchi da cui si vedono le strutture sotto): media dei vicini sui loro vertici e su due anelli, finché non
 // ne restano (al massimo `GIRI_PIEGHE` volte)
-{ const ins = new Set(zona), crs = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], sb = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dt = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const sistemaPieghe = titolo => { const ins = new Set(zona), crs = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], sb = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dt = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   const seg = (p, q, [a, b, c]) => { const e1 = sb(b, a), e2 = sb(c, a), d = sb(q, p), pv = crs(d, e2), det = dt(e1, pv); if (Math.abs(det) < 1e-12) return false; const s = sb(p, a), u = dt(s, pv) / det; if (u < 0 || u > 1) return false;
     const qv = crs(s, e1), v = dt(d, qv) / det; if (v < 0 || u + v > 1) return false; const t = dt(e2, qv) / det; return t > 0 && t < 1; };
   const key = i => [0, 1, 2].map(q => Math.round(cur[3 * i + q] * 1e4)).join();
@@ -264,7 +276,8 @@ for (let it = 0; it < LEV; it++) { const lam = it % 2 ? -0.53 : 0.5, q = cur.sli
   for (; g < GIRI_PIEGHE && P.size; g++) { const D = new Set(P); for (let r = 0; r < 2; r++) for (const v of [...D]) for (const j of nb[v]) D.add(j);
     for (let it = 0; it < 6; it++) { const q = cur.slice(); for (const i of D) { const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += 0.5 * (s / L.length - cur[3 * i + k]); } } cur.set(q); }
     P = pieghe(); }
-  log('pieghe: vertici', n0, '→', P.size, 'dopo', g, 'giri'); }
+  log(titolo, n0, '→', P.size, 'dopo', g, 'giri'); };
+sistemaPieghe('pieghe: vertici');
 // omero: i vertici a meno di `GAP_OSSO` dall'osso (l'estremità allargata scende sul trochine) sono spinti fuori lungo il gradiente della distanza
 // e, sotto l'equatore della vista (v < 0), i vertici spostati che si sono staccati dall'osso più di quanto lo fossero prima (lo spostamento conserva la
 // distanza dal centro della testa, ma sotto la testa l'osso rientra verso il collo) tornano alla loro distanza di prima dall'omero
@@ -277,6 +290,23 @@ for (let it = 0; it < LEV; it++) { const lam = it % 2 ? -0.53 : 0.5, q = cur.sli
   for (const i of zona) { const p = [cur[3 * i], cur[3 * i + 1], cur[3 * i + 2]], d = G.sample(F, ...p); if (d >= GAP_OSSO) continue;
     const g = G.grad(F, p), l = Math.hypot(...g) || 1; for (let k = 0; k < 3; k++) cur[3 * i + k] += g[k] / l * (GAP_OSSO - d); n0++; }
   log('omero: vertici spinti fuori', n0); }
+// di nuovo le pieghe, dopo la spinta dall'omero
+sistemaPieghe('pieghe dopo l’omero: vertici');
+// capsula: il tendine allargato verso il solco le passa davanti. Lungo il raggio dal centro della testa, ogni vertice della zona che ha la capsula entro
+// `CAPS_MARCIA` più in fuori (o è a meno di `GAP_CAPS`) va oltre l'ultimo punto a meno di `GAP_CAPS` dalla capsula; lo spostamento si allarga nello spazio
+// (entro `R_CAPS`, a scendere), così faccia profonda e superficiale del tendine si spostano insieme senza attraversarsi; fino a `GIRI_CAPS` volte
+{ const lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9]; for (const i of zona) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], cur[3 * i + k]); hi[k] = Math.max(hi[k], cur[3 * i + k]); }
+  G.griglia(lo, hi, 0.02, 0.4); const F = G.esatta(G.sdf(G.unione(['caps'])).F, ['caps'], 0.1);
+  const rad = i => { const r = [0, 1, 2].map(q => cur[3 * i + q] - cTesta[q]), l = Math.hypot(...r); return r.map(x => x / l); };
+  let n0 = 0, mx = 0; for (let giro = 0; giro < GIRI_CAPS; giro++) { const d = new Float64Array(nv); let n1 = 0;
+  for (const i of zona) { const p = [cur[3 * i], cur[3 * i + 1], cur[3 * i + 2]], r = rad(i); let tU = -1;
+    for (let t = 0; t <= CAPS_MARCIA; t += 0.005) if (G.sample(F, ...p.map((x, k) => x + t * r[k])) < GAP_CAPS) tU = t;
+    if (tU >= 0) { d[i] = tU + 0.005; n1++; } }
+  if (!n1) break; if (!giro) n0 = n1;
+  const src = zona.filter(i => d[i] > 0), D = new Float64Array(nv);
+  for (const i of zona) for (const j of src) { const r = Math.hypot(...[0, 1, 2].map(q => cur[3 * i + q] - cur[3 * j + q])); if (r < R_CAPS) D[i] = Math.max(D[i], d[j] * (1 - sstep(0, R_CAPS, r))); }
+  for (const i of zona) if (D[i] > 1e-4) { const r = rad(i); for (let k = 0; k < 3; k++) cur[3 * i + k] += D[i] * r[k]; mx = Math.max(mx, D[i]); } }
+  log('capsula: vertici vicini', n0, ', tendine spostato in fuori al massimo di', (mx * 10).toFixed(2), 'mm'); }
 stampa(cur, 'dopo');
 { let mx = 0; for (const i of zona) mx = Math.max(mx, Math.hypot(...[0, 1, 2].map(k => cur[3 * i + k] - pos0[3 * i + k]))); log('spostamento massimo', (mx * 10).toFixed(2), 'mm'); }
 

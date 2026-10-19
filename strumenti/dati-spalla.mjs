@@ -77,6 +77,9 @@ export const STR = [
   { id: 'ighl_p', cat: 'leg', mesh: [['ighl_p', null]], name: 'Legamento gleno-omerale inferiore – banda posteriore',
     info: 'Banda posteriore dell’amaca inferiore; più sottile dell’anteriore. Nella contrattura in rotazione interna si ispessisce e limita la rotazione interna e la flessione-adduzione.',
     o: 'Labbro glenoideo postero-inferiore (ore 7–8).', ins: 'Collo anatomico dell’omero, postero-inferiormente.', fn: 'Limita la traslazione posteriore e la rotazione interna con il braccio in flessione e abduzione.' },
+  { id: 'trasv_om', cat: 'leg', mesh: [['trasv_om', null]], name: 'Legamento trasverso dell’omero',
+    info: 'Lamina sottile che chiude in alto il solco intertubercolare e tiene il tendine del capo lungo del bicipite nel solco. Gli studi anatomici recenti la descrivono come fibre superficiali del sottoscapolare, con contributi del sovraspinato e del coraco-omerale, più che come legamento autonomo (Gleason 2006; MacDonald 2007). La lesione di questo tetto, spesso con lesione del sottoscapolare, permette la sublussazione mediale del tendine, visibile in ecografia dinamica e RM.',
+    o: 'Tubercolo minore dell’omero (labbro mediale del solco), in continuità con le fibre del sottoscapolare.', ins: 'Tubercolo maggiore dell’omero (labbro laterale del solco).', fn: 'Mantiene il tendine del capo lungo del bicipite nel solco intertubercolare e ne impedisce la sublussazione mediale.' },
   // ---------- CUFFIA ----------
   { id: 'supra', cat: 'cuf', mesh: [['supra', 32544]], osso: 'omero', modo: 'conv', name: 'Sovraspinato',
     info: 'Passa sotto l’arco coracoacromiale e l’articolazione acromioclavicolare, nello spazio sottoacromiale: è la sede più frequente di tendinopatia, conflitto e rottura della cuffia, soprattutto nella zona critica a circa 1 cm dall’inserzione. Nervo soprascapolare (C5–C6).',
