@@ -16,7 +16,12 @@
    il contorno non cambia), poi i vertici sono riportati alla distanza di prima dal centro della testa omerale (il tendine resta appoggiato). Infine
    levigatura dell'estremità (`LEV_PUNTA`) e del bordo lungo la sua curva (spigoli con diedro oltre `DIEDRO_BORDO`°, `LEV_BORDO`), appiattimento delle pieghe
    del bordo (`DIEDRO_PIEGA`, `PASSATE_PIEGA`), contenimento dei vertici rimasti fuori dalla U e distanza minima `GAP_OSSO` dall'omero. Normali di vertice
-   (`nm`) ricalcolate sui vertici spostati e sui vicini. Controlli stampati: margini per quote prima e dopo, spostamento massimo. */
+   (`nm`) ricalcolate sui vertici spostati e sui vicini. Controlli stampati: margini per quote prima e dopo, spostamento massimo.
+
+   Estensione: la U finisce a metà della grande tuberosità (fondo a `V_FONDO` = 0,9 cm sopra il punto più basso di prima, `V_ALTO` = 2,2 cm: dove il tendine è
+   più largo), cioè sulla sola faccetta superiore, dove si inserisce il sovraspinato; prima scendeva fino alla cresta sopra il collo chirurgico e copriva anche le
+   faccette di sottospinato e piccolo rotondo. La spinta fuori dall'osso (`GAP_OSSO`) è alternata a una levigatura locale (`GIRI_GAP` giri di `LEV_GAP` passate
+   sui vertici spinti e due-tre anelli di vicini): da sola lasciava un lembo appuntito all'angolo del solco bicipitale. */
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
@@ -26,8 +31,8 @@ const { REAL, posDaRevisione, setMesh, saveFile, repack, log } = G;
 
 const BASE = 'fc755f7', NOME = 'supra';
 const VISTA = [-1.0, 0.1], RAGGIO = 3.5, PROF = 1.5;                  // cm; PROF: si escludono i vertici più di PROF dietro il punto più basso (lungo la vista)
-const V_ALTO = 1.6, V_FONDO = 0.0, ESP = 2.6, O_SOPRA = 0.3, BANDA = 0.05; // cm
-const GAP_OSSO = 0.05, NBIN = 360, DIEDRO_PIEGA = 130, PASSATE_PIEGA = 15, LEV_PUNTA = 200, DIEDRO_BORDO = 95, LEV_BORDO = 100;
+const V_ALTO = 2.2, V_FONDO = 0.9, ESP = 2.4, O_SOPRA = 0.3, BANDA = 0.05; // cm
+const GAP_OSSO = 0.05, GIRI_GAP = 8, LEV_GAP = 60, NBIN = 360, DIEDRO_PIEGA = 110, PASSATE_PIEGA = 40, LEV_PUNTA = 400, DIEDRO_BORDO = 95, LEV_BORDO = 200;
 
 const { nv, idx } = REAL(NOME);
 const pos0 = Float64Array.from(posDaRevisione(BASE, NOME, 'modelli/spalla-3d.html')), cur = pos0.slice();
@@ -48,7 +53,7 @@ const sel = []; for (let i = 0; i < nv; i++) { const p = [0, 1, 2].map(k => cur[
 
 // margini sinistro e destro per quote (v), dai vertici
 const margini = (P, v0, v1) => { let lo = 1e9, hi = -1e9; for (const i of sel) { const [u, v] = uv(P, i); if (v >= v0 && v < v1) { lo = Math.min(lo, u); hi = Math.max(hi, u); } } return [lo, hi]; };
-const stampa = (P, et) => { const r = []; for (let v = 1.8; v >= -0.01; v -= 0.2) { const [a, b] = margini(P, v - 0.05, v + 0.05); r.push(v.toFixed(1) + ':' + (a < 1e8 ? a.toFixed(2) + '…' + b.toFixed(2) : '-')); } log(et, 'margini sinistro…destro per quota v:', r.join(' ')); };
+const stampa = (P, et) => { const r = []; for (let v = 3.2; v >= -0.01; v -= 0.2) { const [a, b] = margini(P, v - 0.05, v + 0.05); r.push(v.toFixed(1) + ':' + (a < 1e8 ? a.toFixed(2) + '…' + b.toFixed(2) : '-')); } log(et, 'margini sinistro…destro per quota v:', r.join(' ')); };
 stampa(cur, 'prima');
 
 // contorno nuovo: sopra V_ALTO quello di prima, sotto una U (superellisse) che parte dai margini di prima a V_ALTO
@@ -132,9 +137,18 @@ for (let it = 0; it < LEV_PUNTA; it++) { const lam = it % 2 ? -0.53 : 0.5, q = c
 // omero: i vertici a meno di `GAP_OSSO` dall'osso (l'estremità allargata scende sul trochite) sono spinti fuori lungo il gradiente della distanza
 { G.griglia(C.map(v => v - RAGGIO), C.map(v => v + RAGGIO), 0.03, 0.1);
   const F = G.esatta(G.sdf(G.unione(['omero'])).F, ['omero'], 0.1); let n0 = 0;
-  for (const i of zona) { const p = [cur[3 * i], cur[3 * i + 1], cur[3 * i + 2]], d = G.sample(F, ...p); if (d >= GAP_OSSO) continue;
-    const g = G.grad(F, p), l = Math.hypot(...g) || 1; for (let k = 0; k < 3; k++) cur[3 * i + k] += g[k] / l * (GAP_OSSO - d); n0++; }
-  log('omero: vertici spinti fuori', n0); }
+  const spingi = () => { const P = new Set();
+    for (const i of zona) { const p = [cur[3 * i], cur[3 * i + 1], cur[3 * i + 2]], d = G.sample(F, ...p); if (d >= GAP_OSSO) continue;
+      const g = G.grad(F, p), l = Math.hypot(...g) || 1; for (let k = 0; k < 3; k++) cur[3 * i + k] += g[k] / l * (GAP_OSSO - d); P.add(i); }
+    return P; };
+  // la spinta sposta di colpo pochi vertici (lembi all'angolo del solco): spinta e levigatura locale dei vertici spinti e dei vicini si alternano (`GIRI_GAP`)
+  for (let g = 0; g < GIRI_GAP; g++) { const P = spingi(); if (g === 0) n0 = P.size; if (!P.size) break;
+    const R = new Set(P); for (let a = 0; a < 3; a++) for (const i of [...R]) for (const j of nb[i]) R.add(j);
+    for (let it = 0; it < LEV_GAP; it++) { const lam = it % 2 ? -0.53 : 0.5, q = cur.slice();
+      for (const i of R) { const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += lam * (s / L.length - cur[3 * i + k]); } }
+      cur.set(q); } }
+  const resto = spingi();
+  log('omero: vertici spinti fuori', n0, '; dopo levigatura ne restano', resto.size, 'a meno di', GAP_OSSO * 10, 'mm'); }
 stampa(cur, 'dopo');
 { let mx = 0; for (const i of zona) mx = Math.max(mx, Math.hypot(...[0, 1, 2].map(k => cur[3 * i + k] - pos0[3 * i + k]))); log('spostamento massimo', (mx * 10).toFixed(2), 'mm'); }
 
