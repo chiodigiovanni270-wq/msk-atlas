@@ -29,10 +29,11 @@
         legamento acromioclavicolare, che poi supera passando sopra, lontano dall'osso (`SOPRA`), invece di avvolgerlo e strapparsi; deltoide
         clavicolare, grande pettorale (parte clavicolare) e trapezio (parte discendente) non vedono la clavicola, così le inserzioni restano lisce
         come nei dati (la spinta fuori dall'osso le rendeva frastagliate).
-     4d. Capo breve del bicipite e coracobrachiale portati fuori dal sottoscapolare.
+     4d. Capo breve del bicipite e coracobrachiale portati fuori dal sottoscapolare; poi il capo breve è separato dal sottoscapolare controllando i
+        triangoli (`separa`, parametri `SEP`): il bordo del sottoscapolare, più sottile del passo della griglia, lo attraversava senza vertici dentro.
      4e. Sovraspinato: tendine ristretto del 18 % di traverso alle fibre prima della spinta (`STRINGI` in `PARAM`): l'impronta d'inserzione risultava
         troppo larga.
-     5. Deltoide e altri muscoli della spalla sopra la cuffia già sistemata, a `BORSA` (2 mm) di distanza: è lo spazio della borsa subacromion-deltoidea
+     5. Deltoide e altri muscoli della spalla sopra la cuffia già sistemata (il deltoide anche davanti al capo breve), a `BORSA` (2 mm) di distanza: è lo spazio della borsa subacromion-deltoidea
         (`borsa-spalla.mjs`).
      6. Normali di vertice: somma pesata dall'area delle normali di faccia, unite sui vertici coincidenti (stessa posizione e stesso tipo di tag, così
         non si sfumano le sezioni di taglio), poi `NORM_DIFF` passate di media: la superficie non ha più sfaccettature che il materiale lucido (clearcoat e
@@ -289,6 +290,54 @@ function libera(nome, Fx, conControlli = true, marg = MARG, base = null) {
   CHECK[nome] = { vertici: nv, triangoli: R.idx.length / 3, spostati: mossi, prima, dopo: controlli(pos, R.idx) };
   log(nome, 'tri', R.idx.length / 3, 'spostati', mossi, 'prima', JSON.stringify(prima), 'dopo', JSON.stringify(CHECK[nome].dopo));
 }
+/* ---- separazione di due muscoli lungo una direzione (capo breve del bicipite davanti al sottoscapolare) ----
+   Il campo di distanza vede solo i vertici: il bordo del sottoscapolare è una lamina più sottile del passo della griglia e attraversava il capo breve
+   fino a 3 mm con tutti i vertici del capo breve fuori. Qui si controllano i triangoli: i vertici di `nome` dentro `altro` (raggi con numero di
+   avvolgimento) devono uscirne lungo `dir`, quelli dei triangoli che lo attraversano avanzano di `passo`; lo spostamento è un campo scalare reso liscio
+   come una membrana (massimo tra richiesto e media dei vicini × `CALO`), con vicini sul grafo e nello spazio entro `RS` (lo spessore di una lamina si
+   sposta tutto insieme, le due facce non si incrociano); si ripete finché non resta nulla (al massimo `giri` volte). */
+const SEP = { MARG: 0.03, PASSO: 0.01, GIRI: 80, LISCIA: 60, CALO: 0.98, RS: 0.4 };
+function separa(nome, altro, dir) {
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], cr = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], dt = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const raggio = (o, d, [a, b, c]) => { const e1 = sub(b, a), e2 = sub(c, a), pv = cr(d, e2), det = dt(e1, pv); if (Math.abs(det) < 1e-12) return null; const iv = 1 / det, s = sub(o, a), u = dt(s, pv) * iv; if (u < 0 || u > 1) return null;
+    const qv = cr(s, e1), v = dt(d, qv) * iv; if (v < 0 || u + v > 1) return null; const t = dt(e2, qv) * iv; return t > 0 ? [t, Math.sign(det)] : null; };
+  const lato = (p, q, T) => { const r = raggio(p, sub(q, p), T); return r && r[0] < 1; };
+  const R = MESHES[nome], A = REAL(altro), I = R.idx, nv = R.pos.length / 3, cur = REAL(nome).pos;
+  const id = new Map(), W = new Int32Array(nv); for (let v = 0; v < nv; v++) { const k = [0, 1, 2].map(q => Math.round(cur[3 * v + q] * 1e4)).join(); if (!id.has(k)) id.set(k, id.size); W[v] = id.get(k); }
+  const nw = id.size, p0 = new Float64Array(3 * nw); for (let v = 0; v < nv; v++) for (let q = 0; q < 3; q++) p0[3 * W[v] + q] = cur[3 * v + q];
+  const vic = Array.from({ length: nw }, () => new Set()); for (let t = 0; t < I.length; t += 3) for (let k = 0; k < 3; k++) { const a = W[I[t + k]], b = W[I[t + (k + 1) % 3]]; vic[a].add(b); vic[b].add(a); }
+  const cella = (x, h) => [0, 1, 2].map(q => Math.floor(x[q] / h)).join(), hs = new Map();
+  for (let w = 0; w < nw; w++) { const k = cella([p0[3 * w], p0[3 * w + 1], p0[3 * w + 2]], SEP.RS); if (!hs.has(k)) hs.set(k, []); hs.get(k).push(w); }
+  for (let w = 0; w < nw; w++) { const c = [0, 1, 2].map(q => Math.floor(p0[3 * w + q] / SEP.RS));
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let d = -1; d <= 1; d++) for (const u of hs.get([c[0] + a, c[1] + b, c[2] + d].join()) || [])
+      if (u !== w && Math.hypot(p0[3 * u] - p0[3 * w], p0[3 * u + 1] - p0[3 * w + 1], p0[3 * u + 2] - p0[3 * w + 2]) < SEP.RS) vic[w].add(u); }
+  const nb = vic.map(x => [...x]);
+  const TA = []; for (let t = 0; t < A.idx.length; t += 3) TA.push([0, 1, 2].map(k => [A.pos[3 * A.idx[t + k]], A.pos[3 * A.idx[t + k] + 1], A.pos[3 * A.idx[t + k] + 2]]));
+  const C = 0.3, hA = new Map(); TA.forEach((v, t) => { const lo = [0, 1, 2].map(q => Math.floor(Math.min(v[0][q], v[1][q], v[2][q]) / C)), hi = [0, 1, 2].map(q => Math.floor(Math.max(v[0][q], v[1][q], v[2][q]) / C));
+    for (let a = lo[0]; a <= hi[0]; a++) for (let b = lo[1]; b <= hi[1]; b++) for (let c = lo[2]; c <= hi[2]; c++) { const k = [a, b, c].join(); if (!hA.has(k)) hA.set(k, []); hA.get(k).push(t); } });
+  const bb = [0, 1, 2].map(q => [Infinity, -Infinity]); for (let i = 0; i < A.pos.length; i++) { const q = i % 3; bb[q][0] = Math.min(bb[q][0], A.pos[i]); bb[q][1] = Math.max(bb[q][1], A.pos[i]); }
+  const T = new Float64Array(nw), REQ = new Float64Array(nw), P = w => [0, 1, 2].map(q => p0[3 * w + q] + T[w] * dir[q]);
+  // distanza lungo dir fino all'uscita da `altro` (0 se il punto è fuori)
+  const uscita = o => { if (o.some((x, q) => x < bb[q][0] - 0.01 || x > bb[q][1] + 0.01)) return 0; const H = []; for (const t of TA) { const r = raggio(o, dir, t); if (r) H.push(r); }
+    let s = H.reduce((a, b) => a + b[1], 0); if (!s) return 0; H.sort((a, b) => a[0] - b[0]); for (const [t, sg] of H) { s -= sg; if (!s) return t; } return H[H.length - 1][0]; };
+  const storia = [];
+  for (let g = 0; g <= SEP.GIRI; g++) {
+    let dentro = 0, attraversano = 0;
+    for (let w = 0; w < nw; w++) { const u = uscita(P(w)); if (u > 0) { REQ[w] = Math.max(REQ[w], T[w] + u + SEP.MARG); dentro++; } }
+    for (let s = 0; s < I.length; s += 3) { const a = [0, 1, 2].map(k => P(W[I[s + k]])), lo = [0, 1, 2].map(q => Math.floor(Math.min(a[0][q], a[1][q], a[2][q]) / C)), hi = [0, 1, 2].map(q => Math.floor(Math.max(a[0][q], a[1][q], a[2][q]) / C));
+      let o = false; const visti = new Set();
+      for (let x = lo[0]; x <= hi[0] && !o; x++) for (let y = lo[1]; y <= hi[1] && !o; y++) for (let z = lo[2]; z <= hi[2] && !o; z++) for (const t of hA.get([x, y, z].join()) || []) {
+        if (visti.has(t)) continue; visti.add(t); const b = TA[t]; for (let e = 0; e < 3 && !o; e++) o = lato(a[e], a[(e + 1) % 3], b) || lato(b[e], b[(e + 1) % 3], a); if (o) break; }
+      if (o) { attraversano++; for (let k = 0; k < 3; k++) { const w = W[I[s + k]]; REQ[w] = Math.max(REQ[w], T[w] + SEP.PASSO); } } }
+    storia.push(dentro + '/' + attraversano); if (!dentro && !attraversano) break;
+    for (let w = 0; w < nw; w++) T[w] = Math.max(T[w], REQ[w]);
+    for (let r = 0; r < SEP.LISCIA; r++) { const U = Float64Array.from(T); for (let w = 0; w < nw; w++) { let s = 0; for (const u of nb[w]) s += T[u]; U[w] = Math.max(REQ[w], nb[w].length ? s / nb[w].length * SEP.CALO : 0); } T.set(U); }
+  }
+  const pos = new Float32Array(3 * nv); for (let v = 0; v < nv; v++) { const p = P(W[v]); for (let q = 0; q < 3; q++) pos[3 * v + q] = p[q]; }
+  MESHES[nome] = { ...R, pos }; setMesh(nome, MESHES[nome]);
+  log(nome, 'separato da', altro, '(vertici dentro / triangoli che attraversano, per giro)', storia.join(' '), 'spostamento massimo', (Math.max(...T) * 10).toFixed(1), 'mm');
+  return storia[storia.length - 1];
+}
 const CAMPI = {}; for (const [m, ex] of Object.entries(ESCLUSI)) { CAMPI[m] = campo(ex).F; log('campo senza', ex.join(', '), 'per', m); }
 for (const nome of MUSCOLI) libera(nome, CAMPI[nome] || F);
 for (const [nome, { ostacolo, base }] of Object.entries(SOPRA)) { const Fo = esatta(sdf(unione(ostacolo)).F, ostacolo, 0.12), Fb = esatta(sdf(unione(base)).F, base, 0.12);
@@ -296,9 +345,11 @@ for (const [nome, { ostacolo, base }] of Object.entries(SOPRA)) { const Fo = esa
 // capo breve del bicipite e coracobrachiale davanti al sottoscapolare: non lo attraversano
 { const Fs = esatta(sdf(unione(['subs'])).F, ['subs'], 0.12);
   for (const nome of ['bic_breve', 'coracobr']) { const n = libera(nome, Fs, false); CHECK[nome].fuori_sottoscapolare = n; log(nome, 'spostati fuori dal sottoscapolare', n); } }
+CHECK.bic_breve.separato_sottoscapolare = separa('bic_breve', 'subs', [0, 0, 1]);
 // deltoide sopra la cuffia (a BORSA di distanza: lo spazio della borsa subacromion-deltoidea, costruita da borsa-spalla.mjs): dove i tendini della cuffia (già sistemati) attraversano il deltoide, il deltoide si solleva sopra di loro
-{ const CUF = nomi(['cuf']), Fc2 = esatta(sdf(unione(CUF)).F, CUF, 0.12);
-  for (const nome of nomi(['cin'])) { const n = libera(nome, Fc2, false, BORSA); CHECK[nome].sopra_cuffia = n; log(nome, 'sollevati sopra la cuffia', n); } }
+// il deltoide passa anche davanti al capo breve del bicipite (spostato in avanti da `separa`)
+{ const CUF = nomi(['cuf']), Fc2 = esatta(sdf(unione(CUF)).F, CUF, 0.12), DAV = ['bic_breve'], Fd = esatta(sdf(unione([...CUF, ...DAV])).F, [...CUF, ...DAV], 0.12);
+  for (const nome of nomi(['cin'])) { const n = libera(nome, nome.startsWith('delt') ? Fd : Fc2, false, BORSA); CHECK[nome].sopra_cuffia = n; log(nome, 'sollevati sopra la cuffia', n); } }
 // normali
 for (const nome of MUSCOLI) { const T = MESHES[nome], cur = REAL(nome); T.pos = Float32Array.from(cur.pos); T.nrm = normaliLisce(T.pos, T.idx, T.tag); setMesh(nome, T); }
 const prova = (process.argv.find(a => a.startsWith('--prova=')) || '').split('=')[1];
