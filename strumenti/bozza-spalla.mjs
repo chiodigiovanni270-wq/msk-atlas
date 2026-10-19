@@ -157,6 +157,8 @@ sost(/\/\* ============ Categorie ============ \*\/[\s\S]*?(?=const catById=)/, 
 sost(/const MCOL=\{[^\n]*\};/, 'const MCOL=' + js(Object.fromEntries(STR.filter(s => MUSC.includes(s.cat)).map((s, i) => [s.id, ['#a8433a', '#983a33', '#a63f36', '#9f3c34', '#ad463c', '#a0413a', '#9c3a33', '#a4403a'][i % 8]]))) + ';', 'mcol');
 sost(/const REALFIB=new Set\([^\n]*\);/, 'const REALFIB=new Set([]);', 'realfib');
 sost(/case 'brac':case 'fless':case 'est':/, "case 'cuf':case 'cin':case 'tor':case 'brac':", 'materiale muscoli');
+// la borsa (mesh chiusa a due facce vicine) si disegna a faccia singola: a due facce trasparenti con scrittura della profondità le facce si coprono a facce irregolari (rete di chiazze)
+sost(/if\(s\.cat!=='caps'&&s\.cat!=='cute'\)m\.side=THREE\.DoubleSide;/, "if(s.cat!=='caps'&&s.cat!=='cute'&&s.cat!=='bor')m.side=THREE.DoubleSide;", 'borsa a faccia singola');
 sost(/brac:'#7c2622',fless:'#7c2622',est:'#7c2622'/, "cuf:'#7c2622',cin:'#7c2622',tor:'#7c2622',brac:'#7c2622'", 'capc');
 sost(/const VS=0\.1,/, 'const VS=0.2,', 'ao');
 // camera
