@@ -130,7 +130,7 @@ const MUSC = ['cuf', 'cin', 'tor', 'brac'];
 sost(/<title>.*?<\/title>/, '<title>Spalla 3D | MSK Atlas</title>', 'title');
 sost(/<meta name="strutture-bp3d"[\s\S]*?(?=<link rel="icon")/,
   '<meta name="strutture-bp3d" content="Ossa (scapola, clavicola, omero, coste I–V, sterno), cartilagini costali, cuffia dei rotatori, deltoide, grande rotondo, muscoli del torace e del dorso, muscoli del braccio e vasi succlavi.">\n' +
-  '<meta name="strutture-modellate" content="Cartilagine della testa omerale e della glenoide, labbro glenoideo, capsula articolare e legamenti (coracoclavicolari, coracoacromiale, acromioclavicolare, sternoclavicolare, coraco-omerale, gleno-omerali): ricostruiti sulle ossa reali, con inserzioni e decorso verificati rispetto alle altre strutture.">\n' +
+  '<meta name="strutture-modellate" content="Cartilagine della testa omerale e della glenoide, labbro glenoideo, capsula articolare e legamenti (coracoclavicolari, coracoacromiale, acromioclavicolare, sternoclavicolare, coraco-omerale, gleno-omerali) e borsa subacromion-deltoidea: ricostruiti sulle ossa reali, con inserzioni e decorso verificati rispetto alle altre strutture.">\n' +
   '<meta name="description" content="Modello 3D interattivo della spalla destra: ossa, muscoli della cuffia e della cintura scapolare, vasi e nervi. Materiale didattico.">\n', 'meta');
 sost(/Modello 3D del gomito/, 'Modello 3D della spalla', 'aria');
 sost(/<h1>Gomito destro<\/h1>/, '<h1>Spalla destra</h1>', 'h1');
