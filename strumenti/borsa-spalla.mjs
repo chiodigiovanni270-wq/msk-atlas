@@ -10,24 +10,26 @@
    (riscrive solo `borsa_sad`). La pagina disegna la borsa a faccia singola (come la capsula): vedi `bozza-spalla.mjs` (sostituzione «borsa a faccia singola»).
 
    Metodo: la borsa è un cuscinetto chiuso costruito su una superficie media, non uno strato ritagliato da un campo (il ritaglio lasciava il margine
-   frastagliato, con pezzi staccati e chiazze).
-   1. Impronta: campo in cm, positivo dentro, minimo di tre termini: ellissoide centrato sopra il trochite (`CENTRO`, `RAGGI`, relativi al centro della
-      testa omerale, ricavato dalla cartilagine con una sfera ai minimi quadrati; dal lato mediale il semiasse x è `RX_MED`: sotto l'acromion la borsa
-      finisce prima), distanza dalle ossa (almeno `GAP`) e dalla faccia profonda (omero, capsula, cartilagine: almeno `PROF`, esclude il lato profondo
-      dei tendini). Il campo è sfocato (`SFUMA`), poi arretrato di `MARGINE` e aperto morfologicamente (`APERTURA`: toglie code e appendici più strette di 2·`APERTURA`,
-      arrotonda gli angoli) e sfocato ancora.
-   2. Superficie media: isosuperficie a distanza `MEZZO` dal campo di distanza di sovraspinato e infraspinato, sfocato (`LISCIA`): segue la forma generale
-      dei tendini, non le loro piccole irregolarità. È tagliata esattamente dove l'impronta vale 0 (triangoli tagliati, vertici sull'isolinea): il margine
-      è una curva senza gradini, levigata ancora lungo se stessa (`BORDO`, Taubin sulla sola curva). Si tengono i pezzi con almeno `PEZZO` dei triangoli.
-   3. Riduzione (quadriche) della sola parte interna: i vertici del margine e della fascia `RIM` restano fermi, l'interno scende a circa `DENS`
+   frastagliato, con pezzi staccati e chiazze). Il perimetro è un ovale sulla calotta della testa omerale, un po' più esteso davanti che dietro.
+   1. Supporto: cuffia (sovra e sottospinato), capsula e omero (sul trochite la cuffia è sottile e la borsa poggia anche sull'osso), con chiusura
+      morfologica di raggio `CHIUSURA` (colma gli interstizi) e sfocatura (`LISCIA`): la superficie media è a distanza `MEZZO` da questo campo e ne segue
+      la forma generale, non le piccole irregolarità dei tendini.
+   2. Impronta: campo in cm, positivo dentro. Ovale in coordinate angolari attorno al centro della testa (sfera ai minimi quadrati sulla cartilagine):
+      direzione centrale `DIR`, semiampiezze `OVALE` (anteriore, posteriore, laterale, mediale) in gradi; limitato dalla distanza da scapola e clavicola
+      (almeno `OSSO_MIN`: sotto l'acromion la borsa finisce prima) e dall'omero (`OMERO_MIN`). Sfocato (`SFUMA`), arretrato di `MARGINE`, aperto
+      (`APERTURA`: toglie code e appendici più strette di 2·`APERTURA`) e chiuso (`CHIUSO_IMPRONTA`: colma le incisure), sfocato ancora: il margine è un
+      ovale regolare, senza rientranze a V.
+   3. Superficie media: isosuperficie tagliata esattamente dove l'impronta vale 0 (triangoli tagliati, vertici sull'isolinea), levigata (`LEV_SUP`, Taubin)
+      e poi il margine levigato lungo la curva (`BORDO`). Si tengono i pezzi con almeno `PEZZO` dei triangoli.
+   4. Riduzione (quadriche) della sola parte interna: i vertici del margine e della fascia `RIM` restano fermi, l'interno scende a circa `DENS`
       triangoli per cm² per faccia.
-   4. Sollevamento: dove la cuffia reale sporge sotto la faccia inferiore (distanza < `SPESS` + `GAP`; le punte della mesh BodyParts3D cadono tra i vertici
+   5. Sollevamento: dove la cuffia reale sporge sotto la faccia inferiore (distanza < `SPESS` + `GAP`; le punte della mesh BodyParts3D cadono tra i vertici
       della mesh ridotta, perciò il massimo è preso sui vertici della mesh densa entro `RAGGIO_ALZA`) la superficie si alza lungo la normale, con il
       sollevamento esteso di `ALZA_ANELLI` anelli e mediato: la borsa si appoggia sulla cuffia come un telo.
-   5. Cuscinetto: distanza geodetica dal margine; semispessore `SPESS` all'interno, che scende a zero sul margine con profilo ellittico su una larghezza
-      `RIM` (bordo arrotondato, le due facce si uniscono sugli stessi vertici: mesh chiusa), ridotto dove cuffia e ossa lasciano meno spazio (`GAP`,
+   6. Cuscinetto: distanza geodetica dal margine; semispessore `SPESS` all'interno, che scende a zero sul margine con profilo ellittico su una larghezza
+      `RIM` (bordo arrotondato, le due facce si uniscono sugli stessi vertici: mesh chiusa), ridotto dove supporto e ossa lasciano meno spazio (`GAP`,
       minimo `HMIN`). Facce a ± semispessore lungo la normale del campo sfocato; normali di vertice scritte nel file (`nm`): normale della superficie
-      media sulle facce, pendenza del profilo sul bordo.
+      media sulle facce, pendenza del profilo (direzione verso l'interno levigata) sul bordo.
    Controlli stampati: mesh chiusa (ogni spigolo in due triangoli), volume positivo, ingombro, distanza minima dalla cuffia (ai vertici e in tre punti per
    triangolo), dalle ossa, dalla faccia profonda e dalle strutture soprastanti (deltoide, coracoacromiale, acromioclavicolare); un valore negativo è una
    compenetrazione (tra le strutture soprastanti ce ne sono in tutta la zona dove il deltoide poggia sulla cuffia: lì lo spazio per la borsa non c'è). */
@@ -38,9 +40,12 @@ const G = await import('./lib-modello.mjs');
 const { riduci, compatta, vicini, diffondi, clamp } = await import('./lib-bp3d.mjs');
 const { REAL, setMesh, saveFile, repack, log, griglia, esatta, sdf, unione, valuta, nets, sample } = G;
 
-const MARGINE = 0.04, RAGGIO_ALZA = 0.12, ALZA_ANELLI = 4, APERTURA = 0.2, MEZZO = 0.105, SPESS = 0.045, RIM = 0.12, GAP = 0.02, HMIN = 0.004, LIB = 0.02, PROF = 0.1, PASSO = 0.035, LISCIA = 14, SFUMA = 45, BORDO = 150, PEZZO = 0.03, DENS = 450;   // cm
-const CENTRO = [-0.3, 1.6, 0.0], RAGGI = [2.8, 2.4, 2.6], RMED = 2.6, RX_MED = 1.9;      // cm, assi x (verso mediale), y (su), z (avanti); RX_MED: semiasse x dal lato mediale (sotto l'acromion la borsa finisce prima)
-const CUFFIA = ['supra', 'infra'], OSSA = ['scapola', 'clavicola', 'omero'], PROFONDI = ['omero', 'caps', 'cart_omero'];
+const OMERO_MIN = 0.09, LEV_SUP = 60, CHIUSO_IMPRONTA = 1.1, OSSO_MIN = 0.14, CHIUSURA = 0.15, MARGINE = 0.04, RAGGIO_ALZA = 0.12, ALZA_ANELLI = 4, APERTURA = 0.45, MEZZO = 0.115, SPESS = 0.06, RIM = 0.22, GAP = 0.02, HMIN = 0.004, LIB = 0.02, PROF = 0.1, PASSO = 0.035, LISCIA = 26, SFUMA = 45, BORDO = 150, PEZZO = 0.03, DENS = 450;   // cm
+// impronta ovale sulla calotta della testa: direzione centrale `DIR` dal centro della testa (x verso mediale, y su, z avanti) e semiampiezze angolari in gradi
+// (anteriore, posteriore, laterale, mediale); la borsa si estende un po' più davanti che dietro, come sul sovraspinato e sul solco bicipitale
+const DIR = [-0.51, 0.85, -0.12], OVALE = { ant: 58, post: 47, lat: 38, med: 46 }, RAGGIO_IMPRONTA = 2.4;
+const CUFFIA = ['supra', 'infra'], OSSA = ['scapola', 'clavicola', 'omero'], SOPRA_OSSA = ['scapola', 'clavicola'], PROFONDI = ['omero', 'caps', 'cart_omero'];
+const SUPPORTO = ['supra', 'infra', 'caps', 'omero', 'cart_omero'];   // la borsa poggia su cuffia, capsula e omero (oltre la cuffia, sul trochite)
 const SOPRA = ['delt_cl', 'delt_ac', 'delt_sp', 'cal', 'ac_leg'];
 
 // centro della testa omerale: sfera ai minimi quadrati sui vertici della cartilagine (x² + y² + z² = 2ax + 2by + 2cz + d)
@@ -50,13 +55,14 @@ const cT = (() => { const p = REAL('cart_omero').pos, M = Array.from({ length: 4
     for (let r = 0; r < 4; r++) if (r !== c) { const f = M[r][c] / M[c][c]; for (let k = c; k < 5; k++) M[r][k] -= f * M[c][k]; } }
   return [0, 1, 2].map(j => M[j][4] / M[j][j]); })();
 log('centro testa omerale', cT.map(v => v.toFixed(2)).join(', '));
-const C = cT.map((v, k) => v + CENTRO[k]);
 
-griglia(C.map((v, k) => v - RAGGI[k] - 0.3), C.map((v, k) => v + RAGGI[k] + 0.3), PASSO, 0.1);
+griglia([cT[0] - 3.7, cT[1] - 0.8, cT[2] - 3.7], [cT[0] + 2.3, cT[1] + 4.4, cT[2] + 3.7], PASSO, 0.1);
 log('griglia', G.NX, G.NY, G.NZ);
 const campo = nomi => esatta(sdf(unione(nomi)).F, nomi, 0.12);
-const Fc = campo(CUFFIA), Fb = campo(OSSA), Fp = campo(PROFONDI);
-const Fs = G.sfoca(Fc.slice(), LISCIA);
+const Fc = campo(CUFFIA), Fb = campo(OSSA), Fp = campo(PROFONDI), Fsc = campo(SOPRA_OSSA);
+// supporto: campo esatto per sollevamento e spessore; campo chiuso (chiusura di raggio `CHIUSURA`: colma gli interstizi tra cuffia e capsula) e sfocato per la superficie media
+const Fq = (() => { const { F, Do } = sdf(unione(SUPPORTO)); return { esatto: esatta(F, SUPPORTO, 0.12), Do }; })();
+const Fs = G.sfoca(G.chiuso(Fq.Do, CHIUSURA), LISCIA);
 log('campi pronti');
 
 /* ---- controlli ---- */
@@ -85,16 +91,25 @@ function controlli(m) {
 if (process.env.VERIFICA) { controlli(REAL('borsa_sad')); process.exit(0); }
 
 // impronta: positiva dentro, in cm; sfocata perché il margine sia una curva dolce
+// base dell'ovale: asse centrale, asse antero-posteriore e asse mediolaterale
+const nrmz = v => { const l = Math.hypot(...v); return v.map(x => x / l); };
+const D0 = nrmz(DIR), AP = nrmz([0, 0, 1].map((x, k) => x - D0[2] * D0[k])), ML = [D0[1] * AP[2] - D0[2] * AP[1], D0[2] * AP[0] - D0[0] * AP[2], D0[0] * AP[1] - D0[1] * AP[0]];
+const sinD = g => Math.sin(g * Math.PI / 180);
 let k0 = 0;
-const Mk = valuta(p => { const id = k0++, e = Math.hypot((p[0] - C[0]) / (p[0] > C[0] ? RX_MED : RAGGI[0]), (p[1] - C[1]) / RAGGI[1], (p[2] - C[2]) / RAGGI[2]);
-  return Math.min((1 - e) * RMED, Fb[id] - (GAP + HMIN), Fp[id] - PROF); });
+const Mk = valuta(p => { const id = k0++, v = [0, 1, 2].map(k => p[k] - cT[k]), l = Math.hypot(...v) || 1, u = v.map(x => x / l);
+  const c = u[0] * D0[0] + u[1] * D0[1] + u[2] * D0[2], a = u[0] * AP[0] + u[1] * AP[1] + u[2] * AP[2], b = u[0] * ML[0] + u[1] * ML[1] + u[2] * ML[2];
+  const e = c <= 0 ? 9 : Math.hypot(a / sinD(a >= 0 ? OVALE.ant : OVALE.post), b / sinD(b >= 0 ? OVALE.med : OVALE.lat));
+  return Math.min((1 - e) * RAGGIO_IMPRONTA, Fsc[id] - Math.max(SPESS + GAP, OSSO_MIN), Fb[id] - OMERO_MIN); });
 G.sfoca(Mk, SFUMA);
 // apertura morfologica (erosione e dilatazione di raggio `APERTURA`; il margine arretra di `MARGINE` rispetto alle distanze richieste, perché la sfocatura
 // le sfora ai bordi): toglie code e appendici più strette di 2·APERTURA e arrotonda gli angoli convessi;
 // il campo torna a una distanza con segno dal bordo (saturata a APERTURA all'interno), ancora sfocata per togliere la gradinatura dei voxel
 { const B = new Uint8Array(G.N), R = new Uint8Array(G.N); for (let i = 0; i < G.N; i++) B[i] = Mk[i] > MARGINE ? 1 : 0;
   const E = G.edt(B, true); for (let i = 0; i < G.N; i++) R[i] = E[i] > APERTURA ? 1 : 0;
-  const D = G.edt(R); for (let i = 0; i < G.N; i++) Mk[i] = Math.min(APERTURA - D[i], 1); G.sfoca(Mk, 16); }
+  const D = G.edt(R); for (let i = 0; i < G.N; i++) Mk[i] = Math.min(APERTURA - D[i], 1);
+  // poi chiusura (dilatazione ed erosione di raggio `CHIUSO_IMPRONTA`): colma le rientranze, il margine resta ovale senza incisure
+  const C2 = new Uint8Array(G.N); for (let i = 0; i < G.N; i++) C2[i] = Mk[i] > 0 ? 1 : 0;
+  const F2 = G.chiuso(G.edt(C2), CHIUSO_IMPRONTA); for (let i = 0; i < G.N; i++) Mk[i] = Math.min(-F2[i], 1); G.sfoca(Mk, 16); }
 // superficie media (solo dove l'impronta è vicina a positiva: il ritaglio esatto è sulla mesh)
 k0 = 0;
 const V = valuta(() => { const id = k0++; return Mk[id] > -0.3 ? Fs[id] - MEZZO : 1; });
@@ -130,6 +145,8 @@ const bordoDi = () => { const nv = pos.length / 3, ec = new Map(), bn = new Map(
   for (const [key, n] of ec) if (n === 1) { const a = Math.floor(key / nv), b = key % nv; (bn.get(a) || bn.set(a, []).get(a)).push(b); (bn.get(b) || bn.set(b, []).get(b)).push(a); }
   return bn; };
 let bn = bordoDi();
+// levigatura della superficie intera (Taubin, non restringe): il telo segue la forma generale della testa, senza creste e lobi sulle sporgenze ossee
+pos = Float64Array.from(G.taubin(Float32Array.from(pos), idx, LEV_SUP));
 log('margine: vertici', bn.size, 'ramificazioni', [...bn.values()].filter(l => l.length !== 2).length);
 for (let it = 0; it < BORDO; it++) { const lam = it % 2 ? -0.53 : 0.5, q = pos.slice();
   for (const [v, L] of bn) { for (let k = 0; k < 3; k++) { let s = 0; for (const w of L) s += pos[3 * w + k]; q[3 * v + k] += lam * (s / L.length - pos[3 * v + k]); } }
@@ -171,7 +188,7 @@ const nb = vicini(nv, idx), sm = (f, n) => diffondi(f, nb, n);
 // di `ALZA_ANELLI` anelli e mediato con meno passate: la borsa resta ovunque sopra quello richiesto e si appoggia sulla cuffia come un telo
 { const cella = RAGGIO_ALZA, key = (x, y, z) => Math.floor(x / cella) + ',' + Math.floor(y / cella) + ',' + Math.floor(z / cella), celle = new Map();
   for (let i = 0; i < posD.length / 3; i++) { const k = key(posD[3 * i], posD[3 * i + 1], posD[3 * i + 2]); (celle.get(k) || celle.set(k, []).get(k)).push(i); }
-  const defD = new Float64Array(posD.length / 3); for (let i = 0; i < defD.length; i++) defD[i] = clamp(SPESS + GAP - sample(Fc, posD[3 * i], posD[3 * i + 1], posD[3 * i + 2]), 0, 0.1);
+  const defD = new Float64Array(posD.length / 3); for (let i = 0; i < defD.length; i++) defD[i] = clamp(SPESS + GAP - sample(Fq.esatto, posD[3 * i], posD[3 * i + 1], posD[3 * i + 2]), 0, 0.1);
   let a = new Float64Array(nv);
   for (let i = 0; i < nv; i++) { const x = pos[3 * i], y = pos[3 * i + 1], z = pos[3 * i + 2];
     for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) for (const j of celle.get(key(x + dx * cella, y + dy * cella, z + dz * cella)) || [])
@@ -180,7 +197,7 @@ const nb = vicini(nv, idx), sm = (f, n) => diffondi(f, nb, n);
   a = sm(a, ALZA_ANELLI - 1); for (let i = 0; i < nv; i++) for (let k = 0; k < 3; k++) pos[3 * i + k] += nor[3 * i + k] * a[i]; }
 // semispessore: profilo del bordo, ridotto dove tra cuffia e strutture soprastanti manca lo spazio (distanza ≥ GAP da entrambe)
 const lim = new Float64Array(nv), h = new Float64Array(nv);
-for (let i = 0; i < nv; i++) { const p = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]]; lim[i] = Math.min(sample(Fc, ...p), sample(Fb, ...p)) - GAP; h[i] = semi(dist2[i]); }
+for (let i = 0; i < nv; i++) { const p = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]]; lim[i] = Math.min(sample(Fq.esatto, ...p), sample(Fsc, ...p)) - GAP; h[i] = semi(dist2[i]); }
 { const hs = sm(h, 2); for (let i = 0; i < nv; i++) h[i] = dist2[i] < 1e-9 ? 0 : Math.max(HMIN, Math.min(hs[i], lim[i], semi(dist2[i]))); }
 const basso = new Int32Array(nv), P = [], I = [];
 for (let i = 0; i < nv; i++) for (let k = 0; k < 3; k++) P.push(pos[3 * i + k] + nor[3 * i + k] * h[i]);
@@ -189,10 +206,14 @@ for (let t = 0; t < idx.length; t += 3) { const a = idx[t], b = idx[t + 1], c = 
 // normali di vertice scritte nel file: facce con la normale della superficie media, bordo con la pendenza del profilo ellittico (la pagina non le ricalcola:
 // i triangoli ridotti, irregolari, darebbero luccichii a rete sulla superficie)
 const nrm = new Int8Array(P.length);
+// direzione verso l'interno (gradiente della distanza dal margine), levigata sui vicini: i triangoli sottili lungo il margine darebbero normali a dente di sega
+const UD = [0, 1, 2].map(() => new Float64Array(nv));
+for (let i = 0; i < nv; i++) { for (const j of nb[i]) { const dx = [0, 1, 2].map(k => pos[3 * j + k] - pos[3 * i + k]), l2 = dx[0] ** 2 + dx[1] ** 2 + dx[2] ** 2 || 1; for (let k = 0; k < 3; k++) UD[k][i] += (dist2[j] - dist2[i]) * dx[k] / l2; }
+  const l = Math.hypot(UD[0][i], UD[1][i], UD[2][i]) || 1; for (let k = 0; k < 3; k++) UD[k][i] /= l; }
+const US = UD.map(c => diffondi(c, nb, 8));
 for (let i = 0; i < nv; i++) {
-  let u = [0, 0, 0]; for (const j of nb[i]) { const dx = [0, 1, 2].map(k => pos[3 * j + k] - pos[3 * i + k]), l2 = dx[0] ** 2 + dx[1] ** 2 + dx[2] ** 2 || 1; for (let k = 0; k < 3; k++) u[k] += (dist2[j] - dist2[i]) * dx[k] / l2; }
-  const un = [0, 1, 2].map(k => nor[3 * i + k]), pr = u[0] * un[0] + u[1] * un[1] + u[2] * un[2]; u = u.map((v, k) => v - pr * un[k]); const lu = Math.hypot(...u) || 1; u = u.map(v => v / lu);
-  const s = Math.min(1, dist2[i] / RIM), hp = s < 1 ? Math.min(6, SPESS * (1 - s) / (RIM * Math.sqrt(Math.max(1e-6, 1 - (1 - s) * (1 - s))))) : 0;
+  const un = [0, 1, 2].map(k => nor[3 * i + k]); let u = [US[0][i], US[1][i], US[2][i]]; const pr = u[0] * un[0] + u[1] * un[1] + u[2] * un[2]; u = u.map((v, k) => v - pr * un[k]); const lu = Math.hypot(...u) || 1; u = u.map(v => v / lu);
+  const s = Math.min(1, dist2[i] / RIM), hp = s < 1 ? Math.min(3, SPESS * (1 - s) / (RIM * Math.sqrt(Math.max(1e-6, 1 - (1 - s) * (1 - s))))) : 0;
   const put = (id, n) => { const l = Math.hypot(...n) || 1; for (let k = 0; k < 3; k++) nrm[3 * id + k] = Math.round(127 * n[k] / l); };
   if (h[i] === 0) put(i, u.map(v => -v)); else { put(i, [0, 1, 2].map(k => un[k] - hp * u[k])); put(basso[i], [0, 1, 2].map(k => -un[k] - hp * u[k])); } }
 const m = { pos: Float32Array.from(P), idx: Uint32Array.from(I), tag: null, fdir: null, nrm };
