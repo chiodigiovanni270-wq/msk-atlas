@@ -6,6 +6,8 @@
      node strumenti/vasi-nervi-spalla.mjs                  → riscrive le mesh nel file del modello
      node strumenti/vasi-nervi-spalla.mjs --prova=f.json   → non tocca il modello: scrive i controlli in un JSON
      MODELLO=/tmp/copia.html node strumenti/vasi-nervi-spalla.mjs   → lavora su una copia
+     SOLO_NERVI=1 node strumenti/vasi-nervi-spalla.mjs   → riscrive solo vasi e nervi e lascia i muscoli del file (per una correzione di un nervo che
+                                                           non tocca i muscoli: non serve rilanciare la coda della catena; verificare le compenetrazioni)
    Va lanciato dopo `legamenti-spalla.mjs` (ossa, cartilagini, labbro, capsula e legamenti incorporati sono ostacoli) e prima di `muscoli-spalla.mjs`.
    Riparte dalla revisione git `PARTENZA` (bozza BodyParts3D) per le guide della succlavia e per i muscoli, che riporta come erano prima dei canali:
    si può rilanciare con lo stesso risultato, poi va rilanciato `muscoli-spalla.mjs`.
@@ -133,7 +135,7 @@ const aParete = (p, r) => { const w = parete(p); return !isNaN(w) && p[0] > w - 
 log('parete toracica');
 
 /* ---- rilassamento di un percorso ----
-   o: { r(k) raggio, fissi(k) bool, molle(u) peso dei muscoli (0–1), altri: [{P, r}] tubi da cui stare lontani, Rmin, ancora, margine (cm, oltre il raggio, dagli ostacoli rigidi), durezza (frazione della spinta), solo_costoclavicolare (margine e durezza ridotti solo per x ≥ 8,4; pieni da x ≤ 7,6), perno(k) richiamo locale alla guida (0–1, attorno ai punti di passaggio obbligati) } */
+   o: { r(k) raggio, fissi(k) bool, molle(u) peso dei muscoli (0–1), altri: [{P, r}] tubi da cui stare lontani, Rmin, ancora, margine (cm, oltre il raggio, dagli ostacoli rigidi), durezza (frazione della spinta), solo_costoclavicolare (margine e durezza ridotti solo per x ≥ 8,4; pieni da x ≤ 7,6), perno(k) richiamo locale alla guida (0–1, attorno ai punti di passaggio obbligati), FD campo dei muscoli che per questo tratto sono ostacoli rigidi } */
 function rilassa(P, o) {
   P = P.map(p => p.slice()); const mg = o.margine ?? 0.03, duro = o.durezza ?? 1, n = P.length, P0 = P.map(p => p.slice()), fisso = k => o.fissi(k);
   const altri = (o.altri || []).map(a => ({ P: a.P.filter((_, i) => i % 2 === 0), r: a.r.filter((_, i) => i % 2 === 0) }));
@@ -146,12 +148,13 @@ function rilassa(P, o) {
       const lat = o.solo_costoclavicolare ? ss((8.4 - P[k][0]) / 0.8) : 0, d = sample(FH, ...P[k]), m = rr + lerp(mg, 0.03, lat); if (d < m) P[k] = add(P[k], nor(grad(FH, P[k])), (m - d) * lerp(duro, 1, lat));
       else P[k] = add(P[k], sub(P0[k], P[k]), Math.max(ancora, o.perno ? o.perno(k) : 0));
       P[k] = aParete(P[k], rr);
+      if (o.FD) { const d2 = sample(o.FD, ...P[k]), m2 = rr + 0.05; if (d2 < m2) P[k] = add(P[k], nor(grad(o.FD, P[k])), m2 - d2); }   // muscoli trattati come ostacoli rigidi per questo tratto
     }
     P = P.map((p, k) => fisso(k) || k === 0 || k === n - 1 ? p : mul(add(add(P[k - 1], P[k + 1]), p, w), 1 / (2 + w)));
   };
   for (let it = 0; it < 220; it++) passa(2, o.ancora ?? 0.004, 1);
   for (let giro = 0; giro < (o.giri ?? 25) && curvaturaMin(P, 6) < (o.Rmin || 1.5); giro++) for (let it = 0; it < 80; it++) passa(0.4, 0.0005, 0);   // levigatura forte: solo ostacoli rigidi e altri tubi (i muscoli si scavano dopo)
-  if (duro === 1) for (let it = 0; it < 6; it++) for (let k = 0; k < n; k++) { if (fisso(k)) continue; const d = sample(FH, ...P[k]), m = o.r[k] + mg; if (d < m) P[k] = add(P[k], nor(grad(FH, P[k])), m - d); P[k] = aParete(P[k], o.r[k]); }   // proiezione finale sugli ostacoli rigidi
+  if (duro === 1) for (let it = 0; it < 6; it++) for (let k = 0; k < n; k++) { if (fisso(k)) continue; const d = sample(FH, ...P[k]), m = o.r[k] + mg; if (d < m) P[k] = add(P[k], nor(grad(FH, P[k])), m - d); P[k] = aParete(P[k], o.r[k]); if (o.FD) { const d2 = sample(o.FD, ...P[k]), m2 = o.r[k] + 0.05; if (d2 < m2) P[k] = add(P[k], nor(grad(o.FD, P[k])), m2 - d2); } }   // proiezione finale sugli ostacoli rigidi
   return P;
 }
 const misura = (P, r, da = 0) => { let dH = 1e9, dM = 1e9, kH = 0; for (let k = da; k < P.length; k++) { const d = sample(FH, ...P[k]) - r[k]; if (d < dH) { dH = d; kH = k; } dM = Math.min(dM, sample(FM, ...P[k]) - r[k]); }
@@ -231,7 +234,9 @@ const TRATTI = [
   { id: 'n_mediano', m: 'n_mediano', r: [0.18, 0.17], ini: 0.15, guide: [M0, ...[2.5, 5, 7.5].map(d => rel(sM + d, { ant: 1, lat: 0.2 }, 0.17)), rel(A.L[A.L.length - 1] - 0.3, { ant: 1, lat: 0.05 }, 0.17)], fine: 'taglio' },
   { id: 'n_ulnare', m: 'n_ulnare', r: [0.16, 0.15], da: { tratto: 'fascio_med' }, guide: [...[1.5, 4, 7].map(d => rel(sCF + d, { med: 0.75, post: 0.75 }, 0.15)), rel(A.L[A.L.length - 1] - 0.3, { med: 0.55, post: 0.95 }, 0.15)], fine: 'taglio' },
   { id: 'n_radiale', m: 'n_radiale', r: [0.18, 0.16], da: { tratto: 'fascio_post' }, guide: [rel(sCF + 2.0, { post: 1, med: 0.2 }, 0.18), [0.9, -6.9, -0.6], [-0.4, -8.8, -1.45], [-1.8, -11.2, -1.95], [-3.0, TAGLIO, -2.0]], molle: u => u < 0.5 ? 1 : 0, fine: 'taglio' },
-  { id: 'n_ascellare', m: 'n_ascellare', r: [0.14, 0.11], da: { tratto: 'fascio_post' }, guide: [[1.4, -3.0, -0.4], [0.5, -3.4, -1.15], [-1.2, -3.75, -1.55], [-2.9, -3.6, -0.95], [-3.35, -3.45, 0.0]], molle: u => u < 0.35 ? 1 : 0 },
+  // ascellare: spazio quadrangolare (sotto il piccolo rotondo, sopra il grande rotondo, lateralmente al capo lungo del tricipite), poi attorno al collo
+  // chirurgico sotto il deltoide, sopra e dietro l'origine del capo laterale del tricipite: questi muscoli sono ostacoli rigidi per il nervo
+  { id: 'n_ascellare', m: 'n_ascellare', r: [0.14, 0.11], da: { tratto: 'fascio_post' }, guide: [[1.4, -3.0, -0.4], [0.4, -3.1, -1.2], [-1.2, -2.75, -1.9], [-2.8, -2.8, -1.5], [-3.4, -3.0, -0.2]], molle: u => u < 0.35 ? 1 : 0, duri: ['tri_lat', 'tri_lungo', 'tmaj', 'tmin'] },
 ];
 const T = Object.fromEntries(TRATTI.map(t => [t.id, t]));
 // un tratto che confluisce in un altro ne attraversa l'inizio e finisce 6 mm più avanti, lungo il suo asse (gli ultimi 8 mm restano fissi su quell'asse):
@@ -251,10 +256,12 @@ for (const id of ORDINE) {
   const perno = new Map(); for (const q of t.perni ? t.perni() : []) { let b = 0; P.forEach((x, k) => { if (len(sub(x, q)) < len(sub(P[b], q))) b = k; }); for (let d = -10; d <= 10; d++) perno.set(b + d, Math.max(perno.get(b + d) || 0, 0.3 * (1 - Math.abs(d) / 11))); log(id, 'perno', q.map(x => x.toFixed(2)).join(','), 'distanza dagli ostacoli rigidi', (sample(FH, ...q) * 10).toFixed(1), 'mm'); }
   const n = P.length, r = P.map((_, k) => lerp(t.r[0], t.r[1], k / (n - 1)) * (t.ini ? lerp(t.ini / t.r[0], 1, ss(k / 15)) : 1));   // `ini`: un tratto formato dall'unione di altri più sottili parte dal loro calibro e si allarga in 1,5 cm (niente estremità più grossa dei rami che vi entrano)
   const altri = [A, Vn, ...fatti.filter(f => !parenti({ P }, f))];
-  P = rilassa(P, { r, perno: k => perno.get(k) || 0, fissi: k => (k < nPre && !id.startsWith('fascio')) || (fissaFine && k > n - 9) || (id.startsWith('C') || id === 'T1' ? k < 3 : false), molle: t.molle, altri, Rmin: t.Rmin ?? (id.startsWith('n_') || id.startsWith('rad') ? RMIN_N : RMIN_P), ancora: t.ancora, giri: 80 });
+  const FD = t.duri ? campo(t.duri) : null;
+  P = rilassa(P, { FD, r, perno: k => perno.get(k) || 0, fissi: k => (k < nPre && !id.startsWith('fascio')) || (fissaFine && k > n - 9) || (id.startsWith('C') || id === 'T1' ? k < 3 : false), molle: t.molle, altri, Rmin: t.Rmin ?? (id.startsWith('n_') || id.startsWith('rad') ? RMIN_N : RMIN_P), ancora: t.ancora, giri: 80 });
   if (t.fine === 'taglio') { P[n - 1][1] = TAGLIO; P.push(add(P[n - 1], tangente(P, n - 1), 0.3)); r.push(r[n - 1]); }   // prosegue oltre il ritaglio: il taglio della superficie è netto
   t.P = P; t.rr = r; fatti.push({ P, r, id });
   CHECK[id] = { ...misura(P.slice(0, n), r, nPre + 6), lunghezza_cm: +lunghezze(P)[n - 1].toFixed(1) };
+  if (FD) CHECK[id].distanza_min_muscoli_rigidi_mm = +(Math.min(...P.slice(nPre + 6, n).map((q, k) => sample(FD, ...q) - r[k + nPre + 6])) * 10).toFixed(2);
   if (id === 'n_soprascapolare') CHECK[id].distanza_dal_fondo_incisura_cm = +Math.min(...P.map(q => len(sub(q, notch)))).toFixed(2);
   log(id, JSON.stringify(CHECK[id]));
 }
@@ -360,4 +367,6 @@ for (const nome of MUSCOLI) {
 log('canali nei muscoli: vertici spostati', JSON.stringify(dentro));
 
 const prova = (process.argv.find(a => a.startsWith('--prova=')) || '').split('=')[1];
+// SOLO_NERVI=1: i muscoli restano quelli del file (niente canali nuovi), si riscrivono solo vasi e nervi
+if (process.env.SOLO_NERVI) for (const nome of MUSCOLI) G.ripristina(nome);
 if (prova) writeFileSync(prova, JSON.stringify({ controlli: CHECK, canali: dentro }, null, 1)); else saveFile(repack());
