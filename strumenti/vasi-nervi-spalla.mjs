@@ -84,7 +84,13 @@ const asseBP = (nome, x0, x1) => { const p = daRevisione(PARTENZA, nome), out = 
     if (s.length >= 6) out.push([x, s.reduce((a, q) => a + q[0], 0) / s.length, s.reduce((a, q) => a + q[1], 0) / s.length]); }
   return out.map((q, i) => i === 0 || i === out.length - 1 ? q : [q[0], (out[i - 1][1] + 2 * q[1] + out[i + 1][1]) / 4, (out[i - 1][2] + 2 * q[2] + out[i + 1][2]) / 4]); };
 const sc = V('scapola');
-const notch = (() => { let best = null; for (let x = 3.4; x <= 6.2; x += 0.2) { const s = sc.filter(p => Math.abs(p[0] - x) < 0.15 && p[2] > -0.5 && p[2] < 3.0 && p[1] > 1.2); if (!s.length) continue; const t = s.reduce((b, p) => p[1] > b[1] ? p : b); if (!best || t[1] < best[1]) best = t; } return best; })();
+// incisura soprascapolare: punto più basso del margine superiore della scapola tra la base del coracoide e l'angolo superiore
+// (cima dell'osso in strisce perpendicolari al margine, nel piano x–z)
+const notch = (() => { const A = [4.6, -1.0], B = [8.0, -4.2], L = Math.hypot(B[0] - A[0], B[1] - A[1]), t = [(B[0] - A[0]) / L, (B[1] - A[1]) / L]; let best = null;
+  for (let s = 0.6; s <= L - 0.6; s += 0.1) { const c = [A[0] + t[0] * s, A[1] + t[1] * s]; let top = null;
+    for (const p of sc) { const v = [p[0] - c[0], p[2] - c[1]]; if (Math.abs(v[0] * t[0] + v[1] * t[1]) < 0.08 && Math.abs(-v[0] * t[1] + v[1] * t[0]) < 1.2 && (!top || p[1] > top[1])) top = p; }
+    if (top && (!best || top[1] < best[1])) best = top; }
+  return best; })();
 log('incisura soprascapolare', notch.map(x => x.toFixed(2)).join(','));
 const c1 = V('costa1'), X_COSTA = Math.min(...c1.map(p => p[0]));                    // margine laterale della prima costa: succlavia → ascellare
 log('margine laterale della prima costa: x =', X_COSTA.toFixed(2));
@@ -108,8 +114,26 @@ const campo = nomi => esatta(sfoca(sdf(unione(nomi)).F, 1), nomi, 0.1);
 const FH = campo([...OSSA, ...FISSI]); log('campo degli ostacoli rigidi');
 const FM = campo(MUSCOLI); log('campo dei muscoli');
 
+/* ---- parete toracica: i vasi e il plesso sotto la clavicola restano lateralmente alle coste 2–5 e agli spazi intercostali (con il dentato anteriore) ----
+   per ogni colonna (y, z) a passo PW: x della faccia laterale delle coste, interpolata tra una costa e l'altra; sopra la seconda costa prosegue per 1,5 cm
+   salendo medialmente (pendenza 1). Vale solo lateralmente al margine della prima costa (x < 9,3): sopra la prima costa radici e tronchi sono liberi. */
+const PW = 0.1, PY0 = RIQ.lo[1], PZ0 = RIQ.lo[2], PNY = Math.round((RIQ.hi[1] - PY0) / PW) + 1, PNZ = Math.round((RIQ.hi[2] - PZ0) / PW) + 1, SERR = 0.2;
+const PARETE = (() => { const W = new Float32Array(PNY * PNZ).fill(NaN);
+  for (const c of ['costa2', 'costa3', 'costa4', 'costa5']) { const m = REAL(c).pos; for (let i = 0; i < m.length; i += 3) { const j = Math.round((m[i + 1] - PY0) / PW), k = Math.round((m[i + 2] - PZ0) / PW);
+    if (j >= 0 && j < PNY && k >= 0 && k < PNZ && !(W[j * PNZ + k] <= m[i])) W[j * PNZ + k] = m[i]; } }
+  const out = W.slice();
+  for (let k = 0; k < PNZ; k++) { const occ = []; for (let j = 0; j < PNY; j++) if (!isNaN(W[j * PNZ + k])) occ.push(j); if (!occ.length) continue;
+    for (let q = 0; q < occ.length - 1; q++) { const j0 = occ[q], j1 = occ[q + 1]; if (j1 - j0 < 2 || (j1 - j0) * PW > 3) continue;
+      for (let j = j0 + 1; j < j1; j++) out[j * PNZ + k] = lerp(W[j0 * PNZ + k], W[j1 * PNZ + k], (j - j0) / (j1 - j0)); }
+    const jt = occ[occ.length - 1]; for (let j = jt + 1; j < PNY && (j - jt) * PW <= 1.5; j++) out[j * PNZ + k] = W[jt * PNZ + k] + (j - jt) * PW; }
+  const sm = out.slice(); for (let j = 1; j < PNY - 1; j++) for (let k = 1; k < PNZ - 1; k++) { let a = 0, n = 0; for (let dj = -1; dj <= 1; dj++) for (let dk = -1; dk <= 1; dk++) { const v = out[(j + dj) * PNZ + k + dk]; if (!isNaN(v)) { a += v; n++; } } if (n >= 5 && !isNaN(out[j * PNZ + k])) sm[j * PNZ + k] = a / n; }
+  return sm; })();
+const parete = p => { if (p[0] > 9.3) return NaN; const j = Math.round((p[1] - PY0) / PW), k = Math.round((p[2] - PZ0) / PW); return j >= 0 && j < PNY && k >= 0 && k < PNZ ? PARETE[j * PNZ + k] : NaN; };
+const aParete = (p, r) => { const w = parete(p); return !isNaN(w) && p[0] > w - r - SERR ? [w - r - SERR, p[1], p[2]] : p; };
+log('parete toracica');
+
 /* ---- rilassamento di un percorso ----
-   o: { r(k) raggio, fissi(k) bool, molle(u) peso dei muscoli (0–1), altri: [{P, r}] tubi da cui stare lontani, Rmin, ancora, margine (cm, oltre il raggio, dagli ostacoli rigidi), durezza (frazione della spinta) } */
+   o: { r(k) raggio, fissi(k) bool, molle(u) peso dei muscoli (0–1), altri: [{P, r}] tubi da cui stare lontani, Rmin, ancora, margine (cm, oltre il raggio, dagli ostacoli rigidi), durezza (frazione della spinta), solo_costoclavicolare (margine e durezza ridotti solo per x ≥ 8,4; pieni da x ≤ 7,6), perno(k) richiamo locale alla guida (0–1, attorno ai punti di passaggio obbligati) } */
 function rilassa(P, o) {
   P = P.map(p => p.slice()); const mg = o.margine ?? 0.03, duro = o.durezza ?? 1, n = P.length, P0 = P.map(p => p.slice()), fisso = k => o.fissi(k);
   const altri = (o.altri || []).map(a => ({ P: a.P.filter((_, i) => i % 2 === 0), r: a.r.filter((_, i) => i % 2 === 0) }));
@@ -119,18 +143,20 @@ function rilassa(P, o) {
         if (bi >= 0) { const m = rr + a.r[bi] + 0.04; if (bd < m) P[k] = add(P[k], nor(sub(P[k], a.P[bi])), (m - bd) * 0.7); } }
       const wm = molle * (o.molle ? o.molle(u) : 1);
       if (wm > 0) { const dm = sample(FM, ...P[k]); if (dm < rr + 0.02) P[k] = add(P[k], nor(grad(FM, P[k])), (rr + 0.02 - dm) * 0.15 * wm); }
-      const d = sample(FH, ...P[k]), m = rr + mg; if (d < m) P[k] = add(P[k], nor(grad(FH, P[k])), (m - d) * duro);
-      else P[k] = add(P[k], sub(P0[k], P[k]), ancora);
+      const lat = o.solo_costoclavicolare ? ss((8.4 - P[k][0]) / 0.8) : 0, d = sample(FH, ...P[k]), m = rr + lerp(mg, 0.03, lat); if (d < m) P[k] = add(P[k], nor(grad(FH, P[k])), (m - d) * lerp(duro, 1, lat));
+      else P[k] = add(P[k], sub(P0[k], P[k]), Math.max(ancora, o.perno ? o.perno(k) : 0));
+      P[k] = aParete(P[k], rr);
     }
     P = P.map((p, k) => fisso(k) || k === 0 || k === n - 1 ? p : mul(add(add(P[k - 1], P[k + 1]), p, w), 1 / (2 + w)));
   };
   for (let it = 0; it < 220; it++) passa(2, o.ancora ?? 0.004, 1);
   for (let giro = 0; giro < (o.giri ?? 25) && curvaturaMin(P, 6) < (o.Rmin || 1.5); giro++) for (let it = 0; it < 80; it++) passa(0.4, 0.0005, 0);   // levigatura forte: solo ostacoli rigidi e altri tubi (i muscoli si scavano dopo)
-  if (duro === 1) for (let it = 0; it < 6; it++) for (let k = 0; k < n; k++) { if (fisso(k)) continue; const d = sample(FH, ...P[k]), m = o.r[k] + mg; if (d < m) P[k] = add(P[k], nor(grad(FH, P[k])), m - d); }   // proiezione finale sugli ostacoli rigidi
+  if (duro === 1) for (let it = 0; it < 6; it++) for (let k = 0; k < n; k++) { if (fisso(k)) continue; const d = sample(FH, ...P[k]), m = o.r[k] + mg; if (d < m) P[k] = add(P[k], nor(grad(FH, P[k])), m - d); P[k] = aParete(P[k], o.r[k]); }   // proiezione finale sugli ostacoli rigidi
   return P;
 }
 const misura = (P, r, da = 0) => { let dH = 1e9, dM = 1e9, kH = 0; for (let k = da; k < P.length; k++) { const d = sample(FH, ...P[k]) - r[k]; if (d < dH) { dH = d; kH = k; } dM = Math.min(dM, sample(FM, ...P[k]) - r[k]); }
-  return { distanza_min_ostacoli_rigidi_mm: +(dH * 10).toFixed(2), dove: P[kH].map(x => +x.toFixed(1)), profondita_max_nei_muscoli_mm: +(Math.max(0, -dM) * 10).toFixed(2), raggio_curvatura_min_cm: +curvaturaMin(P, da + 3).toFixed(2), curva_dove: (() => { const c = curvature(P).filter(([, k]) => k >= da + 3); if (!c.length) return null; const m = c.reduce((a, b) => b[0] < a[0] ? b : a); return P[m[1]].map(x => +x.toFixed(1)); })() }; };
+  let dP = 1e9; for (let k = da; k < P.length; k++) { const w = parete(P[k]); if (!isNaN(w)) dP = Math.min(dP, w - P[k][0] - r[k]); }
+  return { distanza_min_ostacoli_rigidi_mm: +(dH * 10).toFixed(2), distanza_parete_toracica_mm: dP < 1e8 ? +(dP * 10).toFixed(2) : null, dove: P[kH].map(x => +x.toFixed(1)), profondita_max_nei_muscoli_mm: +(Math.max(0, -dM) * 10).toFixed(2), raggio_curvatura_min_cm: +curvaturaMin(P, da + 3).toFixed(2), curva_dove: (() => { const c = curvature(P).filter(([, k]) => k >= da + 3); if (!c.length) return null; const m = c.reduce((a, b) => b[0] < a[0] ? b : a); return P[m[1]].map(x => +x.toFixed(1)); })() }; };
 const CHECK = {};
 
 /* ---- 1. arteria e vena: succlavia → ascellare → brachiale ---- */
@@ -144,7 +170,7 @@ function vaso(guida, cal, altri) {
   let P = ricampiona(catmull(guida), 0.1); let L = lunghezze(P);
   const anc = (P, L) => [[0, cal[0]], [sX(P, L, X_COSTA), cal[1]], [sVicino(P, L, AX), cal[2]], [sY(P, L, -7.6), cal[3]], [L[L.length - 1], cal[4]]];
   let r = profilo(L, anc(P, L)); const n = P.length;
-  P = rilassa(P, { r, fissi: k => k < 4, molle: u => 1, altri, Rmin: 3.0, margine: -0.12, durezza: 0.12 });   // tra clavicola e prima costa lo spazio è più stretto dei due vasi BodyParts3D: si accetta 1–2 mm di appoggio nei solchi ossei, non un gomito P[n - 1][1] = TAGLIO;
+  P = rilassa(P, { r, fissi: k => k < 4, molle: u => 1, altri, Rmin: 3.0, margine: -0.12, durezza: 0.12, solo_costoclavicolare: true });   // tra clavicola e prima costa lo spazio è più stretto dei due vasi BodyParts3D: si accetta 1–2 mm di appoggio nei solchi ossei, non un gomito; lateralmente (da x 8,4 a x 7,6, con raccordo: seconda costa, coracoide, omero) gli ostacoli rigidi valgono per intero P[n - 1][1] = TAGLIO;
   P = ricampiona(P, 0.1); L = lunghezze(P); r = profilo(L, anc(P, L));
   return { P, r, L, sCosta: sX(P, L, X_COSTA), sPM: sVicino(P, L, AX), sTM: sY(P, L, -7.6) };
 }
@@ -166,8 +192,8 @@ const rel = (s, off, rn) => { const f = art(s), o = f.r + rn + 0.14; return add(
    tratti di cui ha bisogno sono pronti), `da` = tratto madre (e punto `u` lungo di esso; senza `u` l'estremo): il tratto ne prosegue la tangente per 6 mm;
    `fine: 'taglio'` = arriva al ritaglio. Tronchi, radici, divisioni e radici del mediano finiscono dentro il tratto in cui confluiscono (`entra`, `div`). */
 const sC0 = sX(A.P, A.L, 7.0), sCF = A.sPM + 2.4;             // fasci: da sotto la clavicola a oltre il margine inferiore del piccolo pettorale
-const fascio = (off, rn) => { const out = []; for (let s = sC0; s <= sCF + 1e-6; s += (sCF - sC0) / 6) out.push(rel(s, off, rn)); return out; };
-const FL = fascio({ lat: 0.85, ant: 0.5 }, 0.2), FP = fascio({ post: 1 }, 0.22), FMd = fascio({ med: 0.9, post: 0.35 }, 0.19);
+const fascio = (off, rn, s0 = sC0) => { const out = []; for (let s = s0; s <= sCF + 1e-6; s += (sCF - s0) / 6) out.push(rel(s, off, rn)); return out; };
+const FL = fascio({ lat: 0.85, ant: 0.5 }, 0.2), FP = fascio({ post: 1 }, 0.22), FMd = fascio({ med: 0.4, post: 0.95 }, 0.19, sC0 + 0.9);
 // origine del tronco superiore (C5 + C6), medio (C7), inferiore (C8 + T1): sopra la prima costa, dietro e sopra la succlavia
 const UT0 = [12.4, 7.0, 1.5], MT0 = [12.9, 6.2, 1.25], LT0 = [12.6, 5.5, 1.2];
 const UTs = [9.4, 4.6, 2.5], MTs = [9.5, 4.1, 2.3], LTs = [9.6, 3.7, 2.1];   // fine dei tronchi (divisioni anteriore e posteriore), dietro la clavicola
@@ -194,9 +220,11 @@ const TRATTI = [
   { id: 'div_post_sup', m: 'plesso', r: [0.15, 0.15], guide: () => div('tronco_sup', 'fascio_post', [0, 0, 0]) },
   { id: 'div_post_med', m: 'plesso', r: [0.13, 0.13], guide: () => div('tronco_med', 'fascio_post', [0, 0, 0]) },
   { id: 'div_post_inf', m: 'plesso', r: [0.11, 0.11], guide: () => div('tronco_inf', 'fascio_post', [0, 0, 0]) },
-  { id: 'div_ant_inf', m: 'plesso', r: [0.19, 0.19], guide: () => div('tronco_inf', 'fascio_med', [0, 0, 0]) },
+  { id: 'div_ant_inf', m: 'plesso', r: [0.19, 0.19], guide: () => div('tronco_inf', 'fascio_med', [-0.2, -0.2, 0.45], 0) },
   // nervi
-  { id: 'n_soprascapolare', m: 'n_soprascapolare', r: [0.11, 0.08], da: { tratto: 'tronco_sup', u: 0.55 }, guide: [[8.4, 5.0, 1.0], [6.4, 4.0, 0.9], add(notch, [0, 0.3, 0]), [3.9, 3.0, -0.5], [2.6, 2.0, -1.6], [2.1, 0.6, -2.5], [2.5, -0.8, -3.2]], molle: u => u < 0.3 ? 1 : 0 },
+  // soprascapolare: dal tronco superiore lateralmente e indietro, sopra il plesso e dietro la clavicola, nell'incisura (sotto il legamento trasverso superiore),
+  // sul pavimento della fossa sopraspinata sotto il sovraspinato, attorno al margine laterale della spina (incisura spinoglenoidea), nella fossa sottospinata
+  { id: 'n_soprascapolare', m: 'n_soprascapolare', r: [0.11, 0.08], da: { tratto: 'tronco_sup', u: 0.55 }, guide: [[8.9, 4.5, 0.6], [7.0, 2.6, -1.0], add(notch, [0.05, 0.3, -0.1]), [4.3, 0.8, -3.0], [3.5, 0.8, -3.0], [2.6, 0.55, -2.8], [2.1, -0.3, -2.65], [2.3, -1.3, -2.7], [3.0, -2.1, -2.95], [4.1, -2.7, -3.5]], molle: u => u < 0.25 ? 1 : 0, Rmin: 1.0, ancora: 0.03, perni: () => [add(notch, [0.05, 0.3, -0.1]), [2.1, -0.3, -2.65]] },   // segue l'osso: richiamo alla guida più forte; passa per l'incisura e l'incisura spinoglenoidea (punti fissi)
   { id: 'n_muscolocutaneo', m: 'n_muscolocutaneo', r: [0.12, 0.1], da: { tratto: 'fascio_lat' }, guide: [[2.2, -3.3, 2.0], [1.2, -5.2, 1.0], [-0.4, -8.0, 0.55], [-1.4, -11.0, 0.3], [-2.0, TAGLIO, 0.05]], molle: u => u > 0.12 && u < 0.45 ? 0 : 1 },
   { id: 'rad_lat_mediano', m: 'n_mediano', r: [0.15, 0.15], da: { tratto: 'fascio_lat' }, guide: () => entra([], 'n_mediano') },
   { id: 'rad_med_mediano', m: 'n_mediano', r: [0.13, 0.13], da: { tratto: 'fascio_med' }, guide: () => entra([], 'n_mediano') },
@@ -210,7 +238,7 @@ const T = Object.fromEntries(TRATTI.map(t => [t.id, t]));
 // nessuna estremità arrotondata sporge alla giunzione
 const entra = (g, verso) => { const P = T[verso].P; return [...g, P[0], P[6]]; };
 // divisione: dalla fine del tronco, dietro la clavicola (spostamento `dz` del punto medio), all'inizio del fascio
-const div = (tronco, fascio, d) => { const a = T[tronco].P[T[tronco].P.length - 1], b = T[fascio].P[0]; return [a, add(a, tangente(T[tronco].P, T[tronco].P.length - 1), 0.9), add(mul(add(a, b), 0.5), d), b, T[fascio].P[10]]; };   // parte proseguendo la tangente del tronco
+const div = (tronco, fascio, d, gancio = 0.45) => { const a = T[tronco].P[T[tronco].P.length - 1], b = T[fascio].P[0]; return [a, ...(gancio ? [add(a, tangente(T[tronco].P, T[tronco].P.length - 1), gancio)] : []), add(mul(add(a, b), 0.5), d), b, T[fascio].P[10]]; };   // parte proseguendo la tangente del tronco
 // percorso: i fasci e i tratti con giunzione a monte partono dall'estremo (o dal punto u) del tratto madre, proseguendone la tangente
 const fatti = [], ORDINE = ['fascio_lat', 'fascio_post', 'fascio_med', 'tronco_sup', 'tronco_med', 'tronco_inf', 'C5', 'C6', 'C7', 'C8', 'T1', 'div_ant_sup', 'div_ant_med', 'div_post_sup', 'div_post_med', 'div_post_inf', 'div_ant_inf', 'n_mediano', 'rad_lat_mediano', 'rad_med_mediano', 'n_muscolocutaneo', 'n_ulnare', 'n_radiale', 'n_ascellare', 'n_soprascapolare'];
 const parenti = (a, b) => { const pa = a.P[0], pz = a.P[a.P.length - 1]; return [pa, pz].some(q => b.P.some(x => len(sub(x, q)) < 0.05)) || [b.P[0], b.P[b.P.length - 1]].some(q => a.P.some(x => len(sub(x, q)) < 0.05)); };
@@ -220,12 +248,14 @@ for (const id of ORDINE) {
   if (t.da) { const Pm = T[t.da.tratto].P, k = t.da.u !== undefined ? Math.round(t.da.u * (Pm.length - 1)) : Pm.length - 1, e = Pm[k], tg = tangente(Pm, k), coda = fissaFine ? g.splice(-2) : [];
     g = [e, add(e, tg, 0.6), ...g.filter(q => dot(sub(q, e), tg) > 0.9 || len(sub(q, e)) > 1.6), ...coda]; nPre = 4; }
   let P = ricampiona(catmull(g), 0.1); if (t.fine === 'taglio') P[P.length - 1][1] = TAGLIO;
+  const perno = new Map(); for (const q of t.perni ? t.perni() : []) { let b = 0; P.forEach((x, k) => { if (len(sub(x, q)) < len(sub(P[b], q))) b = k; }); for (let d = -10; d <= 10; d++) perno.set(b + d, Math.max(perno.get(b + d) || 0, 0.3 * (1 - Math.abs(d) / 11))); log(id, 'perno', q.map(x => x.toFixed(2)).join(','), 'distanza dagli ostacoli rigidi', (sample(FH, ...q) * 10).toFixed(1), 'mm'); }
   const n = P.length, r = P.map((_, k) => lerp(t.r[0], t.r[1], k / (n - 1)) * (t.ini ? lerp(t.ini / t.r[0], 1, ss(k / 15)) : 1));   // `ini`: un tratto formato dall'unione di altri più sottili parte dal loro calibro e si allarga in 1,5 cm (niente estremità più grossa dei rami che vi entrano)
   const altri = [A, Vn, ...fatti.filter(f => !parenti({ P }, f))];
-  P = rilassa(P, { r, fissi: k => (k < nPre && !id.startsWith('fascio')) || (fissaFine && k > n - 9) || (id.startsWith('C') || id === 'T1' ? k < 3 : false), molle: t.molle, altri, Rmin: id.startsWith('n_') || id.startsWith('rad') ? RMIN_N : RMIN_P, giri: 80 });
+  P = rilassa(P, { r, perno: k => perno.get(k) || 0, fissi: k => (k < nPre && !id.startsWith('fascio')) || (fissaFine && k > n - 9) || (id.startsWith('C') || id === 'T1' ? k < 3 : false), molle: t.molle, altri, Rmin: t.Rmin ?? (id.startsWith('n_') || id.startsWith('rad') ? RMIN_N : RMIN_P), ancora: t.ancora, giri: 80 });
   if (t.fine === 'taglio') { P[n - 1][1] = TAGLIO; P.push(add(P[n - 1], tangente(P, n - 1), 0.3)); r.push(r[n - 1]); }   // prosegue oltre il ritaglio: il taglio della superficie è netto
   t.P = P; t.rr = r; fatti.push({ P, r, id });
   CHECK[id] = { ...misura(P.slice(0, n), r, nPre + 6), lunghezza_cm: +lunghezze(P)[n - 1].toFixed(1) };
+  if (id === 'n_soprascapolare') CHECK[id].distanza_dal_fondo_incisura_cm = +Math.min(...P.map(q => len(sub(q, notch)))).toFixed(2);
   log(id, JSON.stringify(CHECK[id]));
 }
 
