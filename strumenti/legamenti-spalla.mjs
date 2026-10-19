@@ -74,7 +74,12 @@ const R = {
 // coraco-omerale: inserzione sull'omero subito fuori dal margine antero-superiore della cartilagine (tubercolo minore e maggiore), 5 mm verso l'esterno
 { const cT0 = W.cart_omero.V.reduce((a, p) => add(a, p), [0, 0, 0]).map(x => x / W.cart_omero.V.length), pl = nor(sub(W.cart_omero.V.reduce((b, p) => p[1] > b[1] ? p : b), cT0));
   const m = W.cart_omero.V.filter(p => dot(nor(sub(p, cT0)), pl) < Math.cos(1.38) + 0.03).reduce((b, p) => (p[1] * 1.0 + p[2] * 0.8) > (b[1] * 1.0 + b[2] * 0.8) ? p : b);   // margine antero-superiore (intervallo dei rotatori)
-  R.ch_om = vicino('omero', add(m, nor(sub(m, cT0)), 0.5)); }
+  const dc = p => { let b = 1e9; for (const q of W.cart_omero.V) { const d = len(sub(p, q)); if (d < b) b = d; } return b; };
+  // punto sul collo dell'omero a 0,9–1,3 cm dal bordo della cartilagine (le fibre non finiscono sulla cartilagine ma sull'osso, sui tubercoli),
+  // in alto e davanti (intervallo dei rotatori)
+  const cand = W.omero.Vd.map((p, i) => [p, i]).filter(([p]) => p[1] > cT0[1] + 0.3 && p[2] > cT0[2] + 0.8).filter(([p]) => { const d = dc(p); return d > 0.9 && d < 1.3; });
+  const [pb, ib] = cand.reduce((b, c) => (c[0][1] * 1.0 + c[0][2] * 0.8) > (b[0][1] * 1.0 + b[0][2] * 0.8) ? c : b);
+  R.ch_om = { p: pb, n: W.omero.Nd[ib], osso: 'omero' }; }
 R.sc_ma = vicino('manubrio', add(R.sc_cl.p, [0, 0, 0.25]), (p, n) => n[2] > 0.3);
 for (const [k, v] of Object.entries(R)) log('repere', k, v.p.map(x => x.toFixed(2)).join(','));
 log('distanze coppie coracoclavicolari: trapezoide', trapz.d.toFixed(2), 'conoide', conoide.d.toFixed(2), 'cm');
@@ -106,6 +111,7 @@ function fascio(spec) {
   griglia(lo, hi, PASSO, 0);
   const { N, NX, NY, NZ, NXY, O, H } = G;
   const nomi = [...OSTACOLI, ...FATTI], M = unione(OSTACOLI); for (const f of FATTI) or(M, solid(f));
+  const Fosso = spec.capsula ? esatta(sfoca(sdf(M).F, 1), nomi, 0.1) : null;   // ostacoli ossei (e legamenti già fatti) senza la capsula piena
   // capsula come solido pieno: guscio + ossa racchiudono la cavità articolare; si riempie con un riempimento dall'esterno che parte solo dalle facce
   // della griglia lontane dalla testa (la griglia taglia la testa: dalla faccia di taglio il riempimento entrerebbe nella cavità)
   if (spec.capsula) { const C = or(solid('caps'), M.slice()), R2 = spec.capsula.r, cc = spec.capsula.c, fuori = new Uint8Array(N), coda = [];
@@ -114,6 +120,9 @@ function fascio(spec) {
       for (const [d, ok] of [[1, i < NX - 1], [-1, i > 0], [NX, j < NY - 1], [-NX, j > 0], [NXY, k < NZ - 1], [-NXY, k > 0]]) { const m = id + d; if (ok && !fuori[m] && !C[m]) { fuori[m] = 1; coda.push(m); } } }
     for (let i = 0; i < N; i++) if (!fuori[i]) M[i] = 1; nomi.push('caps'); }
   const Fo = esatta(sfoca(sdf(M).F, 1), nomi, 0.1);
+  // la capsula piena è ostacolo ovunque tranne vicino all'inserzione B: lì il legamento si fonde con la capsula (è un suo ispessimento) e prosegue fino
+  // all'osso; gli ostacoli ossei restano sempre attivi
+  if (spec.capsula) { const RB = spec.capsula.libera || 0.9; for (let i = 0; i < N; i++) { const q = G.voxel(i), r = Math.hypot(q[0] - Bp.p[0], q[1] - Bp.p[1], q[2] - Bp.p[2]), w = sstep(RB * 0.6, RB, r); Fo[i] = Math.min(Fosso[i], Fo[i] + (1 - w) * 2); } }
   if (sfera) for (let i = 0; i < N; i++) { const q = G.voxel(i), d = Math.hypot(q[0] - sfera.c[0], q[1] - sfera.c[1], q[2] - sfera.c[2]) - sfera.r; if (d < Fo[i]) Fo[i] = d; }
   // centroide comune dei punti di passaggio: le fibre ci passano accostate (vita del legamento) con la loro posizione relativa
   const NS = 40, F0 = [], LIN = [];
@@ -223,9 +232,24 @@ function placca(A, Bp, w0, w1, spess) {
   const grid = (h0, h1) => { const g = []; for (let k = 0; k < NU; k++) { const u = k / (NU - 1), tg = nor(sub(cen[Math.min(NU - 1, k + 1)], cen[Math.max(0, k - 1)])), q0 = nq(cen[k]), wd = nor(cross(tg, q0.n)), w = (w1 + (w0 - w1) * (1 - Math.sin(Math.PI * u) ** 0.6)) / 2, row = [];
       for (let j = 0; j < NV; j++) { const v = 2 * j / (NV - 1) - 1, p = add(cen[k], wd, v * w), q = nq(p), prof = 1 - v * v, hh = h0 + (h1 - h0) * prof; row.push([add(add(p, q.n, -dot(sub(p, q.q), q.n)), q.n, hh), tg]); } g.push(row); } return g; };
   const levG = g => { let X = g.map(r => r.map(([p]) => p)); for (let it = 0; it < 10; it++) X = X.map((r, k) => r.map((p, j) => { let a = mul(p, 2), w = 2; for (const [dk, dj] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) { const q = X[k + dk]?.[j + dj]; if (q) { a = add(a, q); w++; } } return mul(a, 1 / w); })); return g.map((r, k) => r.map(([, tg], j) => [X[k][j], tg])); };
-  const gO = levG(grid(0.005, 0.005 + spess)), gI = levG(grid(0.005, 0.005)), n0 = NU * NV, pos = [], fd = [], idx = [];
+  let gO = levG(grid(0.005, 0.005 + spess)), gI = levG(grid(0.005, 0.005));
+  // inserzioni: ai due estremi la placca prosegue fino all'osso con RIGHE in più (FOOT) che convergono, assottigliandosi, su punti d'osso (2 mm dentro la
+  // superficie): l'ispessimento capsulare si inserisce sull'osso invece di fermarsi a mezz'aria sulla capsula. Estremo A = collo della scapola (osso lontano
+  // dalla cartilagine glenoidea e dal labbro), estremo B = collo anatomico dell'omero (a ≥ 1,5 mm dalla cartilagine).
+  const FOOT = 4, lerpP = (p, q, t) => add(mul(p, 1 - t), q, t);
+  const bersaglio = (ossoN, evita, dmin, p0) => { const Wo = W[ossoN], C = []; Wo.Vd.forEach((q, i) => { const d = len(sub(q, p0)); if (d < 3) C.push([d, i]); }); C.sort((x, y) => x[0] - y[0]);
+    for (const [, i] of C) { const q = Wo.Vd[i]; let ok = true; for (const e of evita) { for (const r of W[e].V) if (len(sub(q, r)) < dmin) { ok = false; break; } if (!ok) break; } if (ok) return { p: q, n: Wo.Nd[i] }; }
+    throw new Error('nessun punto d\'osso utile per l\'inserzione'); };
+  const piedi = (g, ossoN, evita, dmin, k) => {
+    const row = g[k], ref = gO[k].map((o, j) => mul(add(o[0], gI[k][j][0]), 0.5)), T = ref.map(r => bersaglio(ossoN, evita, dmin, r));
+    return T.map((t, j) => ({ t: add(t.p, t.n, -0.02), tg: row[j][1], from: row[j][0] }));
+  };
+  const estendi = (g, ossoN, evita, dmin, k, dir) => { const F = piedi(g, ossoN, evita, dmin, k), rows = []; for (let r = FOOT; r >= 1; r--) rows.push(F.map(({ t, tg, from }) => [lerpP(from, t, r / FOOT), tg])); return dir < 0 ? rows : rows.reverse(); };
+  { const oA = estendi(gO, 'scapola', ['cart_glen', 'labbro'], 0.5, 0, -1), iA = estendi(gI, 'scapola', ['cart_glen', 'labbro'], 0.5, 0, -1), oB = estendi(gO, 'omero', ['cart_omero'], 0.15, NU - 1, 1), iB = estendi(gI, 'omero', ['cart_omero'], 0.15, NU - 1, 1);
+    gO = [...oA, ...gO, ...oB]; gI = [...iA, ...gI, ...iB]; }
+  const NUe = gO.length, n0 = NUe * NV, pos = [], fd = [], idx = [];
   for (const g of [gO, gI]) for (const row of g) for (const [p, tg] of row) { pos.push(...p); fd.push(...tg.map(x => Math.round(x * 127))); }
-  for (let k = 0; k < NU - 1; k++) for (let j = 0; j < NV - 1; j++) { const a = k * NV + j, b = a + 1, c = a + NV, d = c + 1; idx.push(a, b, c, b, d, c, n0 + a, n0 + c, n0 + b, n0 + b, n0 + c, n0 + d); }
+  for (let k = 0; k < NUe - 1; k++) for (let j = 0; j < NV - 1; j++) { const a = k * NV + j, b = a + 1, c = a + NV, d = c + 1; idx.push(a, b, c, b, d, c, n0 + a, n0 + c, n0 + b, n0 + b, n0 + c, n0 + d); }
   { const a = idx[0], b = idx[1], c = idx[2], P3 = i => [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]], nn = cross(sub(P3(b), P3(a)), sub(P3(c), P3(a))), q = nq(P3(a));
     if (dot(nn, q.n) < 0) for (let t = 0; t < idx.length; t += 3) { const x = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = x; } }
   return { pos: Float32Array.from(pos), idx: Uint32Array.from(idx), tag: null, fdir: Int8Array.from(fd) };
@@ -242,7 +266,7 @@ for (const [id, [a, b, w]] of Object.entries(GH)) { MESH[id] = placca(a, b, w, w
 /* ---- coraco-omerale: dal coracoide sopra la testa (libero, aggira capsula e cartilagine) ai tubercoli ---- */
 // coraco-omerale: dal margine laterale della base del coracoide all'intervallo dei rotatori, appoggiato sulla capsula (sfera testa + capsula),
 // ai due lati del solco bicipitale: fibre anteriori al tubercolo minore (mediale), posteriori al maggiore
-fascio({ id: 'coraco_om', A: R.ch_cor, B: R.ch_om, ia: [CORACOIDE, 0.5, 0.2], ib: [[1, 0, 0], 0.9, 0.25], nu: 6, nv: 2, rf: 0.08, fineB: 0.45, capsula: { c: cT, r: 3.2 } });   // si assottiglia fondendosi con la capsula
+fascio({ id: 'coraco_om', A: R.ch_cor, B: R.ch_om, ia: [CORACOIDE, 0.5, 0.2], ib: [[1, 0, 0], 0.9, 0.25], nu: 6, nv: 2, rf: 0.08, fineB: 0.85, capsula: { c: cT, r: 3.2, libera: 1.5 } });   // si assottiglia fondendosi con la capsula
 
 /* ---- contatti tra legamenti (vertici a meno di 0,3 mm da un'altra mesh di legamento) ---- */
 const IDS = Object.keys(MESH);

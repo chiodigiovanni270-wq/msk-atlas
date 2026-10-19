@@ -73,7 +73,8 @@ const daRevisione = (rev, nome) => {
 
 /* ---- 0. muscoli della bozza (prima dei canali): i canali si scavano da capo; `muscoli-spalla.mjs`, dopo, toglie le altre compenetrazioni ---- */
 const BASE = {};
-for (const nome of MUSCOLI) { BASE[nome] = daRevisione(PARTENZA, nome); setPos(nome, BASE[nome]); }
+// (anche la topologia: `muscoli-spalla.mjs` raffina le mesh vicino agli ostacoli e le riscrive con setMesh; qui si riparte sempre da quelle di PARTENZA)
+for (const nome of MUSCOLI) { const R0 = G.realDaRevisione(PARTENZA, nome, FILE_REPO); BASE[nome] = R0.pos; setMesh(nome, { pos: R0.pos, idx: R0.idx, tag: R0.tag, fdir: R0.fdir }); }
 
 /* ---- punti di riferimento ---- */
 const V = n => { const m = REAL(n), o = []; for (let i = 0; i < m.pos.length; i += 3) o.push([m.pos[i], m.pos[i + 1], m.pos[i + 2]]); return o; };
