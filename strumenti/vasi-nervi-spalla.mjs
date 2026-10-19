@@ -124,7 +124,7 @@ function rilassa(P, o) {
     P = P.map((p, k) => fisso(k) || k === 0 || k === n - 1 ? p : mul(add(add(P[k - 1], P[k + 1]), p, w), 1 / (2 + w)));
   };
   for (let it = 0; it < 220; it++) passa(2, o.ancora ?? 0.004, 1);
-  for (let giro = 0; giro < 25 && curvaturaMin(P, 6) < (o.Rmin || 1.5); giro++) for (let it = 0; it < 80; it++) passa(0.4, 0.0005, 0);   // levigatura forte: solo ostacoli rigidi e altri tubi (i muscoli si scavano dopo)
+  for (let giro = 0; giro < (o.giri ?? 25) && curvaturaMin(P, 6) < (o.Rmin || 1.5); giro++) for (let it = 0; it < 80; it++) passa(0.4, 0.0005, 0);   // levigatura forte: solo ostacoli rigidi e altri tubi (i muscoli si scavano dopo)
   if (duro === 1) for (let it = 0; it < 6; it++) for (let k = 0; k < n; k++) { if (fisso(k)) continue; const d = sample(FH, ...P[k]), m = o.r[k] + mg; if (d < m) P[k] = add(P[k], nor(grad(FH, P[k])), m - d); }   // proiezione finale sugli ostacoli rigidi
   return P;
 }
@@ -164,13 +164,14 @@ const rel = (s, off, rn) => { const f = art(s), o = f.r + rn + 0.14; return add(
    ogni tratto: id, mesh (`m`), raggi [inizio, fine], `ini` (raggio d'inizio dei tratti formati per unione), guide (punti o funzione valutata quando i
    tratti di cui ha bisogno sono pronti), `da` = tratto madre (e punto `u` lungo di esso; senza `u` l'estremo): il tratto ne prosegue la tangente per 6 mm;
    `fine: 'taglio'` = arriva al ritaglio. Tronchi, radici, divisioni e radici del mediano finiscono dentro il tratto in cui confluiscono (`entra`, `div`). */
-const sC0 = sX(A.P, A.L, 7.4), sCF = A.sPM + 2.4;             // fasci: da sotto la clavicola a oltre il margine inferiore del piccolo pettorale
+const sC0 = sX(A.P, A.L, 7.0), sCF = A.sPM + 2.4;             // fasci: da sotto la clavicola a oltre il margine inferiore del piccolo pettorale
 const fascio = (off, rn) => { const out = []; for (let s = sC0; s <= sCF + 1e-6; s += (sCF - sC0) / 6) out.push(rel(s, off, rn)); return out; };
 const FL = fascio({ lat: 0.85, ant: 0.5 }, 0.2), FP = fascio({ post: 1 }, 0.22), FMd = fascio({ med: 0.9, post: 0.35 }, 0.19);
 // origine del tronco superiore (C5 + C6), medio (C7), inferiore (C8 + T1): sopra la prima costa, dietro e sopra la succlavia
 const UT0 = [12.4, 7.0, 1.5], MT0 = [12.9, 6.2, 1.25], LT0 = [12.6, 5.5, 1.2];
-const UTs = [9.4, 4.6, 2.0], MTs = [9.5, 4.1, 1.8], LTs = [9.6, 3.7, 1.6];   // fine dei tronchi (divisioni anteriore e posteriore), dietro la clavicola
-const sM = sCF + 1.8, M0 = rel(sM, { ant: 1, lat: 0.25 }, 0.17);        // unione delle radici del mediano, davanti all'arteria
+const UTs = [9.4, 4.6, 2.5], MTs = [9.5, 4.1, 2.3], LTs = [9.6, 3.7, 2.1];   // fine dei tronchi (divisioni anteriore e posteriore), dietro la clavicola
+const sM = sCF + 3.2, M0 = rel(sM, { ant: 1, lat: 0.25 }, 0.17);        // unione delle radici del mediano, davanti all'arteria
+const RMIN_N = +(process.env.RMIN_N || 3.0), RMIN_P = +(process.env.RMIN_P || 1.6);   // raggio di curvatura minimo (cm) di nervi e plesso
 const TRATTI = [
   // fasci (definiti rispetto all'arteria)
   { id: 'fascio_lat', m: 'plesso', r: [0.2, 0.2], ini: 0.15, guide: FL },
@@ -187,11 +188,11 @@ const TRATTI = [
   { id: 'C8', m: 'plesso', r: [0.18, 0.18], guide: () => entra([[14.1, 6.1, 1.05]], 'tronco_inf') },
   { id: 'T1', m: 'plesso', r: [0.14, 0.14], guide: () => entra([[13.9, 5.2, 1.4]], 'tronco_inf') },
   // divisioni: anteriori dei tronchi superiore e medio → fascio laterale; posteriori → fascio posteriore; anteriore dell'inferiore → fascio mediale
-  { id: 'div_ant_sup', m: 'plesso', r: [0.17, 0.17], guide: () => div('tronco_sup', 'fascio_lat', [0, 0.1, -0.2]) },
-  { id: 'div_ant_med', m: 'plesso', r: [0.14, 0.14], guide: () => div('tronco_med', 'fascio_lat', [0, 0, -0.1]) },
-  { id: 'div_post_sup', m: 'plesso', r: [0.15, 0.15], guide: () => div('tronco_sup', 'fascio_post', [0, 0, -0.5]) },
-  { id: 'div_post_med', m: 'plesso', r: [0.13, 0.13], guide: () => div('tronco_med', 'fascio_post', [0, 0, -0.45]) },
-  { id: 'div_post_inf', m: 'plesso', r: [0.11, 0.11], guide: () => div('tronco_inf', 'fascio_post', [0, 0, -0.35]) },
+  { id: 'div_ant_sup', m: 'plesso', r: [0.17, 0.17], guide: () => div('tronco_sup', 'fascio_lat', [0, 0, 0]) },
+  { id: 'div_ant_med', m: 'plesso', r: [0.14, 0.14], guide: () => div('tronco_med', 'fascio_lat', [0, 0, 0]) },
+  { id: 'div_post_sup', m: 'plesso', r: [0.15, 0.15], guide: () => div('tronco_sup', 'fascio_post', [0, 0, 0]) },
+  { id: 'div_post_med', m: 'plesso', r: [0.13, 0.13], guide: () => div('tronco_med', 'fascio_post', [0, 0, 0]) },
+  { id: 'div_post_inf', m: 'plesso', r: [0.11, 0.11], guide: () => div('tronco_inf', 'fascio_post', [0, 0, 0]) },
   { id: 'div_ant_inf', m: 'plesso', r: [0.19, 0.19], guide: () => div('tronco_inf', 'fascio_med', [0, 0, 0]) },
   // nervi
   { id: 'n_soprascapolare', m: 'n_soprascapolare', r: [0.11, 0.08], da: { tratto: 'tronco_sup', u: 0.55 }, guide: [[8.4, 5.0, 1.0], [6.4, 4.0, 0.9], add(notch, [0, 0.3, 0]), [3.9, 3.0, -0.5], [2.6, 2.0, -1.6], [2.1, 0.6, -2.5], [2.5, -0.8, -3.2]], molle: u => u < 0.3 ? 1 : 0 },
@@ -208,7 +209,7 @@ const T = Object.fromEntries(TRATTI.map(t => [t.id, t]));
 // nessuna estremità arrotondata sporge alla giunzione
 const entra = (g, verso) => { const P = T[verso].P; return [...g, P[0], P[6]]; };
 // divisione: dalla fine del tronco, dietro la clavicola (spostamento `dz` del punto medio), all'inizio del fascio
-const div = (tronco, fascio, d) => { const a = T[tronco].P[T[tronco].P.length - 1], b = T[fascio].P[0]; return [a, add(mul(add(a, b), 0.5), d), b, T[fascio].P[6]]; };
+const div = (tronco, fascio, d) => { const a = T[tronco].P[T[tronco].P.length - 1], b = T[fascio].P[0]; return [a, add(a, tangente(T[tronco].P, T[tronco].P.length - 1), 0.9), add(mul(add(a, b), 0.5), d), b, T[fascio].P[10]]; };   // parte proseguendo la tangente del tronco
 // percorso: i fasci e i tratti con giunzione a monte partono dall'estremo (o dal punto u) del tratto madre, proseguendone la tangente
 const fatti = [], ORDINE = ['fascio_lat', 'fascio_post', 'fascio_med', 'tronco_sup', 'tronco_med', 'tronco_inf', 'C5', 'C6', 'C7', 'C8', 'T1', 'div_ant_sup', 'div_ant_med', 'div_post_sup', 'div_post_med', 'div_post_inf', 'div_ant_inf', 'n_mediano', 'rad_lat_mediano', 'rad_med_mediano', 'n_muscolocutaneo', 'n_ulnare', 'n_radiale', 'n_ascellare', 'n_soprascapolare'];
 const parenti = (a, b) => { const pa = a.P[0], pz = a.P[a.P.length - 1]; return [pa, pz].some(q => b.P.some(x => len(sub(x, q)) < 0.05)) || [b.P[0], b.P[b.P.length - 1]].some(q => a.P.some(x => len(sub(x, q)) < 0.05)); };
@@ -220,7 +221,7 @@ for (const id of ORDINE) {
   let P = ricampiona(catmull(g), 0.1); if (t.fine === 'taglio') P[P.length - 1][1] = TAGLIO;
   const n = P.length, r = P.map((_, k) => lerp(t.r[0], t.r[1], k / (n - 1)) * (t.ini ? lerp(t.ini / t.r[0], 1, ss(k / 15)) : 1));   // `ini`: un tratto formato dall'unione di altri più sottili parte dal loro calibro e si allarga in 1,5 cm (niente estremità più grossa dei rami che vi entrano)
   const altri = [A, Vn, ...fatti.filter(f => !parenti({ P }, f))];
-  P = rilassa(P, { r, fissi: k => (k < nPre && !id.startsWith('fascio')) || (fissaFine && k > n - 9) || (id.startsWith('C') || id === 'T1' ? k < 3 : false), molle: t.molle, altri, Rmin: id.startsWith('n_') || id.startsWith('rad') ? 1.4 : 0.9 });
+  P = rilassa(P, { r, fissi: k => (k < nPre && !id.startsWith('fascio')) || (fissaFine && k > n - 9) || (id.startsWith('C') || id === 'T1' ? k < 3 : false), molle: t.molle, altri, Rmin: id.startsWith('n_') || id.startsWith('rad') ? RMIN_N : RMIN_P, giri: 80 });
   if (t.fine === 'taglio') { P[n - 1][1] = TAGLIO; P.push(add(P[n - 1], tangente(P, n - 1), 0.3)); r.push(r[n - 1]); }   // prosegue oltre il ritaglio: il taglio della superficie è netto
   t.P = P; t.rr = r; fatti.push({ P, r, id });
   CHECK[id] = { ...misura(P.slice(0, n), r, nPre + 6), lunghezza_cm: +lunghezze(P)[n - 1].toFixed(1) };
