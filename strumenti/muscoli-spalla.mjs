@@ -22,12 +22,16 @@
      4. Lo spostamento è diffuso ai vertici vicini (`DIFF` passate di media sul grafo della mesh), poi levigato (`LEV` passate con riproiezione), così la
         superficie si piega con continuità; `PARAM` dà valori più forti a sottoscapolare (davanti a labbro e capsula era ondulato) e deltoide.
         Dove restano autointersezioni (pieghe: in pagina buchi o fessure) i vertici coinvolti e quattro anelli attorno sono levigati (`PIEGHE` giri).
-     4b. `delt_cl`: tagliato con un piano al 34 % della clavicola (dall'estremo laterale, `CLAV_FINO`): l'origine reale è sul terzo laterale; entro
-        `CLAV_RAMPA` dal piano il muscolo scende sull'osso, così finisce assottigliandosi sull'inserzione.
+     4b. Taglio di `delt_cl` con un piano al 34 % della clavicola (`CLAV_FINO`, `CLAV_RAMPA`): spento (`TAGLIA_CLAVICOLA = false`), le inserzioni
+        sulla clavicola restano quelle di BodyParts3D (il taglio lasciava l'osso scoperto tra deltoide e trapezio).
      4c. Ostacoli per singoli muscoli (`ESCLUSI`): il capo lungo del bicipite non vede capsula e labbro (decorre dentro la capsula), sovraspinato e
         sottoscapolare non vedono il coraco-omerale (si fondono con lui nell'intervallo dei rotatori), il trapezio (parte trasversa) non vede il
-        legamento acromioclavicolare, che poi supera passando sopra, lontano dall'osso (`SOPRA`), invece di avvolgerlo e strapparsi.
+        legamento acromioclavicolare, che poi supera passando sopra, lontano dall'osso (`SOPRA`), invece di avvolgerlo e strapparsi; deltoide
+        clavicolare, grande pettorale (parte clavicolare) e trapezio (parte discendente) non vedono la clavicola, così le inserzioni restano lisce
+        come nei dati (la spinta fuori dall'osso le rendeva frastagliate).
      4d. Capo breve del bicipite e coracobrachiale portati fuori dal sottoscapolare.
+     4e. Sovraspinato: tendine ristretto del 18 % di traverso alle fibre prima della spinta (`STRINGI` in `PARAM`): l'impronta d'inserzione risultava
+        troppo larga.
      5. Deltoide e altri muscoli della spalla sopra la cuffia già sistemata, a `BORSA` (2 mm) di distanza: è lo spazio della borsa subacromion-deltoidea
         (`borsa-spalla.mjs`).
      6. Normali di vertice: somma pesata dall'area delle normali di faccia, unite sui vertici coincidenti (stessa posizione e stesso tipo di tag, così
@@ -72,11 +76,13 @@ function campo(esclusi = []) {
 const { F, Fn, Fc } = campo();
 // ostacoli tolti per singoli muscoli: il capo lungo del bicipite decorre dentro la capsula fino al tubercolo sovraglenoideo e al labbro;
 // sovraspinato e sottoscapolare si fondono col coraco-omerale (intervallo dei rotatori): passarci sopra creava un rigonfiamento
-const ESCLUSI = { bic_lungo: ['caps', 'labbro'], supra: ['coraco_om'], subs: ['coraco_om'], trap_t: ['ac_leg'] };
+// muscoli che nascono dalla clavicola (deltoide clavicolare, pettorale clavicolare, trapezio discendente): la clavicola non li respinge, così il
+// bordo d'origine resta quello di BodyParts3D (spinto fuori diventava frastagliato e scopriva l'osso)
+const ESCLUSI = { bic_lungo: ['caps', 'labbro'], supra: ['coraco_om'], subs: ['coraco_om'], trap_t: ['ac_leg'], delt_cl: ['clavicola'], pec_cl: ['clavicola'], trap_d: ['clavicola'] };
 // lamine d'inserzione che avvolgono un legamento: passano sopra (lontano dall'osso), non attraverso
 const SOPRA = { trap_t: { ostacolo: ['ac_leg'], base: ['clavicola', 'scapola'] } };
 // levigatura più forte dove la superficie veniva ondulata (sottoscapolare davanti a labbro e capsula)
-const PARAM = { subs: { LEV: 24, DIFF: 20 }, delt_cl: { LEV: 30, DIFF: 40 }, delt_ac: { LEV: 24, DIFF: 30 }, trap_t: { LEV: 12, DIFF: 14 } };
+const PARAM = { supra: { STRINGI: 0.18 }, subs: { LEV: 24, DIFF: 20 }, delt_cl: { LEV: 30, DIFF: 40 }, delt_ac: { LEV: 24, DIFF: 30 }, trap_t: { LEV: 12, DIFF: 14 } };
 log('campo pronto');
 // campi per gruppo, solo per i controlli
 const FG = {}; for (const [g, ns] of Object.entries(GRUPPI)) FG[g] = g === 'capsula' ? Fc : esatta(sdf(unione(ns)).F, ns, 0.12);
@@ -147,7 +153,7 @@ function normaliLisce(pos, idx, tag) {
 // il deltoide (parte clavicolare) nasce dal terzo laterale del margine anteriore della clavicola: la mesh BodyParts3D scende molto più medialmente.
 // Taglio con un piano perpendicolare all'asse della clavicola, a `CLAV_FINO` (frazione della lunghezza dall'estremo laterale); i triangoli attraversati
 // sono tagliati esattamente (vertici nuovi sui lati, tag e direzione fibre interpolati), quindi il bordo di origine è netto e non a dente di sega
-const CLAV_FINO = 0.34, CLAV_RAMPA = 0.06;
+const CLAV_FINO = 0.34, CLAV_RAMPA = 0.06, TAGLIA_CLAVICOLA = false;   // spento: Giovanni preferisce l'inserzione BodyParts3D originale
 function tagliaClavicola(pos, idx, tag, fdir) {
   const c = REAL('clavicola').pos; let a = null, b = null;
   for (let i = 0; i < c.length; i += 3) { if (!a || c[i] < a[0]) a = [c[i], c[i + 1], c[i + 2]]; if (!b || c[i] > b[0]) b = [c[i], c[i + 1], c[i + 2]]; }
@@ -201,8 +207,17 @@ const MESHES = {};
 function libera(nome, Fx, conControlli = true, marg = MARG, base = null) {
   const spinta = (p, dd) => { const gf = grad(Fx, p), lf = Math.hypot(...gf) || 1; if (!base) return [gf, dd / lf];
     const gb = grad(base, p), lb = Math.hypot(...gb) || 1, u = gb.map(v => v / lb), c = Math.max(0.3, (gf[0] * u[0] + gf[1] * u[1] + gf[2] * u[2]) / lf); return [u, dd / c]; };
-  const LEVm = PARAM[nome]?.LEV ?? LEV, DIFFm = PARAM[nome]?.DIFF ?? DIFF;
-  const m0 = REAL(nome), a0 = attrs(nome), S0 = nome === 'delt_cl' && conControlli ? tagliaClavicola(m0.pos, m0.idx, a0.tag, a0.fdir) : { pos: m0.pos, idx: m0.idx, tag: a0.tag, fdir: a0.fdir }, R = raffina(S0.pos, S0.idx, S0.tag, S0.fdir, Fx), pos = Float32Array.from(R.pos), nv = pos.length / 3, prima = conControlli ? controlli(m0.pos, m0.idx) : null;
+  const LEVm = PARAM[nome]?.LEV ?? LEV, DIFFm = PARAM[nome]?.DIFF ?? DIFF, SPESSm = PARAM[nome]?.SPESS ?? SPESS;
+  const m0 = REAL(nome), a0 = attrs(nome), S0 = TAGLIA_CLAVICOLA && nome === 'delt_cl' && conControlli ? tagliaClavicola(m0.pos, m0.idx, a0.tag, a0.fdir) : { pos: m0.pos, idx: m0.idx, tag: a0.tag, fdir: a0.fdir }, R = raffina(S0.pos, S0.idx, S0.tag, S0.fdir, Fx), pos = Float32Array.from(R.pos), nv = pos.length / 3, prima = conControlli ? controlli(m0.pos, m0.idx) : null;
+  // tendine più stretto all'inserzione (`STRINGI` in PARAM): i vertici tendinei (tag alto) si avvicinano all'asse del tendine, solo di traverso alla
+  // direzione delle fibre; poi la spinta fuori dagli ostacoli li rimette sulla superficie
+  const STR = PARAM[nome]?.STRINGI;
+  if (STR && R.tag) { const tw = i => R.tag[i] >= 250 ? 0 : G.sstep(110, 190, R.tag[i]); let c = [0, 0, 0], d = [0, 0, 0], n = 0;
+    for (let i = 0; i < nv; i++) if (tw(i) > 0.5) { n++; for (let q = 0; q < 3; q++) { c[q] += pos[3 * i + q]; d[q] += R.fdir ? R.fdir[3 * i + q] : 0; } }
+    if (n) { c = c.map(v => v / n); const ld = Math.hypot(...d) || 1; d = d.map(v => v / ld);
+      for (let i = 0; i < nv; i++) { const w = tw(i); if (!w) continue; const r = [0, 1, 2].map(q => pos[3 * i + q] - c[q]), a = r[0] * d[0] + r[1] * d[1] + r[2] * d[2];
+        for (let q = 0; q < 3; q++) pos[3 * i + q] -= (r[q] - a * d[q]) * STR * w; }
+      log(nome, 'tendine stretto del', Math.round(STR * 100), '% di traverso alle fibre su', n, 'vertici'); } }
   const D = new Float32Array(nv * 3), req = new Uint8Array(nv);
   // lamine sottili (tendini a due strati): lo strato rivolto verso l'ostacolo e quello rivolto fuori vanno spinti entrambi, e il secondo di SPESS in più,
   // altrimenti i due strati si sovrappongono (z-fighting: chiazze scure a bordo netto che cambiano con la vista)
@@ -210,7 +225,7 @@ function libera(nome, Fx, conControlli = true, marg = MARG, base = null) {
   for (let t = 0; t < R.idx.length; t += 3) { const [a, b, c] = [R.idx[t], R.idx[t + 1], R.idx[t + 2]], u = [0, 1, 2].map(q => pos[3 * b + q] - pos[3 * a + q]), w = [0, 1, 2].map(q => pos[3 * c + q] - pos[3 * a + q]), n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]]; for (const v of [a, b, c]) for (let q = 0; q < 3; q++) VN[3 * v + q] += n[q]; }
   const fuori = new Uint8Array(nv);
   for (let i = 0; i < nv; i++) { const p = [pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]]; if (sample(Fx, ...p) >= ZONA) continue; const g = grad(Fx, p), l = Math.hypot(...g) * Math.hypot(VN[3 * i], VN[3 * i + 1], VN[3 * i + 2]) || 1; if ((g[0] * VN[3 * i] + g[1] * VN[3 * i + 1] + g[2] * VN[3 * i + 2]) / l > 0.3) fuori[i] = 1; }
-  const MIN = i => marg + (fuori[i] ? SPESS : 0);
+  const MIN = i => marg + (fuori[i] ? SPESSm : 0);
   for (let pass = 0; pass < 3; pass++) for (let i = 0; i < nv; i++) {
     const p = [pos[3 * i] + D[3 * i], pos[3 * i + 1] + D[3 * i + 1], pos[3 * i + 2] + D[3 * i + 2]], d = sample(Fx, ...p); if (d >= MIN(i)) continue;
     const [g, k] = spinta(p, MIN(i) - d); D[3 * i] += g[0] * k; D[3 * i + 1] += g[1] * k; D[3 * i + 2] += g[2] * k; req[i] = 1;
@@ -226,7 +241,7 @@ function libera(nome, Fx, conControlli = true, marg = MARG, base = null) {
           const ni = [VN[3 * i], VN[3 * i + 1], VN[3 * i + 2]], nj = [VN[3 * j], VN[3 * j + 1], VN[3 * j + 2]], li = Math.hypot(...ni) || 1, lj = Math.hypot(...nj) || 1;
           if ((ni[0] * u[0] + ni[1] * u[1] + ni[2] * u[2]) / li > -0.2 || (nj[0] * u[0] + nj[1] * u[1] + nj[2] * u[2]) / lj < 0.3) continue;   // i sulla faccia verso l'ostacolo, j su quella opposta
           if (sj <= 0.02 || sj > 1.0 || Math.hypot(r[0] - sj * u[0], r[1] - sj * u[1], r[2] - sj * u[2]) > 0.25) continue;
-          const dj = D[3 * j] * u[0] + D[3 * j + 1] * u[1] + D[3 * j + 2] * u[2], need = m + SPESS - sj - dj; if (need <= 0) continue;
+          const dj = D[3 * j] * u[0] + D[3 * j + 1] * u[1] + D[3 * j + 2] * u[2], need = m + SPESSm - sj - dj; if (need <= 0) continue;
           for (let q = 0; q < 3; q++) D[3 * j + q] += u[q] * need; req[j] = 2; n++; } } }
     if (n) log(nome, 'strato esterno spinto davanti allo strato interno', n); }
   const nb = B.vicini(nv, R.idx), comp = [0, 1, 2].map(q => B.diffondi(Array.from({ length: nv }, (_, i) => D[3 * i + q]), nb, DIFFm));

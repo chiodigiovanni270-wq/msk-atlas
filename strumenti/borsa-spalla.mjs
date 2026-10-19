@@ -7,10 +7,11 @@
    Ultimo della catena: va lanciato dopo `muscoli-spalla.mjs`, che lascia tra cuffia e deltoide uno spazio di `BORSA` (2 mm); si può rilanciare
    (riscrive solo `borsa_sad`).
 
-   Metodo: campi di distanza con segno della cuffia (tendini già sistemati), del deltoide e degli altri ostacoli (ossa, legamenti, capsula). La borsa è
-   lo strato `DA`–`A` sopra la cuffia, solo dove resta libero (fuori da deltoide e ostacoli di almeno `LIB`), lontano almeno `PROF` da omero e capsula
-   (esclude la faccia profonda dei tendini) e dentro un ellissoide centrato sopra il trochite (`CENTRO`, `RAGGI`, relativi al centro della testa
-   omerale, ricavato dalla cartilagine con una sfera ai minimi quadrati). Superficie con surface nets e levigatura di Taubin, poi ridotta a circa `DENS` triangoli per cm². */
+   Metodo: campo di distanza con segno di sovraspinato e infraspinato (tendini già sistemati), sfocato (`LISCIA`) perché lo strato sia liscio. La borsa
+   è lo strato `DA`–`A` sopra di loro (una sacca sottile, a 0,6–1,5 mm dalla cuffia: il deltoide è a 2 mm), fuori dalle ossa di almeno `LIB`, lontano
+   almeno `PROF` da omero e capsula (esclude la faccia profonda dei tendini) e dentro un ellissoide centrato sopra il trochite (`CENTRO`, `RAGGI`,
+   relativi al centro della testa omerale, ricavato dalla cartilagine con una sfera ai minimi quadrati). Superficie con surface nets e `TAUBIN`
+   passate di levigatura, poi ridotta a circa `DENS` triangoli per cm². */
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
@@ -18,11 +19,10 @@ const G = await import('./lib-modello.mjs');
 const { riduci, compatta } = await import('./lib-bp3d.mjs');
 const { REAL, setMesh, saveFile, repack, log, griglia, esatta, sdf, unione, valuta, nets } = G;
 
-const DA = 0.05, A = 0.16, LIB = 0.02, PROF = 0.1, PASSO = 0.035, SOTTO = [0.005, 0.05], PEZZO = 0.03, DENS = 400;              // cm
+const DA = 0.06, A = 0.15, LIB = 0.02, PROF = 0.1, PASSO = 0.035, LISCIA = 14, TAUBIN = 30, PEZZO = 0.03, DENS = 400;              // cm
 const CENTRO = [-0.3, 1.6, 0.0], RAGGI = [2.8, 2.4, 2.6];                       // cm, assi x (verso mediale), y (su), z (avanti)
-const CUFFIA = ['supra', 'infra'], DELTOIDE = ['delt_cl', 'delt_ac', 'delt_sp'], ACROMION = ['scapola', 'clavicola', 'cal', 'ac_leg', 'coraco_om'];
+const CUFFIA = ['supra', 'infra'], OSSA = ['scapola', 'clavicola', 'omero'];
 const PROFONDI = ['omero', 'caps', 'cart_omero'];
-const ALTRI = ['scapola', 'clavicola', 'omero', 'caps', 'cal', 'ac_leg', 'coraco_om', 'cc_conoide', 'cc_trapezoide', 'bic_lungo'];
 
 // centro della testa omerale: sfera ai minimi quadrati sui vertici della cartilagine (x² + y² + z² = 2ax + 2by + 2cz + d)
 const cT = (() => { const p = REAL('cart_omero').pos, M = Array.from({ length: 4 }, () => new Float64Array(5));
@@ -35,19 +35,17 @@ const C = cT.map((v, k) => v + CENTRO[k]);
 
 griglia(C.map((v, k) => v - RAGGI[k] - 0.3), C.map((v, k) => v + RAGGI[k] + 0.3), PASSO, 0.1);
 log('griglia', G.NX, G.NY, G.NZ);
-// il deltoide (gusci aperti che avvolgono la spalla) chiude con le ossa una cavità che il riempimento conta come interno: per lui vale la distanza senza segno
 const campo = nomi => esatta(sdf(unione(nomi)).F, nomi, 0.12);
-const Fc = campo(CUFFIA), Fd = campo(DELTOIDE), Fa = campo(ACROMION), Fo = campo(ALTRI), Fp = campo(PROFONDI);
+const Fc = campo(CUFFIA), Fb = campo(OSSA), Fp = campo(PROFONDI);
+// campo della cuffia sfocato (`LISCIA` passate): lo strato a distanza costante segue la forma generale dei tendini, non le loro piccole irregolarità
+const Fs = G.sfoca(Fc, LISCIA);
 log('campi pronti');
-const Fc0 = Fc, mezzo = (DA + A) / 2, sp = (A - DA) / 2;
+const mezzo = (DA + A) / 2, sp = (A - DA) / 2;
 let i = 0;
 const V = valuta(p => { const id = i++, e = Math.hypot((p[0] - C[0]) / RAGGI[0], (p[1] - C[1]) / RAGGI[1], (p[2] - C[2]) / RAGGI[2]) - 1;
-  // strato sopra la cuffia, dove c'è spazio sotto il deltoide; sotto l'acromion e il coracoacromiale (dove la cuffia arriva quasi a contatto) la borsa
-  // ne riveste la faccia inferiore, sottile (`SOTTO`), solo davanti alla cuffia
-  const sopra = Math.max(Math.abs(Fc0[id] - mezzo) - sp, LIB - Math.abs(Fd[id]), LIB - Fo[id], PROF - Fp[id]);
-  const sotto = Math.max(Math.abs(Fa[id] - (SOTTO[0] + SOTTO[1]) / 2) - (SOTTO[1] - SOTTO[0]) / 2, Fc0[id] - 0.2, 0.01 - Fc0[id]);
-  return Math.max(Math.min(sopra, sotto), e * 0.5); });
+  return Math.max(Math.abs(Fs[id] - mezzo) - sp, LIB - Fb[id], PROF - Fp[id], e * 0.5); });
 const m = nets(V, () => [0, 1, 0]);
+m.pos = G.taubin(m.pos, m.idx, TAUBIN);
 // tiene i pezzi con almeno `PEZZO` dei triangoli (toglie i frammenti isolati dove lo strato si interrompe)
 { const nv = m.pos.length / 3, par = Int32Array.from({ length: nv }, (_, k) => k), f = k => { while (par[k] !== k) k = par[k] = par[par[k]]; return k; };
   for (let t = 0; t < m.idx.length; t += 3) { const a = f(m.idx[t]), b = f(m.idx[t + 1]), c = f(m.idx[t + 2]); par[b] = a; par[f(c)] = a; }

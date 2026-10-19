@@ -248,14 +248,21 @@ const oraT = (az, el) => { const d = nor(add(add(mul(up, Math.cos(az)), antS, Ma
 const GH = { sghl: [oraL(30), oraT(0.9, 0.1), 0.55], mghl: [oraL(90), oraT(1.5, 0), 0.7], ighl_a: [oraL(135), oraT(2.1, -0.2), 0.85], ighl_p: [oraL(-135), oraT(-2.1, -0.2), 0.75] };
 for (const [id, [a, b, w]] of Object.entries(GH)) { MESH[id] = placca(a, b, w, w * 0.85, 0.06); setMesh(id, MESH[id]); log(id, MESH[id].pos.length / 3, 'vertici'); }
 
-/* ---- coraco-omerale: dal coracoide sopra la testa (libero, aggira capsula e cartilagine) ai tubercoli ---- */
+/* ---- coraco-omerale: breve fascio dal coracoide alla capsula + lamina sottile sulla capsula fino al collo dell'omero ---- */
 // coraco-omerale: dal margine laterale della base del coracoide all'intervallo dei rotatori, appoggiato sulla capsula (sfera testa + capsula),
 // ai due lati del solco bicipitale: fibre anteriori al tubercolo minore (mediale), posteriori al maggiore
 // il coraco-omerale passa sopra il tendine del capo lungo del bicipite (intervallo dei rotatori): il tendine BodyParts3D intatto (revisione `BICIPITE`,
 // la stessa da cui `vasi-nervi-spalla.mjs` riparte per i muscoli) è un ostacolo per le sue fibre
-const BICIPITE = '59b7798';
+const BICIPITE = '59b7798', CH_LARGO = [0.7, 0.9];   // larghezza della lamina del coraco-omerale (cm) al lato coracoideo e omerale
 { const R0 = G.realDaRevisione(BICIPITE, 'bic_lungo', 'modelli/spalla-3d.html'); setMesh('bic_lungo', { pos: R0.pos, idx: R0.idx, tag: R0.tag, fdir: R0.fdir }); }
-fascio({ id: 'coraco_om', extra: ['bic_lungo'], A: R.ch_cor, B: R.ch_om, ia: [CORACOIDE, 0.5, 0.14], ib: [[1, 0, 0], 0.8, 0.12], nu: 7, nv: 1, rf: 0.07, fineB: 0.85, capsula: { c: cT, r: 3.2, libera: 1.5 } });   // si assottiglia fondendosi con la capsula
+// lamina sottile sulla capsula, come i gleno-omerali (la versione a fascio libero era spessa e sospesa sopra la testa): dal punto di capsula più vicino
+// alla base del coracoide a quello più vicino all'inserzione omerale (la capsula si inserisce sul collo, quindi la lamina arriva all'osso); un breve
+// fascio la collega al coracoide passando sopra il tendine del capo lungo del bicipite
+{ const cA = idxCap(R.ch_cor.p), cB = idxCap(R.ch_om.p);
+  fascio({ id: 'coraco_om', extra: ['bic_lungo'], A: R.ch_cor, B: { p: cap.V[cA], n: cap.N[cA], osso: 'caps' }, ia: [CORACOIDE, 0.45, 0.1], ib: [[1, 0, 0], 0.55, 0.08], nu: 5, nv: 1, rf: 0.06 });
+  const L = placca(cap.V[cA], cap.V[cB], CH_LARGO[0], CH_LARGO[1], 0.06), F = MESH.coraco_om, n0 = F.pos.length / 3;
+  MESH.coraco_om = { pos: Float32Array.from([...F.pos, ...L.pos]), idx: Uint32Array.from([...F.idx, ...Array.from(L.idx, i => i + n0)]), tag: null, fdir: Int8Array.from([...F.fdir, ...L.fdir]) };
+  setMesh('coraco_om', MESH.coraco_om); log('coraco_om: fascio', n0, 'vertici + lamina', L.pos.length / 3); }
 
 /* ---- contatti tra legamenti (vertici a meno di 0,3 mm da un'altra mesh di legamento) ---- */
 const IDS = Object.keys(MESH);
