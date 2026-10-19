@@ -8,7 +8,7 @@
      MODELLO=/tmp/copia.html node strumenti/rifinitura-infra-spalla.mjs   → lavora su una copia
    Va lanciato dopo `muscoli-spalla.mjs` e prima di `borsa-spalla.mjs` (la borsa poggia sul sottospinato). Riparte dalle posizioni di `infra` della
    revisione `BASE` (stessa topologia), quindi si può rilanciare con lo stesso risultato; se si rilancia `muscoli-spalla.mjs` e cambia `infra`,
-   aggiornare `BASE` alla revisione che contiene il nuovo risultato (prima di questo script).
+   aggiornare `BASE` alla revisione che contiene il nuovo risultato (prima di questo script; ora fc755f7).
 
    Metodo: nelle sfere `ZONE` (centro, raggio pieno, raggio esterno, in cm) i vertici sono levigati con `PASSATE` giri di Taubin ristretti alla zona
    (peso 1 nel raggio pieno, che scende a 0 al raggio esterno con curva smoothstep): il resto della mesh non si muove. Le zone `forte` (punte più piccole del passo della
@@ -24,7 +24,7 @@ const G = await import('./lib-modello.mjs');
 const { vicini } = await import('./lib-bp3d.mjs');
 const { REAL, posDaRevisione, setMesh, saveFile, repack, log, sstep } = G;
 
-const BASE = '56ca2ad';
+const BASE = 'fc755f7';
 const ZONE = [{ c: [-1.1, 1.8, -1.7], r0: 0.8, r1: 1.3 },      // lembo ripiegato sul margine superiore
               { c: [-2.6, 1.3, -0.3], r0: 0.5, r1: 0.9 },       // punte vicino all'inserzione
               { c: [-2.6, 1.42, -0.38], r0: 0.12, r1: 0.3, forte: true },    // ultime punte sull'angolo dell'inserzione

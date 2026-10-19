@@ -24,7 +24,7 @@ const G = await import('./lib-modello.mjs');
 const { vicini } = await import('./lib-bp3d.mjs');
 const { REAL, posDaRevisione, setMesh, saveFile, repack, log } = G;
 
-const BASE = '1629cd6', NOME = 'supra';
+const BASE = 'fc755f7', NOME = 'supra';
 const VISTA = [-1.0, 0.1], RAGGIO = 3.5, PROF = 1.5;                  // cm; PROF: si escludono i vertici più di PROF dietro il punto più basso (lungo la vista)
 const V_ALTO = 1.6, V_FONDO = 0.0, ESP = 2.6, O_SOPRA = 0.3, BANDA = 0.05; // cm
 const GAP_OSSO = 0.05, NBIN = 360, DIEDRO_PIEGA = 130, PASSATE_PIEGA = 15, LEV_PUNTA = 200, DIEDRO_BORDO = 95, LEV_BORDO = 100;

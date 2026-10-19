@@ -27,7 +27,7 @@ const G = await import('./lib-modello.mjs');
 const { vicini } = await import('./lib-bp3d.mjs');
 const { REAL, posDaRevisione, setMesh, saveFile, repack, log } = G;
 
-const BASE = '300954d', NOME = 'tmin';
+const BASE = 'fc755f7', NOME = 'tmin';
 const VISTA = [4.1, 0.4], RAGGIO = 2.6, BIN = 0.05;
 const INIZIO_SUP = 2.0, INIZIO_INF = 1.2, CAPO_SUP = 0.45, CAPO_INF = 0.35, ABBASSA_PUNTA = 0.18, BANDA = 0.05;   // cm
 const LEV_PUNTA = 60, DIEDRO_BORDO = 95, LEV_BORDO = 100;
