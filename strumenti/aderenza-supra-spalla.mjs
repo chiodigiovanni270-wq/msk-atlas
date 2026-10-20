@@ -31,6 +31,7 @@
       cambiano a ogni spostamento.
    3. Distanze minime e levigatura (`GIRI_LEV` giri alternati: spinta fuori da supporto, `GAP_MIN`, e dalle strutture vicine, `VICINE` a `GAP_VICINE` o alla
       distanza di prima se minore; poi Taubin di `LEV_LOC` passate pesato dalla quota).
+   4. Superficie esterna liscia e margine distale uniforme: vedi il passo 4 più sotto (`SIGMA_EST`, `SP_BORDO`, `W_BORDO`, `V_BORDO`, `SP_MIN`).
    Normali di vertice (`nm`) ricalcolate sui vertici spostati e sui vicini. Controlli stampati: distanza dello strato interno dal supporto prima e dopo, distanza
    minima dalle altre strutture prima e dopo. */
 import { dirname, resolve } from 'node:path';
@@ -195,11 +196,14 @@ for (let g = 0; g < GIRI_LEV; g++) { const n = spingi();
   if (g === 0) log('vertici spinti fuori dalle distanze minime (supporto e strutture vicine)', n); }
 log('dopo l\'ultima levigatura restano da spingere', spingi(), 'vertici');
 
-// ---- 4. superficie esterna liscia e spessore uniforme: lo strato interno resta dov'è (a GAP_AD dal supporto); per lo strato esterno lo spessore della lamina
-// (distanza dal supporto − GAP_AD) è un campo levigato lungo lo strato (`LEV_SP` giri) che verso il margine scende a `SP_BORDO` (smoothstep sulla distanza
-// geodetica dal margine, larghezza `W_BORDO`): prima il lobo laterale era sottile e aderente e quello anteriore più spesso e sollevato, con un'incisura tra i
-// due sul margine distale. I vertici esterni vanno allo spessore nuovo lungo il gradiente della distanza, poi Taubin sul solo strato esterno (`LEV_EST`
-// passate, pesate dalla quota: toglie solchi e scanalature della faccia superiore), `GIRI_EST` volte; infine spessore minimo `SP_MIN` e distanze minime.
+// ---- 4. superficie esterna liscia e margine distale uniforme (lo strato interno resta a GAP_AD dal supporto). Prima la faccia superiore aveva solchi e
+// scanalature e una piega tra il lobo laterale (sottile e aderente) e quello anteriore (più spesso e sollevato), che sul margine distale faceva un'incisura.
+// Strato esterno: vertici con normale verso fuori più i vicini con normale non rivolta verso la testa (entra anche la piega). Distanza dal margine nella vista
+// (impronta del tendine), considerata solo all'estremità distale (`V_BORDO`). Spessore (distanza dal supporto − GAP_AD) levigato lungo lo strato (`LEV_SP`) e
+// portato a `SP_BORDO` sul margine (smoothstep su `W_BORDO`): così il profilo del margine è uguale lungo tutta l'estremità. Poi, `GIRI_EST` volte: vertici vicini
+// al margine verso lo spessore nuovo (gli altri solo allo spessore minimo `SP_MIN`); superficie esterna come raggio dal centro della testa per direzione,
+// regressione quadratica locale pesata (gaussiana `SIGMA_EST`) e spostamento solo lungo il raggio (pesato dalla quota e da `W_LISCIA` sul margine): toglie
+// solchi e piega senza abbassare la superficie convessa; Taubin leggero (`LEV_EST`). Infine spessore minimo e distanze minime alternati a Taubin leggero.
 { const N = normaliV(cur), cs = new Float64Array(nv), est = [], bordo = [];
   for (const i of reg) { const r = radiale(cur, i), l = Math.hypot(N[3 * i], N[3 * i + 1], N[3 * i + 2]) || 1; cs[i] = (N[3 * i] * r[0] + N[3 * i + 1] * r[1] + N[3 * i + 2] * r[2]) / l;
   }
