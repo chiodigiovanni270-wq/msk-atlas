@@ -16,6 +16,7 @@ La cartella `modelli/` contiene pagine HTML autocontenute (three.js r128 da CDN)
 - `gomito-3d.html` — gomito destro, con regioni guidate (tunnel cubitale, fossa cubitale) e piano di taglio
 - `spalla-3d.html` — spalla destra (costruita da BodyParts3D a strati con gli script `*-spalla.mjs`)
 - `ginocchio-3d.html` — ginocchio destro
+- `anca-3d.html` — anca destra, 62 strutture; versione in revisione anatomica sul ramo dedicato (27 strutture vascolo-nervose ricostruite; borse e rami minuti esclusi)
 
 Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi (2–8 MB), è normale.
 
@@ -40,7 +41,7 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
 - Schede delle strutture (card che si apre toccando una struttura), uguali in tutti i modelli: nota `info` breve (decorso essenziale e uno o due rilievi clinico-radiologici);
   per muscoli, legamenti, retinacoli, aponeurosi e membrane anche i campi `o`, `ins`, `fn` (Origine, Inserzione, Funzione), che la nota non ripete;
   per i nervi solo la nota, che dice se sono motori, sensitivi o misti e cosa innervano. Dettagli in `GUIDA_MODELLI.md` (sezione "Dati").
-- Al momento i modelli sono quattro, ma ne verranno aggiunti altri nel tempo: la struttura del sito deve permettere di aggiungere un nuovo modello in modo semplice e ripetibile, senza riorganizzare tutto.
+- Al momento i modelli sono cinque (anca in revisione), ma ne verranno aggiunti altri nel tempo: la struttura del sito deve permettere di aggiungere un nuovo modello in modo semplice e ripetibile, senza riorganizzare tutto.
 
 ## Aggiungere un modello
 1. Copia il file in `modelli/<nome>-3d.html` (nome minuscolo, parole separate da trattini).
@@ -51,7 +52,7 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
    salva `assets/anteprime/<nome>-3d.jpg`, 1600×1000. Istruzioni e opzioni in testa allo script.
 4. In `index.html` duplica un blocco `<!-- CARD MODELLO -->` e aggiorna distretto, immagine, alt,
    link e titolo, e imposta `data-strutture` sul `<li class="card">` (numero di strutture con scheda del modello: righe dell'elenco "Strutture").
-   Ordine delle card: prima tavola la spalla, poi il resto dell'arto superiore (polso e dito, gomito), infine l'inferiore (ginocchio).
+   Ordine delle card: prima tavola la spalla, poi il resto dell'arto superiore (polso e dito, gomito), infine l'inferiore (anca, ginocchio).
    La card non ha descrizione: solo titolo con freccia e riga "N strutture". Numero "Tav.", riga "N strutture", conteggio dei modelli e totale delle strutture sono automatici.
 5. Verifica in locale, poi commit (`Aggiunge modello <nome>`) e push su `main`.
 
