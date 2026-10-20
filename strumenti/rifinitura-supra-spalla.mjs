@@ -5,7 +5,7 @@
      node strumenti/rifinitura-supra-spalla.mjs                  → riscrive `supra` nel file del modello
      PROVA=1 node strumenti/rifinitura-supra-spalla.mjs          → stampa i controlli senza scrivere
      MODELLO=/tmp/copia.html node strumenti/rifinitura-supra-spalla.mjs   → lavora su una copia
-   Va lanciato dopo `muscoli-spalla.mjs` e prima di `borsa-spalla.mjs` (la borsa poggia sul sovraspinato). Riparte dalle posizioni di `supra` della revisione
+   Va lanciato dopo `muscoli-spalla.mjs` e prima di `borsa-spalla.mjs` (la borsa poggia sul sovraspinato). L'aderenza all'osso del tendine (margine inferiore arrotondato, distanza uniforme dal supporto) la fa dopo `aderenza-supra-spalla.mjs`, che va lanciato dopo `capo-lungo-spalla.mjs`. Riparte dalle posizioni di `supra` della revisione
    `BASE` (stessa topologia), quindi si può rilanciare con lo stesso risultato; se si rilancia `muscoli-spalla.mjs` e cambia `supra`, aggiornare `BASE`.
 
    Metodo. Nella vista laterale (`VISTA`: theta, phi della camera della pagina) il tendine scende verso l'inserzione: u verso destra (avanti), v verso
