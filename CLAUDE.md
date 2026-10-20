@@ -16,7 +16,7 @@ La cartella `modelli/` contiene pagine HTML autocontenute (three.js r128 da CDN)
 - `gomito-3d.html` — gomito destro, con regioni guidate (tunnel cubitale, fossa cubitale) e piano di taglio
 - `spalla-3d.html` — spalla destra (costruita da BodyParts3D a strati con gli script `*-spalla.mjs`)
 - `ginocchio-3d.html` — ginocchio destro
-- `anca-3d.html` — anca destra, 35 strutture; versione in revisione anatomica sul ramo dedicato (vasi, nervi e borse esclusi)
+- `anca-3d.html` — anca destra, 62 strutture; versione in revisione anatomica sul ramo dedicato (27 strutture vascolo-nervose ricostruite; borse e rami minuti esclusi)
 
 Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi (2–8 MB), è normale.
 

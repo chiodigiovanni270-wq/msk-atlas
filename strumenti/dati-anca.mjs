@@ -1,8 +1,9 @@
+import {NV,NVCATS} from './dati-neurovascolari-anca.mjs';
 /* Anca destra: catalogo delle geometrie BodyParts3D e schede.
    Master per bozza-anca.mjs. Le ricostruzioni hanno fma=null.
    Prima versione didattica: le impronte tendinee e le strutture procedurali
    richiedono revisione anatomica prima della pubblicazione. */
-export const CATS=[
+export const BASE_CATS=[
  {id:'ossa',name:'Ossa',color:'#e8dcc0'},
  {id:'cart',name:'Cartilagine',color:'#c3dae6'},
  {id:'men',name:'Labbro',color:'#d6c5ac'},
@@ -17,7 +18,7 @@ export const CATS=[
 const bone=(id,fma,name,info)=>({id,fma,cat:'ossa',name,info});
 const muscle=(id,fma,cat,name,o,ins,fn,tip,info)=>({id,fma,cat,name,o,ins,fn,tip,info});
 const joint=(id,cat,name,info,o,ins,fn)=>({id,fma:null,cat,name,info:'Ricostruzione didattica da verificare. '+info,...(o?{o,ins,fn}:{})});
-export const STR=[
+export const BASE_STR=[
  bone('coxale',16586,'Osso coxale destro','Ileo, ischio e pube delimitano l’acetabolo e il forame otturatorio. Geometria BodyParts3D; i dettagli minuti dipendono dalla risoluzione del dataset.'),
  bone('femore',24474,'Femore prossimale destro','Testa, collo, grande e piccolo trocantere. Il segmento diafisario è sezionato per concentrare la tavola sull’anca.'),
  bone('sacro',16202,'Sacro','Riferimento posteriore del bacino. La tavola comprende il sacro intero e il solo osso coxale destro.'),
@@ -54,3 +55,6 @@ export const STR=[
  joint('trasverso','leg','Legamento trasverso dell’acetabolo','Ponte sull’incisura acetabolare inferiore.', 'Estremo anteriore dell’incisura acetabolare.','Estremo posteriore dell’incisura acetabolare.','Completa inferiormente il contorno acetabolare.'),
  joint('rotondo','leg','Legamento della testa del femore','Ventaglio intra-articolare dai margini dell’incisura e dal trasverso alla fovea. Decorso e larghezza sono ricostruiti.', 'Margini dell’incisura acetabolare e legamento trasverso.','Fovea della testa del femore.','Contributo alla stabilità e alla propriocezione articolare.')
 ];
+
+export const CATS=[...BASE_CATS,...NVCATS];
+export const STR=[...BASE_STR,...NV];

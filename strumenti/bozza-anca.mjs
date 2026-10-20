@@ -11,7 +11,7 @@ import {readFileSync,writeFileSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {scarica,leggiSTL,ritaglia,riduci,compatta,impacchetta,sstep} from './lib-bp3d.mjs';
-import {CATS,STR} from './dati-anca.mjs';
+import {BASE_CATS as CATS,BASE_STR as STR} from './dati-anca.mjs';
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const OUT=(process.argv.find(a=>a.startsWith('--prova='))||'').slice(8)||resolve(ROOT,'modelli/anca-3d.html');
 const O=[-81.75,-93.03,820], MUSC=['cin','cuf','tor','brac'];

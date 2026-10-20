@@ -87,15 +87,16 @@ Ricavata da `ginocchio-3d.html` e `polso-dito-3d.html`. Un nuovo modello deve av
 
 ## Anca destra — versione sul ramo di revisione
 
-35 strutture selezionabili, 36 mesh (i due fasci ileofemorali condividono la scheda).
+62 strutture selezionabili, 63 mesh (i due fasci ileofemorali condividono la scheda).
 Pagina `modelli/anca-3d.html`; visualizzatore, CSS, shader e materiali copiati dalla spalla.
-Ossa e muscoli derivano da BodyParts3D. Vasi, nervi, borse e cute **non inclusi**.
+Ossa e muscoli derivano da BodyParts3D. La base articolare comprende 35 schede; l’estensione vascolo-nervosa descritta sotto porta la tavola a 62. Borse e cute restano escluse.
 
 Ordine degli strumenti:
 
 1. `node strumenti/bozza-anca.mjs`: generatore iniziale da STL BodyParts3D (cache `BP3D_DIR`, Node 22+, curl). Coordinate trasformate in cm intorno alla testa femorale: origine BP3D in mm `[-81.75,-93.03,820]`, X=x, Y=z, Z=−y; taglio a Y=±16 cm, levigatura di Taubin e riduzione delle mesh. Catalogo e schede in `strumenti/dati-anca.mjs`. Le fibre e le transizioni tendinee sono grafiche, non impronte segmentate. `--prova=/percorso/anca.html` scrive una copia; la base articolare prodotta da questo primo passo è provvisoria e **richiede il passo 2**.
 2. `node strumenti/articolazione-anca.mjs`: ricostruisce cartilagini, labbro, capsula e legamenti sulle ossa incorporate; nessun download né revisione git di partenza. Può essere rilanciato, senza modificare ossa, muscoli o visualizzatore. `MODELLO=/percorso/copia.html` seleziona una copia. `--verifica` controlla solo la topologia del file senza scrivere.
-3. `node strumenti/verifica-anca.mjs`: controlli offline su catalogo, buffer e riferimenti, parità del CSS/shader/materiali con la spalla, fovea libera e distanze dalle ossa. Non modifica file. Eseguire anche `articolazione-anca.mjs --verifica` sul risultato salvato.
+3. `node strumenti/vasi-nervi-anca.mjs`: aggiunge o rigenera le 27 strutture vascolo-nervose, descritte nella sezione dedicata sotto.
+4. `node strumenti/verifica-neurovascolare-anca.mjs` e `node strumenti/verifica-anca.mjs`: controlli offline su catalogo, buffer e riferimenti, parità del CSS/shader/materiali con la spalla, fovea libera e distanze dalle ossa. Non modifica file. Eseguire anche `articolazione-anca.mjs --verifica` sul risultato salvato.
 
 Metodo e parametri del passo 2 (cm):
 
@@ -126,3 +127,16 @@ Riferimenti anatomici: [Imaging of the Hip, NCBI Bookshelf](https://www.ncbi.nlm
 - [ ] Note `info` anatomicamente corrette (verificate da me)
 
 Fasci neurovascolari del dito: `node strumenti/fasci-dito.mjs` (`verifica` per solo elencare le compenetrazioni) riparte dal decorso originale di `arterie` e `nervi` (revisione `ORIGINALE`, default f058cc0) e li spinge fuori da ossa, tendini, guaina, pulegge, placche, collaterali, intrinseci e apparato estensore, con levigatura a filo teso; arteria e nervo restano separati e la prima posizione (y 4,2) è fissa. Da rilanciare se cambiano pulegge, guaina o apparato estensore.
+
+
+### Estensione vascolo-nervosa dell’anca
+
+La tavola comprende ora **62 schede e 63 mesh**: alle 35 schede precedenti si aggiungono 9 arterie, 9 vene e 9 nervi. `dati-anca.mjs` esporta sia `BASE_STR`/`BASE_CATS` (bozza iniziale) sia il catalogo completo `STR`/`CATS`; `bozza-anca.mjs` usa il catalogo base. Nessuna mesh articolare o muscolare preesistente viene modificata.
+
+- `dati-neurovascolari-anca.mjs`: schede italiane, categorie/palette identiche alla spalla, raggi e punti guida in cm. Arterie e vene iliaca esterna, iliaca interna, femorale, profonda, circonflesse mediale/laterale, otturatoria e glutee superiore/inferiore. Nervi femorale, otturatorio (decorso anteriore), cutaneo laterale, ischiatico, glutei superiore/inferiore, cutaneo posteriore, del quadrato del femore e dell’otturatore interno. Il catalogo pubblico BP3D utilizzato non fornisce i principali tronchi periferici: tutti i nuovi decorsi sono ricostruiti, non segmentati, anche dove esiste un vaso iliaco nel dataset.
+- `vasi-nervi-anca.mjs`: dopo **bozza → articolazione → vasi-nervi**. Offline e ripetibile; `MODELLO=/percorso/copia.html` opera su una copia; `--prova=report.json` calcola senza scrivere il modello. Guide Catmull–Rom, campionate ogni circa 0,8 mm; 150 passate con levigatura, richiamo alle guide, repulsione dagli ostacoli rigidi e muscolari profondi. Griglia 1 mm, distanza esatta vicino alle superfici. Grande e medio gluteo sono coperture, non ostacoli da aggirare esternamente. I nervi diretti ai rotatori possono terminare nel muscolo. I tronchi già adattati si respingono, salvo la giunzione della branca al vaso di origine. Dopo il rilassamento, 90 passate di levigatura su una finestra di circa 4,8 mm regolarizzano i raccordi, mantenendo il vincolo rigido. Tubi a 16 lati con trasporto della sezione, chiusure terminali, fibre tangenti; sezione ellittica dell’ischiatico. Calibri indicativi (non misurazioni individuali), raccordi per sovrapposizione interna fra strutture selezionabili, senza fusione booleana. Le vene satelliti sono singole rappresentazioni schematiche. Taglio inferiore a −16 cm.
+- `verifica-neurovascolare-anca.mjs`: sul file quantizzato controlla tutte le 27 mesh (triangoli non degeneri, spigoli condivisi e orientati, distanze da ossa/cartilagini/capsula con tolleranza di 0,3 mm) e confronta le 36 mesh originali con `ebcccf75183c0081b9477d7c852e6b5e35048e1c`, richiedendo posizioni e indici identici. `verifica-anca.mjs` continua a verificare catalogo, materiali/CSS e superfici articolari.
+
+Limiti: il rilassamento geometrico non certifica i rapporti anatomici né esclude tutte le intersezioni fra triangoli o con i tessuti molli. Le guide possono spostarsi nell’adattamento: i massimi sono stampati nel rapporto, per guidare la revisione. Non sono modellati plessi lombosacrali completi, biforcazioni nervose distali, tutti i rami muscolari/articolari, rete retinacolare, perforanti, vasi pudendi, sistema safenico, corona mortis o varianti. Borse e cute restano escluse. Le descrizioni e il pannello informazioni dichiarano queste esclusioni. La versione resta in revisione anatomica e non va descritta come albero vascolo-nervoso completo.
+
+Riferimenti di revisione: [Hip Arteries, NCBI](https://www.ncbi.nlm.nih.gov/sites/books/NBK542174/), [Hip, NCBI](https://www.ncbi.nlm.nih.gov/sites/books/NBK526019/), [Innervation of the hip joint (2024)](https://pmc.ncbi.nlm.nih.gov/articles/PMC11096440/), [Superior Gluteal Nerve Anatomy (studio cadaverico)](https://pubmed.ncbi.nlm.nih.gov/37510058/), [Innervation of the Posterior Hip Capsule (studio cadaverico)](https://pubmed.ncbi.nlm.nih.gov/33565591/). Queste fonti orientano i decorsi, non validano le geometrie individuali della tavola.
