@@ -35,6 +35,9 @@
       `CRESTA`) levigate con due anelli finché non ne restano (`GIRI_PIEGHE`).
    5. Omero: sotto l'equatore della vista i vertici spostati più lontani dall'osso di quanto lo fossero prima vi sono riaccostati (sotto la testa l'osso
       rientra verso il collo); tutti a `GAP_OSSO` dall'omero; poi di nuovo le pieghe.
+   4b. Margine superiore rettilineo (`U_RETTA`, `BANDA_RETTA`): il bordo liscio e la media dei vicini nelle pieghe abbassavano il margine fra l'angolo
+      superolaterale e la gobba mediale (1 mm, concavità); il margine di destinazione è l'inviluppo convesso superiore di quello attuale e i vertici nella
+      fascia sotto il margine sono alzati in proporzione; si ripete dopo le pieghe e dopo la spinta dall'omero.
    5b. Capsula: lungo il raggio dal centro della testa, i vertici che hanno la capsula entro `CAPS_MARCIA` più in fuori (o a meno di `GAP_CAPS`) vanno oltre
       l'ultimo punto a meno di `GAP_CAPS`; spostamento allargato nello spazio (`R_CAPS`, a scendere) così le due facce si muovono insieme; `GIRI_CAPS` volte.
    6. Capo breve del bicipite: i vertici entro `SEP_BB` dal tendine vanno avanti lungo la vista quanto serve, spostamento allargato sulla mesh (`GIRI_BB`).
@@ -56,7 +59,8 @@ const BIN = 0.1, LEV = 30, GAP_OSSO = 0.05, U_LISCIO = 2.6, GIRI_PIEGHE = 12;
 const R_SU = 0.45, U_PIATTO = 1.6, U_FINE = 2.8, U_BASSO = 1.6, V_VERT = -0.5, AU = 1.4, AV = 1.4, MEDIA = 4;   // cm (MEDIA in bin)
 const C_RAD = [1.0, -1.4], PASSO_ANG = 3, BANDA_RAD = 0.6, GIRI_RAD = 3;                // cm dall'angolo superolaterale ideale; gradi; cm
 const Y_SOLCO = 1.0, GAP_SOLCO = 0.1, BANDA_LAT2 = 1.0;                                  // cm
-const GAP_CAPS = 0.06, CAPS_MARCIA = 0.25, R_CAPS = 0.3, GIRI_CAPS = 4;                                 // cm
+const U_RETTA = [0.1, 1.9], BANDA_RETTA = 0.4;                                          // cm
+const GAP_CAPS = 0.08, CAPS_MARCIA = 0.25, R_CAPS = 0.3, GIRI_CAPS = 4;                                 // cm
 const PLACCA = 0.6, DENTRO = 0.25, CRESTA = -0.3, R_FORO = [0.2], D_FORO = 0.25, GIRI_BORDO = 40, PROF_FORO = 1.0, SEP_BB = 0.05, GIRI_BB = 40;                                     // cm; coseno fra le normali di due triangoli adiacenti
 
 let { nv, idx } = REAL(NOME);
@@ -206,6 +210,19 @@ for (let giro = 0; giro < GIRI_RAD; giro++) { const [, G3] = colonne(cur), vInf 
     for (const [i, du, dv] of D) { sposta(i, du, dv); mossi.push(i); } }
   log('bordo liscio: vertici di bordo', R.size); }
 
+// margine superiore rettilineo: dopo il bordo liscio il margine tra l'angolo superolaterale e la gobba mediale (U_RETTA[0] … U_RETTA[1]) può restare concavo.
+// Il margine di destinazione è l'inviluppo convesso superiore di quello attuale (da U_RETTA[0] in poi: una retta fra angolo e gobba, poi in discesa);
+// i vertici nella fascia `BANDA_RETTA` sotto il margine sono alzati in proporzione (smoothstep), stessa distanza dal centro della testa omerale;
+// ripetuto dopo le pieghe (la media dei vicini abbassa di nuovo il margine) e dopo la spinta dall'omero
+const rettifica = () => { const [SUa] = colonne(cur), k = u => Math.round(u / BIN), pts = []; for (let j = k(U_RETTA[0]); j <= k(U_RETTA[1]); j++) pts.push([j * BIN, SUa[j]]);
+  const hull = []; for (const p of pts) { while (hull.length >= 2) { const [a, b] = hull.slice(-2); if ((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]) >= 0) hull.pop(); else break; } hull.push(p); }
+  const Tg = u => { for (let j = 1; j < hull.length; j++) if (u <= hull[j][0]) { const [a, b] = [hull[j - 1], hull[j]]; return a[1] + (b[1] - a[1]) * (u - a[0]) / (b[0] - a[0]); } return hull.at(-1)[1]; };
+  let n4 = 0, mx4 = 0;
+  for (const i of sel) { const [u, v] = uv(cur, i); if (u < U_RETTA[0] || u > U_RETTA[1]) continue; const su = interp(SUa, u), dv = (Tg(u) - su) * ss((v - (su - BANDA_RETTA)) / BANDA_RETTA);
+    if (dv > 1e-5) { sposta(i, 0, dv); mossi.push(i); n4++; mx4 = Math.max(mx4, dv); } }
+  log('margine superiore rettilineo: vertici', n4, ', al massimo', (mx4 * 10).toFixed(2), 'mm');  };
+rettifica();
+
 // fori passanti dentro il contorno (in pagina un buco da cui si vedono le strutture sotto; di lato si vede attraverso): la faccia anteriore si infila in un
 // tunnel fino alla posteriore, e ci sono vertici su cui poggiano sia triangoli rivolti alla camera sia triangoli rivolti indietro, lontano dal bordo del
 // tendine (più di `DENTRO`). Per ogni gruppo si tolgono i triangoli entro `R_FORO` dal centro nel piano della vista (e entro 5 mm nello spazio): se restano
@@ -278,6 +295,7 @@ const sistemaPieghe = titolo => { const ins = new Set(zona), crs = (a, b) => [a[
     P = pieghe(); }
   log(titolo, n0, '→', P.size, 'dopo', g, 'giri'); };
 sistemaPieghe('pieghe: vertici');
+rettifica();
 // omero: i vertici a meno di `GAP_OSSO` dall'osso (l'estremità allargata scende sul trochine) sono spinti fuori lungo il gradiente della distanza
 // e, sotto l'equatore della vista (v < 0), i vertici spostati che si sono staccati dall'osso più di quanto lo fossero prima (lo spostamento conserva la
 // distanza dal centro della testa, ma sotto la testa l'osso rientra verso il collo) tornano alla loro distanza di prima dall'omero
@@ -292,6 +310,7 @@ sistemaPieghe('pieghe: vertici');
   log('omero: vertici spinti fuori', n0); }
 // di nuovo le pieghe, dopo la spinta dall'omero
 sistemaPieghe('pieghe dopo l’omero: vertici');
+rettifica();
 // capsula: il tendine allargato verso il solco le passa davanti. Lungo il raggio dal centro della testa, ogni vertice della zona che ha la capsula entro
 // `CAPS_MARCIA` più in fuori (o è a meno di `GAP_CAPS`) va oltre l'ultimo punto a meno di `GAP_CAPS` dalla capsula; lo spostamento si allarga nello spazio
 // (entro `R_CAPS`, a scendere), così faccia profonda e superficiale del tendine si spostano insieme senza attraversarsi; fino a `GIRI_CAPS` volte
