@@ -31,6 +31,7 @@
       cambiano a ogni spostamento.
    3. Distanze minime e levigatura (`GIRI_LEV` giri alternati: spinta fuori da supporto, `GAP_MIN`, e dalle strutture vicine, `VICINE` a `GAP_VICINE` o alla
       distanza di prima se minore; poi Taubin di `LEV_LOC` passate pesato dalla quota).
+   4. Superficie esterna liscia e margine distale uniforme: vedi il passo 4 più sotto (`SIGMA_EST`, `SP_BORDO`, `W_BORDO`, `V_BORDO`, `SP_MIN`).
    Normali di vertice (`nm`) ricalcolate sui vertici spostati e sui vicini. Controlli stampati: distanza dello strato interno dal supporto prima e dopo, distanza
    minima dalle altre strutture prima e dopo. */
 import { dirname, resolve } from 'node:path';
@@ -44,6 +45,7 @@ const BASE = '02b4f15', FILE_REPO = 'modelli/spalla-3d.html';
 const VISTA = [-1.0, 0.1];                                                    // theta, phi della camera della pagina (come rifinitura-supra-spalla.mjs)
 const V_AD1 = 1.3, V_AD2 = 1.9, GAP_AD = 0.06, SU = 0.03, MAX = 0.5, GIRI = 5, LEV_CAMPO = 40, R_ACC = 0.3, LEV_LOC = 12, GIRI_LEV = 4, GAP_MIN = 0.05;   // cm
 const RAGGIO_ARR = 0.45, SIGMA_ARR = 0.5, U_ARR = [-0.9, -0.4], V_ARR = 1.4, LEV_ARR = 30;                                // margine inferiore arrotondato (cm)
+const SP_MIN = 0.05, SP_BORDO = 0.02, W_BORDO = 0.3, V_BORDO = [0.6, 1.0], LEV_SP = 200, GIRI_EST = 6, LEV_EST = 10, SIGMA_EST = 0.3, W_LISCIA = 0.08;   // superficie esterna e spessore (cm)
 const V_FORO = 1.0, D_CART = 0.2, D_FORO = 0.4, BORDO_FORO = -0.1;            // cm
 const SUPPORTO = ['omero', 'cart_omero', 'caps'], VICINE = ['coraco_om', 'bic_lungo', 'trasv_om', 'infra', 'subs', 'sghl', 'mghl'], GAP_VICINE = 0.05;   // strutture accanto: distanza minima (cm), o quella di prima se già minore
 
@@ -193,6 +195,83 @@ for (let g = 0; g < GIRI_LEV; g++) { const n = spingi();
     cur.set(q); }
   if (g === 0) log('vertici spinti fuori dalle distanze minime (supporto e strutture vicine)', n); }
 log('dopo l\'ultima levigatura restano da spingere', spingi(), 'vertici');
+
+// ---- 4. superficie esterna liscia e margine distale uniforme (lo strato interno resta a GAP_AD dal supporto). Prima la faccia superiore aveva solchi e
+// scanalature e una piega tra il lobo laterale (sottile e aderente) e quello anteriore (più spesso e sollevato), che sul margine distale faceva un'incisura.
+// Strato esterno: vertici con normale verso fuori più i vicini con normale non rivolta verso la testa (entra anche la piega). Distanza dal margine nella vista
+// (impronta del tendine), considerata solo all'estremità distale (`V_BORDO`). Spessore (distanza dal supporto − GAP_AD) levigato lungo lo strato (`LEV_SP`) e
+// portato a `SP_BORDO` sul margine (smoothstep su `W_BORDO`): così il profilo del margine è uguale lungo tutta l'estremità. Poi, `GIRI_EST` volte: vertici vicini
+// al margine verso lo spessore nuovo (gli altri solo allo spessore minimo `SP_MIN`); superficie esterna come raggio dal centro della testa per direzione,
+// regressione quadratica locale pesata (gaussiana `SIGMA_EST`) e spostamento solo lungo il raggio (pesato dalla quota e da `W_LISCIA` sul margine): toglie
+// solchi e piega senza abbassare la superficie convessa; Taubin leggero (`LEV_EST`). Infine spessore minimo e distanze minime alternati a Taubin leggero.
+{ const N = normaliV(cur), cs = new Float64Array(nv), est = [], bordo = [];
+  for (const i of reg) { const r = radiale(cur, i), l = Math.hypot(N[3 * i], N[3 * i + 1], N[3 * i + 2]) || 1; cs[i] = (N[3 * i] * r[0] + N[3 * i + 1] * r[1] + N[3 * i + 2] * r[2]) / l;
+  }
+  // strato esterno: si parte dai vertici con normale chiaramente verso fuori e si estende ai vicini con normale non rivolta verso la testa; così entrano anche i
+  // vertici della piega tra i due lobi (normale di traverso), che con la sola normale restavano fuori e fermi
+  { const ins = new Set(reg), visto = new Uint8Array(nv), coda = []; for (const i of reg) if (cs[i] > 0.6) { visto[i] = 1; coda.push(i); }
+    for (let k = 0; k < coda.length; k++) for (const j of nb[coda[k]]) if (!visto[j] && ins.has(j) && cs[j] > -0.3) { visto[j] = 1; coda.push(j); }
+    est.push(...coda); }
+  const inEst = new Uint8Array(nv); for (const i of est) inEst[i] = 1;
+  // distanza dal margine nella vista (impronta del tendine, celle (u, v)): il margine vero, non le pieghe interne della mesh
+  const dm = new Float64Array(nv).fill(1e9);
+  { const CEL = 0.025, mask = new Set(), key = (a, b) => a + ',' + b, ins = new Set(sel);
+    for (let t = 0; t < idx.length; t += 3) { const T = [idx[t], idx[t + 1], idx[t + 2]]; if (!T.every(i => ins.has(i))) continue;
+      const P = T.map(i => uv(cur, i)), lo = [0, 1].map(q => Math.floor(Math.min(...P.map(x => x[q])) / CEL)), hi = [0, 1].map(q => Math.floor(Math.max(...P.map(x => x[q])) / CEL));
+      const den = (P[1][1] - P[2][1]) * (P[0][0] - P[2][0]) + (P[2][0] - P[1][0]) * (P[0][1] - P[2][1]); if (Math.abs(den) < 1e-12) continue;
+      for (let a = lo[0]; a <= hi[0]; a++) for (let b = lo[1]; b <= hi[1]; b++) { const x = (a + 0.5) * CEL, y = (b + 0.5) * CEL;
+        const l1 = ((P[1][1] - P[2][1]) * (x - P[2][0]) + (P[2][0] - P[1][0]) * (y - P[2][1])) / den, l2 = ((P[2][1] - P[0][1]) * (x - P[2][0]) + (P[0][0] - P[2][0]) * (y - P[2][1])) / den;
+        if (l1 >= -0.02 && l2 >= -0.02 && 1 - l1 - l2 >= -0.02) mask.add(key(a, b)); } }
+    const R = Math.ceil(2 * W_BORDO / CEL);
+    for (const i of est) { const [u, v] = uv(cur, i), a = Math.floor(u / CEL), b = Math.floor(v / CEL); let best = 2 * W_BORDO;
+      for (let x = -R; x <= R; x++) for (let y = -R; y <= R; y++) { const d = Math.hypot(x, y) * CEL; if (d < best && !mask.has(key(a + x, b + y))) best = d; }
+      dm[i] = best + 2 * W_BORDO * sstep(V_BORDO[0], V_BORDO[1], v); } }   // il profilo del margine si uniforma solo all'estremità distale
+  const h = i => G.sample(Fs, cur[3 * i], cur[3 * i + 1], cur[3 * i + 2]);
+  const sp = new Float64Array(nv); for (const i of est) sp[i] = Math.max(0, h(i) - GAP_AD);
+  const spStat = et => { const L = est.filter(i => wq[i] === 1).map(i => (h(i) - GAP_AD) * 10).sort((a, b) => a - b), q = f => L[Math.floor(f * (L.length - 1))].toFixed(2); log('strato esterno', et + ': spessore (mm) p10', q(0.1), 'mediana', q(0.5), 'p90', q(0.9), '; deviazione media dalla mediana', (L.reduce((s, x) => s + Math.abs(x - L[L.length >> 1]), 0) / L.length).toFixed(2)); };
+  spStat('prima');
+  for (let it = 0; it < LEV_SP; it++) { const q = sp.slice(); for (const i of est) { let s = 0, n = 0; for (const j of nb[i]) if (inEst[j]) { s += sp[j]; n++; } if (n) q[i] = sp[i] + 0.5 * (s / n - sp[i]); } sp.set(q); }
+  const meta = new Float64Array(nv); for (const i of est) meta[i] = GAP_AD + SP_BORDO + (Math.max(sp[i], SP_MIN) - SP_BORDO) * sstep(0, W_BORDO, dm[i]);
+  for (const i of bordo) meta[i] = GAP_AD + SP_BORDO * 0.5;
+  const mob = [...est, ...bordo];
+  for (let g = 0; g < GIRI_EST; g++) {
+    // verso lo spessore nuovo solo vicino al margine (profilo uniforme); più all'interno solo lo spessore minimo, il resto lo fa la levigatura
+    for (const i of mob) { const p = [cur[3 * i], cur[3 * i + 1], cur[3 * i + 2]], d = G.sample(Fs, ...p), b = 1 - sstep(W_BORDO, 2 * W_BORDO, dm[i]);
+      const s = wq[i] * (b * (meta[i] - d) + (1 - b) * Math.max(0, GAP_AD + SP_MIN - d)); if (!s) continue;
+      const gr = G.grad(Fs, p), l = Math.hypot(...gr) || 1; for (let k = 0; k < 3; k++) cur[3 * i + k] += gr[k] / l * s; }
+    // superficie esterna come campo di raggio (distanza dal centro della testa) per direzione: media gaussiana (larghezza `SIGMA_EST`) sui vertici esterni vicini
+    // per direzione, e i vertici si spostano solo lungo il raggio (nessuna distorsione di traverso): toglie solchi, scanalature e la piega tra i due lobi, che una
+    // levigatura sulla mesh non toglieva (la piega è uno spigolo della mesh, la media dei vicini lo sposta ma non lo apre)
+    { const RR = 2.6, H = SIGMA_EST, ck = (a, b, c) => a + ',' + b + ',' + c, hs = new Map(), dir = new Map();
+      for (const i of est) { const r = [0, 1, 2].map(k => cur[3 * i + k] - cTesta[k]), l = Math.hypot(...r), d = r.map(x => x / l); dir.set(i, [d, l]);
+        const k = ck(...d.map(x => Math.floor(x * RR / H))); (hs.get(k) || hs.set(k, []).get(k)).push(i); }
+      const nuovo = new Map();
+      for (const i of est) { const [d] = dir.get(i), a = d.map(x => Math.floor(x * RR / H)); let sw = 0;
+        // regressione quadratica locale pesata (nel piano tangente): la media semplice abbasserebbe la superficie, che è convessa
+        const t1 = un(Math.abs(d[0]) < 0.9 ? [0, -d[2], d[1]] : [-d[2], 0, d[0]]), t2 = [d[1] * t1[2] - d[2] * t1[1], d[2] * t1[0] - d[0] * t1[2], d[0] * t1[1] - d[1] * t1[0]];
+        const A = Array.from({ length: 6 }, () => new Float64Array(7));
+        for (let x = -2; x <= 2; x++) for (let y = -2; y <= 2; y++) for (let z = -2; z <= 2; z++) for (const j of hs.get(ck(a[0] + x, a[1] + y, a[2] + z)) || []) {
+          const [dj, lj] = dir.get(j), e = [0, 1, 2].map(k => RR * (dj[k] - d[k])), px = e[0] * t1[0] + e[1] * t1[1] + e[2] * t1[2], py = e[0] * t2[0] + e[1] * t2[1] + e[2] * t2[2];
+          const w = Math.exp(-0.5 * (px * px + py * py) / SIGMA_EST ** 2), f = [1, px, py, px * px, px * py, py * py];
+          for (let r = 0; r < 6; r++) { for (let c = 0; c < 6; c++) A[r][c] += w * f[r] * f[c]; A[r][6] += w * f[r] * lj; } sw += w; }
+        for (let r = 0; r < 6; r++) A[r][r] += 1e-6 * (sw || 1);
+        for (let c = 0; c < 6; c++) { let m = c; for (let r = c + 1; r < 6; r++) if (Math.abs(A[r][c]) > Math.abs(A[m][c])) m = r; [A[c], A[m]] = [A[m], A[c]];
+          for (let r = 0; r < 6; r++) if (r !== c) { const f = A[r][c] / A[c][c]; for (let k = c; k < 7; k++) A[r][k] -= f * A[c][k]; } }
+        nuovo.set(i, A[0][6] / A[0][0]); }
+      for (const i of est) { const [d, l] = dir.get(i), f = wq[i] * sstep(0, W_LISCIA, dm[i]), l1 = l + f * (nuovo.get(i) - l); for (let k = 0; k < 3; k++) cur[3 * i + k] = cTesta[k] + d[k] * l1; } }
+    for (let it = 0; it < LEV_EST; it++) { const lam = it % 2 ? -0.53 : 0.5, q = cur.slice();
+      for (const i of est) { const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += wq[i] * lam * (s / L.length - cur[3 * i + k]); } }
+      cur.set(q); } }
+  // spessore minimo e distanze minime: la spinta sposta pochi vertici di colpo (punte), quindi si alterna a una levigatura leggera dello strato esterno
+  const minimo = () => { let n = 0; for (const i of est) { const p = [cur[3 * i], cur[3 * i + 1], cur[3 * i + 2]], d = G.sample(Fs, ...p), m = GAP_AD + Math.min(SP_MIN, meta[i] - GAP_AD); if (d >= m) continue;
+    const gr = G.grad(Fs, p), l = Math.hypot(...gr) || 1; for (let k = 0; k < 3; k++) cur[3 * i + k] += gr[k] / l * (m - d); n++; } return n; };
+  const nm0 = minimo(), ns0 = spingi();
+  for (let g = 0; g < 4; g++) { for (let it = 0; it < LEV_EST; it++) { const lam = it % 2 ? -0.53 : 0.5, q = cur.slice();
+      for (const i of est) { const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += wq[i] * lam * (s / L.length - cur[3 * i + k]); } }
+      cur.set(q); }
+    minimo(); spingi(); }
+  log('strato esterno: vertici', est.length, ', entro', W_BORDO * 10, 'mm dal margine', est.filter(i => dm[i] < W_BORDO).length, '; riportati allo spessore minimo', nm0, '; spinti fuori dalle distanze minime', ns0, '; dopo la levigatura finale', minimo(), '+', spingi());
+  spStat('dopo'); }
 gapStat(cur, 'dopo');
 { let mx = 0; for (const i of reg) mx = Math.max(mx, Math.hypot(...[0, 1, 2].map(k => cur[3 * i + k] - pos0[3 * i + k]))); log('spostamento massimo del tendine', (mx * 10).toFixed(2), 'mm'); }
 
