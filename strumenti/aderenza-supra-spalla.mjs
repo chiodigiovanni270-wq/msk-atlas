@@ -202,13 +202,26 @@ log('dopo l\'ultima levigatura restano da spingere', spingi(), 'vertici');
 // passate, pesate dalla quota: toglie solchi e scanalature della faccia superiore), `GIRI_EST` volte; infine spessore minimo `SP_MIN` e distanze minime.
 { const N = normaliV(cur), cs = new Float64Array(nv), est = [], bordo = [];
   for (const i of reg) { const r = radiale(cur, i), l = Math.hypot(N[3 * i], N[3 * i + 1], N[3 * i + 2]) || 1; cs[i] = (N[3 * i] * r[0] + N[3 * i + 1] * r[1] + N[3 * i + 2] * r[2]) / l;
-    if (cs[i] > 0.3) est.push(i); else if (cs[i] >= -0.3) bordo.push(i); }
+  }
+  // strato esterno: si parte dai vertici con normale chiaramente verso fuori e si estende ai vicini con normale non rivolta verso la testa; così entrano anche i
+  // vertici della piega tra i due lobi (normale di traverso), che con la sola normale restavano fuori e fermi
+  { const ins = new Set(reg), visto = new Uint8Array(nv), coda = []; for (const i of reg) if (cs[i] > 0.6) { visto[i] = 1; coda.push(i); }
+    for (let k = 0; k < coda.length; k++) for (const j of nb[coda[k]]) if (!visto[j] && ins.has(j) && cs[j] > -0.3) { visto[j] = 1; coda.push(j); }
+    est.push(...coda); }
   const inEst = new Uint8Array(nv); for (const i of est) inEst[i] = 1;
-  // margine: vertici di traverso e vertici esterni con un vicino dello strato interno (la piega che unisce i due strati)
-  const semi = new Set(bordo); for (const i of est) if (nb[i].some(j => cs[j] < -0.3)) semi.add(i);
-  // distanza geodetica dal margine (vertici di bordo, normale di traverso) lungo lo strato esterno
-  const dm = new Float64Array(nv).fill(1e9), coda = [...semi]; for (const i of semi) dm[i] = 0;
-  for (let k = 0; k < coda.length; k++) { const i = coda[k]; for (const j of nb[i]) { if (!inEst[j]) continue; const d = dm[i] + Math.hypot(cur[3 * i] - cur[3 * j], cur[3 * i + 1] - cur[3 * j + 1], cur[3 * i + 2] - cur[3 * j + 2]); if (d < dm[j] - 1e-9) { dm[j] = d; coda.push(j); } } }
+  // distanza dal margine nella vista (impronta del tendine, celle (u, v)): il margine vero, non le pieghe interne della mesh
+  const dm = new Float64Array(nv).fill(1e9);
+  { const CEL = 0.025, mask = new Set(), key = (a, b) => a + ',' + b, ins = new Set(sel);
+    for (let t = 0; t < idx.length; t += 3) { const T = [idx[t], idx[t + 1], idx[t + 2]]; if (!T.every(i => ins.has(i))) continue;
+      const P = T.map(i => uv(cur, i)), lo = [0, 1].map(q => Math.floor(Math.min(...P.map(x => x[q])) / CEL)), hi = [0, 1].map(q => Math.floor(Math.max(...P.map(x => x[q])) / CEL));
+      const den = (P[1][1] - P[2][1]) * (P[0][0] - P[2][0]) + (P[2][0] - P[1][0]) * (P[0][1] - P[2][1]); if (Math.abs(den) < 1e-12) continue;
+      for (let a = lo[0]; a <= hi[0]; a++) for (let b = lo[1]; b <= hi[1]; b++) { const x = (a + 0.5) * CEL, y = (b + 0.5) * CEL;
+        const l1 = ((P[1][1] - P[2][1]) * (x - P[2][0]) + (P[2][0] - P[1][0]) * (y - P[2][1])) / den, l2 = ((P[2][1] - P[0][1]) * (x - P[2][0]) + (P[0][0] - P[2][0]) * (y - P[2][1])) / den;
+        if (l1 >= -0.02 && l2 >= -0.02 && 1 - l1 - l2 >= -0.02) mask.add(key(a, b)); } }
+    const R = Math.ceil(2 * W_BORDO / CEL);
+    for (const i of est) { const [u, v] = uv(cur, i), a = Math.floor(u / CEL), b = Math.floor(v / CEL); let best = 2 * W_BORDO;
+      for (let x = -R; x <= R; x++) for (let y = -R; y <= R; y++) { const d = Math.hypot(x, y) * CEL; if (d < best && !mask.has(key(a + x, b + y))) best = d; }
+      dm[i] = best; } }
   const h = i => G.sample(Fs, cur[3 * i], cur[3 * i + 1], cur[3 * i + 2]);
   const sp = new Float64Array(nv); for (const i of est) sp[i] = Math.max(0, h(i) - GAP_AD);
   const spStat = et => { const L = est.filter(i => wq[i] === 1).map(i => (h(i) - GAP_AD) * 10).sort((a, b) => a - b), q = f => L[Math.floor(f * (L.length - 1))].toFixed(2); log('strato esterno', et + ': spessore (mm) p10', q(0.1), 'mediana', q(0.5), 'p90', q(0.9), '; deviazione media dalla mediana', (L.reduce((s, x) => s + Math.abs(x - L[L.length >> 1]), 0) / L.length).toFixed(2)); };
@@ -253,7 +266,7 @@ log('dopo l\'ultima levigatura restano da spingere', spingi(), 'vertici');
       for (const i of est) { const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += wq[i] * lam * (s / L.length - cur[3 * i + k]); } }
       cur.set(q); }
     minimo(); spingi(); }
-  log('strato esterno: vertici', est.length, ', di margine', semi.size, '; riportati allo spessore minimo', nm0, '; spinti fuori dalle distanze minime', ns0, '; dopo la levigatura finale', minimo(), '+', spingi());
+  log('strato esterno: vertici', est.length, ', entro', W_BORDO * 10, 'mm dal margine', est.filter(i => dm[i] < W_BORDO).length, '; riportati allo spessore minimo', nm0, '; spinti fuori dalle distanze minime', ns0, '; dopo la levigatura finale', minimo(), '+', spingi());
   spStat('dopo'); }
 gapStat(cur, 'dopo');
 { let mx = 0; for (const i of reg) mx = Math.max(mx, Math.hypot(...[0, 1, 2].map(k => cur[3 * i + k] - pos0[3 * i + k]))); log('spostamento massimo del tendine', (mx * 10).toFixed(2), 'mm'); }
