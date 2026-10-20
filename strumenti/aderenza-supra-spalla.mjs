@@ -44,7 +44,7 @@ const BASE = '02b4f15', FILE_REPO = 'modelli/spalla-3d.html';
 const VISTA = [-1.0, 0.1];                                                    // theta, phi della camera della pagina (come rifinitura-supra-spalla.mjs)
 const V_AD1 = 1.3, V_AD2 = 1.9, GAP_AD = 0.06, SU = 0.03, MAX = 0.5, GIRI = 5, LEV_CAMPO = 40, R_ACC = 0.3, LEV_LOC = 12, GIRI_LEV = 4, GAP_MIN = 0.05;   // cm
 const RAGGIO_ARR = 0.45, SIGMA_ARR = 0.5, U_ARR = [-0.9, -0.4], V_ARR = 1.4, LEV_ARR = 30;                                // margine inferiore arrotondato (cm)
-const SP_MIN = 0.05, SP_BORDO = 0.02, W_BORDO = 0.3, LEV_SP = 200, GIRI_EST = 6, LEV_EST = 10, SIGMA_EST = 0.3;   // superficie esterna e spessore (cm)
+const SP_MIN = 0.05, SP_BORDO = 0.02, W_BORDO = 0.3, LEV_SP = 200, GIRI_EST = 6, LEV_EST = 10, SIGMA_EST = 0.3, W_LISCIA = 0.08;   // superficie esterna e spessore (cm)
 const V_FORO = 1.0, D_CART = 0.2, D_FORO = 0.4, BORDO_FORO = -0.1;            // cm
 const SUPPORTO = ['omero', 'cart_omero', 'caps'], VICINE = ['coraco_om', 'bic_lungo', 'trasv_om', 'infra', 'subs', 'sghl', 'mghl'], GAP_VICINE = 0.05;   // strutture accanto: distanza minima (cm), o quella di prima se già minore
 
@@ -241,7 +241,7 @@ log('dopo l\'ultima levigatura restano da spingere', spingi(), 'vertici');
         for (let c = 0; c < 6; c++) { let m = c; for (let r = c + 1; r < 6; r++) if (Math.abs(A[r][c]) > Math.abs(A[m][c])) m = r; [A[c], A[m]] = [A[m], A[c]];
           for (let r = 0; r < 6; r++) if (r !== c) { const f = A[r][c] / A[c][c]; for (let k = c; k < 7; k++) A[r][k] -= f * A[c][k]; } }
         nuovo.set(i, A[0][6] / A[0][0]); }
-      for (const i of est) { const [d, l] = dir.get(i), f = wq[i] * sstep(0, W_BORDO, dm[i]), l1 = l + f * (nuovo.get(i) - l); for (let k = 0; k < 3; k++) cur[3 * i + k] = cTesta[k] + d[k] * l1; } }
+      for (const i of est) { const [d, l] = dir.get(i), f = wq[i] * sstep(0, W_LISCIA, dm[i]), l1 = l + f * (nuovo.get(i) - l); for (let k = 0; k < 3; k++) cur[3 * i + k] = cTesta[k] + d[k] * l1; } }
     for (let it = 0; it < LEV_EST; it++) { const lam = it % 2 ? -0.53 : 0.5, q = cur.slice();
       for (const i of est) { const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += wq[i] * lam * (s / L.length - cur[3 * i + k]); } }
       cur.set(q); } }
