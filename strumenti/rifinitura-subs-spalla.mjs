@@ -40,6 +40,15 @@
       fascia sotto il margine sono alzati in proporzione; si ripete dopo le pieghe e dopo la spinta dall'omero.
    5b. Capsula: lungo il raggio dal centro della testa, i vertici che hanno la capsula entro `CAPS_MARCIA` più in fuori (o a meno di `GAP_CAPS`) vanno oltre
       l'ultimo punto a meno di `GAP_CAPS`; spostamento allargato nello spazio (`R_CAPS`, a scendere) così le due facce si muovono insieme; `GIRI_CAPS` volte.
+   5c. Angolo superolaterale: il bordo ha due righe di vertici quasi parallele (anteriore e posteriore) che si accavallano in una scanalatura lucida;
+      Taubin pesato (`R_ANG`, `BANDA_ANG`, `GIRI_ANG`, centro `C_ANG` rispetto a margine laterale e superiore piatto) sui vertici vicini, prima della capsula
+      (che ripristina `GAP_CAPS`).
+   5d. Tunnel sottili vicino al margine: fori passanti larghi qualche mm e alti meno di 1 mm (anelli anteriore e posteriore quasi a contatto), che la ricerca
+      del punto 3 non vede (esclude la fascia `D_FORO` dal bordo) e lasciano in pagina una fessura scura. Si riconoscono dal buco che restano nella
+      proiezione sulla vista (`K_BUCO`, `PX_BUCO`); per ognuno si tolgono i triangoli in un'ellisse (`R_BUCO`, la prima che lascia due anelli semplici) e i due
+      anelli sono richiusi col taglio delle orecchie. Nessun vertice nuovo.
+   5e. Triangoli doppi: due triangoli sugli stessi tre vertici con verso opposto (linguetta a spessore nullo, z-fighting) nella zona rifinita: tolti entrambi,
+      controllo dei lati rimasti aperti stampato.
    6. Capo breve del bicipite: i vertici entro `SEP_BB` dal tendine vanno avanti lungo la vista quanto serve, spostamento allargato sulla mesh (`GIRI_BB`).
    Normali di vertice (`nm`) di `subs` ricalcolate sui vertici spostati e sui vicini; quelle del capo breve le ricalcola la pagina. Controlli stampati:
    margini prima e dopo, fori richiusi, pieghe, spostamento massimo, spostamento del capo breve. Dopo va rilanciato `borsa-spalla.mjs`. */
@@ -61,6 +70,8 @@ const C_RAD = [1.0, -1.4], PASSO_ANG = 3, BANDA_RAD = 0.6, GIRI_RAD = 3;        
 const Y_SOLCO = 1.0, GAP_SOLCO = 0.1, BANDA_LAT2 = 1.0;                                  // cm
 const U_RETTA = [0.1, 1.9], BANDA_RETTA = 0.4;                                          // cm
 const GAP_CAPS = 0.08, CAPS_MARCIA = 0.25, R_CAPS = 0.3, GIRI_CAPS = 4;                                 // cm
+const K_BUCO = 500, PX_BUCO = 3, R_BUCO = [[0.2, 0.08], [0.3, 0.1], [0.35, 0.12], [0.4, 0.15]], GIRI_BUCHI = 6;                    // pixel per cm; pixel; semiassi (cm) nel piano della vista
+const C_ANG = [0.25, -0.2], R_ANG = 0.55, BANDA_ANG = 0.5, GIRI_ANG = 80;                               // cm; centro dell'angolo rispetto a (margine laterale, margine superiore piatto)
 const PLACCA = 0.6, DENTRO = 0.25, CRESTA = -0.3, R_FORO = [0.2], D_FORO = 0.25, GIRI_BORDO = 40, PROF_FORO = 1.0, SEP_BB = 0.05, GIRI_BB = 40;                                     // cm; coseno fra le normali di due triangoli adiacenti
 
 let { nv, idx } = REAL(NOME);
@@ -311,6 +322,15 @@ rettifica();
 // di nuovo le pieghe, dopo la spinta dall'omero
 sistemaPieghe('pieghe dopo l’omero: vertici');
 rettifica();
+// angolo superolaterale: il bordo ha due righe di vertici quasi parallele (anteriore e posteriore) che si accavallano in una piccola scanalatura lucida.
+// Levigatura di Taubin pesata (peso 1 entro `R_ANG` dal centro dell'angolo nel piano della vista, poi smoothstep fino a `R_ANG + BANDA_ANG`) di tutti i
+// vertici vicini, `GIRI_ANG` volte; le spinte dall'omero e dalla capsula e le pieghe che seguono rimettono a posto le distanze.
+{ const c = [ULAT + C_ANG[0], TP + C_ANG[1]], W2 = new Float64Array(nv), lis = [];
+  for (let i = 0; i < nv; i++) { const [u, v] = uv(cur, i), d = Math.hypot(u - c[0], v - c[1]); if (d < R_ANG + BANDA_ANG && proj(cur, i, n) > davanti - PROF) { W2[i] = 1 - sstep(R_ANG, R_ANG + BANDA_ANG, d); if (W2[i] > 0) lis.push(i); } }
+  for (let it = 0; it < GIRI_ANG; it++) { const lam = it % 2 ? -0.53 : 0.5, q = cur.slice();
+    for (const i of lis) { const L = nb[i]; if (!L.length) continue; for (let k = 0; k < 3; k++) { let sm = 0; for (const j of L) sm += cur[3 * j + k]; q[3 * i + k] += W2[i] * lam * (sm / L.length - cur[3 * i + k]); } }
+    cur.set(q); }
+  log('angolo superolaterale: vertici levigati', lis.length); }
 // capsula: il tendine allargato verso il solco le passa davanti. Lungo il raggio dal centro della testa, ogni vertice della zona che ha la capsula entro
 // `CAPS_MARCIA` più in fuori (o è a meno di `GAP_CAPS`) va oltre l'ultimo punto a meno di `GAP_CAPS` dalla capsula; lo spostamento si allarga nello spazio
 // (entro `R_CAPS`, a scendere), così faccia profonda e superficiale del tendine si spostano insieme senza attraversarsi; fino a `GIRI_CAPS` volte
@@ -326,6 +346,69 @@ rettifica();
   for (const i of zona) for (const j of src) { const r = Math.hypot(...[0, 1, 2].map(q => cur[3 * i + q] - cur[3 * j + q])); if (r < R_CAPS) D[i] = Math.max(D[i], d[j] * (1 - sstep(0, R_CAPS, r))); }
   for (const i of zona) if (D[i] > 1e-4) { const r = rad(i); for (let k = 0; k < 3; k++) cur[3 * i + k] += D[i] * r[k]; mx = Math.max(mx, D[i]); } }
   log('capsula: vertici vicini', n0, ', tendine spostato in fuori al massimo di', (mx * 10).toFixed(2), 'mm'); }
+// 7. tunnel sottili vicino al margine: un foro passante largo qualche millimetro e alto meno di 1 mm (gli anelli anteriore e posteriore quasi a contatto) lascia
+// in pagina una fessura scura sul margine superiore. Non lo trova la ricerca dei fori sopra (che esclude la fascia di `DENTRO` dal bordo): lo si riconosce
+// perché nella proiezione sulla vista (`K_BUCO` pixel per cm) resta un buco di almeno `PX_BUCO` pixel dentro la sagoma. Per ogni buco si tolgono i triangoli
+// entro un'ellisse nel piano della vista (semiassi `R_BUCO`, in ordine crescente, il primo che lascia esattamente due anelli semplici vale) e i due anelli
+// sono richiusi col taglio delle orecchie, come per i fori sopra (nessun vertice nuovo). Si ripete finché la proiezione ha buchi (al massimo `GIRI_BUCHI`).
+{ const crs = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], sb = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], esiti = [];
+  const cerca = () => { const front = new Set(vis); let u0 = 1e9, u1 = -1e9, v0 = 1e9, v1 = -1e9;
+    for (const i of vis) { const [u, v] = uv(cur, i); u0 = Math.min(u0, u); u1 = Math.max(u1, u); v0 = Math.min(v0, v); v1 = Math.max(v1, v); }
+    u1 = Math.min(u1, U_FINE + 0.5); const W = Math.ceil((u1 - u0) * K_BUCO) + 3, H = Math.ceil((v1 - v0) * K_BUCO) + 3, cov = new Int32Array(W * H).fill(-1);
+    for (let t = 0; t < idx.length; t += 3) { if (!front.has(idx[t]) && !front.has(idx[t + 1]) && !front.has(idx[t + 2])) continue;
+      const q = [0, 1, 2].map(k => uv(cur, idx[t + k])), xs = q.map(p => (p[0] - u0) * K_BUCO + 1), ys = q.map(p => (v1 - p[1]) * K_BUCO + 1), ar = (xs[1] - xs[0]) * (ys[2] - ys[0]) - (xs[2] - xs[0]) * (ys[1] - ys[0]);
+      if (Math.abs(ar) < 1e-12) continue;
+      for (let y = Math.max(0, Math.floor(Math.min(...ys))); y <= Math.min(H - 1, Math.ceil(Math.max(...ys))); y++) for (let x = Math.max(0, Math.floor(Math.min(...xs))); x <= Math.min(W - 1, Math.ceil(Math.max(...xs))); x++) {
+        const px = x + 0.5, py = y + 0.5, w0 = ((xs[1] - px) * (ys[2] - py) - (xs[2] - px) * (ys[1] - py)) / ar, w1 = ((xs[2] - px) * (ys[0] - py) - (xs[0] - px) * (ys[2] - py)) / ar;
+        if (w0 >= -1e-6 && w1 >= -1e-6 && 1 - w0 - w1 >= -1e-6) cov[y * W + x] = t; } }
+    const fuori = new Uint8Array(W * H), pila = [], metti = (x, y) => { if (x < 0 || y < 0 || x >= W || y >= H) return; const o = y * W + x; if (fuori[o] || cov[o] >= 0) return; fuori[o] = 1; pila.push(o); };
+    for (let x = 0; x < W; x++) { metti(x, 0); metti(x, H - 1); } for (let y = 0; y < H; y++) { metti(0, y); metti(W - 1, y); }
+    while (pila.length) { const o = pila.pop(), x = o % W, y = (o - x) / W; metti(x + 1, y); metti(x - 1, y); metti(x, y + 1); metti(x, y - 1); }
+    const visto = new Uint8Array(W * H), buchi = [];
+    for (let o = 0; o < W * H; o++) { if (cov[o] >= 0 || fuori[o] || visto[o]) continue; const cl = [o]; visto[o] = 1;
+      for (let k = 0; k < cl.length; k++) { const x = cl[k] % W, y = (cl[k] - x) / W; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const xx = x + dx, yy = y + dy;
+        if (xx >= 0 && yy >= 0 && xx < W && yy < H) { const r = yy * W + xx; if (cov[r] < 0 && !fuori[r] && !visto[r]) { visto[r] = 1; cl.push(r); } } } }
+      if (cl.length < PX_BUCO) continue;
+      const cx = cl.reduce((s, q) => s + q % W, 0) / cl.length, cy = cl.reduce((s, q) => s + Math.floor(q / W), 0) / cl.length, tv = new Set();
+      for (const q of cl) { const x = q % W, y = (q - x) / W; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const xx = x + dx, yy = y + dy; if (xx >= 0 && yy >= 0 && xx < W && yy < H && cov[yy * W + xx] >= 0) tv.add(cov[yy * W + xx]); } }
+      const C = [0, 0, 0]; let m = 0; for (const t of tv) for (let k = 0; k < 3; k++) { for (let r = 0; r < 3; r++) C[r] += cur[3 * idx[t + k] + r]; m++; }
+      buchi.push({ C: C.map(x => x / m), cu: (cx - 1) / K_BUCO + u0 + U0, cv: v1 - (cy - 1) / K_BUCO, px: cl.length }); }
+    return buchi; };
+  const chiudi = (I, C, cu, cv, RF) => { const via = new Set();
+    for (let t = 0; t < I.length; t += 3) { const c = [0, 1, 2].map(q => (cur[3 * I[t] + q] + cur[3 * I[t + 1] + q] + cur[3 * I[t + 2] + q]) / 3);
+      if (Math.hypot(...sb(c, C)) < 0.5 && Math.hypot((c[0] * e1[0] + c[1] * e1[1] + c[2] * e1[2] - cu) / RF[0], (c[0] * e2[0] + c[1] * e2[1] + c[2] * e2[2] - cv) / RF[1]) < 1) via.add(t); }
+    if (!via.size) return null;
+    const lati = new Set(); for (let t = 0; t < I.length; t += 3) if (!via.has(t)) for (let k = 0; k < 3; k++) lati.add(I[t + k] + '_' + I[t + (k + 1) % 3]);
+    const nx = new Map(); let semplice = true;
+    for (let t = 0; t < I.length; t += 3) if (!via.has(t)) for (let k = 0; k < 3; k++) { const a = I[t + k], b = I[t + (k + 1) % 3]; if (!lati.has(b + '_' + a)) { if (nx.has(b)) semplice = false; nx.set(b, a); } }
+    const anelli = [], visti = new Set(); for (const a of nx.keys()) { if (visti.has(a)) continue; const A = []; let x = a; while (x !== undefined && !visti.has(x)) { visti.add(x); A.push(x); x = nx.get(x); } anelli.push(A); }
+    if (!semplice || anelli.length !== 2) return null;
+    const nuovi = [];
+    for (const A of anelli) { const Q = A.map(i => uv(cur, i)), area = Q.reduce((s, p, k) => { const q = Q[(k + 1) % Q.length]; return s + p[0] * q[1] - q[0] * p[1]; }, 0) > 0 ? 1 : -1;
+      const r = A.map((_, k) => k), cr2 = (a, b, c) => ((Q[b][0] - Q[a][0]) * (Q[c][1] - Q[a][1]) - (Q[c][0] - Q[a][0]) * (Q[b][1] - Q[a][1])) * area;
+      while (r.length > 3) { let fatto = false;
+        for (let k = 0; k < r.length && !fatto; k++) { const a = r[(k + r.length - 1) % r.length], b = r[k], c = r[(k + 1) % r.length]; if (cr2(a, b, c) <= 1e-9) continue;
+          if (r.some(j => j !== a && j !== b && j !== c && cr2(a, b, j) > 0 && cr2(b, c, j) > 0 && cr2(c, a, j) > 0)) continue;
+          nuovi.push(A[a], A[b], A[c]); r.splice(k, 1); fatto = true; }
+        if (!fatto) return null; }
+      nuovi.push(A[r[0]], A[r[1]], A[r[2]]); }
+    return { I: [...I.filter((_, k) => !via.has(k - k % 3)), ...nuovi], tolti: via.size, nuovi: nuovi.length / 3 }; };
+  for (let giro = 0; giro < GIRI_BUCHI; giro++) { const B = cerca(); if (!B.length) break; let fatto = false;
+    for (const b of B) { for (const RF of R_BUCO) { const r = chiudi(idx, b.C, b.cu, b.cv, RF); if (!r) continue;
+        idx = Uint32Array.from(r.I); esiti.push(b.C.map(x => x.toFixed(2)).join(',') + ' (' + b.px + ' px) richiuso, ellisse ' + RF + ': ' + r.tolti + ' triangoli → ' + r.nuovi); fatto = true; break; }
+      if (fatto) break; esiti.push(b.C.map(x => x.toFixed(2)).join(',') + ' (' + b.px + ' px) lasciato'); }
+    if (!fatto) break; }
+  nb = vicini(nv, idx); log('tunnel sottili:', esiti.length ? esiti.join('; ') : 'nessuno'); }
+// 7b. triangoli doppi: due triangoli sugli stessi tre vertici con verso opposto (una linguetta a spessore nullo) restano in pagina come una piccola
+// fessura chiara sul margine (le due facce si sovrappongono e la profondità le confonde). Si tolgono entrambi, solo se i vertici stanno nella zona
+// rifinita; i lati restano tutti accoppiati (controllo stampato).
+{ const chiave = t => [idx[t], idx[t + 1], idx[t + 2]].sort((a, b) => a - b).join('_'), gruppi = new Map(), inZona = new Set(zona);
+  for (let t = 0; t < idx.length; t += 3) (gruppi.get(chiave(t)) || gruppi.set(chiave(t), []).get(chiave(t))).push(t);
+  const via = new Set(); for (const [k, L] of gruppi) if (L.length === 2 && k.split('_').every(i => inZona.has(+i))) L.forEach(t => via.add(t));
+  if (via.size) { const E = new Map(); for (let t = 0; t < idx.length; t += 3) if (!via.has(t)) for (let k = 0; k < 3; k++) E.set(idx[t + k] + '_' + idx[t + (k + 1) % 3], 1);
+    const A = new Set(); for (let t = 0; t < idx.length; t += 3) if (via.has(t)) for (let k = 0; k < 3; k++) { const a = idx[t + k], b = idx[t + (k + 1) % 3]; if (E.has(a + '_' + b) !== E.has(b + '_' + a)) A.add(a + '_' + b); }
+    idx = Uint32Array.from(idx.filter((_, k) => !via.has(k - k % 3))); nb = vicini(nv, idx); log('triangoli doppi tolti:', via.size / 2, ', lati rimasti aperti:', A.size); }
+  else log('triangoli doppi: nessuno'); }
 stampa(cur, 'dopo');
 { let mx = 0; for (const i of zona) mx = Math.max(mx, Math.hypot(...[0, 1, 2].map(k => cur[3 * i + k] - pos0[3 * i + k]))); log('spostamento massimo', (mx * 10).toFixed(2), 'mm'); }
 
