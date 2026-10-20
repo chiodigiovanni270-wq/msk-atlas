@@ -44,7 +44,7 @@ const BASE = '02b4f15', FILE_REPO = 'modelli/spalla-3d.html';
 const VISTA = [-1.0, 0.1];                                                    // theta, phi della camera della pagina (come rifinitura-supra-spalla.mjs)
 const V_AD1 = 1.3, V_AD2 = 1.9, GAP_AD = 0.06, SU = 0.03, MAX = 0.5, GIRI = 5, LEV_CAMPO = 40, R_ACC = 0.3, LEV_LOC = 12, GIRI_LEV = 4, GAP_MIN = 0.05;   // cm
 const RAGGIO_ARR = 0.45, SIGMA_ARR = 0.5, U_ARR = [-0.9, -0.4], V_ARR = 1.4, LEV_ARR = 30;                                // margine inferiore arrotondato (cm)
-const SP_MIN = 0.05, SP_BORDO = 0.02, W_BORDO = 0.3, LEV_SP = 200, GIRI_EST = 6, LEV_EST = 10, SIGMA_EST = 0.3, W_LISCIA = 0.08;   // superficie esterna e spessore (cm)
+const SP_MIN = 0.05, SP_BORDO = 0.02, W_BORDO = 0.3, V_BORDO = [0.6, 1.0], LEV_SP = 200, GIRI_EST = 6, LEV_EST = 10, SIGMA_EST = 0.3, W_LISCIA = 0.08;   // superficie esterna e spessore (cm)
 const V_FORO = 1.0, D_CART = 0.2, D_FORO = 0.4, BORDO_FORO = -0.1;            // cm
 const SUPPORTO = ['omero', 'cart_omero', 'caps'], VICINE = ['coraco_om', 'bic_lungo', 'trasv_om', 'infra', 'subs', 'sghl', 'mghl'], GAP_VICINE = 0.05;   // strutture accanto: distanza minima (cm), o quella di prima se già minore
 
@@ -221,7 +221,7 @@ log('dopo l\'ultima levigatura restano da spingere', spingi(), 'vertici');
     const R = Math.ceil(2 * W_BORDO / CEL);
     for (const i of est) { const [u, v] = uv(cur, i), a = Math.floor(u / CEL), b = Math.floor(v / CEL); let best = 2 * W_BORDO;
       for (let x = -R; x <= R; x++) for (let y = -R; y <= R; y++) { const d = Math.hypot(x, y) * CEL; if (d < best && !mask.has(key(a + x, b + y))) best = d; }
-      dm[i] = best; } }
+      dm[i] = best + 2 * W_BORDO * sstep(V_BORDO[0], V_BORDO[1], v); } }   // il profilo del margine si uniforma solo all'estremità distale
   const h = i => G.sample(Fs, cur[3 * i], cur[3 * i + 1], cur[3 * i + 2]);
   const sp = new Float64Array(nv); for (const i of est) sp[i] = Math.max(0, h(i) - GAP_AD);
   const spStat = et => { const L = est.filter(i => wq[i] === 1).map(i => (h(i) - GAP_AD) * 10).sort((a, b) => a - b), q = f => L[Math.floor(f * (L.length - 1))].toFixed(2); log('strato esterno', et + ': spessore (mm) p10', q(0.1), 'mediana', q(0.5), 'p90', q(0.9), '; deviazione media dalla mediana', (L.reduce((s, x) => s + Math.abs(x - L[L.length >> 1]), 0) / L.length).toFixed(2)); };
