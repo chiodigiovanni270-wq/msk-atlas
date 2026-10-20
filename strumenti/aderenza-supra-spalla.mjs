@@ -45,7 +45,7 @@ const BASE = '02b4f15', FILE_REPO = 'modelli/spalla-3d.html';
 const VISTA = [-1.0, 0.1];                                                    // theta, phi della camera della pagina (come rifinitura-supra-spalla.mjs)
 const V_AD1 = 1.3, V_AD2 = 1.9, GAP_AD = 0.06, SU = 0.03, MAX = 0.5, GIRI = 5, LEV_CAMPO = 40, R_ACC = 0.3, LEV_LOC = 12, GIRI_LEV = 4, GAP_MIN = 0.05;   // cm
 const RAGGIO_ARR = 0.45, SIGMA_ARR = 0.5, U_ARR = [-0.9, -0.4], V_ARR = 1.4, LEV_ARR = 30;                                // margine inferiore arrotondato (cm)
-const SP_MIN = 0.05, SP_BORDO = 0.02, W_BORDO = 0.3, V_BORDO = [0.6, 1.0], LEV_SP = 200, GIRI_EST = 6, LEV_EST = 10, SIGMA_EST = 0.3, W_LISCIA = 0.08;   // superficie esterna e spessore (cm)
+const SP_MIN = 0.05, SP_BORDO = 0.02, W_BORDO = 0.3, V_BORDO = [0.6, 1.0], LEV_SP = 200, GIRI_EST = 6, LEV_EST = 10, GIRI_CONC = 200, V_CONC = [1.0, 1.5], SIGMA_EST = 0.3, W_LISCIA = 0.08;   // superficie esterna e spessore (cm)
 const V_FORO = 1.0, D_CART = 0.2, D_FORO = 0.4, BORDO_FORO = -0.1;            // cm
 const SUPPORTO = ['omero', 'cart_omero', 'caps'], VICINE = ['coraco_om', 'bic_lungo', 'trasv_om', 'infra', 'subs', 'sghl', 'mghl'], GAP_VICINE = 0.05;   // strutture accanto: distanza minima (cm), o quella di prima se già minore
 
@@ -272,6 +272,21 @@ log('dopo l\'ultima levigatura restano da spingere', spingi(), 'vertici');
     minimo(); spingi(); }
   log('strato esterno: vertici', est.length, ', entro', W_BORDO * 10, 'mm dal margine', est.filter(i => dm[i] < W_BORDO).length, '; riportati allo spessore minimo', nm0, '; spinti fuori dalle distanze minime', ns0, '; dopo la levigatura finale', minimo(), '+', spingi());
   spStat('dopo'); }
+
+// ---- 5. riempimento delle concavità (solco tra i due lobi e incisura a V sul margine distale): levigatura «da una parte sola», ogni vertice esterno o di
+// margine si sposta verso la media dei vicini solo se così esce dal tendine (concavità: il laplaciano ha componente lungo la normale uscente), le parti convesse
+// restano dove sono. È come una chiusura morfologica: solchi e incisure si colmano senza abbassare né restringere il resto. `GIRI_CONC` passate (peso dalla quota,
+// solo sotto `V_CONC`), poi spessore e distanze minime dal supporto e dalle strutture vicine.
+{ const N0 = normaliV(cur), zona = reg.filter(i => uv(cur, i)[1] < V_CONC[1]).filter(i => { const r = radiale(cur, i), l = Math.hypot(N0[3 * i], N0[3 * i + 1], N0[3 * i + 2]) || 1; return (N0[3 * i] * r[0] + N0[3 * i + 1] * r[1] + N0[3 * i + 2] * r[2]) / l > -0.5; });
+  const wc = new Float64Array(nv); for (const i of zona) wc[i] = wq[i] * (1 - sstep(V_CONC[0], V_CONC[1], uv(cur, i)[1]));
+  let mossi = 0;
+  for (let g = 0; g < GIRI_CONC; g++) { const N = normaliV(cur), q = cur.slice();
+    for (const i of zona) { const L = nb[i], d = [0, 0, 0]; for (const j of L) for (let k = 0; k < 3; k++) d[k] += cur[3 * j + k] / L.length; for (let k = 0; k < 3; k++) d[k] -= cur[3 * i + k];
+      if (d[0] * N[3 * i] + d[1] * N[3 * i + 1] + d[2] * N[3 * i + 2] <= 0) continue;
+      for (let k = 0; k < 3; k++) q[3 * i + k] += 0.5 * wc[i] * d[k]; if (g === GIRI_CONC - 1) mossi++; }
+    cur.set(q);
+    if (g % 20 === 19) spingi(); }
+  log('concavità riempite: vertici nella zona', zona.length, ', ancora in concavità all\'ultima passata', mossi, '; spinti fuori dalle distanze minime', spingi()); }
 gapStat(cur, 'dopo');
 { let mx = 0; for (const i of reg) mx = Math.max(mx, Math.hypot(...[0, 1, 2].map(k => cur[3 * i + k] - pos0[3 * i + k]))); log('spostamento massimo del tendine', (mx * 10).toFixed(2), 'mm'); }
 
