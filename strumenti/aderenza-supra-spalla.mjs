@@ -45,7 +45,7 @@ const BASE = '02b4f15', FILE_REPO = 'modelli/spalla-3d.html';
 const VISTA = [-1.0, 0.1];                                                    // theta, phi della camera della pagina (come rifinitura-supra-spalla.mjs)
 const V_AD1 = 1.3, V_AD2 = 1.9, GAP_AD = 0.06, SU = 0.03, MAX = 0.5, GIRI = 5, LEV_CAMPO = 40, R_ACC = 0.3, LEV_LOC = 12, GIRI_LEV = 4, GAP_MIN = 0.05;   // cm
 const RAGGIO_ARR = 0.45, SIGMA_ARR = 0.5, U_ARR = [-0.9, -0.4], V_ARR = 1.4, LEV_ARR = 30;                                // margine inferiore arrotondato (cm)
-const SP_MIN = 0.05, SP_BORDO = 0.02, W_BORDO = 0.3, V_BORDO = [0.6, 1.0], LEV_SP = 200, GIRI_EST = 6, LEV_EST = 10, GIRI_CONC = 200, V_CONC = [1.0, 1.5], SIGMA_EST = 0.3, W_LISCIA = 0.08;   // superficie esterna e spessore (cm)
+const SP_MIN = 0.05, SP_BORDO = 0.02, W_BORDO = 0.3, V_BORDO = [0.6, 1.0], LEV_SP = 200, GIRI_EST = 6, LEV_EST = 10, GIRI_CONC = 200, V_CONC = [1.0, 1.5], CEL_M = 0.02, SIGMA_M = 0.15, GIRI_M = 3, U_M = [-1.2, 0.85], SIGMA_EST = 0.3, W_LISCIA = 0.08;   // superficie esterna e spessore (cm)
 const V_FORO = 1.0, D_CART = 0.2, D_FORO = 0.4, BORDO_FORO = -0.1;            // cm
 const SUPPORTO = ['omero', 'cart_omero', 'caps'], VICINE = ['coraco_om', 'bic_lungo', 'trasv_om', 'infra', 'subs', 'sghl', 'mghl'], GAP_VICINE = 0.05;   // strutture accanto: distanza minima (cm), o quella di prima se già minore
 
@@ -287,6 +287,30 @@ log('dopo l\'ultima levigatura restano da spingere', spingi(), 'vertici');
     cur.set(q);
     if (g % 20 === 19) spingi(); }
   log('concavità riempite: vertici nella zona', zona.length, ', ancora in concavità all\'ultima passata', mossi, '; spinti fuori dalle distanze minime', spingi()); }
+// ---- 6. margine distale liscio nella vista laterale: i passi precedenti (discesa, spessore che scende sul margine) spostano il bordo di qualche decimo di mm e
+// lasciavano un gradino e un'incisura a V tra il lobo laterale e quello anteriore (margine inferiore che sale di 1,2 mm in 0,4 mm e ridiscende). Margine
+// inferiore per colonne u (`CEL_M`, dagli incroci degli spigoli dei triangoli), levigato con una gaussiana di larghezza `SIGMA_M`; i vertici sotto `V_ARR`
+// sono rimappati in v tra margine vecchio e nuovo, riportati alla distanza di prima dal centro della testa, levigati (Taubin leggero) e rispinti fuori dalle
+// distanze minime; `GIRI_M` volte.
+{ const ins = new Set(sel); let mx = 0;
+  const vminDi = () => { const vm = new Map();
+    for (let t = 0; t < idx.length; t += 3) { const T = [idx[t], idx[t + 1], idx[t + 2]]; if (!T.every(i => ins.has(i))) continue; const P = T.map(i => uv(cur, i));
+      const lo = Math.floor(Math.min(...P.map(p => p[0])) / CEL_M), hi = Math.floor(Math.max(...P.map(p => p[0])) / CEL_M);
+      for (let a = lo; a <= hi; a++) { const x = (a + 0.5) * CEL_M; for (let e = 0; e < 3; e++) { const p = P[e], q = P[(e + 1) % 3]; if ((p[0] - x) * (q[0] - x) > 0 || p[0] === q[0]) continue;
+        const y = p[1] + (q[1] - p[1]) * (x - p[0]) / (q[0] - p[0]); if (!vm.has(a) || y < vm.get(a)) vm.set(a, y); } } }
+    return vm; };
+  for (let g = 0; g < GIRI_M; g++) { const vm = vminDi(), sg = SIGMA_M / CEL_M, K = Math.ceil(3 * sg), vt = new Map();
+    for (const [a, y] of vm) { if (y > V_ARR - 0.2 || a * CEL_M < U_M[0] - 0.3 || a * CEL_M > U_M[1] + 0.3) continue; let sw = 0, sy = 0; for (let k = -K; k <= K; k++) { const z = vm.get(a + k); if (z === undefined || z > V_ARR - 0.2 || (a + k) * CEL_M < U_M[0] - 0.3 || (a + k) * CEL_M > U_M[1] + 0.3) continue; const w = Math.exp(-0.5 * (k / sg) ** 2); sw += w; sy += w * z; } vt.set(a, sy / sw); }
+    const mossi = [];
+    for (const i of reg) { const [u, v] = uv(cur, i); if (v >= V_ARR) continue; const a = Math.floor(u / CEL_M), y0 = vm.get(a), y1 = vt.get(a); if (y0 === undefined || y1 === undefined || Math.abs(y1 - y0) < 1e-5) continue;
+      const v1 = y1 + (v - y0) * (V_ARR - y1) / (V_ARR - y0), dv = (v1 - v) * wq[i] * sstep(U_M[0] - 0.1, U_M[0] + 0.1, u) * (1 - sstep(U_M[1] - 0.1, U_M[1] + 0.1, u)); const r0 = Math.hypot(...[0, 1, 2].map(q => cur[3 * i + q] - cTesta[q]));
+      for (let q = 0; q < 3; q++) cur[3 * i + q] += dv * e2[q]; if (!process.env.SOLO_V) { const rr = Math.hypot(...[0, 1, 2].map(q => cur[3 * i + q] - cTesta[q])); for (let q = 0; q < 3; q++) cur[3 * i + q] = cTesta[q] + (cur[3 * i + q] - cTesta[q]) * r0 / rr; }
+      mossi.push(i); mx = Math.max(mx, Math.abs(dv)); }
+    const W = new Set(mossi); for (const i of mossi) for (const j of nb[i]) W.add(j);
+    for (let it = 0; it < 6; it++) { const lam = it % 2 ? -0.53 : 0.5, q = cur.slice(); for (const i of W) { if (!wq[i]) continue; const L = nb[i]; for (let k = 0; k < 3; k++) { let s = 0; for (const j of L) s += cur[3 * j + k]; q[3 * i + k] += wq[i] * lam * (s / L.length - cur[3 * i + k]); } } cur.set(q); }
+    spingi(); }
+  const vm = vminDi(); let salto = 0; for (const [a, y] of vm) { const z = vm.get(a + 1); if (z !== undefined && a * CEL_M > U_M[0] && a * CEL_M < U_M[1]) salto = Math.max(salto, Math.abs(z - y)); }
+  log('margine distale liscio: spostamento massimo in v', (mx * 10).toFixed(2), 'mm; salto massimo del margine tra colonne vicine (', CEL_M * 10, 'mm)', (salto * 10).toFixed(2), 'mm'); }
 gapStat(cur, 'dopo');
 { let mx = 0; for (const i of reg) mx = Math.max(mx, Math.hypot(...[0, 1, 2].map(k => cur[3 * i + k] - pos0[3 * i + k]))); log('spostamento massimo del tendine', (mx * 10).toFixed(2), 'mm'); }
 
