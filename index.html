@@ -274,6 +274,8 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
 .app .appbox,.js:not(.touch) .appbox{display:none}
 @media (prefers-reduced-motion:reduce){.appbox,.appbox.on{transition:none}}
 </style>
+<link rel="stylesheet" href="assets/ricerca.css">
+<script src="assets/ricerca.js" defer></script>
 </head>
 <body>
 <header class="topbar">
@@ -304,6 +306,19 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
         <h1 id="titolo">MSK <span>Atlas</span></h1>
         <p class="subtitle">Atlante anatomico 3D</p>
         <p class="tagline">Anatomia muscolo-scheletrica da esplorare in tre dimensioni.</p>
+
+        <form class="anatomy-search" role="search" autocomplete="off">
+          <label for="structure-search">Cerca nell’atlante</label>
+          <div class="search-field">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+            <input id="structure-search" type="search" placeholder="Cerca una struttura anatomica…" role="combobox" aria-autocomplete="list" aria-controls="structure-results" aria-expanded="false" aria-describedby="search-help" spellcheck="false">
+          </div>
+          <p id="search-help">Dal nome alla struttura 3D, con le ossa di riferimento.</p>
+          <div class="search-popover" hidden>
+            <p class="search-status" role="status" aria-live="polite"></p>
+            <ul id="structure-results" role="listbox" aria-label="Strutture trovate"></ul>
+          </div>
+        </form>
         <div class="cta">
           <a class="btn btn-light" href="#modelli">Esplora i modelli <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></svg></a>
           <a class="btn btn-glass glass" href="#uso">Come si usa</a>
@@ -318,16 +333,17 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       </div>
 
       <div class="hero-foot">
-        <a class="scroll-cue" href="#atlante">Scorri <i aria-hidden="true"></i></a>
+        <a class="scroll-cue" href="#modelli">Scorri <i aria-hidden="true"></i></a>
       </div>
     </section>
+
 
     <section id="atlante" class="intro wrap" aria-label="L'atlante">
       <div class="intro-col">
         <p class="kicker">L'atlante</p>
         <p class="lit">Ogni tavola è un modello tridimensionale da ruotare, scomporre per strati e consultare struttura per struttura, con note di anatomia e di interesse radiologico. Direttamente nel browser, anche da smartphone.</p>
         <ul class="stats">
-          <li><b data-count-models>5</b><span>Tavole interattive: spalla, polso e dito, gomito, anca, ginocchio, ognuna una pagina indipendente</span></li>
+          <li><b data-count-models>5</b><span>Tavole interattive: spalla, gomito, polso e dito, anca, ginocchio, ognuna una pagina indipendente</span></li>
           <li><b data-count-structures>428</b><span>Strutture anatomiche con scheda: ossa, legamenti, muscoli, vasi e nervi</span></li>
           <li><b>360°</b><span>Rotazione libera, zoom e strati da mostrare o nascondere</span></li>
         </ul>
@@ -339,7 +355,7 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
     <div class="sec-head">
       <p class="kicker">Indice delle tavole</p>
       <h2 id="modelli-titolo">Modelli</h2>
-      <p>Scegli un distretto: il modello si apre a tutto schermo.</p>
+      <p>Scegli un distretto oppure <a href="#structure-search" class="search-shortcut">cerca una struttura</a>.</p>
     </div>
     <ul class="grid">
       <!-- CARD MODELLO: per aggiungere un modello duplica questo blocco e cambia immagine, alt, distretto, link e titolo.
@@ -361,6 +377,21 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       <!-- /CARD MODELLO -->
 
       <!-- CARD MODELLO -->
+      <li class="card" data-strutture="85">
+        <figure class="card-media">
+          <img src="assets/anteprime/gomito-3d.jpg" width="1600" height="1000" loading="lazy"
+               alt="Anteprima del modello 3D del gomito destro in vista anteriore">
+        </figure>
+        <span class="chip card-num glass"></span>
+        <span class="chip card-region glass">Arto superiore</span>
+        <div class="card-body glass">
+          <h3><a class="card-link" href="modelli/gomito-3d.html">Gomito</a><span class="go" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></span></h3>
+          <p class="meta"></p>
+        </div>
+      </li>
+      <!-- /CARD MODELLO -->
+
+      <!-- CARD MODELLO -->
       <li class="card" data-strutture="141">
         <figure class="card-media">
           <img src="assets/anteprime/polso-dito-3d.jpg" width="1600" height="1000" loading="lazy"
@@ -374,21 +405,6 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
           <p class="sub"><span class="sub-label">Sezioni</span>
             <a href="modelli/polso-dito-3d.html">Polso <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a>
             <a href="modelli/polso-dito-3d.html#dito">Dito <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></p>
-        </div>
-      </li>
-      <!-- /CARD MODELLO -->
-
-      <!-- CARD MODELLO -->
-      <li class="card" data-strutture="85">
-        <figure class="card-media">
-          <img src="assets/anteprime/gomito-3d.jpg" width="1600" height="1000" loading="lazy"
-               alt="Anteprima del modello 3D del gomito destro in vista anteriore">
-        </figure>
-        <span class="chip card-num glass"></span>
-        <span class="chip card-region glass">Arto superiore</span>
-        <div class="card-body glass">
-          <h3><a class="card-link" href="modelli/gomito-3d.html">Gomito</a><span class="go" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></span></h3>
-          <p class="meta"></p>
         </div>
       </li>
       <!-- /CARD MODELLO -->
@@ -424,6 +440,8 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
       <!-- /CARD MODELLO -->
     </ul>
   </section>
+
+
 
   <section id="uso" class="usage" aria-labelledby="uso-titolo">
     <div class="usage-bg" aria-hidden="true"><img src="assets/anteprime/ginocchio-3d.jpg" width="1600" height="1000" alt="" loading="lazy"></div>

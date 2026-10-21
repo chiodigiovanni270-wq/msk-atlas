@@ -52,7 +52,7 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
    salva `assets/anteprime/<nome>-3d.jpg`, 1600×1000. Istruzioni e opzioni in testa allo script.
 4. In `index.html` duplica un blocco `<!-- CARD MODELLO -->` e aggiorna distretto, immagine, alt,
    link e titolo, e imposta `data-strutture` sul `<li class="card">` (numero di strutture con scheda del modello: righe dell'elenco "Strutture").
-   Ordine delle card: prima tavola la spalla, poi il resto dell'arto superiore (polso e dito, gomito), infine l'inferiore (anca, ginocchio).
+   Ordine delle card: prima tavola la spalla, poi il resto dell'arto superiore (gomito, polso e dito), infine l'inferiore (anca, ginocchio).
    La card non ha descrizione: solo titolo con freccia e riga "N strutture". Numero "Tav.", riga "N strutture", conteggio dei modelli e totale delle strutture sono automatici.
 5. Verifica in locale, poi commit (`Aggiunge modello <nome>`) e push su `main`.
 
@@ -78,3 +78,8 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
 - Prima di modifiche ampie, proponi un piano e attendi conferma.
 - Commit piccoli e descrittivi, in italiano; per le modifiche a un modello il messaggio inizia con il distretto (es. "Gomito: …").
 - Dopo ogni modifica, indicami come verificarla in locale.
+
+## Ricerca anatomica dalla homepage
+- `assets/ricerca.js` e `assets/ricerca.css`: ricerca accessibile e indice compatto.
+- Dopo modifiche a nomi, ID, categorie o tavole: `node strumenti/indice-ricerca.mjs`, committendo anche `assets/strutture.json`.
+- I modelli accettano `?struttura=<id>` e il polso conserva `#dito` per il dito. A costruzione completata selezionano, isolano con le ossa e centrano la struttura.

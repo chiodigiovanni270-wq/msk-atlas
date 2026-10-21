@@ -803,7 +803,7 @@ document.querySelectorAll('.views button[data-view]').forEach(b=>b.addEventListe
 (()=>{const h=document.querySelector('.title h1');
 if(MODE==='dito'){h.textContent='Dito medio destro';document.title='Dito 3D | MSK Atlas';}
 document.querySelectorAll('.sect button').forEach(b=>{b.setAttribute('aria-selected',b.dataset.sect===MODE);b.addEventListener('click',()=>{if(b.dataset.sect===MODE)return;
- location.hash=b.dataset.sect==='dito'?'dito':'';location.reload();});});})();
+ const url=new URL(location.href);url.searchParams.delete('struttura');url.hash=b.dataset.sect==='dito'?'dito':'';location.assign(url.href);location.reload();});});})();
 const clearViewPress=()=>document.querySelectorAll('.views button[data-view]').forEach(x=>x.setAttribute('aria-pressed','false'));
 (()=>{const nav=document.querySelector('.views'),t=document.getElementById('bViews'),vl=t.querySelector('.vl'),mq=matchMedia('(max-width:430px)');
 const sync=()=>{const on=nav.querySelector('button[data-view][aria-pressed="true"]');vl.textContent=on?on.textContent:'Vista';};
@@ -990,6 +990,31 @@ requestAnimationFrame(loop);
   txt.textContent='Calcolo di ombre e profondità…';await new Promise(r=>setTimeout(r,30));
   try{bakeAO(built);}catch(err){console.error(err);}
   bar.style.width='100%';building=false;document.getElementById('load').hidden=true;
+  /* Ricerca dalla home: ID stabile, applicato solo a costruzione completata. */
+  const searchId=new URLSearchParams(location.search).get('struttura');
+  const found=searchId&&S.find(s=>s.id===searchId);
+  if(found&&found.group&&found.group.children.length){
+    S.forEach(s=>setVis(s,s===found||s.cat==='ossa'));
+    select(found.id);sync();
+    const box=new THREE.Box3().setFromObject(found.group);
+    const center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
+    const bones=new THREE.Box3();S.filter(s=>s.cat==='ossa'&&s.group).forEach(s=>bones.expandByObject(s.group));
+    const boneCenter=bones.getCenter(new THREE.Vector3());
+    const dx=center.x-boneCenter.x,dz=center.z-boneCenter.z;
+    anim=null;cam.target.copy(center);cam.phi=0.12;
+    if(Math.hypot(dx,dz)>0.4)cam.theta=Math.atan2(dx,dz);
+    const fov=camera.fov*Math.PI/180;
+    const fit=Math.max(size.y,size.x/Math.min(camera.aspect,1),size.z)*0.75/Math.tan(fov/2);
+    cam.r=Math.max(cam.baseR*0.28,Math.min(cam.baseR*1.3,fit));
+    clearViewPress();
+    if(compact.matches)setSheet(false);
+  }else if(searchId){
+    const notice=document.createElement('p');notice.setAttribute('role','status');
+    notice.textContent='Struttura non disponibile. Puoi cercarla nell’elenco.';
+    notice.style.cssText='position:fixed;top:100px;left:20px;right:20px;z-index:30;padding:12px;border-radius:12px;background:var(--panel);color:var(--ink)';
+    document.body.appendChild(notice);setTimeout(()=>notice.remove(),7000);
+  }
+
 })();
 })();
 
