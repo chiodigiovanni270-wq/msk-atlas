@@ -35,6 +35,20 @@
  }
  input.addEventListener('input',update);
  input.addEventListener('focus',()=>{if(input.value.trim().length>=2)update();});
+ /* Smartphone: con la tastiera aperta porta il campo in alto (sotto la barra del sito) e adatta l'elenco
+    allo spazio visibile, così i risultati restano sopra tastiera e barra di Safari. */
+ const small=matchMedia('(max-width:700px), (pointer:coarse)'),vv=window.visualViewport;
+ function fit(){
+  if(document.activeElement!==input||!small.matches)return;
+  const bar=document.querySelector('.topbar'),top=(bar?bar.getBoundingClientRect().bottom:0)+12;
+  const r=form.getBoundingClientRect(),dy=r.top-top;
+  if(Math.abs(dy)>4)window.scrollTo({top:scrollY+dy,behavior:'auto'});
+  const h=(vv?vv.height:innerHeight)-(input.getBoundingClientRect().bottom-(Math.abs(dy)>4?dy:0))-60;
+  list.style.maxHeight=Math.max(120,Math.round(h))+'px';
+ }
+ input.addEventListener('focus',()=>{if(!small.matches)return;setTimeout(fit,320);setTimeout(fit,700);});
+ if(vv)vv.addEventListener('resize',()=>setTimeout(fit,50));
+ input.addEventListener('blur',()=>{list.style.maxHeight='';});
  input.addEventListener('keydown',e=>{
   if(e.key==='Escape'){version++;close();return;}
   if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(panel.hidden){update();return;}if(matches.length)setActive((active+(e.key==='ArrowDown'?1:-1)+matches.length)%matches.length);}
