@@ -1,6 +1,6 @@
-/* Scheda struttura (#card) su smartphone: foglio dal basso compatto, espandibile.
+/* Scheda struttura (#card) su smartphone: foglio dal basso compatto, espandibile. Da 900 px: scheda sempre intera.
    Caricata da nav.js; non tocca la logica dei modelli, solo stile e due pulsanti/maniglia della scheda.
-   - Compatta (predefinita): solo il nome della struttura, su una riga; il resto del modello resta visibile e interattivo sopra.
+   - Compatta (predefinita): nome, categoria e pulsanti Isola/Nascondi; il resto del modello resta visibile e interattivo sopra.
    - Espansa: scheda completa (origine, inserzione, funzione, nota) con scorrimento, fino al 56% dell'altezza.
    - Si espande/comprime toccando la maniglia o la freccia; trascinando la maniglia in su si espande, in giù si chiude.
      Un tocco sulla scheda compatta la espande. Niente bordo colorato: il colore della categoria resta sulla struttura. Mentre è aperta, la pillola "Strutture" è nascosta.
@@ -21,13 +21,17 @@
         'border:0;background:transparent;color:var(--muted);padding:0}' +
       '#card .sc-toggle svg{transition:transform .2s}' +
       '#card.sc-open .sc-toggle svg{transform:rotate(180deg)}' +
-      /* compatta: solo il nome su una riga; un tocco sulla scheda la apre completa */
+      /* compatta: nome, categoria e pulsanti (testo della scheda nascosto, niente righe troncate); un tocco la apre completa */
       '#card:not(.sc-open){cursor:pointer}' +
-      '#card:not(.sc-open) h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}' +
-      '#card:not(.sc-open) .cat,#card:not(.sc-open) .info,#card:not(.sc-open) .btns{display:none}' +
+      '#card:not(.sc-open) h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '#card:not(.sc-open) .cat{margin-bottom:10px}' +
+      '#card:not(.sc-open) .info{display:none}' +
       '#card.sc-open .info{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}' +
       'body.sc-card #sheet{display:none}' +
     '}' +
+    /* computer: scheda intera, senza scorrimento interno della nota; scorre tutta la scheda solo se supera lo spazio sotto la barra */
+    '@media (min-width:900px){#card{display:flex;flex-direction:column;max-height:calc(100vh - env(safe-area-inset-top,0px) - 136px);max-height:calc(100dvh - env(safe-area-inset-top,0px) - 136px)}' +
+      '#card h2,#card .cat,#card .btns{flex:none}#card .info{flex:0 1 auto;min-height:0;max-height:none;overflow:auto}}' +
     '@media (prefers-reduced-motion:reduce){#card .sc-toggle svg{transition:none}}';
   var style = document.createElement('style');
   style.textContent = css;
