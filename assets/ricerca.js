@@ -55,6 +55,12 @@
  });
  form.addEventListener('submit',e=>{e.preventDefault();if(!panel.hidden)choose(active<0?0:active);});
  document.addEventListener('pointerdown',e=>{if(!form.contains(e.target)){version++;close();}});
- form.addEventListener('focusout',()=>setTimeout(()=>{if(!form.contains(document.activeElement)){version++;close();}},0));
+ /* Tocco o clic su un risultato: il campo non deve perdere il focus, altrimenti focusout chiude l'elenco
+    tra la pressione e il rilascio e il clic non arriva più al risultato (il modello non si apre). */
+ let pressing=false;
+ list.addEventListener('pointerdown',()=>{pressing=true;});
+ list.addEventListener('mousedown',e=>e.preventDefault());
+ ['pointerup','pointercancel'].forEach(t=>document.addEventListener(t,()=>setTimeout(()=>{pressing=false;},400)));
+ form.addEventListener('focusout',()=>setTimeout(()=>{if(!pressing&&!form.contains(document.activeElement)){version++;close();}},0));
  document.querySelectorAll('.search-shortcut').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();input.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});input.focus({preventScroll:true});}));
 })();
