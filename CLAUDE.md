@@ -12,7 +12,8 @@ a scopo didattico (anatomia muscolo-scheletrica per radiologia). Lingua dell'int
 
 ## Modelli
 La cartella `modelli/` contiene pagine HTML autocontenute (three.js r128 da CDN), nate come artifact di Claude:
-- `polso-dito-3d.html` — polso destro + dito medio in sezione separata (`#dito`)
+- `polso-dito-3d.html` — polso destro + dito medio in sezione separata (`#dito`); in homepage sono due card distinte,
+  Polso (`polso-dito-3d.jpg`) e Dito (link con `#dito`, anteprima `dito-3d.jpg` creata con `--sezione=dito`)
 - `gomito-3d.html` — gomito destro, con regioni guidate (tunnel cubitale, fossa cubitale) e piano di taglio
 - `spalla-3d.html` — spalla destra (costruita da BodyParts3D a strati con gli script `*-spalla.mjs`)
 - `ginocchio-3d.html` — ginocchio destro
@@ -49,10 +50,12 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
    `<meta name="description" content="…">` e `<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">`;
    subito dopo `<body>` aggiungi `<script src="../assets/nav.js"></script>`. Aggiungi anche i `<meta name="strutture-bp3d">` e `strutture-modellate` (facoltativo `strutture-escluse`) per la sezione "Strutture del modello" del pannello "i". Nient'altro nel file del modello.
 3. Crea l'anteprima con `node strumenti/anteprima.mjs <nome>-3d` (server locale attivo sulla porta 8000):
-   salva `assets/anteprime/<nome>-3d.jpg`, 1600×1000. Istruzioni e opzioni in testa allo script.
+   salva `assets/anteprime/<nome>-3d.jpg`, 1600×1000. Istruzioni e opzioni in testa allo script
+   (`--zoom`, `--dx`/`--dy`, `--vista`, `--ruota`/`--inclina`, `--sezione`). Inquadrature in uso: spalla `--vista=lat --zoom=1.4`,
+   anca `--zoom=1.4`, dito `--sezione=dito --ruota=40 --inclina=8 --zoom=1.6`.
 4. In `index.html` duplica un blocco `<!-- CARD MODELLO -->` e aggiorna distretto, immagine, alt,
    link e titolo, e imposta `data-strutture` sul `<li class="card">` (numero di strutture con scheda del modello: righe dell'elenco "Strutture").
-   Ordine delle card: prima tavola la spalla, poi il resto dell'arto superiore (gomito, polso e dito), infine l'inferiore (anca, ginocchio).
+   Ordine delle card: prima tavola la spalla, poi il resto dell'arto superiore (gomito, polso, dito), infine l'inferiore (anca, ginocchio).
    La card non ha descrizione: solo titolo con freccia e riga "N strutture". Numero "Tav.", riga "N strutture", conteggio dei modelli e totale delle strutture sono automatici.
 5. Verifica in locale, poi commit (`Aggiunge modello <nome>`) e push su `main`.
 
