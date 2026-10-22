@@ -29,7 +29,7 @@
     return score(a)-score(b)||a.name.localeCompare(b.name,'it')||a.model.localeCompare(b.model,'it');
    });
    matches=found.slice(0,30);
-   status.textContent=found.length?`${found.length} risultati${found.length>30?' · primi 30, affina la ricerca':''}`:'Nessuna struttura trovata. Prova un nome più breve o un altro termine.';
+   status.textContent=found.length?`${found.length} ${found.length===1?'risultato':'risultati'}${found.length>30?' · primi 30, affina la ricerca':''}`:'Nessuna struttura trovata. Prova un nome più breve o un altro termine.';
    matches.forEach((r,i)=>{const li=document.createElement('li');li.id=`structure-option-${i}`;li.setAttribute('role','option');li.setAttribute('aria-selected','false');const name=document.createElement('strong'),detail=document.createElement('small');name.textContent=r.name;detail.textContent=`${r.model} · ${r.category}`;li.append(name,detail);li.addEventListener('click',()=>choose(i));list.append(li);});
   }catch{if(token===version)status.textContent='Ricerca non disponibile. Riprova digitando oppure scegli una tavola qui sotto.';}
  }
