@@ -3,7 +3,8 @@
    Da includere subito dopo <body>:  <script src="../assets/nav.js"></script>
    Non tocca la logica del modello: aggiunge solo elementi sopra il canvas e
    allarga i margini laterali della barra .top del modello per fare posto ai due pulsanti;
-   da 900 px porta viste e selettore di sezione sulla fila dei due pulsanti (alti 44 px) e il titolo sotto.
+   da 900 px porta il selettore di sezione sulla fila dei due pulsanti (alti 44 px) e il titolo sotto.
+   Sostituisce il menu "Vista" con un indicatore di orientamento (Ant/Post/Lat/Med) che segue la camera.
    Pannello "i": su smartphone foglio dal basso con sfondo attenuato, da 640 px riquadro sotto la "i". */
 (function(){
   /* tema scuro sempre, indipendentemente dal sistema: i modelli definiscono
@@ -71,11 +72,20 @@
     '.an-panel a{color:var(--accent,#72b4d0)}' +
     /* interfaccia del modello (fino a 899 px): titolo e viste si affiancano ai due pulsanti */
     '.top{padding-top:calc(' + TOP + ' + 4px);padding-left:calc(' + SIDE + ' + ' + BTN + ' + 8px);padding-right:calc(' + SIDE_R + ' + ' + BTN + ' + 6px)}' +
-    /* smartphone stretti: il menu "Vista" ha sempre la stessa posizione, 30 px sotto la "i" (con il margine di 6 px),
-       indipendentemente dall'altezza del titolo (nel polso c'è anche il selettore Polso/Dito, nel ginocchio no) */
-    '@media (max-width:430px){' +
-      '.top .views{top:calc(' + TOP + ' + ' + BTN + ' + 24px)}' +
-    '}' +
+    /* il menu "Vista" dei modelli è sostituito dall'indicatore di orientamento (.an-orient, sotto) */
+    '.top .views{display:none!important}' +
+    /* indicatore di orientamento: bussola anatomica sotto la "i", ruota con la camera (vedi sotto) */
+    '.an-orient{position:fixed;z-index:18;top:calc(' + TOP + ' + ' + BTN + ' + 8px);right:' + SIDE_R + ';width:96px;height:72px;' +
+      'pointer-events:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}' +
+    '.an-orient svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}' +
+    '.an-orient ellipse{fill:rgba(13,17,22,.5);stroke:var(--glass-bd,rgba(255,255,255,.13));stroke-width:1}' +
+    '.an-orient button{text-shadow:0 1px 3px rgba(0,0,0,.7);position:absolute;left:0;top:0;pointer-events:auto;margin:0;padding:0;border:0;border-radius:999px;' +
+      'width:34px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink,#e5eaef);' +
+      'font:600 11px/1 ' + SANS + ';letter-spacing:.02em;will-change:transform,opacity;' + 'background:transparent}' +
+    '.an-orient button[hidden]{display:none}' +
+    '.an-orient button.an-front{background:var(--accent,#72b4d0);color:var(--bg-lo,#0d1116)}' +
+    '.an-orient button.an-flipb{z-index:0;width:26px;height:26px;font-size:14px;color:var(--muted,#93a1ae);' + GLASS + '}' +
+    '.an-orient button:focus-visible{outline:2px solid var(--accent,#72b4d0);outline-offset:1px}' +
     /* da 640 px: indietro con logo e nome; pannello "i" come riquadro sotto la "i", senza sfondo attenuato */
     '@media (min-width:641px){' +
       '.an-home{width:' + HOMEW + ';justify-content:flex-start;padding:0 0 0 10px}' +
@@ -91,11 +101,10 @@
        (.sect, se c'è) accanto, viste accanto alla "i" — e titolo sotto, allineato al pulsante indietro */
     '@media (min-width:900px){' +
       '.top{padding:calc(' + TOP + ' + ' + BTN + ' + 14px) ' + SIDE_R + ' 0 ' + SIDE + '}' +
-      '.top .views,.top .sect{position:fixed;top:' + TOP + ';box-sizing:border-box;height:' + BTN + ';margin:0;padding:4px;align-items:stretch}' +
-      '.top .views{right:calc(' + SIDE_R + ' + ' + BTN + ' + 8px)}' +
+      '.top .sect{position:fixed;top:' + TOP + ';box-sizing:border-box;height:' + BTN + ';margin:0;padding:4px;align-items:stretch}' +
       '.top .sect{left:calc(' + SIDE + ' + ' + HOMEW + ' + 8px)}' +
-      '.top .views button,.top .sect button{padding:0 14px;font-size:14px;font-weight:500}' +
-      '.top .views .flip{padding:0 14px 0 12px;font-size:16px}' +
+      '.top .sect button{padding:0 14px;font-size:14px;font-weight:500}' +
+      '.an-orient{width:112px;height:80px}' +
     '}' +
     /* sfondo di riserva sotto il gradiente del modello: Safari iOS lo usa per la fascia sotto la barra del browser.
        #11161c = colore del gradiente al centro del bordo inferiore, così la fascia non stacca */
@@ -190,4 +199,92 @@
   document.addEventListener('pointerdown', function(e){
     if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) setOpen(false);
   });
+
+  /* indicatore di orientamento: ellisse vista dall'alto con le quattro direzioni anatomiche.
+     Il codice dei modelli è in una funzione chiusa (cam e VIEWS non sono raggiungibili) e non si tocca:
+     la camera si legge da render() del renderer del modello (si avvolge THREE.WebGLRenderer non appena THREE è caricato).
+     Azimut θ della camera: la direzione di guardata è (−sinθ, ·, −cosθ). Gli angoli da cui si guarda ogni lato
+     sono quelli dei modelli: ant 0, post π, lat −π/2 e med π/2; quando il gruppo del modello è capovolto (⇅ in gomito e polso,
+     rotation.z ≠ 0) lat e med si scambiano. Un lato a angolo α compare a x = sin(α − θ), profondità cos(α − θ):
+     davanti = in basso ed evidenziato, dietro = in alto e attenuato. Un tocco sull'etichetta preme il pulsante di vista
+     del modello (che resta nel DOM, nascosto). */
+  var DIR = [['ant', 'Ant', 'anteriore'], ['post', 'Post', 'posteriore'], ['lat', 'Lat', 'laterale'], ['med', 'Med', 'mediale']];
+  var seen = null;   /* ultima camera e scena viste dal renderer del modello */
+  var orient = document.createElement('div');
+  orient.className = 'an-orient';
+  orient.setAttribute('role', 'group');
+  orient.setAttribute('aria-label', 'Orientamento: tocca un lato per guardarlo di fronte');
+  orient.innerHTML = '<svg viewBox="0 0 96 72" preserveAspectRatio="none" aria-hidden="true"><ellipse cx="48" cy="36" rx="33" ry="22"/></svg>';
+  var labs = DIR.map(function(d){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.d = d[0];
+    b.setAttribute('aria-label', 'Vista ' + d[2]);
+    b.title = d[2].charAt(0).toUpperCase() + d[2].slice(1);
+    b.textContent = d[1];
+    b.addEventListener('click', function(){
+      var src = document.querySelector('.views button[data-view="' + d[0] + '"]');
+      if (src) src.click();
+    });
+    orient.appendChild(b);
+    return b;
+  });
+  var flipb = document.createElement('button');
+  flipb.type = 'button';
+  flipb.className = 'an-flipb';
+  flipb.textContent = '⇅';
+  flipb.hidden = true;
+  flipb.addEventListener('click', function(){ var f = document.getElementById('bFlip'); if (f) f.click(); });
+  orient.appendChild(flipb);
+  document.body.appendChild(orient);
+
+  var last = '';
+  function hook(){
+    var T = window.THREE;
+    if (!T || !T.WebGLRenderer || T.WebGLRenderer.__anHook) return;
+    var Orig = T.WebGLRenderer;   /* in r128 render è un metodo dell'istanza, non del prototipo: si avvolge il costruttore */
+    var Wrapped = function(){
+      var r = new (Function.prototype.bind.apply(Orig, [null].concat([].slice.call(arguments))))();
+      var o = r.render;
+      r.render = function(scene, camera){ seen = { scene: scene, camera: camera }; return o.apply(r, arguments); };
+      return r;
+    };
+    Wrapped.prototype = Orig.prototype;
+    Wrapped.__anHook = true;
+    T.WebGLRenderer = Wrapped;
+  }
+  /* il costruttore va avvolto prima che il modello crei il renderer (subito dopo three.js): si ascolta l'evento load del tag di three */
+  function watch(n){ if (n.tagName === 'SCRIPT' && /three/.test(n.src || '')) { n.addEventListener('load', hook); hook(); } }
+  hook();
+  new MutationObserver(function(ms){ ms.forEach(function(m){ [].forEach.call(m.addedNodes, watch); }); }).observe(document, { childList: true, subtree: true });
+  function frame(){
+    hook();
+    if (seen && seen.camera) {
+      var m = seen.camera.matrixWorld.elements;   /* terza colonna = asse z della camera: la camera guarda verso −z */
+      var th = Math.atan2(m[8], m[10]);
+      var grp = seen.scene.children.filter(function(o){ return o.type === 'Group'; })[0];
+      var up = grp && Math.abs(grp.rotation.z) > 0.01;
+      var A = { ant: 0, post: Math.PI, lat: up ? Math.PI / 2 : -Math.PI / 2, med: up ? -Math.PI / 2 : Math.PI / 2 };
+      var W = orient.offsetWidth, H = orient.offsetHeight;
+      var key = [th.toFixed(3), up, W].join();
+      if (W && key !== last) {
+        last = key;
+        var rx = W * 0.344, ry = H * 0.31, best = null, bz = -2;
+        labs.forEach(function(b){
+          var d = A[b.dataset.d] - th, z = Math.cos(d), x = Math.sin(d);
+          var sc = 0.82 + 0.18 * (z + 1) / 2;
+          b.style.transform = 'translate(' + (W / 2 + x * rx - 17).toFixed(1) + 'px,' + (H / 2 + z * ry - 13).toFixed(1) + 'px) scale(' + sc.toFixed(3) + ')';
+          b.style.opacity = (0.5 + 0.5 * (z + 1) / 2).toFixed(2);
+          b.style.zIndex = Math.round((z + 1) * 10);
+          b.classList.remove('an-front');
+          if (z > bz) { bz = z; best = b; }
+        });
+        if (best && bz > 0.8) best.classList.add('an-front');
+        flipb.hidden = !document.getElementById('bFlip');
+        flipb.style.transform = 'translate(' + (W / 2 - 13) + 'px,' + (H / 2 - 13) + 'px)';
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 })();

@@ -24,6 +24,7 @@ Ricavata da `ginocchio-3d.html` e `polso-dito-3d.html`. Un nuovo modello deve av
 - Schermata di caricamento `#load` con barra `#loadBar` e testo `#loadTxt` ("Costruzione del modello…").
 - Viste richiudibili su smartphone (≤ 430 px): `<nav class="views closed">` contiene, come ultimo figlio, `<button class="vtoggle" id="bViews" aria-expanded="false">` con `<span class="vl">` (nome della vista attiva) e `<span class="vc">▾</span>`. Da chiusa la barra mostra solo il chip "Vista attiva ▾" (in alto a destra, sotto la "i"); un tocco la espande (freccia ▴), la scelta di una vista la richiude, il ⇅ (se c'è) no. Da 431 px il chip è nascosto e la barra è invariata. Regole CSS nel `@media (max-width:430px)` accanto a `.views{position:absolute…}` e JS subito dopo `clearViewPress`: copiarli da ginocchio/polso. I listener delle viste devono usare `.views button[data-view]`, altrimenti includono il chip; ogni pulsante vista ha `data-view`.
 - Su smartphone la fila `.views` deve stare nello schermo a 360 px anche aperta (sotto 430 px scende sotto il titolo, come nel polso).
+- Orientamento: la barra `.views` resta nel DOM (i pulsanti `data-view` servono al codice) ma `assets/nav.js` la nasconde e la sostituisce con l'indicatore di orientamento in alto a destra sotto la "i": ellisse vista dall'alto con le etichette Ant/Post/Lat/Med (anche nel polso: volare/dorsale/radiale/ulnare corrispondono ad ant/post/lat/med), che ruotano con la camera; il lato rivolto allo spettatore è in basso ed evidenziato. Legge `cam.theta` e `VIEWS` del modello (già corretti per lato destro e inversione ⇅, quindi niente da fare nei modelli); un tocco sull'etichetta preme il pulsante `data-view` corrispondente, il pulsante ⇅ al centro preme `#bFlip` se esiste. Un nuovo modello deve quindi mantenere `cam`, `VIEWS` e i pulsanti `.views button[data-view]`.
 
 ## Dati
 - Categorie in `const CATS=[{id,name,color}]` (es. ossa, cart, men, leg, ten, mus, art, ven, ner, bor, adi, caps, cute). `HIDDEN_CATS` = categorie nascoste all'avvio (es. capsula, cute; nel ginocchio anche le borse).
@@ -120,7 +121,7 @@ Riferimenti anatomici: [Imaging of the Hip, NCBI Bookshelf](https://www.ncbi.nlm
 - [ ] Clic su strutture vicino ai bordi alto e basso apre la card giusta
 - [ ] Rotazione, zoom, viste, isola/nascondi, elenco funzionanti
 - [ ] Nessun errore in console; carica anche su smartphone
-- [ ] `.views` interamente visibile a 360 px (aperta); su smartphone chiusa all'avvio come chip "Vista ▾", si richiude dopo la scelta di una vista, invariata da 431 px
+- [ ] Indicatore di orientamento visibile sotto la "i" a 360 px e da computer, senza coprire il modello né il titolo; le etichette seguono la rotazione e un tocco allinea la vista
 - [ ] Su smartphone: pannello chiuso all'avvio, pulsante "Strutture" ovale e funzionante, nessuna fascia di colore diverso in basso in Safari, card compatta, nessuna sovrapposizione titolo/viste
 - [ ] `<title>` nel formato "<Distretto> 3D | MSK Atlas" (anche eventuali `document.title` impostati dal modello)
 - [ ] Credito BodyParts3D presente e corretto
