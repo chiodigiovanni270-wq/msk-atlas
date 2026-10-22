@@ -1033,6 +1033,7 @@ requestAnimationFrame(loop);
   try{bakeAO(built);}catch(err){console.error(err);}
   bar.style.width='100%';building=false;document.getElementById('load').hidden=true;
   /* Ricerca dalla home: ID stabile, applicato solo a costruzione completata. */
+  scene.updateMatrixWorld(true);
   const searchId=new URLSearchParams(location.search).get('struttura');
   const found=searchId&&S.find(s=>s.id===searchId);
   if(found&&found.group&&found.group.children.length){

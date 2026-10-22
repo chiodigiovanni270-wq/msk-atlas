@@ -803,7 +803,8 @@ document.querySelectorAll('.views button[data-view]').forEach(b=>b.addEventListe
 (()=>{const h=document.querySelector('.title h1');
 if(MODE==='dito'){h.textContent='Dito medio destro';document.title='Dito 3D | MSK Atlas';}
 document.querySelectorAll('.sect button').forEach(b=>{b.setAttribute('aria-selected',b.dataset.sect===MODE);b.addEventListener('click',()=>{if(b.dataset.sect===MODE)return;
- const url=new URL(location.href);url.searchParams.delete('struttura');url.hash=b.dataset.sect==='dito'?'dito':'';location.assign(url.href);location.reload();});});})();
+ const url=new URL(location.href),hadSearch=url.searchParams.has('struttura');url.searchParams.delete('struttura');url.hash=b.dataset.sect==='dito'?'dito':'';
+ if(hadSearch){location.assign(url.href);}else{location.hash=url.hash;location.reload();}});});})();
 const clearViewPress=()=>document.querySelectorAll('.views button[data-view]').forEach(x=>x.setAttribute('aria-pressed','false'));
 (()=>{const nav=document.querySelector('.views'),t=document.getElementById('bViews'),vl=t.querySelector('.vl'),mq=matchMedia('(max-width:430px)');
 const sync=()=>{const on=nav.querySelector('button[data-view][aria-pressed="true"]');vl.textContent=on?on.textContent:'Vista';};
@@ -991,6 +992,7 @@ requestAnimationFrame(loop);
   try{bakeAO(built);}catch(err){console.error(err);}
   bar.style.width='100%';building=false;document.getElementById('load').hidden=true;
   /* Ricerca dalla home: ID stabile, applicato solo a costruzione completata. */
+  scene.updateMatrixWorld(true);
   const searchId=new URLSearchParams(location.search).get('struttura');
   const found=searchId&&S.find(s=>s.id===searchId);
   if(found&&found.group&&found.group.children.length){
