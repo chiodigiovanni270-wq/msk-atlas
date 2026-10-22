@@ -767,10 +767,16 @@ function fillInfo(s){
 }
 card.querySelector('.x').addEventListener('click',()=>select(null));
 document.getElementById('cHide').addEventListener('click',()=>{if(!selected)return;const s=selected;select(null);setVis(s,false);sync();});
-document.getElementById('cIso').addEventListener('click',()=>{if(!selected)return;const k=selected;S.forEach(s=>setVis(s,s===k||s.cat==='ossa'));sync();});
+/* Isola con le ossa / Ripristina vista: la visibilità di prima è salvata e tornare indietro è un secondo tap sullo stesso pulsante.
+   Qualunque altro cambio di visibilità (elenco, categorie, Mostra tutto, Solo ossa, regioni) annulla il ripristino. */
+var isoPrev=null,isoBusy=false;const bIso=document.getElementById('cIso');
+function isoLbl(){bIso.textContent=isoPrev?'Ripristina vista':'Isola con le ossa';bIso.setAttribute('aria-pressed',!!isoPrev);}
+function isola(keep){if(!isoPrev)isoPrev={vis:new Map(S.map(s=>[s,s.visible])),sel:selected&&selected.id};isoBusy=true;S.forEach(s=>setVis(s,keep(s)));isoBusy=false;isoLbl();sync();}
+function ripristina(){const p=isoPrev;isoPrev=null;isoBusy=true;p.vis.forEach((v,s)=>setVis(s,v));isoBusy=false;isoLbl();sync();if(!selected&&p.sel&&byId[p.sel]&&byId[p.sel].visible)select(p.sel);}
+bIso.addEventListener('click',()=>{if(isoPrev){ripristina();return;}if(!selected)return;const k=selected;isola(s=>s===k||s.cat==='ossa');});
 
 /* ============ Pannello ============ */
-function setVis(s,v){s.visible=v;if(s.group)s.group.visible=v;if(!v&&selected===s)select(null);}
+function setVis(s,v){if(isoPrev&&!isoBusy){isoPrev=null;isoLbl();}s.visible=v;if(s.group)s.group.visible=v;if(!v&&selected===s)select(null);}
 const chipsEl=document.getElementById('chips'),listEl=document.getElementById('list');
 /* rotellina del mouse = scorrimento orizzontale delle categorie, se la riga eccede */
 chipsEl.addEventListener('wheel',e=>{if(chipsEl.scrollWidth>chipsEl.clientWidth&&Math.abs(e.deltaY)>Math.abs(e.deltaX)){chipsEl.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
@@ -886,7 +892,7 @@ requestAnimationFrame(loop);
   const searchId=new URLSearchParams(location.search).get('struttura');
   const found=searchId&&S.find(s=>s.id===searchId);
   if(found&&found.group&&found.group.children.length){
-    S.forEach(s=>setVis(s,s===found||s.cat==='ossa'));
+    isola(s=>s===found||s.cat==='ossa');
     select(found.id);sync();
     const box=new THREE.Box3().setFromObject(found.group);
     const center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
