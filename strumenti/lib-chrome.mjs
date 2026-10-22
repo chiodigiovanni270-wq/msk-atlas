@@ -96,18 +96,18 @@ export async function apriModello({ cdp, evaluate }, url, width, height, scale =
 }
 
 /* espressione JS che, al prossimo fotogramma, compone il canvas del modello su SFONDO
-   e restituisce { data } (data URL) o { error }. W×H = uscita; z = ingrandimento; dy = spostamento verticale */
-export function espressioneCattura(W, H, z, dy, tipo = 'image/jpeg', qualita = 0.82) {
+   e restituisce { data } (data URL) o { error }. W×H = uscita; z = ingrandimento; dy/dx = spostamento verticale/orizzontale */
+export function espressioneCattura(W, H, z, dy, tipo = 'image/jpeg', qualita = 0.82, dx = 0) {
   return `new Promise(res => requestAnimationFrame(() => {
     const c = document.getElementById('c') || document.querySelector('canvas');
     if (!c) return res({ error: 'nessun canvas nella pagina' });
-    const W = ${W}, H = ${H}, z = ${z}, dy = ${dy};
+    const W = ${W}, H = ${H}, z = ${z}, dy = ${dy}, dx = ${dx};
     const o = document.createElement('canvas'); o.width = W; o.height = H; const g = o.getContext('2d');
     const gr = g.createRadialGradient(W/2, H*0.42, 0, W/2, H*0.42, W*0.6);
     ${JSON.stringify(SFONDO)}.forEach(([p, col]) => gr.addColorStop(p, col));
     g.fillStyle = gr; g.fillRect(0, 0, W, H);
     g.imageSmoothingQuality = 'high';
-    const sw = c.width / z, sh = sw * H / W, sx = (c.width - sw) / 2, sy = (c.height - sh) / 2 + dy * c.height;
+    const sw = c.width / z, sh = sw * H / W, sx = (c.width - sw) / 2 + dx * c.width, sy = (c.height - sh) / 2 + dy * c.height;
     g.drawImage(c, sx, sy, sw, sh, 0, 0, W, H);
     res({ data: o.toDataURL('${tipo}', ${qualita}) });
   }))`;
@@ -130,4 +130,18 @@ export function espressioneCatturaTrasparente(larghezze, tipo = 'image/webp', qu
       return o.toDataURL('${tipo}', ${qualita});
     }) });
   }))`;
+}
+
+/* ruota la camera trascinando col mouse dal centro del canvas: gradi > 0 = verso destra (orbita come il dito dell'utente),
+   inclina > 0 = trascina verso il basso. 0,009 rad per pixel, come nei modelli. */
+export async function ruotaVista({ cdp }, width, height, gradi = 0, inclina = 0) {
+  if (!gradi && !inclina) return;
+  const px = v => v * Math.PI / 180 / 0.009, x0 = width / 2, y0 = height / 2, DX = px(gradi), DY = px(inclina), N = 30;
+  await cdp('Input.dispatchMouseEvent', { type: 'mousePressed', x: x0, y: y0, button: 'left', buttons: 1, clickCount: 1 });
+  for (let i = 1; i <= N; i++) {
+    await cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: x0 + DX * i / N, y: y0 + DY * i / N, button: 'left', buttons: 1 });
+    await sleep(15);
+  }
+  await cdp('Input.dispatchMouseEvent', { type: 'mouseReleased', x: x0 + DX, y: y0 + DY, button: 'left', buttons: 0, clickCount: 1 });
+  await sleep(800);
 }
