@@ -171,6 +171,8 @@
       '<p>Ideato e realizzato da <strong>Dott. Giovanni Chiodi</strong>, medico radiologo.</p></section>';
 
   var anchor = document.currentScript;
+  /* scheda struttura su smartphone (foglio compatto): file a parte, stesso percorso di nav.js */
+  if (anchor && anchor.src) { var sk = document.createElement('script'); sk.src = anchor.src.replace(/nav\.js([?#].*)?$/, 'scheda.js'); document.head.appendChild(sk); }
   if (anchor && anchor.parentNode === document.body) anchor.after(home, btn, scrim, panel);
   else document.body.prepend(home, btn, scrim, panel);
 
