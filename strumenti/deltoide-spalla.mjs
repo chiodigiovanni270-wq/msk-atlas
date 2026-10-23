@@ -66,7 +66,7 @@ const FONDO = ['supra', 'infra', 'borsa_sad', 'caps', 'cal', 'ac_leg', 'coraco_o
 const MOLLI = [...new Set([...FONDO, 'cc_trapezoide', 'cc_conoide', 'pec_cl', 'coracobr', 'trap_d', 'trap_t', 'tmin'])];
 const PASSO = 0.04;                                                                                                   // cm
 const R_SOLCO = 1.5, VICINO_SOLCO = 0.9, COPRI = 0.25, R_ORIG = 0.8, VICINO_OSSO = 1.0, Y_OSSA = 2.0, X_ACR = 2.4, APRI = 0.08;   // cm
-const Y_TETTO = 3.5, ESTENDI = 0.12, LEVIGA_TETTO = 12, SOTTO_TETTO = 0.03, PENDENZA = [1.0, 0.15], Z_ANGOLO = -2.9, APRI_ANGOLO = 0.12, TAGLIO = 250, VICINO_PARTE = 0.5, GONFIA = 0.02, SALITA = 0.6, INCLINA = 1.5, P0_INC = 0.05, P_INC = 0.15;
+const Y_TETTO = 3.5, ESTENDI = 0.12, LEVIGA_TETTO = 12, SOTTO_TETTO = 0.03, PENDENZA = [1.0, 0.15], Z_ANGOLO = -2.9, APRI_ANGOLO = 0.12, R_TACCA = 1.0, VICINO_TACCA = 0.6, Y_TACCA = 3.6, TAGLIO = 250, VICINO_PARTE = 0.5, GONFIA = 0.02, SALITA = 0.6, INCLINA = 1.5, P0_INC = 0.05, P_INC = 0.15;
 const GAP_OSSO = 0.05, GAP_MOLLI = 0.05, PEZZO_MIN = 200, TRI = 1.2, NORM_DIFF = 4, GIRI_LISCIA = 40;
 const ZONA0 = 1.2, ZONA1 = 3.6, SOLCO = 0.15, R_RIPORTA = 0.4, GIRI_SPOST = 12, MARGINE = 0.1, GIRI_PIEGHE = 8;
 const Y_BASE = -9.0;   // cm: sotto questo piano (estremità distale, tendine sull'omero) restano i triangoli di BASE   // cm: zona delle origini (distanza dalle ossa delle origini)
@@ -143,6 +143,12 @@ for (let i = 0; i < N; i++) { if (sopra[i]) C[i] = Math.max(C[i], 0.02);
   C[i] = Math.min(C[i], Ci[i]);
   // (il riempimento resta dalla parte dell'acromiale rispetto al deltoide spinale: niente lembo dell'acromiale sopra l'estremità del deltoide spinale)
   C[i] = Math.max(C[i], (Math.min(Dcl[i], Dac[i]) - Dsp[i]) / 2); }
+// davanti all'apice dell'acromion il clavicolare ha due lobi più alti della faccia superiore dell'osso, separati da una tacca a V che arrivava al
+// legamento coraco-acromiale (il tetto teneva il riempimento a filo dell'acromion): chiusura del solo clavicolare (raggio `R_TACCA`, entro
+// `VICINO_TACCA` da esso), solo lateralmente a `X_ACR`, nella zona delle origini, sotto y = `Y_TACCA` e non sopra le ossa (niente pinna
+// nella rima acromioclavicolare); non sale oltre l'inviluppo dei due lobi
+{ const Ct = chiuso(Dcl, R_TACCA);
+  for (let i = 0; i < N; i++) { const p = vox(i); if (Ct[i] > 0 || sopra[i] || Dcl[i] > VICINO_TACCA || Dbo[i] > VICINO_OSSO || p[0] >= X_ACR) continue; C[i] = Math.min(C[i], Math.max(Ct[i], p[1] - Y_TACCA)); } }
 sfoca(C, 2);
 log('chiusure');
 // 4. ostacoli
