@@ -25,7 +25,9 @@
       scapola solo lateralmente a `X_ACR`: il coracoide resta fuori) e i legamenti sotto l'origine (`PAVIMENTO`), entro `VICINO_OSSO` da questi: la parte
       acromiale arriva sul margine laterale dell'acromion e il clavicolare sulla clavicola, invece di fermarsi a qualche millimetro.
    4. Forma comune C = riempimento ∩ (dove i punti sopra le ossa vanno solo se a meno di `VICINO_PARTE` da una parte) ∩ sotto `Y_TETTO` lateralmente a
-      `X_ACR` (niente pinna dell'acromiale sopra l'acromion); apertura di raggio `APRI` contro le lamine sottili. Ogni parte = (sua forma gonfiata di
+      `X_ACR` (niente pinna dell'acromiale sopra l'acromion); lì il riempimento delle origini sta anche sotto il tetto dell'acromion (faccia superiore
+      estesa di `ESTENDI` e poi decrescente con `PENDENZA`, al posto del criterio della salita) e dalla parte dell'acromiale rispetto al deltoide
+      spinale; apertura di raggio `APRI` contro le lamine sottili, fatta insieme alle due parti. Ogni parte = (sua forma gonfiata di
       `GONFIA` ∪ C) fuori dagli ostacoli: a `GAP_OSSO` dalle ossa e a `GAP_MOLLI` da cuffia, borsa, capsula, legamenti, capo breve e lungo del
       bicipite, coracobrachiale, grande pettorale e trapezio (`MOLLI`); entrambe anche dal deltoide spinale, che resta com'è.
       Divisione tra le due parti: piano bisettore (Scl − Sac)/2, piegato in profondità (`INCLINA`, `P0_INC`, `P_INC`) così l'acromiale passa sotto il
@@ -42,6 +44,8 @@
       dove il punto di BASE è a meno di `GAP_MOLLI` + `MARGINE` da un ostacolo o dentro l'altra parte; dimezzando lo spostamento dove un triangolo si
       girerebbe, `GIRI_PIEGHE` volte); i vertici della sola faccia di contatto seguono i vicini (`GIRI_SPOST`). Le normali delle facce esterne sono quelle
       scritte in BASE nel punto più vicino, dove concordano con le nuove: fuori dalla zona delle origini il muscolo ha la forma e la luce di BASE.
+   6b. Angolo posteriore dell'acromion (dietro `Z_ANGOLO`, entro `VICINO_OSSO` dalle ossa): la lamina dell'acromiale appoggiata sul deltoide spinale è
+      aperta di raggio `APRI_ANGOLO` (finisce arrotondata, senza nodulo).
    7. Estremità distale (tendine sull'omero, troppo sottile per la griglia): sotto il piano y = `Y_BASE` restano i triangoli di BASE, tagliati con lo
       stesso piano della superficie nuova; i vertici del bordo nuovo vanno sul bordo di BASE. Lì restano i pochi incroci che BASE aveva già con il
       capo lungo del bicipite e il deltoide spinale.
@@ -62,7 +66,7 @@ const FONDO = ['supra', 'infra', 'borsa_sad', 'caps', 'cal', 'ac_leg', 'coraco_o
 const MOLLI = [...new Set([...FONDO, 'cc_trapezoide', 'cc_conoide', 'pec_cl', 'coracobr', 'trap_d', 'trap_t', 'tmin'])];
 const PASSO = 0.04;                                                                                                   // cm
 const R_SOLCO = 1.5, VICINO_SOLCO = 0.9, COPRI = 0.25, R_ORIG = 0.8, VICINO_OSSO = 1.0, Y_OSSA = 2.0, X_ACR = 2.4, APRI = 0.08;   // cm
-const Y_TETTO = 3.5, TAGLIO = 250, VICINO_PARTE = 0.5, GONFIA = 0.02, SALITA = 0.6, INCLINA = 1.5, P0_INC = 0.05, P_INC = 0.15;
+const Y_TETTO = 3.5, ESTENDI = 0.12, LEVIGA_TETTO = 12, SOTTO_TETTO = 0.03, PENDENZA = [1.0, 0.15], Z_ANGOLO = -2.9, APRI_ANGOLO = 0.12, TAGLIO = 250, VICINO_PARTE = 0.5, GONFIA = 0.02, SALITA = 0.6, INCLINA = 1.5, P0_INC = 0.05, P_INC = 0.15;
 const GAP_OSSO = 0.05, GAP_MOLLI = 0.05, PEZZO_MIN = 200, TRI = 1.2, NORM_DIFF = 4, GIRI_LISCIA = 40;
 const ZONA0 = 1.2, ZONA1 = 3.6, SOLCO = 0.15, R_RIPORTA = 0.4, GIRI_SPOST = 12, MARGINE = 0.1, GIRI_PIEGHE = 8;
 const Y_BASE = -9.0;   // cm: sotto questo piano (estremità distale, tendine sull'omero) restano i triangoli di BASE   // cm: zona delle origini (distanza dalle ossa delle origini)
@@ -99,6 +103,29 @@ const W = new Float32Array(N); for (let i = 0; i < N; i++) W[i] = 1 - G.sstep(ZO
 const Dos = edt(Mos), sopra = new Uint8Array(N);   // (solo le ossa: sopra il coraco-acromiale il deltoide ci va)
 for (let i = 0; i < N; i++) { if (Dos[i] > VICINO_OSSO) continue; const j = ((i / G.NX) | 0) % G.NY; if (j < 1 || j > G.NY - 2) continue;
   const gx = (Dos[i + 1] - Dos[i - 1]), gy = (Dos[i + G.NX] - Dos[i - G.NX]), gz = (Dos[i + G.NXY] - Dos[i - G.NXY]), l = Math.hypot(gx, gy, gz); if (l > 0 && gy / l > SALITA) sopra[i] = 1; }
+// lateralmente a `X_ACR` (acromion) al posto del criterio della salita c'è il tetto: altezza della faccia superiore delle ossa delle origini per
+// colonna (x, z), estesa di `ESTENDI` oltre il margine con un massimo mobile e levigata (`LEVIGA_TETTO` passate). Il riempimento arriva fino al
+// margine superiore dell'acromion (`SOTTO_TETTO` sotto il tetto) senza salire sulla faccia superiore: niente intaccatura né cordone sul margine
+// laterale, e l'altezza segue il margine (niente scalino all'angolo anteriore, dove prima c'era il piano fisso y = 3,5)
+const TETTO = new Float32Array(G.NX * G.NZ).fill(-1e9);
+const Msc = solid('scapola');
+{ for (let i = 0; i < N; i++) if (Mos[i] && Msc[i]) { const c = i % G.NX + G.NX * ((i / G.NXY) | 0), y = G.O[1] + ((((i / G.NX) | 0) % G.NY) + 1) * G.H; if (y > TETTO[c]) TETTO[c] = y; }
+  const r = Math.round(ESTENDI / G.H), T0 = TETTO.slice();
+  for (let k = 0; k < G.NZ; k++) for (let i = 0; i < G.NX; i++) { let m = -1e9;
+    for (let b = -r; b <= r; b++) for (let a = -r; a <= r; a++) { if (a * a + b * b > r * r) continue; const ii = i + a, kk = k + b; if (ii < 0 || kk < 0 || ii >= G.NX || kk >= G.NZ) continue; m = Math.max(m, T0[ii + G.NX * kk]); }
+    TETTO[i + G.NX * k] = m; }
+  for (let it = 0; it < LEVIGA_TETTO; it++) { const T1 = TETTO.slice();
+    for (let k = 1; k < G.NZ - 1; k++) for (let i = 1; i < G.NX - 1; i++) { const c = i + G.NX * k; if (T1[c] < -1e8) continue; let s = 0, n = 0;
+      for (const d of [0, 1, -1, G.NX, -G.NX]) if (T1[c + d] > -1e8) { s += T1[c + d]; n++; } TETTO[c] = s / n; } }
+  // fuori dall'acromion il tetto scende con la distanza (in pianta) dall'osso: di `PENDENZA[0]` per cm in direzione laterale (x), di `PENDENZA[1]`
+  // in avanti e indietro (z), dove il riempimento raccorda la parte acromiale al clavicolare: all'angolo anteriore niente blocco a gradino
+  const d8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].map(([a, b]) => [a, b, (PENDENZA[0] * Math.abs(a) + PENDENZA[1] * Math.abs(b)) * G.H]);
+  for (let it = 0, cambia = true; cambia && it < 400; it++) { cambia = false;
+    for (let k = 1; k < G.NZ - 1; k++) for (let i = 1; i < G.NX - 1; i++) { const c = i + G.NX * k; let m = TETTO[c];
+      for (const [a, b, l] of d8) m = Math.max(m, TETTO[c + a + G.NX * b] - l); if (m > TETTO[c] + 1e-6) { TETTO[c] = m; cambia = true; } } } }
+// (vicino alla clavicola resta il criterio della salita: il clavicolare non sale sull'estremità laterale della clavicola)
+{ const Dsc = edt(Uint8Array.from(Mos, (v, i) => v && Msc[i] ? 1 : 0)); for (let i = 0; i < N; i++) if (sopra[i] && vox(i)[0] < X_ACR && Dsc[i] <= Dos[i] + 1e-6) sopra[i] = 0; }
+const Dsp = edt(solid('delt_sp'));
 // 2. fessura (con uno strato di almeno `COPRI` sopra cuffia e borsa: dove queste salgono tra le due parti restano coperte)
 const T = new Float32Array(N); for (let i = 0; i < N; i++) T[i] = Math.min(Dcl[i], Dac[i], Df[i]);
 const C = chiuso(T, R_SOLCO); for (let i = 0; i < N; i++) C[i] = Math.max(Math.min(C[i], Df[i] - COPRI), Math.max(Dcl[i], Dac[i]) - VICINO_SOLCO);
@@ -106,10 +133,16 @@ const C = chiuso(T, R_SOLCO); for (let i = 0; i < N; i++) C[i] = Math.max(Math.m
 for (let i = 0; i < N; i++) T[i] = Math.min(Dcl[i], Dac[i], Dbo[i]);
 const Ci = chiuso(T, R_ORIG); for (let i = 0; i < N; i++) Ci[i] = Math.max(Ci[i], Dbo[i] - VICINO_OSSO, Math.min(Dcl[i], Dac[i]) - VICINO_PARTE);
 { const A = new Uint8Array(N); for (let i = 0; i < N; i++) A[i] = Ci[i] <= 0 && !sopra[i] && Dcl[i] > 0 && Dac[i] > 0 && Dbo[i] > 0 ? 1 : 0;
-  const E = edt(A, true), Er = new Uint8Array(N); for (let i = 0; i < N; i++) Er[i] = E[i] >= APRI ? 1 : 0;
+  // (apertura del riempimento insieme alle due parti: aperto da solo perdeva la punta del cuneo tra muscolo e osso, e sul margine restava un'intaccatura)
+  const AM = new Uint8Array(N); for (let i = 0; i < N; i++) AM[i] = A[i] || Dcl[i] <= 0 || Dac[i] <= 0 ? 1 : 0;
+  const E = edt(AM, true), Er = new Uint8Array(N); for (let i = 0; i < N; i++) Er[i] = E[i] >= APRI ? 1 : 0;
   const D2 = edt(Er); for (let i = 0; i < N; i++) Ci[i] = A[i] ? D2[i] - APRI : Math.max(Ci[i], 0.02); }
-for (let i = 0; i < N; i++) { if (sopra[i]) C[i] = Math.max(C[i], 0.02); C[i] = Math.min(C[i], Ci[i]);
-  const p = vox(i); if (p[0] < X_ACR) C[i] = Math.max(C[i], p[1] - Y_TETTO); }   // lateralmente all'articolazione acromioclavicolare il riempimento non sale oltre la faccia superiore dell'acromion
+for (let i = 0; i < N; i++) { if (sopra[i]) C[i] = Math.max(C[i], 0.02);
+  // (il tetto vale per il riempimento delle origini; quello della fessura tra le due parti resta sotto il piano y = `Y_TETTO`)
+  const p = vox(i), t = TETTO[i % G.NX + G.NX * ((i / G.NXY) | 0)]; if (p[0] < X_ACR) { C[i] = Math.max(C[i], p[1] - Y_TETTO); Ci[i] = Math.max(Ci[i], p[1] - (t - SOTTO_TETTO)); }
+  C[i] = Math.min(C[i], Ci[i]);
+  // (il riempimento resta dalla parte dell'acromiale rispetto al deltoide spinale: niente lembo dell'acromiale sopra l'estremità del deltoide spinale)
+  C[i] = Math.max(C[i], (Math.min(Dcl[i], Dac[i]) - Dsp[i]) / 2); }
 sfoca(C, 2);
 log('chiusure');
 // 4. ostacoli
@@ -141,6 +174,14 @@ for (let i = 0; i < N; i++) {
   Vcl[i] = Math.max(Math.min(S.delt_cl[i] - GONFIA, Cz), Osp[i]); Vac[i] = Math.max(Math.min(S.delt_ac[i] - GONFIA, Cz), Osp[i]); Bs[i] = (S.delt_cl[i] - S.delt_ac[i]) / 2 + inc * W[i];
   L[i] = Vcl[i] < 0 && (Bs[i] < 0 || Vac[i] >= 0) ? 1 : Vac[i] < 0 ? 2 : 0;
 }
+/* angolo posteriore dell'acromion (dietro z = `Z_ANGOLO`, entro `VICINO_OSSO` dalle ossa): l'estremità posteriore dell'acromiale è una lamina sottile
+   appoggiata sul deltoide spinale e finiva con un nodulo; apertura di raggio `APRI_ANGOLO` della sola parte acromiale, sfumata in 4 mm */
+{ const Ma = Uint8Array.from(Vac, v => v < 0 ? 1 : 0), E = edt(Ma, true), Er = new Uint8Array(N); for (let i = 0; i < N; i++) Er[i] = E[i] >= APRI_ANGOLO ? 1 : 0;
+  const D2 = edt(Er); let tolti = 0;
+  for (let i = 0; i < N; i++) { if (!Ma[i]) continue; const p = vox(i), w = G.sstep(Z_ANGOLO + 0.4, Z_ANGOLO, p[2]) * (1 - G.sstep(VICINO_OSSO - 0.3, VICINO_OSSO, Dbo[i])); if (w <= 0) continue;
+    const v = (1 - w) * Vac[i] + w * Math.max(Vac[i], D2[i] - APRI_ANGOLO); if (v >= 0) { tolti++; Vcl[i] = Math.max(Vcl[i], v); } Vac[i] = v;   // (tolto da entrambe: non diventa clavicolare)
+    L[i] = Vcl[i] < 0 && (Bs[i] < 0 || Vac[i] >= 0) ? 1 : Vac[i] < 0 ? 2 : 0; }
+  log('angolo posteriore: voxel dell\'acromiale tolti', tolti); }
 const { NX, NY, NZ, NXY } = G, cx = NX - 1, cy = NY - 1, cz = NZ - 1, cid = new Int32Array(cx * cy * cz).fill(-1), PV = [];
 const CO = [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0], [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]];
 const ED = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];
