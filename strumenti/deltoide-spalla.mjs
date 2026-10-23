@@ -36,10 +36,21 @@
       della giunzione scorrono solo lungo la giunzione), riduzione a quadriche fino a `TRI` volte i triangoli di BASE con la giunzione ferma; tag
       (muscolo/tendine) e direzioni delle fibre dal vertice di BASE più vicino; normali delle facce esterne calcolate sulle due parti insieme (nessuno
       stacco di luce sulla giunzione), `NORM_DIFF` passate di media, scritte nel file.
+   6. Solo vicino alle origini: tutto questo vale entro `ZONA0` dalle ossa delle origini e sfuma fino a `ZONA1`. Fuori il riempimento si ferma `SOLCO`
+      sotto l'inviluppo (la fessura si chiude in profondità e resta il solco tra i due ventri) e i vertici delle facce esterne sono
+      riportati (prima della riduzione) sul punto più vicino della superficie di BASE della propria parte (peso 1 − zona; solo i vertici a meno di `VICINO_BASE` da BASE, non
+      dove il punto di BASE è a meno di `GAP_MOLLI` + `MARGINE` da un ostacolo o dentro l'altra parte; dimezzando lo spostamento dove un triangolo si
+      girerebbe, `GIRI_PIEGHE` volte); i vertici della sola faccia di contatto seguono i vicini (`GIRI_SPOST`). Le normali delle facce esterne sono quelle
+      scritte in BASE nel punto più vicino, dove concordano con le nuove: fuori dalla zona delle origini il muscolo ha la forma e la luce di BASE.
+   7. Estremità distale (tendine sull'omero, troppo sottile per la griglia): sotto il piano y = `Y_BASE` restano i triangoli di BASE, tagliati con lo
+      stesso piano della superficie nuova; i vertici del bordo nuovo vanno sul bordo di BASE. Lì restano i pochi incroci che BASE aveva già con il
+      capo lungo del bicipite e il deltoide spinale.
    Controlli stampati: triangoli che si incrociano tra le due parti e con ossa e strutture vicine (BASE → nuovo) e scarto tra superficie nuova e BASE
    fuori dalle zone riempite e lontano dagli ostacoli. */
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import { gunzipSync } from 'node:zlib';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
 const G = await import('./lib-modello.mjs');
 const B = await import('./lib-bp3d.mjs');
@@ -53,10 +64,16 @@ const PASSO = 0.04;                                                             
 const R_SOLCO = 1.5, VICINO_SOLCO = 0.9, COPRI = 0.25, R_ORIG = 0.8, VICINO_OSSO = 1.0, Y_OSSA = 2.0, X_ACR = 2.4, APRI = 0.08;   // cm
 const Y_TETTO = 3.5, TAGLIO = 250, VICINO_PARTE = 0.5, GONFIA = 0.02, SALITA = 0.6, INCLINA = 1.5, P0_INC = 0.05, P_INC = 0.15;
 const GAP_OSSO = 0.05, GAP_MOLLI = 0.05, PEZZO_MIN = 200, TRI = 1.2, NORM_DIFF = 4, GIRI_LISCIA = 40;
+const ZONA0 = 1.2, ZONA1 = 3.6, SOLCO = 0.15, R_RIPORTA = 0.4, GIRI_SPOST = 12, MARGINE = 0.1, GIRI_PIEGHE = 8;
+const Y_BASE = -9.0;   // cm: sotto questo piano (estremità distale, tendine sull'omero) restano i triangoli di BASE   // cm: zona delle origini (distanza dalle ossa delle origini)
 
 /* ---- mesh di partenza (BASE): messe al posto di quelle del file, così voxelizzazioni e controlli partono da BASE anche dopo un primo lancio ---- */
 const P = {};
 for (const n of PARTI) { const m = realDaRevisione(BASE, n, FILE); P[n] = { ...m, nv: m.pos.length / 3 }; G.setMesh(n, { pos: m.pos, idx: m.idx, tag: m.tag, fdir: m.fdir }); }
+{ // normali di vertice scritte in BASE (fuori dalla zona delle origini la superficie riprende forma e luce di BASE)
+  const h = execFileSync('git', ['show', `${BASE}:${FILE}`], { cwd: resolve(dirname(fileURLToPath(import.meta.url)), '..'), maxBuffer: 1 << 30 }).toString('utf8');
+  const mn = JSON.parse(h.match(G.reManRe)[2]); let b = Buffer.from(h.match(G.reDatRe)[2].trim(), 'base64'); if (b[0] === 0x1f && b[1] === 0x8b) b = gunzipSync(b);
+  for (const n of PARTI) { const m = mn.meshes.findLast(x => x.n === n), d = new Int8Array(b.buffer, b.byteOffset + m.nm, m.nv * 3); P[n].nrm = Float32Array.from(d, x => x / 127); } }
 
 /* ---- griglia e campi ---- */
 const lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
@@ -75,6 +92,8 @@ const vox = id => [G.O[0] + (id % G.NX + 0.5) * G.H, G.O[1] + (((id / G.NX) | 0)
 const Mo = new Uint8Array(N), Mos = new Uint8Array(N); { const Ms = solid('scapola'), Mc = solid('clavicola'), Mp = unione(PAVIMENTO);
   for (let i = 0; i < N; i++) { if (Mp[i]) { Mo[i] = 1; continue; } if (!Ms[i] && !Mc[i]) continue; const p = vox(i); if (p[1] > Y_OSSA && (Mc[i] || p[0] < X_ACR)) Mo[i] = Mos[i] = 1; } }
 const Df = edt(unione([...OSSA, ...FONDO])), Dbo = edt(Mo), Dcl = D.delt_cl, Dac = D.delt_ac;
+// zona delle origini: 1 fino a `ZONA0` dalle ossa delle origini, 0 oltre `ZONA1`; fuori dalla zona il deltoide resta quello di BASE
+const W = new Float32Array(N); for (let i = 0; i < N; i++) W[i] = 1 - G.sstep(ZONA0, ZONA1, Dbo[i]);
 // sopra le ossa delle origini (faccia superiore di acromion, clavicola e articolazione acromioclavicolare) non si riempie: la direzione dall'osso più
 // vicino (gradiente della distanza dalle ossa) non deve salire più di `SALITA` (seno dell'angolo con l'orizzontale)
 const Dos = edt(Mos), sopra = new Uint8Array(N);   // (solo le ossa: sopra il coraco-acromiale il deltoide ci va)
@@ -117,7 +136,9 @@ for (let i = 0; i < N; i++) {
   // clavicolare, così la parte acromiale gli passa sotto; in superficie resta il bisettore delle due distanze
   const inc = INCLINA * Math.min(Math.max(-C[i] - P0_INC, 0), P_INC) * (1 - G.sstep(0.5, 0.9, Df[i]));
   // (GONFIA: superficie spostata appena fuori, così le lamine più sottili del passo della griglia, come l'estremità tendinea sull'omero, non si bucano)
-  Vcl[i] = Math.max(Math.min(S.delt_cl[i] - GONFIA, C[i]), Osp[i]); Vac[i] = Math.max(Math.min(S.delt_ac[i] - GONFIA, C[i]), Osp[i]); Bs[i] = (S.delt_cl[i] - S.delt_ac[i]) / 2 + inc;
+  // fuori dalla zona delle origini il riempimento si ferma `SOLCO` sotto l'inviluppo: la fessura si chiude in profondità e resta il solco tra i due ventri
+  const Cz = C[i] + (1 - W[i]) * SOLCO;
+  Vcl[i] = Math.max(Math.min(S.delt_cl[i] - GONFIA, Cz), Osp[i]); Vac[i] = Math.max(Math.min(S.delt_ac[i] - GONFIA, Cz), Osp[i]); Bs[i] = (S.delt_cl[i] - S.delt_ac[i]) / 2 + inc * W[i];
   L[i] = Vcl[i] < 0 && (Bs[i] < 0 || Vac[i] >= 0) ? 1 : Vac[i] < 0 ? 2 : 0;
 }
 const { NX, NY, NZ, NXY } = G, cx = NX - 1, cy = NY - 1, cz = NZ - 1, cid = new Int32Array(cx * cy * cz).fill(-1), PV = [];
@@ -165,6 +186,44 @@ const giunz = new Uint8Array(nvT); for (let v = 0; v < nvT; v++) giunz[v] = tipo
   for (let it = 0; it < GIRI_LISCIA; it++) { const lam = it % 2 ? -0.53 : 0.5, q = pos.slice();
     for (let v = 0; v < nvT; v++) { const Lv = NB[v]; if (!Lv.length) continue; for (let r = 0; r < 3; r++) { let s = 0; for (const u of Lv) s += pos[3 * u + r]; q[3 * v + r] += lam * (s / Lv.length - pos[3 * v + r]); } }
     pos = q; } }
+/* (prima della riduzione, che conserva così le pieghe fini di BASE) fuori dalla zona delle origini: vertici riportati sulla superficie di BASE (punto più vicino della propria parte; sulla giunzione la più vicina
+   delle due), con peso 1 − W; non dove il punto di BASE cade a meno di `GAP_MOLLI` da un ostacolo (lì BASE compenetrava). I vertici della sola faccia di
+   contatto seguono i vicini (spostamento medio, `GIRI_SPOST` passate). */
+const VICINO_BASE = [0.04, 0.12];   // cm: si riportano su BASE i vertici che ne distano meno (non quelli del riempimento in fondo al solco)
+const vicinoTri = (Pp, I) => { const h = 0.2, Hm = new Map(), key = (a, b, c) => a + ',' + b + ',' + c;
+  for (let t = 0; t < I.length; t += 3) { const lo3 = [0, 1, 2].map(k => Math.floor(Math.min(Pp[3 * I[t] + k], Pp[3 * I[t + 1] + k], Pp[3 * I[t + 2] + k]) / h)), hi3 = [0, 1, 2].map(k => Math.floor(Math.max(Pp[3 * I[t] + k], Pp[3 * I[t + 1] + k], Pp[3 * I[t + 2] + k]) / h));
+    for (let x = lo3[0]; x <= hi3[0]; x++) for (let y = lo3[1]; y <= hi3[1]; y++) for (let z = lo3[2]; z <= hi3[2]; z++) { const k = key(x, y, z); if (!Hm.has(k)) Hm.set(k, []); Hm.get(k).push(t); } }
+  // punto più vicino su un triangolo (Ericson), con coordinate baricentriche
+  const tri = (p, a, b, c) => { const ab = sub(b, a), ac = sub(c, a), ap = sub(p, a), d1 = dt(ab, ap), d2 = dt(ac, ap); if (d1 <= 0 && d2 <= 0) return [1, 0, 0];
+    const bp = sub(p, b), d3 = dt(ab, bp), d4 = dt(ac, bp); if (d3 >= 0 && d4 <= d3) return [0, 1, 0]; const vc = d1 * d4 - d3 * d2; if (vc <= 0 && d1 >= 0 && d3 <= 0) { const v = d1 / (d1 - d3); return [1 - v, v, 0]; }
+    const cp = sub(p, c), d5 = dt(ab, cp), d6 = dt(ac, cp); if (d6 >= 0 && d5 <= d6) return [0, 0, 1]; const vb = d5 * d2 - d1 * d6; if (vb <= 0 && d2 >= 0 && d6 <= 0) { const w = d2 / (d2 - d6); return [1 - w, 0, w]; }
+    const va = d3 * d6 - d5 * d4; if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0) { const w = (d4 - d3) / ((d4 - d3) + (d5 - d6)); return [0, 1 - w, w]; }
+    const den = 1 / (va + vb + vc), v = vb * den, w = vc * den; return [1 - v - w, v, w]; };
+  const V = i => [Pp[3 * i], Pp[3 * i + 1], Pp[3 * i + 2]];
+  return p => { const c = p.map(x => Math.floor(x / h)), r = Math.ceil(R_RIPORTA / h); let best = null, bd = R_RIPORTA, visti = new Set();
+    for (let x = -r; x <= r; x++) for (let y = -r; y <= r; y++) for (let z = -r; z <= r; z++) for (const t of Hm.get(key(c[0] + x, c[1] + y, c[2] + z)) || []) {
+      if (visti.has(t)) continue; visti.add(t); const A = V(I[t]), Bv = V(I[t + 1]), Cv = V(I[t + 2]), w = tri(p, A, Bv, Cv), q = [0, 1, 2].map(k => w[0] * A[k] + w[1] * Bv[k] + w[2] * Cv[k]), d = Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]);
+      if (d < bd) { bd = d; best = { q, d, t, w }; } }
+    return best; }; };
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dt = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const piuVicino = { delt_cl: vicinoTri(P.delt_cl.pos, P.delt_cl.idx), delt_ac: vicinoTri(P.delt_ac.pos, P.delt_ac.idx) };
+const NB0 = Array.from({ length: nvT }, () => new Set()); for (let t = 1; t <= 3; t++) for (let q = 0; q < FT[t].length; q += 3) for (let e = 0; e < 3; e++) { const a = FT[t][q + e], b = FT[t][q + (e + 1) % 3]; NB0[a].add(b); NB0[b].add(a); }
+{ const sp = new Float64Array(3 * nvT), fisso = new Uint8Array(nvT), usato = new Uint8Array(nvT); let riportati = 0; for (let k = 1; k <= 3; k++) for (const v of FT[k]) usato[v] |= 1 << (k - 1);
+  for (let v = 0; v < nvT; v++) { const tp = usato[v]; if (!(tp & 3)) continue; fisso[v] = 1; const p = [pos[3 * v], pos[3 * v + 1], pos[3 * v + 2]], w = sample(W, ...p); if (w >= 1) continue;
+    const cand = []; if (tp & 1) { const c = piuVicino.delt_cl(p); if (c) cand.push({ ...c, altra: S.delt_ac }); } if (tp & 2) { const c = piuVicino.delt_ac(p); if (c) cand.push({ ...c, altra: S.delt_cl }); }
+    const b = cand.sort((x, y) => x.d - y.d)[0]; if (!b) continue;
+    // margine: del tutto solo se il punto di BASE è ad almeno `GAP_MOLLI` + `MARGINE` dagli ostacoli e fuori dall'altra parte (in BASE si compenetravano)
+    const g = Math.min(Math.max(-sample(Osp, ...b.q) / MARGINE, 0), 1) * Math.min(Math.max((sample(b.altra, ...b.q) - GAP_MOLLI) / MARGINE, 0), 1), f = (1 - w) * g * (1 - G.sstep(VICINO_BASE[0], VICINO_BASE[1], b.d)); if (f <= 0) continue;
+    for (let k = 0; k < 3; k++) sp[3 * v + k] = f * (b.q[k] - p[k]); riportati++; }
+  for (let it = 0; it < GIRI_SPOST; it++) for (let v = 0; v < nvT; v++) { if (fisso[v] || !NB0[v].size) continue; const s = [0, 0, 0]; for (const u of NB0[v]) for (let k = 0; k < 3; k++) s[k] += sp[3 * u + k]; for (let k = 0; k < 3; k++) sp[3 * v + k] = s[k] / NB0[v].size; }
+  // triangoli che si girerebbero (BASE ha pieghe): lo spostamento dei loro vertici si dimezza, fino a `GIRI_PIEGHE` volte
+  const p0 = pos.slice(), fN = (P_, a, b, c) => { const u = [0, 1, 2].map(k => P_[3 * b + k] - P_[3 * a + k]), w = [0, 1, 2].map(k => P_[3 * c + k] - P_[3 * a + k]), f = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]], l = Math.hypot(...f) || 1; return f.map(x => x / l); };
+  let girati = 0;
+  for (let it = 0; it <= GIRI_PIEGHE; it++) { for (let i = 0; i < 3 * nvT; i++) pos[i] = p0[i] + sp[i]; if (it === GIRI_PIEGHE) break; const dim = new Uint8Array(nvT); girati = 0;
+    for (let k = 1; k <= 3; k++) for (let q = 0; q < FT[k].length; q += 3) { const [a, b, c] = [FT[k][q], FT[k][q + 1], FT[k][q + 2]], n0 = fN(p0, a, b, c), n1 = fN(pos, a, b, c);
+      if (n0[0] * n1[0] + n0[1] * n1[1] + n0[2] * n1[2] < 0.3) { dim[a] = dim[b] = dim[c] = 1; girati++; } }
+    if (!girati) break; for (let v = 0; v < nvT; v++) if (dim[v]) for (let k = 0; k < 3; k++) sp[3 * v + k] *= 0.5; }
+  log('vertici riportati sulla superficie di BASE (fuori dalla zona delle origini):', riportati, '; triangoli girati rimasti', girati); }
 // riduzione a quadriche per tipo, con i vertici di giunzione fermi (restano gli stessi nelle due parti)
 { const nt = t => FT[t].length / 3, rc = P.delt_cl.idx.length / 3 * TRI / nt(1), ra = P.delt_ac.idx.length / 3 * TRI / nt(2), rr = { 1: rc, 2: ra, 3: (rc + ra) / 2 };
   const nuova = Float64Array.from(pos);
@@ -180,6 +239,14 @@ const normaliTipo = tipi => { const nn0 = new Float64Array(3 * nvT), nb = Array.
   let nn = nn0; for (let d = 0; d < NORM_DIFF; d++) { const q = nn.slice(); for (let v = 0; v < nvT; v++) { const s = nb[v]; if (!s.size) continue; for (const u of s) for (let r = 0; r < 3; r++) q[3 * v + r] += nn[3 * u + r] / s.size; } nn = q; }
   return nn; };
 const NE = normaliTipo([1, 2]), NC = normaliTipo([3]);
+// fuori dalla zona delle origini le normali delle facce esterne sono quelle di BASE nel punto più vicino (interpolate sul triangolo), con peso 1 − W
+{ const usati = new Uint8Array(nvT); for (const t of [1, 2]) for (const v of FT[t]) usati[v] = t;
+  for (let v = 0; v < nvT; v++) { if (!usati[v]) continue; const p = [pos[3 * v], pos[3 * v + 1], pos[3 * v + 2]], w = sample(W, ...p); if (w >= 1) continue;
+    const n = usati[v] === 1 ? 'delt_cl' : 'delt_ac', b = piuVicino[n](p); if (!b || b.d > 0.05) continue; const I = P[n].idx, Nb = P[n].nrm, l0 = Math.hypot(NE[3 * v], NE[3 * v + 1], NE[3 * v + 2]) || 1;
+    const nb = [0, 1, 2].map(k => b.w[0] * Nb[3 * I[b.t] + k] + b.w[1] * Nb[3 * I[b.t + 1] + k] + b.w[2] * Nb[3 * I[b.t + 2] + k]), l1 = Math.hypot(...nb) || 1;
+    // (solo dove la normale di BASE è concorde con quella nuova: dove BASE ha pieghe o normali rovesciate resta la nuova)
+    const c = (nb[0] * NE[3 * v] + nb[1] * NE[3 * v + 1] + nb[2] * NE[3 * v + 2]) / (l0 * l1), u = (1 - w) * G.sstep(0.3, 0.7, c);
+    for (let k = 0; k < 3; k++) NE[3 * v + k] = (1 - u) * NE[3 * v + k] / l0 + u * nb[k] / l1; } }
 const R = {};
 for (const [n, te, sg] of [['delt_cl', 1, 1], ['delt_ac', 2, -1]]) {
   // vertici propri: faccia esterna e faccia di contatto hanno copie separate dei vertici della giunzione (normali diverse: spigolo vivo)
@@ -191,14 +258,42 @@ for (const [n, te, sg] of [['delt_cl', 1, 1], ['delt_ac', 2, -1]]) {
   const nv = pv.length / 3, p32 = Float32Array.from(pv);
   // tag e direzioni delle fibre dal vertice di BASE più vicino
   const near = vicino(P[n].pos, P[n].nv), tag = P[n].tag ? new Uint8Array(nv) : null, fdir = P[n].fdir ? new Int8Array(nv * 3) : null;
-  for (let i = 0; i < nv; i++) { const j = near([p32[3 * i], p32[3 * i + 1], p32[3 * i + 2]]); if (tag) tag[i] = P[n].tag[j]; if (fdir) for (let k = 0; k < 3; k++) fdir[3 * i + k] = P[n].fdir[3 * j + k]; }
+  // (interpolati sul triangolo di BASE più vicino, come nella pagina: la parte tendinea resta quella di prima; altrimenti dal vertice più vicino)
+  for (let i = 0; i < nv; i++) { const p = [p32[3 * i], p32[3 * i + 1], p32[3 * i + 2]], b = piuVicino[n](p);
+    if (b) { const T = [P[n].idx[b.t], P[n].idx[b.t + 1], P[n].idx[b.t + 2]];
+      if (tag) tag[i] = Math.round(b.w[0] * P[n].tag[T[0]] + b.w[1] * P[n].tag[T[1]] + b.w[2] * P[n].tag[T[2]]);
+      if (fdir) { const d = [0, 1, 2].map(k => b.w[0] * P[n].fdir[3 * T[0] + k] + b.w[1] * P[n].fdir[3 * T[1] + k] + b.w[2] * P[n].fdir[3 * T[2] + k]), l = Math.hypot(...d) || 1; for (let k = 0; k < 3; k++) fdir[3 * i + k] = Math.round(127 * d[k] / l); }
+      continue; }
+    const j = near(p); if (tag) tag[i] = P[n].tag[j]; if (fdir) for (let k = 0; k < 3; k++) fdir[3 * i + k] = P[n].fdir[3 * j + k]; }
   if (tag) for (const w of mapC.values()) tag[w] = TAGLIO;   // faccia di contatto: colore della superficie di taglio del muscolo (visibile solo con l'altra parte spenta)
   R[n] = { pos: p32, idx: Uint32Array.from(idx), tag, fdir, nrm: Int8Array.from(nr), nEst: FT[te].length };   // nEst: indici della faccia esterna (la faccia di contatto segue)
-  log(n, ':', nv, 'vertici,', idx.length / 3, 'triangoli (BASE', P[n].nv, 'vertici,', P[n].idx.length / 3, 'triangoli)');
+}
+/* estremità distale: sotto `Y_BASE` la superficie nuova è tagliata e sostituita dai triangoli di BASE (tagliati con lo stesso piano); i vertici del
+   bordo nuovo vanno sul punto più vicino del bordo di BASE, così le due parti del taglio combaciano */
+for (const n of PARTI) {
+  const r = R[n], nv = r.pos.length / 3, at = new Float64Array(nv * 7), A0 = new Float64Array(P[n].nv * 7);
+  for (let i = 0; i < nv; i++) { at[7 * i] = r.tag ? r.tag[i] : 0; for (let k = 0; k < 3; k++) { at[7 * i + 1 + k] = r.fdir ? r.fdir[3 * i + k] : 0; at[7 * i + 4 + k] = r.nrm[3 * i + k] / 127; } }
+  for (let i = 0; i < P[n].nv; i++) { A0[7 * i] = P[n].tag ? P[n].tag[i] : 0; for (let k = 0; k < 3; k++) { A0[7 * i + 1 + k] = P[n].fdir ? P[n].fdir[3 * i + k] : 0; A0[7 * i + 4 + k] = P[n].nrm[3 * i + k]; } }
+  const sN = Float64Array.from({ length: nv }, (_, i) => r.pos[3 * i + 1] - Y_BASE), sB = Float64Array.from({ length: P[n].nv }, (_, i) => Y_BASE - P[n].pos[3 * i + 1]);
+  const cN = B.ritagliaCampo(r.pos, r.idx, sN, at, 7), cB = B.ritagliaCampo(P[n].pos, P[n].idx, sB, A0, 7);
+  // bordo di BASE: segmenti dei triangoli tagliati con i due estremi sul piano
+  const segB = [], nB = cB.pos.length / 3, sulB = i => cB.s[i] === 0 && cB.orig[i] < 0;
+  for (let q = 0; q < cB.idx.length; q += 3) for (let e = 0; e < 3; e++) { const a = cB.idx[q + e], b = cB.idx[q + (e + 1) % 3]; if (sulB(a) && sulB(b) && a < b) segB.push(a, b); }
+  let spostMax = 0; const nN = cN.pos.length / 3, pos = Float64Array.from([...cN.pos, ...cB.pos]);
+  for (let i = 0; i < nN; i++) { if (!(cN.s[i] === 0 && cN.orig[i] < 0)) continue; const p = [cN.pos[3 * i], cN.pos[3 * i + 1], cN.pos[3 * i + 2]]; let best = null, bd = 1e9;
+    for (let s = 0; s < segB.length; s += 2) { const a = [cB.pos[3 * segB[s]], cB.pos[3 * segB[s] + 1], cB.pos[3 * segB[s] + 2]], b = [cB.pos[3 * segB[s + 1]], cB.pos[3 * segB[s + 1] + 1], cB.pos[3 * segB[s + 1] + 2]], ab = sub(b, a), l2 = dt(ab, ab) || 1e-12, u = Math.min(Math.max(dt(sub(p, a), ab) / l2, 0), 1), q = [0, 1, 2].map(k => a[k] + u * ab[k]), d = Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]); if (d < bd) { bd = d; best = q; } }
+    if (best && bd < 0.1) { for (let k = 0; k < 3; k++) pos[3 * i + k] = best[k]; spostMax = Math.max(spostMax, bd); } }
+  const idxN = Array.from(cN.idx), idxB = Array.from(cB.idx, v => v + nN), at2 = [...cN.attr, ...cB.attr], nvT2 = nN + nB;
+  const contatto = q => at2[7 * idxN[q]] === TAGLIO && at2[7 * idxN[q + 1]] === TAGLIO && at2[7 * idxN[q + 2]] === TAGLIO, est = [], con = [];
+  for (let q = 0; q < idxN.length; q += 3) (contatto(q) ? con : est).push(idxN[q], idxN[q + 1], idxN[q + 2]);
+  const tag = r.tag ? Uint8Array.from({ length: nvT2 }, (_, i) => Math.round(at2[7 * i])) : null, fdir = r.fdir ? Int8Array.from({ length: nvT2 * 3 }, (_, j) => { const i = (j / 3) | 0, k = j % 3, d = [1, 2, 3].map(m => at2[7 * i + m]), l = Math.hypot(...d) || 1; return Math.round(127 * d[k] / l); }) : null;
+  const nrm = Int8Array.from({ length: nvT2 * 3 }, (_, j) => { const i = (j / 3) | 0, k = j % 3, d = [4, 5, 6].map(m => at2[7 * i + m]), l = Math.hypot(...d) || 1; return Math.round(127 * d[k] / l); });
+  R[n] = { pos: Float32Array.from(pos), idx: Uint32Array.from([...est, ...idxB, ...con]), tag, fdir, nrm, nEst: est.length + idxB.length };
+  log(n, ':', nvT2, 'vertici,', R[n].idx.length / 3, 'triangoli (BASE', P[n].nv, 'vertici,', P[n].idx.length / 3, 'triangoli); sotto y', Y_BASE, 'triangoli di BASE, bordo nuovo spostato al massimo di', (spostMax * 10).toFixed(2), 'mm');
 }
 
 /* ---- controlli ---- */
-const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], cr = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], dt = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cr = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const raggio = (o, d, [a, b, c]) => { const e1 = sub(b, a), e2 = sub(c, a), pv = cr(d, e2), det = dt(e1, pv); if (Math.abs(det) < 1e-12) return null; const iv = 1 / det, s0 = sub(o, a), u = dt(s0, pv) * iv; if (u < 0 || u > 1) return null;
   const qv = cr(s0, e1), v = dt(d, qv) * iv; if (v < 0 || u + v > 1) return null; const t = dt(e2, qv) * iv; return t > 0 && t < 1; };
 // triangoli di A (Pp, I) che si incrociano con quelli di B (Q, J)
