@@ -152,7 +152,8 @@ const distanze = P => { let dp = 1e9, dt = 1e9, np = 0, nt = 0; for (const i of 
    posteriore − 0,5 mm e quella anteriore + `GAP_D`, celle vicine sulla griglia) vanno avanti fino a `GAP_D` davanti alla faccia anteriore; lo
    spostamento si allarga come una membrana sui vicini (grafo e spazio entro `R_D`: massimo tra richiesto e media × `CALO_D`, `GIRI_D` volte), così la
    faccia profonda si solleva senza gradini. Riparte da `delt_cl` di BASE; normali di vertice ricalcolate sui vertici spostati e sui vicini. */
-const D0 = REAL('delt_cl'), nD = D0.nv, dPos = Float64Array.from(posDaRevisione(BASE, 'delt_cl', FILE)), aD = G.attrs('delt_cl');
+// (mesh di BASE, non del file: `deltoide-spalla.mjs`, che viene dopo, riscrive il deltoide con un'altra topologia)
+const D0b = G.realDaRevisione(BASE, 'delt_cl', FILE), D0 = { nv: D0b.pos.length / 3, idx: D0b.idx }, nD = D0.nv, dPos = Float64Array.from(D0b.pos), aD = { tag: D0b.tag, fdir: D0b.fdir };
 const fr = new Float64Array(NXc * NYc).fill(-1e9), re = new Float64Array(NXc * NYc).fill(1e9);
 campiona(pos, idx, (id, z) => { fr[id] = Math.max(fr[id], z); re[id] = Math.min(re[id], z); });
 const reqD = new Float64Array(nD);
