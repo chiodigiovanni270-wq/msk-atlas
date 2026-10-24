@@ -25,7 +25,8 @@
       scapola solo lateralmente a `X_ACR`: il coracoide resta fuori) e i legamenti sotto l'origine (`PAVIMENTO`), entro `VICINO_OSSO` da questi: la parte
       acromiale arriva sul margine laterale dell'acromion e il clavicolare sulla clavicola, invece di fermarsi a qualche millimetro.
    4. Forma comune C = riempimento ∩ (dove i punti sopra le ossa vanno solo se a meno di `VICINO_PARTE` da una parte) ∩ sotto `Y_TETTO` lateralmente a
-      `X_ACR` (niente pinna dell'acromiale sopra l'acromion); lì il riempimento delle origini sta anche sotto il tetto dell'acromion (faccia superiore
+      `X_ACR` (niente pinna dell'acromiale sopra l'acromion) e sotto il tetto della fessura (quota delle due parti allargata di `ALLARGA_SOLCO`
+      e levigata, almeno `COPRI_CAL` sopra il coraco-acromiale: niente ripiano davanti all'apice); lì il riempimento delle origini sta anche sotto il tetto dell'acromion (faccia superiore
       estesa di `ESTENDI` e poi decrescente con `PENDENZA`, al posto del criterio della salita) e dalla parte dell'acromiale rispetto al deltoide
       spinale; apertura di raggio `APRI` contro le lamine sottili, fatta insieme alle due parti. Ogni parte = (sua forma gonfiata di
       `GONFIA` ∪ C) fuori dagli ostacoli: a `GAP_OSSO` dalle ossa e a `GAP_MOLLI` da cuffia, borsa, capsula, legamenti, capo breve e lungo del
@@ -66,7 +67,7 @@ const FONDO = ['supra', 'infra', 'borsa_sad', 'caps', 'cal', 'ac_leg', 'coraco_o
 const MOLLI = [...new Set([...FONDO, 'cc_trapezoide', 'cc_conoide', 'pec_cl', 'coracobr', 'trap_d', 'trap_t', 'tmin'])];
 const PASSO = 0.04;                                                                                                   // cm
 const R_SOLCO = 1.5, VICINO_SOLCO = 0.9, COPRI = 0.25, R_ORIG = 0.8, VICINO_OSSO = 1.0, Y_OSSA = 2.0, X_ACR = 2.4, APRI = 0.08;   // cm
-const Y_TETTO = 3.5, ESTENDI = 0.12, LEVIGA_TETTO = 12, SOTTO_TETTO = 0.03, PENDENZA = [1.0, 0.15], Z_ANGOLO = -2.9, APRI_ANGOLO = 0.12, R_TACCA = 1.0, VICINO_TACCA = 0.6, Y_TACCA = 3.6, TAGLIO = 250, VICINO_PARTE = 0.5, GONFIA = 0.02, SALITA = 0.6, INCLINA = 1.5, P0_INC = 0.05, P_INC = 0.15;
+const Y_TETTO = 3.5, ESTENDI = 0.12, LEVIGA_TETTO = 12, SOTTO_TETTO = 0.03, PENDENZA = [1.0, 0.15], Z_ANGOLO = -2.9, APRI_ANGOLO = 0.12, R_TACCA = 1.0, VICINO_TACCA = 0.6, Y_TACCA = 3.6, ALLARGA_SOLCO = 0.5, LEVIGA_SOLCO = 6, COPRI_CAL = 0.15, ALLARGA_CAL = 0.2, TAGLIO = 250, VICINO_PARTE = 0.5, GONFIA = 0.02, SALITA = 0.6, INCLINA = 1.5, P0_INC = 0.05, P_INC = 0.15;
 const GAP_OSSO = 0.05, GAP_MOLLI = 0.05, PEZZO_MIN = 200, TRI = 1.2, NORM_DIFF = 4, GIRI_LISCIA = 40;
 const ZONA0 = 1.2, ZONA1 = 3.6, SOLCO = 0.15, R_RIPORTA = 0.4, GIRI_SPOST = 12, MARGINE = 0.1, GIRI_PIEGHE = 8;
 const Y_BASE = -9.0;   // cm: sotto questo piano (estremità distale, tendine sull'omero) restano i triangoli di BASE   // cm: zona delle origini (distanza dalle ossa delle origini)
@@ -137,9 +138,27 @@ const Ci = chiuso(T, R_ORIG); for (let i = 0; i < N; i++) Ci[i] = Math.max(Ci[i]
   const AM = new Uint8Array(N); for (let i = 0; i < N; i++) AM[i] = A[i] || Dcl[i] <= 0 || Dac[i] <= 0 ? 1 : 0;
   const E = edt(AM, true), Er = new Uint8Array(N); for (let i = 0; i < N; i++) Er[i] = E[i] >= APRI ? 1 : 0;
   const D2 = edt(Er); for (let i = 0; i < N; i++) Ci[i] = A[i] ? D2[i] - APRI : Math.max(Ci[i], 0.02); }
+// tetto del riempimento della fessura (lateralmente a `X_ACR`): per colonna (x, z) la quota più alta delle due parti di BASE, allargata con un
+// massimo mobile di raggio `ALLARGA_SOLCO` e levigata (`LEVIGA_SOLCO` passate): davanti e di lato all'apice il riempimento non forma più un
+// ripiano piatto a y = `Y_TETTO` sopra il muscolo vicino (gradino della parte acromiale), ma resta all'altezza delle superfici che unisce;
+// sopra il coraco-acromiale (e fino a `ALLARGA_CAL` intorno) il tetto è almeno `COPRI_CAL` più alto del legamento, che davanti all'apice resta coperto
+const TSOLCO = new Float32Array(G.NX * G.NZ).fill(-1e9);
+{ for (let i = 0; i < N; i++) if (Dcl[i] <= 0 || Dac[i] <= 0) { const c = i % G.NX + G.NX * ((i / G.NXY) | 0), y = vox(i)[1]; if (y > TSOLCO[c]) TSOLCO[c] = y; }
+  const r = Math.round(ALLARGA_SOLCO / G.H), T0 = TSOLCO.slice();
+  for (let k = 0; k < G.NZ; k++) for (let i = 0; i < G.NX; i++) { let m = -1e9;
+    for (let b = -r; b <= r; b++) for (let a = -r; a <= r; a++) { if (a * a + b * b > r * r) continue; const ii = i + a, kk = k + b; if (ii < 0 || kk < 0 || ii >= G.NX || kk >= G.NZ) continue; m = Math.max(m, T0[ii + G.NX * kk]); }
+    TSOLCO[i + G.NX * k] = m; }
+  for (let it = 0; it < LEVIGA_SOLCO; it++) { const T1 = TSOLCO.slice();
+    for (let k = 1; k < G.NZ - 1; k++) for (let i = 1; i < G.NX - 1; i++) { const c = i + G.NX * k; if (T1[c] < -1e8) continue; let s = 0, n = 0;
+      for (const d of [0, 1, -1, G.NX, -G.NX]) if (T1[c + d] > -1e8) { s += T1[c + d]; n++; } TSOLCO[c] = s / n; } }
+  const Mcal = solid('cal'), TC = new Float32Array(G.NX * G.NZ).fill(-1e9), r2 = Math.round(ALLARGA_CAL / G.H);
+  for (let i = 0; i < N; i++) if (Mcal[i]) { const c = i % G.NX + G.NX * ((i / G.NXY) | 0), y = vox(i)[1] + COPRI_CAL; if (y > TC[c]) TC[c] = y; }
+  for (let k = 0; k < G.NZ; k++) for (let i = 0; i < G.NX; i++) { let m = -1e9;
+    for (let b = -r2; b <= r2; b++) for (let a = -r2; a <= r2; a++) { if (a * a + b * b > r2 * r2) continue; const ii = i + a, kk = k + b; if (ii < 0 || kk < 0 || ii >= G.NX || kk >= G.NZ) continue; m = Math.max(m, TC[ii + G.NX * kk]); }
+    const c = i + G.NX * k; if (m > TSOLCO[c]) TSOLCO[c] = m; } }
 for (let i = 0; i < N; i++) { if (sopra[i]) C[i] = Math.max(C[i], 0.02);
-  // (il tetto vale per il riempimento delle origini; quello della fessura tra le due parti resta sotto il piano y = `Y_TETTO`)
-  const p = vox(i), t = TETTO[i % G.NX + G.NX * ((i / G.NXY) | 0)]; if (p[0] < X_ACR) { C[i] = Math.max(C[i], p[1] - Y_TETTO); Ci[i] = Math.max(Ci[i], p[1] - (t - SOTTO_TETTO)); }
+  // (il tetto vale per il riempimento delle origini; quello della fessura tra le due parti resta sotto il piano y = `Y_TETTO` e sotto `TSOLCO`)
+  const p = vox(i), t = TETTO[i % G.NX + G.NX * ((i / G.NXY) | 0)]; if (p[0] < X_ACR) { C[i] = Math.max(C[i], p[1] - Math.min(Y_TETTO, TSOLCO[i % G.NX + G.NX * ((i / G.NXY) | 0)])); Ci[i] = Math.max(Ci[i], p[1] - (t - SOTTO_TETTO)); }
   C[i] = Math.min(C[i], Ci[i]);
   // (il riempimento resta dalla parte dell'acromiale rispetto al deltoide spinale: niente lembo dell'acromiale sopra l'estremità del deltoide spinale)
   C[i] = Math.max(C[i], (Math.min(Dcl[i], Dac[i]) - Dsp[i]) / 2); }
