@@ -12,7 +12,7 @@ index.html                 homepage: modello che ruota con lo scorrimento, prese
 modelli/<nome>-3d.html     un file autocontenuto per modello (three.js r128 da CDN, dati in base64)
 assets/nav.js              navigazione comune dei modelli: pulsanti fluttuanti "‹" (home) e "i" (disclaimer, crediti ed elenco delle strutture del modello)
 assets/favicon.svg
-assets/anteprime/          immagini 1600×1000 delle card
+assets/anteprime/          immagini 1600×1000 delle card (WebP, sfondo trasparente)
 assets/sequenza/           fotogrammi della prima schermata (WebP trasparenti, grandi l/ e piccoli s/)
 strumenti/anteprima.mjs    genera le anteprime (non pubblicato sul sito)
 strumenti/sequenza-home.mjs genera i fotogrammi della prima schermata (non pubblicato sul sito)
@@ -57,8 +57,8 @@ Cosa controllare dopo una modifica:
    ```bash
    node strumenti/anteprima.mjs <nome>-3d
    ```
-   Salva `assets/anteprime/<nome>-3d.jpg`. Per regolare l'inquadratura: `--zoom=1.2`, `--dy=-0.05`;
-   per fare prove senza sovrascrivere: `--out=/tmp/prova.jpg`. Richiede Node 22+ e Google Chrome.
+   Salva `assets/anteprime/<nome>-3d.webp` (sfondo trasparente). Per regolare l'inquadratura: `--zoom=1.2`, `--dy=-0.05`;
+   per fare prove senza sovrascrivere: `--out=/tmp/prova.webp`. Richiede Node 22+ e Google Chrome.
    Va rigenerata anche quando si modifica un modello, perché l'anteprima resti aggiornata.
 4. **Card** — in `index.html` duplica un blocco `<!-- CARD MODELLO -->` e aggiorna distretto, immagine,
    testo alternativo, link e titolo, e imposta `data-strutture` sul `<li class="card">`. Il numero "Tav.",
@@ -66,7 +66,7 @@ Cosa controllare dopo una modifica:
    è facoltativo.
 5. **Verifica e pubblica** — controlla in locale, poi:
    ```bash
-   git add modelli/<nome>-3d.html assets/anteprime/<nome>-3d.jpg index.html
+   git add modelli/<nome>-3d.html assets/anteprime/<nome>-3d.webp index.html
    git commit -m "Aggiunge modello <nome>"
    git push
    ```
