@@ -19,7 +19,12 @@
    (bersaglio − centro) pesa da 0 a 1 tra y = `Y_INIZIO` (lì il nervo esce dall'ascella ed è com'era) e `Y_PIENO`, è levigato con un
    filtro gaussiano di `SIGMA` fette e applicato per interpolazione lineare in y a tutti i vertici della fetta: il tubo conserva
    calibro e piano di taglio a y = −14. Nessun vertice entra nell'omero (controllo: distanza minima dall'osso). Stampa distanza dall'osso e
-   spostamento per fetta, lunghezza della linea centrale prima e dopo. */
+   spostamento per fetta, lunghezza della linea centrale prima e dopo.
+
+   Capo mediale. Il tracciato vecchio del radiale (`vasi-nervi-spalla.mjs`) aveva spinto in fuori i vertici di `tri_med` sopra il nervo:
+   restava una gobba con una piega scura sul lato mediale (y ≈ −9). Dopo lo spostamento del nervo i vertici del capo mediale entro
+   `SPIANA`[0] (0,9 cm) dal tracciato vecchio (fra y = `SPIANA_Y`) si levigano con `SPIANA_IT` passi di Taubin pesati (peso 1 entro
+   `SPIANA`[0], 0 oltre `SPIANA`[1] = 1,8 cm): spostamento massimo ~6,5 mm. Variabili: SPIANA0, SPIANA1, SPIANA_IT. */
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
@@ -27,7 +32,7 @@ const G = await import('./lib-modello.mjs');
 const { REAL, setPos, repack, saveFile, log, sstep, griglia, campo, sample } = G;
 
 const PROVA = !!process.env.PROVA;
-const Y_INIZIO = +(process.env.Y_INIZIO ?? -5.5), Y_PIENO = +(process.env.Y_PIENO ?? -9.5), FETTA = 0.25, SIGMA = +(process.env.SIGMA ?? 3), RAGGIO = 0.17, GIOCO_OSSO = +(process.env.GIOCO_OSSO ?? 0.15), MARGINE = 0.03;   // cm
+const Y_INIZIO = +(process.env.Y_INIZIO ?? -5.5), Y_PIENO = +(process.env.Y_PIENO ?? -9.5), FETTA = 0.25, SIGMA = +(process.env.SIGMA ?? 3), RAGGIO = 0.17, GIOCO_OSSO = +(process.env.GIOCO_OSSO ?? 0.15), MARGINE = 0.03, SPIANA = [+(process.env.SPIANA0 ?? 0.9), +(process.env.SPIANA1 ?? 1.8)], SPIANA_Y = [-7.5, -12.5], SPIANA_IT = +(process.env.SPIANA_IT ?? 300);   // cm
 
 const { pos, nv } = REAL('n_radiale'), P = Float32Array.from(pos.subarray(0, nv * 3));
 let ylo = 1e9, yhi = -1e9, xlo = [1e9, 1e9], xhi = [-1e9, -1e9];
@@ -61,5 +66,18 @@ let dmin = 1e9; for (let i = 0; i < nv; i++) dmin = Math.min(dmin, f([Q[3 * i], 
 for (let s = 0; s < ns; s += 3) if (cen[s]) log('y', ys[s].toFixed(2), 'distanza dall\'osso (centro)', f(cen[s]).toFixed(2), '→', f(cen2[s]).toFixed(2), '| spostamento', Math.hypot(...gauss[s]).toFixed(2), 'cm');
 log('linea centrale', lun(cen).toFixed(2), '→', lun(cen2).toFixed(2), 'cm | distanza minima dei vertici dall\'osso', (dmin * 10).toFixed(2), 'mm');
 if (dmin < 0) { log('ATTENZIONE: vertici dentro l\'osso, non scritto'); process.exit(1); }
+// capo mediale: il tracciato vecchio spingeva in fuori la superficie sopra il nervo (rigonfiamento con una piega scura sul lato mediale, a y ≈ −9,2);
+// col nervo spostato resta solo la gobba: Taubin pesato attorno al tracciato vecchio (peso 1 entro `SPIANA`[0], 0 oltre `SPIANA`[1])
+{ const M = REAL('tri_med'), V = Float64Array.from(M.pos.subarray(0, M.nv * 3)), key = new Map(), g = new Int32Array(M.nv), pts = [];
+  const lin = cen.filter((c, s) => c && ys[s] <= SPIANA_Y[0] && ys[s] >= SPIANA_Y[1]); for (let i = 1; i < lin.length; i++) for (let t = 0; t < 1; t += 0.1) pts.push(lin[i - 1].map((v, k) => v + t * (lin[i][k] - v)));
+  const dmin = i => { let d = 1e9; for (const q of pts) d = Math.min(d, Math.hypot(V[3 * i] - q[0], V[3 * i + 1] - q[1], V[3 * i + 2] - q[2])); return d; };
+  for (let i = 0; i < M.nv; i++) { const k = Math.round(V[3 * i] * 2e4) + ',' + Math.round(V[3 * i + 1] * 2e4) + ',' + Math.round(V[3 * i + 2] * 2e4); if (!key.has(k)) key.set(k, key.size); g[i] = key.get(k); }
+  const ng = key.size, nb = Array.from({ length: ng }, () => new Set()), W = new Float64Array(ng), X = new Float64Array(ng * 3);
+  for (let t = 0; t < M.idx.length; t += 3) for (let e = 0; e < 3; e++) { const a = g[M.idx[t + e]], b = g[M.idx[t + (e + 1) % 3]]; if (a !== b) { nb[a].add(b); nb[b].add(a); } }
+  for (let i = 0; i < M.nv; i++) { X.set(V.subarray(3 * i, 3 * i + 3), 3 * g[i]); W[g[i]] = 1 - sstep(SPIANA[0], SPIANA[1], dmin(i)); }
+  const NB = nb.map(x => [...x]); let mosse = 0; for (let i = 0; i < ng; i++) if (W[i] > 0) mosse++;
+  for (let it = 0; it < SPIANA_IT; it++) { const lam = it % 2 ? -0.53 : 0.5, R = X.slice(); for (let i = 0; i < ng; i++) { if (!W[i] || !NB[i].length) continue; const m = [0, 0, 0]; for (const j of NB[i]) for (let k = 0; k < 3; k++) m[k] += X[3 * j + k] / NB[i].length; for (let k = 0; k < 3; k++) R[3 * i + k] += lam * W[i] * (m[k] - X[3 * i + k]); } X.set(R); }
+  const T = Float32Array.from(M.pos.subarray(0, M.nv * 3)); let dmax = 0; for (let i = 0; i < M.nv; i++) { for (let k = 0; k < 3; k++) T[3 * i + k] = X[3 * g[i] + k]; dmax = Math.max(dmax, Math.hypot(T[3 * i] - V[3 * i], T[3 * i + 1] - V[3 * i + 1], T[3 * i + 2] - V[3 * i + 2])); }
+  log('capo mediale spianato attorno al tracciato vecchio:', mosse, 'vertici, spostamento massimo', (dmax * 10).toFixed(2), 'mm'); setPos('tri_med', T); }
 setPos('n_radiale', Q);
 if (!PROVA) saveFile(repack());

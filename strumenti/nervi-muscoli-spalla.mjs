@@ -216,10 +216,10 @@ function chiudiFori(P, I, vicino) {
 /* ---- doccia del radiale nel capo mediale: segmenti dal centro del nervo (fette di 0,25 cm tra DOCCIA.y) verso l'uscita più vicina del
    muscolo (non verso l'osso), lunghi fino all'uscita + `sbocco` e a zero ai due estremi (rampa DOCCIA.rampa); come corpi in più per il solo capo mediale: il nervo resta
    visibile tra i capi, appoggiato all'osso, e non coperto da muscolo ---- */
-const DOCCIA = { y: [-7.0, -11.2], rampa: 0.8, raggio: 0.17, angoli: 36, max: 3, sbocco: 0.4 };
+const DOCCIA = { y: [-7.0, -11.2], rampa: 0.8, raggio: 0.17, angoli: 36, max: 3, sbocco: 0.4, rif: [0, 0, 1], peso: 20 };
 function docciaRadiale() {
   const N = REAL('n_radiale'), O = REAL('omero'), T = REAL('tri_med'), tp = i => pt(T.pos, T.idx[i]), fette = [];
-  // per ogni fetta: direzione nel piano x–z con il percorso più corto dentro il capo mediale, non verso l'osso; lunghezza fino all'uscita + `sbocco`
+  // per ogni fetta: direzione nel piano x–z con il percorso più corto dentro il capo mediale e vicina alla direzione di riferimento `rif`, non verso l'osso; lunghezza fino all'uscita + `sbocco`
   const attraversi = (c, d) => { const ts = []; for (let t = 0; t < T.idx.length; t += 3) { const a = tp(t), b = tp(t + 1), cc = tp(t + 2), e1 = sub(b, a), e2 = sub(cc, a), h = cross(d, e2), det = dot(e1, h); if (Math.abs(det) < 1e-12) continue;
       const f = 1 / det, sv = sub(c, a), u = f * dot(sv, h); if (u < 0 || u > 1) continue; const q = cross(sv, e1), v = f * dot(d, q); if (v < 0 || u + v > 1) continue; const tt = f * dot(e2, q); if (tt > 1e-6) ts.push(tt); } return ts.sort((x, y) => x - y); };
   for (let y = DOCCIA.y[0]; y >= DOCCIA.y[1] - 1e-6; y -= 0.25) {
@@ -231,7 +231,9 @@ function docciaRadiale() {
       const ts = attraversi(c, d); let dentro = ts.length % 2 === 1, prev = 0, tot = 0, uscita = 0;
       for (const t of ts) { if (t > DOCCIA.max) break; if (dentro) { tot += t - prev; uscita = t; } prev = t; dentro = !dentro; }
       if (dentro && prev < DOCCIA.max) { tot += DOCCIA.max - prev; uscita = DOCCIA.max; }
-      if (!best || tot < best.tot - 1e-9) best = { tot, d, uscita }; }
+      const costo = tot + DOCCIA.peso * (1 - dot(d, DOCCIA.rif));   // percorso nel muscolo + scarto dalla direzione di riferimento (davanti e un po' lateralmente: la doccia non cambia verso da una fetta all'altra)
+      if (!best || costo < best.costo - 1e-9) best = { tot, d, uscita, costo }; }
+    if (process.env.DEBUG) log('  doccia y', y.toFixed(2), 'direzione (x,z)', best.d[0].toFixed(2), best.d[2].toFixed(2), 'dentro', best.tot.toFixed(2), 'uscita', best.uscita.toFixed(2));
     fette.push({ y, c, d: best.d, L: best.uscita + DOCCIA.sbocco });
   }
   // direzioni e lunghezze levigate lungo il nervo (media su ±2 fette), rampa agli estremi
