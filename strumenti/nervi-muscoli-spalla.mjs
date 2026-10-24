@@ -40,6 +40,10 @@
         prima × `DENSITA`, fori più corti di `FORO` chiusi a ventaglio, pieghe (triangoli girati) distese spostando i vertici nel baricentro dei
         vicini. Tag (muscolo/tendine, tappi) e direzione delle fibre della toppa dal vertice di prima più vicino; normali come
         `muscoli-spalla.mjs` (media per posizione, `NORM_DIFF` passate) ricalcolate nella toppa e attorno, altrove quelle del file.
+   Doccia del radiale (solo `tri_med`): con il nervo sull'osso (`radiale-spalla.mjs`) una lingua del capo mediale lo copriva sul lato verso
+   l'osso. Per le fette di 0,25 cm tra `DOCCIA`.y si aggiungono ai corpi segmenti (raggio del nervo) dal centro del nervo verso l'uscita più
+   vicina del muscolo nel piano x–z (36 direzioni, percorso dentro il muscolo più corto, non verso l'osso, levigate su ±2 fette), fino
+   all'uscita + `sbocco`, con rampa a zero agli estremi: il nervo resta scoperto tra osso e capi, il muscolo perde ~7 % di volume.
    Controlli stampati: volume comune e profondità per coppia prima e dopo (residuo ≤ 1 voxel del controllo), gioco minimo misurato, larghezza
    massima della cucitura, volume del muscolo prima e dopo, lati aperti e non manifold prima e dopo. */
 import { dirname, resolve } from 'node:path';
@@ -209,15 +213,52 @@ function chiudiFori(P, I, vicino) {
   return T;
 }
 
+/* ---- doccia del radiale nel capo mediale: segmenti dal centro del nervo (fette di 0,25 cm tra DOCCIA.y) verso l'uscita più vicina del
+   muscolo (non verso l'osso), lunghi fino all'uscita + `sbocco` e a zero ai due estremi (rampa DOCCIA.rampa); come corpi in più per il solo capo mediale: il nervo resta
+   visibile tra i capi, appoggiato all'osso, e non coperto da muscolo ---- */
+const DOCCIA = { y: [-7.0, -11.2], rampa: 0.8, raggio: 0.17, angoli: 36, max: 3, sbocco: 0.4 };
+function docciaRadiale() {
+  const N = REAL('n_radiale'), O = REAL('omero'), T = REAL('tri_med'), tp = i => pt(T.pos, T.idx[i]), fette = [];
+  // per ogni fetta: direzione nel piano x–z con il percorso più corto dentro il capo mediale, non verso l'osso; lunghezza fino all'uscita + `sbocco`
+  const attraversi = (c, d) => { const ts = []; for (let t = 0; t < T.idx.length; t += 3) { const a = tp(t), b = tp(t + 1), cc = tp(t + 2), e1 = sub(b, a), e2 = sub(cc, a), h = cross(d, e2), det = dot(e1, h); if (Math.abs(det) < 1e-12) continue;
+      const f = 1 / det, sv = sub(c, a), u = f * dot(sv, h); if (u < 0 || u > 1) continue; const q = cross(sv, e1), v = f * dot(d, q); if (v < 0 || u + v > 1) continue; const tt = f * dot(e2, q); if (tt > 1e-6) ts.push(tt); } return ts.sort((x, y) => x - y); };
+  for (let y = DOCCIA.y[0]; y >= DOCCIA.y[1] - 1e-6; y -= 0.25) {
+    let n = 0, c = [0, 0, 0]; for (let i = 0; i < N.nv; i++) if (Math.abs(N.pos[3 * i + 1] - y) < 0.125) { n++; for (let k = 0; k < 3; k++) c[k] += N.pos[3 * i + k]; }
+    if (!n) continue; c = c.map(v => v / n);
+    let bd = 1e9, bq = null; for (let i = 0; i < O.nv; i++) { const q = pt(O.pos, i), d = len(sub(q, c)); if (d < bd) { bd = d; bq = q; } }
+    const via = sub(c, bq), lv = len(via) || 1; let best = null;
+    for (let a = 0; a < DOCCIA.angoli; a++) { const th = 2 * Math.PI * a / DOCCIA.angoli, d = [Math.cos(th), 0, Math.sin(th)]; if (dot(d, via) / lv < -0.2) continue;
+      const ts = attraversi(c, d); let dentro = ts.length % 2 === 1, prev = 0, tot = 0, uscita = 0;
+      for (const t of ts) { if (t > DOCCIA.max) break; if (dentro) { tot += t - prev; uscita = t; } prev = t; dentro = !dentro; }
+      if (dentro && prev < DOCCIA.max) { tot += DOCCIA.max - prev; uscita = DOCCIA.max; }
+      if (!best || tot < best.tot - 1e-9) best = { tot, d, uscita }; }
+    fette.push({ y, c, d: best.d, L: best.uscita + DOCCIA.sbocco });
+  }
+  // direzioni e lunghezze levigate lungo il nervo (media su ±2 fette), rampa agli estremi
+  return fette.map((f, i) => { let d = [0, 0, 0], L = 0, w = 0; for (let k = -2; k <= 2; k++) { const g = fette[i + k]; if (!g) continue; for (let q = 0; q < 3; q++) d[q] += g.d[q]; L += g.L; w++; }
+    const l = len(d) || 1; d = d.map(v => v / l); L = L / w * sstep(DOCCIA.y[0], DOCCIA.y[0] - DOCCIA.rampa, f.y) * sstep(DOCCIA.y[1], DOCCIA.y[1] + DOCCIA.rampa, f.y);
+    return [f.c, add(f.c, d, L)]; });
+}
+// distanza con segno dalla doccia (raggio = quello del nervo) unita al campo dei corpi: FK = min(FK, d − raggio)
+function scavaDoccia(FK, doc) {
+  if (!doc.length) return;
+  const lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9]; for (const [a, b] of doc) for (const q of [a, b]) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], q[k] - 0.6); hi[k] = Math.max(hi[k], q[k] + 0.6); }
+  const dSeg = (p, a, b) => { const ab = sub(b, a), t = Math.max(0, Math.min(1, dot(sub(p, a), ab) / (dot(ab, ab) || 1))); return len(sub(p, add(a, ab, t))); };
+  for (let i = 0; i < G.N; i++) { const p = G.voxel(i); if ([0, 1, 2].some(k => p[k] < lo[k] || p[k] > hi[k])) continue;
+    let d = 1e9; for (const [a, b] of doc) d = Math.min(d, dSeg(p, a, b)); if (d - DOCCIA.raggio < FK[i]) FK[i] = d - DOCCIA.raggio; }
+}
+
 /* ---- 2–4. toppa ---- */
 // (DEBUG) triangoli girati rispetto alla somma delle normali dei vertici
 const girati = (P, I, f) => { const vn = new Float64Array(P.length), fn = []; for (let t = 0; t < I.length; t += 3) { const p = [0, 1, 2].map(e => pt(P, I[t + e])), n = cross(sub(p[1], p[0]), sub(p[2], p[0])); fn.push(n); for (let e = 0; e < 3; e++) for (let k = 0; k < 3; k++) vn[3 * I[t + e] + k] += n[k]; }
   let c = 0; fn.forEach((n, q) => { if (!len(n)) return; const m = [0, 1, 2].map(k => [0, 1, 2].reduce((s, e) => s + vn[3 * I[3 * q + e] + k], 0)), cen = mul(add(add(pt(P, I[3 * q]), pt(P, I[3 * q + 1])), pt(P, I[3 * q + 2])), 1 / 3); if (dot(n, m) < -0.2 * len(n) * len(m) && (!f || f(cen))) c++; }); return c; };
 function rattoppa(mu, corpi, T) {
   const R0 = REAL(mu), at = attrs(mu), nv0 = R0.nv, pos0 = R0.pos.subarray(0, nv0 * 3), idx0 = R0.idx, A = rq(mu), nm0 = nmDi(mu);
-  // campo dei corpi vicino al muscolo
+  // campo dei corpi vicino al muscolo (con la doccia del radiale nel capo mediale: `docciaRadiale`)
+  const doc = mu === 'tri_med' && corpi.includes('n_radiale') ? docciaRadiale() : [];
   const Bc = corpi.map(rq), zlo = [0, 1, 2].map(k => Math.max(A.lo[k], Math.min(...Bc.map(b => b.lo[k]))) - ZONA), zhi = [0, 1, 2].map(k => Math.min(A.hi[k], Math.max(...Bc.map(b => b.hi[k]))) + ZONA);
-  griglia(zlo, zhi, H, 0); const FK = campo(corpi).F, gk = { O: G.O.slice(), NX: G.NX, NY: G.NY, NZ: G.NZ };
+  for (const [, b] of doc) for (let k = 0; k < 3; k++) { zlo[k] = Math.min(zlo[k], b[k] - ZONA); zhi[k] = Math.max(zhi[k], b[k] + ZONA); }
+  griglia(zlo, zhi, H, 0); const FK = campo(corpi).F; scavaDoccia(FK, doc); const gk = { O: G.O.slice(), NX: G.NX, NY: G.NY, NZ: G.NZ };
   const fk = p => { const x = (p[0] - gk.O[0]) / H - 0.5, y = (p[1] - gk.O[1]) / H - 0.5, z = (p[2] - gk.O[2]) / H - 0.5, i = Math.floor(x), j = Math.floor(y), k = Math.floor(z);
     if (i < 0 || j < 0 || k < 0 || i >= gk.NX - 1 || j >= gk.NY - 1 || k >= gk.NZ - 1) return 1; const u = x - i, v = y - j, w = z - k, b = i + gk.NX * (j + gk.NY * k), NX = gk.NX, NXY = gk.NX * gk.NY, l = (a, c, t) => a + (c - a) * t;
     return l(l(l(FK[b], FK[b + 1], u), l(FK[b + NX], FK[b + NX + 1], u), v), l(l(FK[b + NXY], FK[b + NXY + 1], u), l(FK[b + NXY + NX], FK[b + NXY + NX + 1], u), v), w); };
@@ -303,11 +344,12 @@ function rattoppa(mu, corpi, T) {
   let q = 0; const T2 = tag ? c2.extra[q++] : null, D2 = fdir ? c2.extra[q++] : null, N2 = nmM ? c2.extra[q++] : null;
   if (process.env.DEBUG) log('  girati dopo la riduzione', girati(P2, I2, p => fk(p) < 1));
   // fori piccoli (anelli corti tolti, giunture doppie al tappo): chiusi a ventaglio se il bordo è più corto di `FORO`
-  const chiusi = chiudiFori(P2, I2, p => fk(p) < T + 0.15); if (chiusi.length) I2 = Uint32Array.from([...I2, ...chiusi]);
+  const chiusi = chiudiFori(P2, I2, p => fk(p) < 1); if (chiusi.length) I2 = Uint32Array.from([...I2, ...chiusi]);
   // pieghe rimaste attorno al taglio e alla cucitura (vertici fissi esclusi)
   const fisso2 = new Uint8Array(nv), quanti2 = new Map(); for (let i = 0; i < nv; i++) { const k = chiaveP(P2, i); quanti2.set(k, (quanti2.get(k) || 0) + 1); }
   for (let i = 0; i < nv; i++) if (fk(pt(P2, i)) > T + 0.15 || quanti2.get(chiaveP(P2, i)) > 1) fisso2[i] = 1;
   const pieghe = distendi(P2, I2, i => !fisso2[i], fuori);
+  const chiusi2 = chiudiFori(P2, I2, p => fk(p) < 1); if (chiusi2.length) { if (process.env.DEBUG) log('  fori chiusi dopo la distensione', chiusi2.length / 3); I2 = Uint32Array.from([...I2, ...chiusi2]); }
   if (process.env.DEBUG) log('  girati dopo la distensione', girati(P2, I2, p => fk(p) < 1), 'pieghe', pieghe);
   // normali: nuove entro T + 0,15 dai corpi (toppa, cucitura e attorno), altrove quelle del file
   const NL = normaliLisce(P2, I2, T2), nrm = new Int8Array(nv * 3);
