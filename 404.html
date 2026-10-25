@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pagina non trovata | MSK Atlas</title>
+<meta name="description" content="La pagina cercata non esiste. Torna a MSK Atlas, atlante anatomico 3D.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#070a0d">
+<link rel="icon" href="/favicon.ico?v=4" sizes="32x32">
+<link rel="icon" href="/assets/favicon.svg?v=4" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* stessa palette scura della homepage; percorsi assoluti perché la pagina viene servita da qualsiasi indirizzo */
+:root{--bg:#070a0d;--ink:#eef3f6;--ink-2:#c8d3dc;--muted:#93a1ae;--dim:rgba(238,243,246,.4);--line:rgba(255,255,255,.1);--accent:#72b4d0;
+  --sans:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 30%,#1c242c 0%,#0f141a 55%,#070a0d 100%);color:var(--ink);font:400 16px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:10px}
+header{padding:calc(env(safe-area-inset-top,0px) + 18px) max(20px,env(safe-area-inset-left,0px)) 0}
+.brand{display:inline-flex;align-items:center;gap:11px;min-height:44px;color:var(--ink);text-decoration:none;font-weight:600;font-size:14px;letter-spacing:.22em;text-transform:uppercase}
+.brand b{color:var(--accent);font-weight:600}
+main{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:720px;width:100%;margin:0 auto;padding:40px max(20px,env(safe-area-inset-left,0px))}
+.codice{margin:0;font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;color:var(--accent)}
+h1{margin:14px 0 0;font:300 clamp(40px,8vw,72px)/1.05 var(--sans);letter-spacing:-.04em}
+h1 span{color:var(--dim)}
+p.lead{margin:18px 0 0;font-size:18px;color:var(--ink-2)}
+.btn{align-self:flex-start;display:inline-flex;align-items:center;min-height:48px;margin-top:28px;padding:0 24px;border-radius:999px;background:#f2f6f8;color:var(--bg);font-weight:600;text-decoration:none}
+.btn:hover{background:#fff}
+nav{margin-top:40px;padding-top:24px;border-top:1px solid var(--line)}
+nav p{margin:0 0 10px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+nav ul{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:999px;color:var(--ink-2);font-size:15px;text-decoration:none;transition:color .15s,background-color .15s}
+nav a:hover{color:var(--ink);background:rgba(255,255,255,.06)}
+footer{padding:20px max(20px,env(safe-area-inset-left,0px)) calc(env(safe-area-inset-bottom,0px) + 20px);text-align:center;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header><a class="brand" href="/"><img src="/assets/favicon.svg?v=4" width="30" height="30" alt="">MSK <b>Atlas</b></a></header>
+<main>
+  <p class="codice">Errore 404</p>
+  <h1>Pagina <span>non trovata.</span></h1>
+  <p class="lead">L’indirizzo non esiste o è stato spostato. Puoi tornare all’indice dell’atlante o aprire direttamente una tavola.</p>
+  <a class="btn" href="/">Torna a MSK Atlas</a>
+  <nav aria-label="Modelli 3D">
+    <p>Modelli 3D</p>
+    <ul>
+      <li><a href="/modelli/spalla-3d.html">Spalla</a></li>
+      <li><a href="/modelli/gomito-3d.html">Gomito</a></li>
+      <li><a href="/modelli/polso-dito-3d.html">Polso</a></li>
+      <li><a href="/modelli/polso-dito-3d.html#dito">Dito</a></li>
+      <li><a href="/modelli/anca-3d.html">Anca</a></li>
+      <li><a href="/modelli/ginocchio-3d.html">Ginocchio</a></li>
+    </ul>
+  </nav>
+</main>
+<footer>Materiale didattico. Non destinato a uso clinico o diagnostico.</footer>
+</body>
+</html>

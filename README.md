@@ -13,9 +13,13 @@ modelli/<nome>-3d.html     un file autocontenuto per modello (three.js r128 da C
 assets/nav.js              navigazione comune dei modelli: pulsanti fluttuanti "‹" (home) e "i" (disclaimer, crediti ed elenco delle strutture del modello)
 assets/favicon.svg
 assets/anteprime/          immagini 1600×1000 delle card (WebP, sfondo trasparente)
+assets/og/                 immagini 1200×630 per Open Graph e Twitter card (JPEG, una per pagina)
+sitemap.xml, robots.txt    per i motori di ricerca (dominio canonico https://www.mskatlas.com)
+404.html                   pagina "non trovata" (tema scuro, percorsi assoluti)
 assets/sequenza/           fotogrammi della prima schermata (WebP trasparenti, grandi l/ e piccoli s/)
 strumenti/anteprima.mjs    genera le anteprime (non pubblicato sul sito)
 strumenti/sequenza-home.mjs genera i fotogrammi della prima schermata (non pubblicato sul sito)
+strumenti/og.mjs           genera le immagini Open Graph 1200×630 dalle anteprime (non pubblicato sul sito)
 strumenti/lib-chrome.mjs   funzioni comuni ai due script (Chrome headless)
 GUIDA_MODELLI.md           guida tecnica ai modelli, non pubblicata sul sito
 .vercelignore              esclude dal deploy strumenti/, CLAUDE.md, README.md e GUIDA_MODELLI.md
@@ -48,8 +52,11 @@ Cosa controllare dopo una modifica:
 2. **Righe comuni** — nel file del modello aggiungi solo queste, senza toccare altro:
    ```html
    <html lang="it" data-theme="dark">                                        <!-- attributo sul tag esistente -->
-   <title><Distretto> 3D | MSK Atlas</title>                               <!-- contenuto del <title> esistente -->
-   <meta name="description" content="Modello 3D interattivo di …">         <!-- nel <head> -->
+   <title><Distretto> 3D interattivo/a: <strutture chiave> | MSK Atlas</title>  <!-- contenuto del <title> esistente, ≈60 caratteri -->
+   <meta name="description" content="<Distretto> 3D interattivo: …">        <!-- nel <head>, entro 160 caratteri -->
+   <link rel="canonical" href="https://www.mskatlas.com/modelli/<nome>-3d.html">   <!-- nel <head> -->
+   <!-- Open Graph e Twitter card: copia il blocco da un altro modello (og:type, site_name, locale, title, description, url,
+        image con width/height/alt; twitter:card summary_large_image, title, description, image) e cambia testi, URL e immagine -->
    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">     <!-- nel <head> -->
    <script src="../assets/nav.js"></script>                                 <!-- subito dopo <body> -->
    ```
@@ -60,13 +67,21 @@ Cosa controllare dopo una modifica:
    Salva `assets/anteprime/<nome>-3d.webp` (sfondo trasparente). Per regolare l'inquadratura: `--zoom=1.2`, `--dy=-0.05`;
    per fare prove senza sovrascrivere: `--out=/tmp/prova.webp`. Richiede Node 22+ e Google Chrome.
    Va rigenerata anche quando si modifica un modello, perché l'anteprima resti aggiornata.
+   **Immagine social** (dopo l'anteprima) — aggiungi la pagina alla tabella `PAGINE` in testa a `strumenti/og.mjs`, poi:
+   ```bash
+   node strumenti/og.mjs <nome>-3d
+   ```
+   Salva `assets/og/<nome>-3d.jpg` (1200×630, JPEG) componendo l'anteprima su sfondo scuro con distretto e marchio; l'immagine
+   è quella indicata in `og:image` e `twitter:image`.
 4. **Card** — in `index.html` duplica un blocco `<!-- CARD MODELLO -->` e aggiorna distretto, immagine,
    testo alternativo, link e titolo, e imposta `data-strutture` sul `<li class="card">`. Il numero "Tav.",
    la riga "N strutture" e il conteggio dei modelli sono automatici. Il blocco `.sub` (link alle sezioni)
    è facoltativo.
-5. **Verifica e pubblica** — controlla in locale, poi:
+5. **Sitemap** — aggiungi `<url><loc>https://www.mskatlas.com/modelli/<nome>-3d.html</loc></url>` a `sitemap.xml`
+   (le sezioni con ancora, come `#dito`, non hanno voce propria).
+6. **Verifica e pubblica** — controlla in locale (anche titolo, descrizione, canonical e immagine social di ogni pagina), poi:
    ```bash
-   git add modelli/<nome>-3d.html assets/anteprime/<nome>-3d.webp index.html
+   git add modelli/<nome>-3d.html assets/anteprime/<nome>-3d.webp assets/og/<nome>-3d.jpg sitemap.xml index.html
    git commit -m "Aggiunge modello <nome>"
    git push
    ```
