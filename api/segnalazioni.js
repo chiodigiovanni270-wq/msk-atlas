@@ -1,6 +1,7 @@
 /* Vercel Node function; no data or credentials are stored in the browser. */
 const { createHash } = require('node:crypto');
 const TYPES = ['Errore anatomico', 'Testo inesatto', 'Problema tecnico', 'Altro'];
+const CONTACT_TYPES = ['Suggerimento', 'Didattica', 'Collaborazione', 'Altro'];
 const PAGES = ['/', '/index.html', '/modelli/spalla-3d.html', '/modelli/gomito-3d.html', '/modelli/polso-dito-3d.html', '/modelli/anca-3d.html', '/modelli/ginocchio-3d.html'];
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
@@ -21,9 +22,13 @@ module.exports = async function handler(req, res) {
     b = typeof req.body === 'string' ? JSON.parse(raw) : req.body;
   } catch { return reply(400, 'Segnalazione non valida.'); }
   if (!b || typeof b !== 'object' || Array.isArray(b)) return reply(400, 'Segnalazione non valida.');
+  const kind = b.kind === undefined ? 'report' : b.kind;
+  if (!['report', 'contact'].includes(kind)) return reply(400, 'Tipo di messaggio non valido.');
+  const contact = kind === 'contact';
+  if (contact && !b.email) return reply(400, 'Inserisci la tua email per ricevere una risposta.');
   if (b.website) return reply(400, 'Segnalazione non valida.');
   const valid = (v, min, max) => typeof v === 'string' && v.trim().length >= min && v.length <= max;
-  if (!valid(b.description, 10, 3000) || !TYPES.includes(b.type) || !valid(b.structure, 0, 180) || !valid(b.page, 1, 500) || !valid(b.email, 0, 254) || !valid(b.token, 1, 2048)) return reply(400, 'Controlla i campi della segnalazione.');
+  if (!valid(b.description, 10, 3000) || !(contact ? CONTACT_TYPES : TYPES).includes(b.type) || !valid(b.structure, 0, 180) || !valid(b.page, 1, 500) || !valid(b.email, 0, 254) || !valid(b.token, 1, 2048)) return reply(400, 'Controlla i campi della segnalazione.');
   if (/[\r\n]/.test(b.structure) || (b.email && !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(b.email))) return reply(400, 'Controlla struttura e indirizzo email.');
   let page;
   try {
@@ -40,12 +45,12 @@ module.exports = async function handler(req, res) {
     if (!verification.ok) return reply(502, 'Verifica antispam non disponibile. Riprova.');
     const challenge = await verification.json();
     if (!challenge.success || challenge.action !== 'report' || challenge.hostname !== new URL(origin).hostname) return reply(400, 'Ripeti la verifica antispam e invia di nuovo.');
-    const text = `Segnalazione MSK Atlas\n\nPagina: ${page.href}\nStruttura: ${b.structure.trim() || 'Generale'}\nTipo: ${b.type}\n\n${b.description.trim()}\n\nEmail per risposta: ${b.email || 'Non indicata'}`;
+    const text = `${contact ? 'Messaggio' : 'Segnalazione'} MSK Atlas\n\nPagina: ${page.href}\nStruttura: ${b.structure.trim() || 'Generale'}\nTipo: ${b.type}\n\n${b.description.trim()}\n\nEmail per risposta: ${b.email || 'Non indicata'}`;
     // Stable during an hour: avoids duplicates after a network timeout/retry.
     const key = createHash('sha256').update(text + Math.floor(Date.now() / 3600000)).digest('hex');
     const mail = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': `report-${key}` },
-      body: JSON.stringify({ from: env.REPORT_FROM_EMAIL, to: [env.REPORT_TO_EMAIL], subject: `MSK Atlas — ${b.type}`, text, ...(b.email ? { reply_to: b.email } : {}) }), signal: AbortSignal.timeout(10000)
+      body: JSON.stringify({ from: env.REPORT_FROM_EMAIL, to: [env.REPORT_TO_EMAIL], subject: `MSK Atlas — ${contact ? 'Contatto: ' : ''}${b.type}`, text, ...(b.email ? { reply_to: b.email } : {}) }), signal: AbortSignal.timeout(10000)
     });
     if (!mail.ok) { console.error('report_mail_failed', mail.status); return reply(502, 'Invio non riuscito. Il testo è conservato: riprova più tardi.'); }
     const result = await mail.json();
@@ -53,3 +58,4 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: true });
   } catch { console.error('report_service_unavailable'); return reply(502, 'Servizio non raggiungibile. Il testo è conservato: riprova più tardi.'); }
 };
+

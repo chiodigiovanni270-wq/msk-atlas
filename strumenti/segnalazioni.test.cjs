@@ -49,3 +49,17 @@ test('provider error or timeout cannot return success', async () => {
   assert.equal((await call()).code,502);
   global.fetch=async()=>{throw Error('timeout');};assert.equal((await call()).code,502);
 });
+
+ test('contact requires email and sends a distinct subject to owner', async () => {
+  assert.equal((await call({...body(),kind:'contact',type:'Collaborazione'})).code,400);
+  let sent;
+  global.fetch=async(url,options)=>{
+    if(url.includes('siteverify')) return {ok:true,json:async()=>({success:true,hostname:'atlas.example',action:'report'})};
+    sent=JSON.parse(options.body);return {ok:true,json:async()=>({id:'contact-test'})};
+  };
+  const result=await call({...body(),kind:'contact',type:'Collaborazione',email:'reader@example.com'});
+  assert.equal(result.code,200);assert.equal(sent.subject,'MSK Atlas — Contatto: Collaborazione');
+  assert.equal(sent.reply_to,'reader@example.com');assert.deepEqual(sent.to,['owner@example.com']);
+  assert.ok(sent.text.startsWith('Messaggio MSK Atlas'));
+  assert.equal((await call({...body(),kind:'contact',type:'Errore anatomico',email:'reader@example.com'})).code,400);
+ });
