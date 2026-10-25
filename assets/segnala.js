@@ -19,6 +19,29 @@
     const form = dialog.querySelector('form'), submit = dialog.querySelector('.report-submit'), status = dialog.querySelector('.report-status');
     let token = '', widget, busy = false, setup = false, opener, context = '', turnstilePromise;
     const setStatus = message => { status.textContent = message; };
+    const recovery = document.createElement('div');
+    recovery.hidden = true;
+    recovery.innerHTML = '<button type="button" class="report-retry">Riprova verifica</button><p class="report-note">Se la verifica continua a fallire nell’app, apri il modulo nel browser. Pagina e struttura vengono riportate; il testo già scritto resta in questa finestra.</p><a class="report-browser" target="_blank" rel="noopener noreferrer">Apri modulo nel browser</a>';
+    status.after(recovery);
+    const standalone = navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+    const reportParams = new URLSearchParams(location.search);
+    const browserReport = reportParams.get('segnala') === '1';
+    function recoveryLink() {
+      const url = new URL('/index.html', location.origin);
+      url.searchParams.set('segnala', '1');
+      url.searchParams.set('pagina', context);
+      url.searchParams.set('struttura', form.elements.structure.value.slice(0,180));
+      recovery.querySelector('a').href = url.href;
+    }
+    function failed(code) {
+      token = ''; submit.disabled = true; recovery.hidden = false; recoveryLink();
+      setStatus('Verifica antispam non riuscita' + (/^\d{6}$/.test(String(code)) ? ' (codice ' + code + ')' : '') + '. Puoi riprovare senza perdere il testo.');
+    }
+    recovery.querySelector('button').onclick = () => {
+      if (busy) return;
+      token = ''; submit.disabled = true; setStatus('Verifica in corso…');
+      if (widget !== undefined) window.turnstile.reset(widget); else configure();
+    };
     function loader() {
       if (window.turnstile) return Promise.resolve();
       if (!turnstilePromise) turnstilePromise = new Promise((resolve, reject) => {
@@ -38,12 +61,12 @@
         if (!config.available) throw new Error('Invio temporaneamente non disponibile. Riprova più tardi.');
         await loader();
         widget = window.turnstile.render(dialog.querySelector('.report-challenge'), { sitekey: config.siteKey, theme: 'dark', size: 'flexible', action: 'report',
-          callback: value => { token = value; submit.disabled = busy; if (!form.hidden) setStatus(''); },
+          callback: value => { token = value; submit.disabled = busy; if (!form.hidden) setStatus(''); recovery.hidden = !standalone; },
           'expired-callback': () => { token = ''; submit.disabled = true; setStatus('Verifica scaduta: attendi la nuova verifica.'); },
-          'error-callback': () => { token = ''; submit.disabled = true; setStatus('Verifica antispam non riuscita. Chiudi e riapri il modulo.'); }
+          'error-callback': code => { failed(code); return true; }
         });
         setStatus('Completa la verifica antispam.');
-      } catch (error) { setup = false; setStatus(error.name === 'TimeoutError' ? 'Connessione lenta. Chiudi e riapri il modulo.' : error.message); }
+      } catch (error) { setup = false; recovery.hidden = false; recoveryLink(); setStatus(error.name === 'TimeoutError' ? 'Connessione lenta. Chiudi e riapri il modulo.' : error.message); }
     }
     function open(button, specific) {
       opener = button;
@@ -52,8 +75,16 @@
         const name = specific ? document.getElementById('cName')?.textContent.trim() || '' : '';
         form.elements.structure.value = name;
         context = location.pathname + (location.hash === '#dito' ? '#dito' : '');
-        dialog.querySelector('.report-context').textContent = 'Pagina: ' + (location.hash === '#dito' ? 'Dito 3D | MSK Atlas' : document.title);
+        if (browserReport) {
+          const page = reportParams.get('pagina') || '/';
+          if (/^\/(?:index\.html|modelli\/(?:spalla|gomito|polso-dito|anca|ginocchio)-3d\.html)?(?:#dito)?$/.test(page)) {
+            context = page;
+            form.elements.structure.value = (reportParams.get('struttura') || '').slice(0,180);
+          }
+        }
+        dialog.querySelector('.report-context').textContent = 'Pagina: ' + (browserReport ? context : (location.hash === '#dito' ? 'Dito 3D | MSK Atlas' : document.title));
       }
+      recoveryLink(); recovery.hidden = !standalone;
       dialog.showModal();
       configure();
       if (widget !== undefined && !token && !busy) window.turnstile.reset(widget);
@@ -88,6 +119,7 @@
       }
     });
     dialog.addEventListener('close', () => { if (form.hidden) { form.hidden = false; setStatus(''); } });
+    if (browserReport) open(null, false);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true }); else init();
 })();
