@@ -146,3 +146,16 @@ Riferimenti di revisione: [Hip Arteries, NCBI](https://www.ncbi.nlm.nih.gov/site
 ## Ricerca dalla homepage
 `strumenti/indice-ricerca.mjs` legge le tavole dichiarate in `index.html` ed estrae ID, nomi e categorie dai modelli (incluse le due sezioni polso/dito). Genera `assets/strutture.json` senza caricare mesh; verifica conteggi e ID duplicati. Uso: `node strumenti/indice-ricerca.mjs`, rilanciabile dopo qualsiasi aggiornamento ai nomi/ID/tavole. Non fa parte della catena geometrica.
 Ogni visualizzatore applica il parametro `struttura` dopo costruzione e AO: isolamento con ossa, selezione e centratura sulla bounding box; un ID inesistente lascia il modello normale con un avviso. Il passaggio polso/dito elimina il parametro precedente. I file rimangono autonomi e non dipendono dal codice della home.
+
+### Ginocchio — rifinitura crociati (25 ottobre 2026)
+
+`node strumenti/crociati-ginocchio.mjs` ricostruisce solo `lca` e `lcp` dalla
+revisione `640009ddced342454a48cb846c2a515316743a0f`. Richiede Python 3 con NumPy
+e SciPy. Si può rilanciare: preserva le altre mesh correnti. Regolarizza le
+fibre originali con filtro gaussiano sigma 3 anelli, interpola 101 sezioni da
+64 vertici e conserva le curve terminali interpolate e i centri delle
+inserzioni. Mantiene i due fasci del LCA, aggiunge rilievo longitudinale di
+0,05 mm massimo e rigenera `fdir`. Eseguire dopo le altre correzioni del
+ginocchio. Non cambia colori, shader, schede, controlli o ricerca.
+Rifinitura grafica, non nuova validazione anatomica. Confronto delle mesh
+prima/dopo approvato dall'utente per la pubblicazione il 25 ottobre 2026.
