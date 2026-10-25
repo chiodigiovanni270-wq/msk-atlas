@@ -41,7 +41,7 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
   `sitemap.xml`, `robots.txt` e `404.html` (in radice) vanno pubblicati: non devono mai finire in `.vercelignore`.
 - SEO: ogni pagina ha `<title>` e `meta description` propri (descrizione entro 160 caratteri), `<link rel="canonical">` su `https://www.mskatlas.com/…`
   (home `/`, modelli `/modelli/<nome>-3d.html`, senza `?struttura=` né `#dito`), Open Graph e Twitter card (`summary_large_image`) con immagine 1200×630 in `assets/og/<pagina>.jpg`.
-  `sitemap.xml` elenca home e modelli (il dito è la sezione `#dito` del polso: nessuna voce a parte); `robots.txt` ha la riga `Sitemap:` e blocca solo `/api/`.
+  `sitemap.xml` elenca home, modelli e pagine di testo `/anatomia/<distretto>.html` (il dito è la sezione `#dito` del polso: nessuna voce a parte); `robots.txt` ha la riga `Sitemap:` e blocca solo `/api/`.
   `404.html`: pagina scura con percorsi assoluti (`/assets/…`), `noindex`.
 
 ## Requisiti di contenuto
@@ -68,7 +68,11 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
    link e titolo, e imposta `data-strutture` sul `<li class="card">` (numero di strutture con scheda del modello: righe dell'elenco "Strutture").
    Ordine delle card: prima tavola la spalla, poi il resto dell'arto superiore (gomito, polso, dito), infine l'inferiore (anca, ginocchio).
    La card non ha descrizione: solo titolo con freccia e riga "N strutture". Numero "Tav.", riga "N strutture", conteggio dei modelli e totale delle strutture sono automatici.
-5. Aggiungi l'URL del modello a `sitemap.xml`. Verifica in locale, poi commit (`Aggiunge modello <nome>`) e push su `main`.
+5. Crea la pagina di testo del distretto (indicizzabile, `anatomia/<distretto>.html`): aggiungi il modello alla tabella `PAGINE` di `strumenti/pagine-anatomia.mjs`
+   (slug, titolo, H1, file del modello, sezioni) e lancia `node strumenti/pagine-anatomia.mjs`, poi `node strumenti/pagine-anatomia.mjs verifica`.
+   Aggiungi la riga del distretto nel blocco `#anatomia` di `index.html` (con il numero di strutture) e nella riga "Anatomia:" del footer;
+   le pagine esistenti vanno rigenerate (la riga "Anatomia:" in fondo elenca tutti i distretti). Dettagli in `GUIDA_MODELLI.md` ("Pagine di testo").
+6. Aggiungi gli URL del modello e della pagina di testo a `sitemap.xml`. Verifica in locale, poi commit (`Aggiunge modello <nome>`) e push su `main`.
 
 ## Strumenti (`strumenti/`)
 - Script Node (`.mjs`, Node 22+, senza dipendenze) che rigenerano o correggono le mesh incorporate nei modelli; non sono pubblicati sul sito.
@@ -78,7 +82,7 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
 - In testa a ogni script: uso, eventuali modalità che non scrivono (`verifica`, `prova`) e, se riparte dalle mesh di una revisione git
   (es. `PARTENZA`, `BASE`), quale: così si può rilanciare con lo stesso risultato; altrimenti va detto se si può rilanciare. Gli script di un modello vanno lanciati nell'ordine indicato in `GUIDA_MODELLI.md`.
 - Ogni script nuovo o modificato va descritto in `GUIDA_MODELLI.md` (sezione "Dati": cosa fa, metodo, parametri, ordine nella catena).
-- Strumenti del sito: `anteprima.mjs`, `sequenza-home.mjs` e `og.mjs` (immagini 1200×630 per Open Graph, con `lib-chrome.mjs`, Chrome headless), `icone.mjs`.
+- Strumenti del sito: `pagine-anatomia.mjs` (pagine di testo `anatomia/`), `anteprima.mjs`, `sequenza-home.mjs` e `og.mjs` (immagini 1200×630 per Open Graph, con `lib-chrome.mjs`, Chrome headless), `icone.mjs`.
 
 ## Anteprime e animazione della homepage
 - Anteprima e animazione NON vanno rigenerate a ogni modifica di un modello: si fanno alla fine, quando lo chiedo.
@@ -92,6 +96,15 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
 - Prima di modifiche ampie, proponi un piano e attendi conferma.
 - Commit piccoli e descrittivi, in italiano; per le modifiche a un modello il messaggio inizia con il distretto (es. "Gomito: …").
 - Dopo ogni modifica, indicami come verificarla in locale.
+
+## Pagine di testo per distretto
+- `anatomia/spalla|gomito|polso-dito|anca|ginocchio.html`: pagine statiche indicizzabili generate da `strumenti/pagine-anatomia.mjs` (non si modificano a mano).
+  Contengono H1, breve introduzione generica, elenco delle strutture per categoria (nome + nota `info` del modello, parola per parola), pulsante al modello 3D,
+  link alla home, riga "Anatomia:" con tutti i distretti, disclaimer e credito BodyParts3D (CC BY-SA 2.1 JP). Stile in `assets/anatomia.css`.
+- Il testo deriva solo da nomi e `info` dei modelli: niente affermazioni nuove; le strutture senza `info` compaiono col solo nome.
+  Dopo modifiche a nomi, `info`, categorie o strutture di un modello: `node strumenti/pagine-anatomia.mjs`, poi `… verifica`, e commit anche di `anatomia/`.
+- Il nome di ogni struttura linka al modello con `?struttura=<id>` (per il dito `#dito`); dove il parametro non funziona il link punta al modello base.
+- In homepage: sezione `#anatomia` sotto le card e riga "Anatomia:" nel footer. I file in `modelli/` non vengono toccati.
 
 ## Ricerca anatomica dalla homepage
 - `assets/ricerca.js` e `assets/ricerca.css`: ricerca accessibile e indice compatto.

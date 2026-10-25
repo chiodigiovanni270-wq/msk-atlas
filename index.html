@@ -267,6 +267,21 @@ footer{border-top:1px solid var(--line);padding:48px 0 26px;background:var(--bg-
 .foot-links{display:flex;gap:22px;flex:none}
 .foot-links a{display:inline-flex;align-items:center;min-height:44px;font-size:12px;color:var(--ink-2);text-decoration:none}
 .foot-links a:hover{color:var(--accent)}
+.foot-anat{margin:28px 0 0;padding-top:20px;border-top:1px solid var(--line);font-size:13px;line-height:2.2;color:var(--ink-2)}
+.foot-anat span{margin-right:6px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--accent)}
+.foot-anat a{color:var(--ink-2);text-decoration:none;padding:10px 2px}
+.foot-anat a:hover{color:var(--accent)}
+.anat{padding-bottom:clamp(72px,9vw,120px)}
+.anat .sec-head p:not(.kicker){margin:0;font-size:16px;color:var(--muted);max-width:60ch}
+.anat-list{list-style:none;margin:36px 0 0;padding:0;display:grid;gap:12px}
+.anat-list a{display:flex;align-items:center;gap:14px;min-height:64px;padding:0 22px;border-radius:20px;color:var(--ink);text-decoration:none;transition:border-color .2s}
+.anat-list a:hover{border-color:rgba(255,255,255,.34)}
+.anat-list .a-nome{flex:1;font-size:18px;font-weight:600}
+.anat-list .a-n{font-size:13px;color:var(--muted)}
+.anat-list svg{flex:none;transition:transform .2s var(--ease)}
+.anat-list a:hover svg{transform:translateX(3px)}
+@media (min-width:720px){.anat-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1100px){.anat-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:719px){footer{padding-top:32px}.foot-grid{grid-template-columns:1fr;gap:30px}.foot-author{max-width:none}.foot-bottom{align-items:flex-start;flex-direction:column;gap:8px;margin-top:24px}.foot-links{gap:24px}.foot-brand>p{max-width:46ch}}
 
 /* ingresso della prima schermata */
@@ -503,6 +518,22 @@ footer{border-top:1px solid var(--line);padding:48px 0 26px;background:var(--bg-
 
 
   
+  <!-- ANATOMIA IN TESTO: pagine anatomia/<distretto>.html generate da strumenti/pagine-anatomia.mjs. Per un nuovo modello aggiungi una riga con il numero di strutture. -->
+  <section id="anatomia" class="anat wrap" aria-labelledby="anatomia-titolo">
+    <div class="sec-head">
+      <p class="kicker">Anatomia in testo</p>
+      <h2 id="anatomia-titolo">Le strutture, <span>per distretto.</span></h2>
+      <p>L’elenco di tutte le strutture di ogni modello, con la nota didattica di ciascuna, da leggere e da cui aprire il modello 3D.</p>
+    </div>
+    <ul class="anat-list">
+      <li><a class="glass" href="anatomia/spalla.html"><span class="a-nome">Spalla</span><span class="a-n">61 strutture</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></li>
+      <li><a class="glass" href="anatomia/gomito.html"><span class="a-nome">Gomito</span><span class="a-n">85 strutture</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></li>
+      <li><a class="glass" href="anatomia/polso-dito.html"><span class="a-nome">Polso e dito</span><span class="a-n">141 strutture</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></li>
+      <li><a class="glass" href="anatomia/anca.html"><span class="a-nome">Anca</span><span class="a-n">62 strutture</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></li>
+      <li><a class="glass" href="anatomia/ginocchio.html"><span class="a-nome">Ginocchio</span><span class="a-n">79 strutture</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></li>
+    </ul>
+  </section>
+
   <section class="contact-section wrap" id="contatti" aria-labelledby="contatti-titolo">
     <div class="sec-head"><p class="kicker">Contatti e segnalazioni</p><h2 id="contatti-titolo">Un atlante che cresce <span>con te.</span></h2></div>
     <p class="contact-intro">Hai notato qualcosa da correggere o hai un’idea da condividere? Scegli come scrivermi.</p>
@@ -604,6 +635,7 @@ footer{border-top:1px solid var(--line);padding:48px 0 26px;background:var(--bg-
           Le geometrie originali sono state modificate e integrate con strutture modellate appositamente.
           Per prudenza i modelli modificati sono distribuiti con la licenza più restrittiva, CC BY-SA 2.1 JP.</p></details>
 <p class="f-cite"><cite>Mitsuhashi N et al. BodyParts3D: 3D structure database for anatomical concepts.</cite><br>Nucleic Acids Research, 2009.</p></div></div>
+<nav class="foot-anat" aria-label="Anatomia in testo"><span>Anatomia:</span> <a href="anatomia/spalla.html">Spalla</a> · <a href="anatomia/gomito.html">Gomito</a> · <a href="anatomia/polso-dito.html">Polso e dito</a> · <a href="anatomia/anca.html">Anca</a> · <a href="anatomia/ginocchio.html">Ginocchio</a></nav>
 <div class="foot-bottom"><p class="foot-note"><strong>Materiale didattico.</strong> Non destinato a uso clinico o diagnostico.</p>
 <nav class="foot-links" aria-label="Collegamenti di fine pagina"><a href="#contatti">Contatti</a><a href="#titolo">Torna in alto ↑</a></nav></div></div></footer>
 

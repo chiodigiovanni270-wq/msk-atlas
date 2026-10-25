@@ -10,6 +10,8 @@ Sito statico con modelli anatomici 3D interattivi, a scopo didattico
 ```
 index.html                 homepage: modello che ruota con lo scorrimento, presentazione, una card per ogni modello, "Come si usa", crediti
 modelli/<nome>-3d.html     un file autocontenuto per modello (three.js r128 da CDN, dati in base64)
+anatomia/<distretto>.html  pagine di testo indicizzabili (strutture per categoria con le note del modello), generate da strumenti/pagine-anatomia.mjs
+assets/anatomia.css        stile delle pagine di testo
 assets/nav.js              navigazione comune dei modelli: pulsanti fluttuanti "‹" (home) e "i" (disclaimer, crediti ed elenco delle strutture del modello)
 assets/favicon.svg
 assets/anteprime/          immagini 1600×1000 delle card (WebP, sfondo trasparente)
@@ -19,6 +21,7 @@ sitemap.xml, robots.txt    per i motori di ricerca (dominio canonico https://www
 assets/sequenza/           fotogrammi della prima schermata (WebP trasparenti, grandi l/ e piccoli s/)
 strumenti/anteprima.mjs    genera le anteprime (non pubblicato sul sito)
 strumenti/sequenza-home.mjs genera i fotogrammi della prima schermata (non pubblicato sul sito)
+strumenti/pagine-anatomia.mjs genera (e con `verifica` controlla) le pagine di testo anatomia/ dai modelli (non pubblicato sul sito)
 strumenti/og.mjs           genera le immagini Open Graph 1200×630 dalle anteprime (non pubblicato sul sito)
 strumenti/lib-chrome.mjs   funzioni comuni ai due script (Chrome headless)
 GUIDA_MODELLI.md           guida tecnica ai modelli, non pubblicata sul sito
@@ -77,11 +80,18 @@ Cosa controllare dopo una modifica:
    testo alternativo, link e titolo, e imposta `data-strutture` sul `<li class="card">`. Il numero "Tav.",
    la riga "N strutture" e il conteggio dei modelli sono automatici. Il blocco `.sub` (link alle sezioni)
    è facoltativo.
-5. **Sitemap** — aggiungi `<url><loc>https://www.mskatlas.com/modelli/<nome>-3d.html</loc></url>` a `sitemap.xml`
-   (le sezioni con ancora, come `#dito`, non hanno voce propria).
-6. **Verifica e pubblica** — controlla in locale (anche titolo, descrizione, canonical e immagine social di ogni pagina), poi:
+5. **Pagina di testo** — aggiungi il modello alla tabella `PAGINE` di `strumenti/pagine-anatomia.mjs`, poi:
    ```bash
-   git add modelli/<nome>-3d.html assets/anteprime/<nome>-3d.webp assets/og/<nome>-3d.jpg sitemap.xml index.html
+   node strumenti/pagine-anatomia.mjs            # genera anatomia/<distretto>.html (e rigenera le altre pagine)
+   node strumenti/pagine-anatomia.mjs verifica   # controlla note, conteggi, link, title/description, sitemap e home
+   ```
+   La pagina elenca le strutture per categoria con le note `info` del modello (parola per parola) e linka il modello 3D.
+   In `index.html` aggiungi la riga del distretto nel blocco `#anatomia` e nella riga "Anatomia:" del footer.
+6. **Sitemap** — aggiungi `<url><loc>https://www.mskatlas.com/modelli/<nome>-3d.html</loc></url>` e la pagina `https://www.mskatlas.com/anatomia/<distretto>.html` a `sitemap.xml`
+   (le sezioni con ancora, come `#dito`, non hanno voce propria).
+7. **Verifica e pubblica** — controlla in locale (anche titolo, descrizione, canonical e immagine social di ogni pagina), poi:
+   ```bash
+   git add modelli/<nome>-3d.html assets/anteprime/<nome>-3d.webp assets/og/<nome>-3d.jpg anatomia/ sitemap.xml index.html
    git commit -m "Aggiunge modello <nome>"
    git push
    ```

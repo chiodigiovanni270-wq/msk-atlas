@@ -127,6 +127,7 @@ Riferimenti anatomici: [Imaging of the Hip, NCBI Bookshelf](https://www.ncbi.nlm
 - [ ] Su smartphone: pannello chiuso all'avvio, pulsante "Strutture" ovale e funzionante, nessuna fascia di colore diverso in basso in Safari, card compatta, nessuna sovrapposizione titolo/viste
 - [ ] `<title>` nel formato "<Distretto> 3D interattivo/a: <strutture chiave> | MSK Atlas", ≈60 caratteri (anche eventuali `document.title` impostati dal modello)
 - [ ] `meta description` entro 160 caratteri, `<link rel="canonical">` su `https://www.mskatlas.com/modelli/<nome>-3d.html`, Open Graph e Twitter card con `assets/og/<nome>-3d.jpg` (`strumenti/og.mjs`); URL aggiunto a `sitemap.xml`
+- [ ] Pagina di testo `anatomia/<distretto>.html` creata (`node strumenti/pagine-anatomia.mjs`, poi `… verifica` senza errori), collegata dalla home (`#anatomia` e footer) e in `sitemap.xml`
 - [ ] Credito BodyParts3D presente e corretto
 - [ ] Note `info` anatomicamente corrette (verificate da me)
 
@@ -148,6 +149,15 @@ Riferimenti di revisione: [Hip Arteries, NCBI](https://www.ncbi.nlm.nih.gov/site
 ## Ricerca dalla homepage
 `strumenti/indice-ricerca.mjs` legge le tavole dichiarate in `index.html` ed estrae ID, nomi e categorie dai modelli (incluse le due sezioni polso/dito). Genera `assets/strutture.json` senza caricare mesh; verifica conteggi e ID duplicati. Uso: `node strumenti/indice-ricerca.mjs`, rilanciabile dopo qualsiasi aggiornamento ai nomi/ID/tavole. Non fa parte della catena geometrica.
 Ogni visualizzatore applica il parametro `struttura` dopo costruzione e AO: isolamento con ossa, selezione e centratura sulla bounding box; un ID inesistente lascia il modello normale con un avviso. Il passaggio polso/dito elimina il parametro precedente. I file rimangono autonomi e non dipendono dal codice della home.
+
+## Pagine di testo (anatomia/)
+`strumenti/pagine-anatomia.mjs` genera `anatomia/spalla|gomito|polso-dito|anca|ginocchio.html` (CSS in `assets/anatomia.css`). Non modifica i modelli.
+- **Metodo**: legge dai file dei modelli solo i blocchi `CATS` e `S` (id, cat, name, info; la funzione `b` non viene eseguita e i blob base64 non vengono letti). Il polso e il dito, nello stesso file, sono le due tavole della stessa pagina.
+- **Contenuto**: H1, introduzione generica (numero di strutture, cosa mostra il modello, come si usa), pulsante al modello 3D, indice delle categorie, poi per ogni categoria (H2; H3 nella pagina con due tavole) l'elenco delle strutture (H3; H4) con la nota `info` riportata parola per parola. Le strutture senza `info` (oggi due nel ginocchio: semimembranoso e bicipite femorale, capo breve) compaiono col solo nome. `o`, `ins` e `fn` non sono incluse. In fondo: riga "Anatomia:" con tutti i distretti, link alla home, disclaimer e credito BodyParts3D (CC BY-SA 2.1 JP). Title ≈60 caratteri, description ≤160 (composta con numero di strutture e nomi delle categorie), canonical, Open Graph e Twitter card con `assets/og/<modello>.jpg`.
+- **Link alle strutture**: il nome linka a `modelli/<file>?struttura=<id>` (per il dito `…?struttura=<id>#dito`). Il parametro è gestito da tutti i modelli (blocco "Ricerca dalla home" dopo la costruzione; il polso sceglie la tavola dall'ancora `#dito` e cerca l'id in quella). Se una struttura non apre il modello (id inesistente o senza geometria) va elencata nella costante `SENZA_DEEP_LINK` dello script: il suo link punta al modello base. Verifica del 25 ottobre 2026 (Chrome, costruzione completa di ogni tavola, polso e dito inclusi): tutte le 428 strutture hanno geometria, quindi `SENZA_DEEP_LINK` è vuota.
+- **Uso**: `node strumenti/pagine-anatomia.mjs` rigenera le pagine (si può rilanciare sempre, riparte dai modelli); `node strumenti/pagine-anatomia.mjs verifica` non scrive e controlla che ogni nota nelle pagine coincida parola per parola con l'`info` del modello, che nomi e id coincidano, che nessuna struttura manchi o sia in più, i conteggi rispetto a `data-strutture` della home, gli id in `assets/strutture.json`, title/description/canonical/social, sitemap, link in home e riga "Anatomia:". Esce con errore se qualcosa non torna.
+- **Quando**: dopo ogni modifica a nomi, `info`, categorie o strutture di un modello; per un nuovo modello aggiungerlo alla tabella `PAGINE` dello script, alla sezione `#anatomia` e al footer di `index.html` (con il numero di strutture) e a `sitemap.xml`. Committare anche `anatomia/`.
+- Ordine nella catena: ultimo, dopo gli script che cambiano nomi o note dei modelli e dopo `indice-ricerca.mjs`.
 
 ### Ginocchio — rifinitura crociati (25 ottobre 2026)
 
