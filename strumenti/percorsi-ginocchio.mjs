@@ -4,6 +4,9 @@
    Uso (dalla cartella del progetto, dopo stratifica-ginocchio.mjs, capsula-ginocchio.mjs, cute-ginocchio.mjs e borse-ginocchio.mjs;
    dopo, estremi-ginocchio.mjs):
      node strumenti/percorsi-ginocchio.mjs [--prova]
+   --solo-canali: non ricalcola i decorsi; richiede BASE_CANALI (revisione
+   delle mesh) e CANALI (JSON delle sole regole SCAVA da applicare).
+   Usato da rifinitura-arterie-ginocchio.mjs su una copia del modello.
    Con --prova stampa solo le verifiche, senza modificare il file. Guide e soleo di partenza vengono dalla revisione git
    ORIGINALE, quindi lo script si può rilanciare. Per le prove: SOLO=id1,id2 (solo alcuni tubi), DEBUG=1.
 
@@ -46,7 +49,9 @@ import { M, REAL, setPos, setMesh, repack, saveFile, setGriglia, solid, edt, sam
 import * as G from './lib-modello.mjs'; // griglia corrente (O, H, NX, NY, NZ, N cambiano con setGriglia)
 
 const PROVA = process.argv.includes('--prova');
-const ORIGINALE = 'b4df739';
+const SOLO_CANALI = process.argv.includes('--solo-canali');
+const ORIGINALE = SOLO_CANALI ? process.env.BASE_CANALI : 'b4df739';
+if (!ORIGINALE) throw new Error('--solo-canali richiede BASE_CANALI');
 const RADICE = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const H0 = execFileSync('git', ['show', `${ORIGINALE}:modelli/ginocchio-3d.html`], { cwd: RADICE, maxBuffer: 1 << 30 }).toString('utf8');
 
@@ -55,7 +60,7 @@ const H0 = execFileSync('git', ['show', `${ORIGINALE}:modelli/ginocchio-3d.html`
 // in cui scorrono vasi e nervi: manca per esempio l'arcata tendinea del soleo. Dopo il calcolo dei decorsi, la mesh di
 // ogni muscolo elencato viene scavata lungo i tubi indicati (spostamento radiale dall'asse del tubo con raccordo dolce),
 // nell'intervallo verticale indicato. Si parte sempre dalla mesh originale, quindi lo script resta rilanciabile.
-const SCAVA = [
+const SCAVA = SOLO_CANALI ? JSON.parse(process.env.CANALI || '[]') : [
   { m: 'sol', tubi: ['apop', 'vpop', 'ntib', 'atpost', 'vtpost', 'atant'], y: [-12, -4], dir: [0, 0, -1] }, // arcata del soleo
   // capi del gastrocnemio e plantare scostati ai lati del fascio (nel vivo separati dal grasso della fossa)
   { m: 'gmed', tubi: ['apop', 'vpop', 'ntib'], y: [-7, 3.5], dir: [1, 0, -0.3], max: 0.8 },
@@ -87,8 +92,28 @@ function meshCompleta(nome) { // posizioni, indici, tag (colore muscolo/tendine)
 for (const S of SCAVA) { if (S.fine) { const m = meshCompleta(S.m); setMesh(S.m, { pos: m.pos, idx: Uint32Array.from(m.idx), tag: m.tag && Uint8Array.from(m.tag), fdir: m.fdir && Int8Array.from(m.fdir) }); }
   else setPos(S.m, meshOriginale(S.m)); } // i decorsi si calcolano sulle mesh originali
 
+// Campionamento della stessa Catmull-Rom centripeta usata da THREE r128.
+// Solo per il ritocco locale: la vecchia catena conserva il suo campionamento.
+function ricampionaRendering(P, passo) {
+  const out=[];
+  for(let i=0;i<P.length-1;i++){
+    const p0=P[Math.max(0,i-1)],p1=P[i],p2=P[i+1],p3=P[Math.min(P.length-1,i+2)];
+    const a=Math.sqrt(len(sub(p1,p0)))||1e-3,b=Math.sqrt(len(sub(p2,p1)))||1e-3,c=Math.sqrt(len(sub(p3,p2)))||1e-3;
+    const m1=p1.map((v,k)=>(p2[k]-v)+b*((v-p0[k])/a-(p2[k]-p0[k])/(a+b)));
+    const m2=p2.map((v,k)=>(v-p1[k])+b*((p3[k]-v)/c-(p3[k]-p1[k])/(b+c)));
+    // THREE estrapola il controllo terminale, non duplica il punto.
+    if(i===0)for(let k=0;k<3;k++)m1[k]=p2[k]-p1[k];
+    if(i===P.length-2)for(let k=0;k<3;k++)m2[k]=p2[k]-p1[k];
+    for(let j=0;j<32;j++){const t=j/32,t2=t*t,t3=t2*t;
+      out.push(p1.map((v,k)=>(2*t3-3*t2+1)*v+(t3-2*t2+t)*m1[k]+(-2*t3+3*t2)*p2[k]+(t3-t2)*m2[k]));}
+  }
+  out.push(P.at(-1));return ricampiona(out,passo);
+}
+const campionaCanale=(p)=>SOLO_CANALI?ricampionaRendering(p,.05):ricampiona(p,.1);
+const raggioCanale=(id,r)=>(SOLO_CANALI&&id==='aric'?Math.max(r,.11):r)+(SOLO_CANALI?.10:.06);
+
 // segmenti dei tubi (ogni 1 mm) con il raggio del canale (raggio del tubo + 0,6 mm)
-const segmenti = tubi => { const segs = []; for (const id of tubi) for (const t of correnti.get(id)) { const P = ricampiona(t.pts, 0.1); for (let i = 1; i < P.length; i++) segs.push([P[i - 1], P[i], t.r + 0.06]); } return segs; };
+const segmenti = tubi => { const segs = []; for (const id of tubi) for (const t of correnti.get(id)) { const P = campionaCanale(t.pts); for (let i = 1; i < P.length; i++) segs.push([P[i - 1], P[i], raggioCanale(id,t.r)]); } return segs; };
 const vicinoSeg = (segs, p) => { let bd = Infinity, bs = null, bq = null; for (const sg of segs) { const [a, b] = sg, ab = sub(b, a), t = clamp(dot(sub(p, a), ab) / (dot(ab, ab) || 1), 0, 1), q = add(a, ab, t), d = len(sub(p, q)); if (d - sg[2] < bd) { bd = d - sg[2]; bs = sg; bq = q; } } return [bd, bs, bq]; };
 // asse dell'osso alla quota y (baricentro della sezione), per la direzione del canale sulla faccia profonda
 const ASSI = new Map();
@@ -119,7 +144,7 @@ function raffina(m, parti, h = 0.1, fascia = 0.45) {
 // la faccia più vicina; con 'osso' il canale si apre verso l'osso (tunnel fibulare: il nervo resta coperto dal peroneo
 // lungo); se il tubo sfiora il muscolo, questo si incava sotto di esso.
 function incidi(nome, pos, pt) {
-  const P0 = []; for (const id of pt.tubi) for (const t of correnti.get(id)) { const Q = ricampiona(t.pts, 0.1).filter(q => q[1] > pt.y[0] - 0.6 && q[1] < pt.y[1] + 0.6); if (Q.length > 1) P0.push([Q, t.r + 0.06]); }
+  const P0 = []; for (const id of pt.tubi) for (const t of correnti.get(id)) { const Q = campionaCanale(t.pts).filter(q => q[1] > pt.y[0] - 0.6 && q[1] < pt.y[1] + 0.6); if (Q.length > 1) P0.push([Q, raggioCanale(id,t.r)]); }
   if (!P0.length) return [0, 0];
   const all = P0.flatMap(([Q]) => Q), lo = [0, 1, 2].map(k => Math.min(...all.map(q => q[k])) - 1.5), hi = [0, 1, 2].map(k => Math.max(...all.map(q => q[k])) + 1.5), hg = 0.05;
   setGriglia(lo, hg, Math.ceil((hi[0] - lo[0]) / hg), Math.ceil((hi[1] - lo[1]) / hg), Math.ceil((hi[2] - lo[2]) / hg));
@@ -163,7 +188,7 @@ function scava() {
   }
   for (const S of SCAVA.filter(S => !S.fine)) {
     const pos = Float32Array.from(REAL(S.m).pos), segs = [], F = new Float32Array(pos.length / 3), DIR = new Array(pos.length / 3); // mesh originale (o già raffinata dal canale fine)
-    for (const id of S.tubi) for (const t of correnti.get(id)) { const P = ricampiona(t.pts, 0.1); for (let i = 1; i < P.length; i++) segs.push([P[i - 1], P[i], t.r + 0.06]); }
+    for (const id of S.tubi) for (const t of correnti.get(id)) { const P = campionaCanale(t.pts); for (let i = 1; i < P.length; i++) segs.push([P[i - 1], P[i], raggioCanale(id,t.r)]); }
     let mosse = 0, mx = 0;
     for (let i = 0; i < pos.length; i += 3) {
       const p = [pos[i], pos[i + 1], pos[i + 2]], w = sstep(S.y[0] - 0.6, S.y[0] + 0.4, p[1]) * (1 - sstep(S.y[1] - 0.4, S.y[1] + 0.6, p[1])); if (w <= 0) continue;
@@ -535,7 +560,7 @@ function elastica(P, f, U, V, lam = 20, pre = null) {
 
 const nuovi = [];
 const SOLO = process.env.SOLO ? process.env.SOLO.split(',') : null; // per le prove: solo alcuni tubi
-for (const P of PERCORSI) { if (SOLO && !SOLO.includes(chiave(P))) continue; const out = instrada(P); nuovi.push([P, out]); const L = correnti.get(P.id); L[P.t || 0] = { pts: out, r: L[P.t || 0].r }; }
+for (const P of (SOLO_CANALI ? [] : PERCORSI)) { if (SOLO && !SOLO.includes(chiave(P))) continue; const out = instrada(P); nuovi.push([P, out]); const L = correnti.get(P.id); L[P.t || 0] = { pts: out, r: L[P.t || 0].r }; }
 if (PROVA) process.exit(0);
 let html = M.html;
 const sostituzioni = nuovi.map(([P, pts]) => ({ ...tubo0(html, P), id: P.id, pts })).sort((a, b) => b.a - a.a);

@@ -215,3 +215,39 @@ zona: Standring, Gray's Anatomy, 42ª ed.; Warren e Marshall, JBJS Am 1979.
 Confronto prima–dopo approvato dall’utente il 25 ottobre 2026.
 Anteprima della home rigenerata con `node strumenti/anteprima.mjs ginocchio-3d`
 (inquadratura predefinita, 1600×1000, WebP trasparente).
+
+### Ginocchio — rapporti genicolari e ricorrente tibiale (proposta)
+
+`node strumenti/rifinitura-arterie-ginocchio.mjs` lavora sulle mesh della
+revisione `b174d4f18287f4363cc3643fe52104176be79ebe`; supporta `MODELLO`
+per una copia. Eseguire dopo la rifinitura della zampa d'oca. È rilanciabile.
+I due rami genicolari inferiori si scostano localmente da tibia e collaterali
+(campo a 0,4 mm, margine nominale 1,2 mm oltre il raggio). Origini ferme,
+calibri invariati. Non si rilancia la catena completa dei decorsi.
+
+La modalità `--solo-canali` di `percorsi-ginocchio.mjs` riusa raffinamento
+conforme e canali raccordati del generatore, con `BASE_CANALI` e `CANALI`
+(JSON delle regole). In questa modalità campiona la Catmull-Rom centripeta
+come il visualizzatore e usa 1 mm di margine oltre il raggio; per la
+ricorrente considera anche il raggio iniziale di 1,1 mm. I corridoi sono
+sulle facce muscolari affrontate al vaso; non sono tagli booleani nell'osso.
+I canali interessano bicipite breve, capi del gastrocnemio, tibiale anteriore
+ed estensore lungo delle dita. Sartorio e semitendinoso ricevono invece
+uno spostamento condiviso e continuo verso mediale, indipendente dalla
+profondità del vertice: le lamine restano intere e conservano spessore e
+rapporti reciproci. Un profilo gaussiano largo 5 mm raccorda il rilievo
+sopra il ramo inferiore mediale. Il safeno e il tratto vicino del ramo
+infrarotuleo seguono la nuova superficie solo dove necessario. Gli spostamenti
+locali massimi misurati sono circa 3,2–10,8 mm, per rappresentare i corridoi
+mancanti nelle mesh di partenza; richiedono revisione visiva. Gli altri
+rapporti profondi e l'anatomia individuale non sono certificati.
+
+Verifica sulla pagina quantizzata: curve centripete campionate in 301 punti
+per ramo, raggio incluso, contro ossa, collaterali e muscoli circostanti;
+nessuna penetrazione oltre 0,15 mm nei rapporti segnalati. Restano invariati
+58 elementi mesh e il resto della pagina; conteggi dei triangoli degeneri
+uguali al riferimento. Confronto WebGL mediale/laterale e verifica di
+ripetibilità. La genicolare discendente (`adisc`) sotto il vasto mediale non
+fa parte di questa correzione: il controllo segnala un rapporto preesistente
+da rivedere separatamente. Confronto prima–dopo approvato dall’utente
+per la pubblicazione il 25 ottobre 2026.
