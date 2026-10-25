@@ -159,3 +159,21 @@ inserzioni. Mantiene i due fasci del LCA, aggiunge rilievo longitudinale di
 ginocchio. Non cambia colori, shader, schede, controlli o ricerca.
 Rifinitura grafica, non nuova validazione anatomica. Confronto delle mesh
 prima/dopo approvato dall'utente per la pubblicazione il 25 ottobre 2026.
+
+### Ginocchio — continuità superficiale sull'MPFL (anteprima 25 ottobre 2026)
+
+`node strumenti/mpfl-ginocchio.mjs` ricostruisce solo `retmed`, dopo la catena
+standard dei retinacoli. Richiede Node 22+, senza dipendenze. La nuova opzione
+`--mpfl-profondo` di `retinacoli-ginocchio.mjs` rimuove MPFL dalle strutture che
+ritagliano il telo e lo include nel piano profondo: elimina la finestra
+artificiale che lasciava la banda completamente esposta. Il telo resta sotto
+vasto mediale e sartorio. Il wrapper lavora su una copia e importa solo retmed,
+conservando tutte le altre geometrie e i decorsi vascolo-nervosi correnti.
+È rilanciabile: non usa retmed come ingresso. Parametri di spessore, distanza,
+materiale e trasparenza del retinacolo restano quelli del generatore originale.
+MPFL (spessore nel corpo circa 1–1,3 mm), inserzioni e vasto mediale invariati:
+la correzione riguarda il rapporto con lo strato superficiale, non un
+assottigliamento arbitrario. Riferimenti: Amis et al. 2003 (PMID 12893142),
+Baldwin 2009 (PMID 19729366). Confronto WebGL reale, stesso orientamento e
+stesse strutture visibili, sia vista selettiva sia completa. Proposta non
+pubblicata, in attesa della revisione dell'utente.
