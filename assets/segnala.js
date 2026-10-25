@@ -18,6 +18,16 @@
     document.body.append(dialog);
     const form = dialog.querySelector('form'), submit = dialog.querySelector('.report-submit'), status = dialog.querySelector('.report-status');
     let token = '', widget, busy = false, setup = false, opener, context = '', turnstilePromise;
+    let mode = 'report';
+    const drafts = {};
+    const reportTypes = ['Errore anatomico', 'Testo inesatto', 'Problema tecnico', 'Altro'];
+    const contactTypes = ['Suggerimento', 'Didattica', 'Collaborazione', 'Altro'];
+    const title = dialog.querySelector('h2');
+    const lead = dialog.querySelector('.report-note');
+    const structureLabel = form.elements.structure.closest('label');
+    const typeLabel = form.elements.type.closest('label');
+    const descriptionLabel = form.elements.description.closest('label');
+    const emailLabel = form.elements.email.closest('label');
     const setStatus = message => { status.textContent = message; };
     function loader() {
       if (window.turnstile) return Promise.resolve();
@@ -45,7 +55,31 @@
         setStatus('Completa la verifica antispam.');
       } catch (error) { setup = false; setStatus(error.name === 'TimeoutError' ? 'Connessione lenta. Chiudi e riapri il modulo.' : error.message); }
     }
-    function open(button, specific) {
+    function open(button, specific, nextMode = 'report') {
+      if (busy) return;
+      drafts[mode] = { values: Object.fromEntries(new FormData(form)), context, label: dialog.querySelector('.report-context').textContent };
+      mode = nextMode;
+      const contact = mode === 'contact';
+      title.textContent = contact ? 'Scrivimi' : 'Segnala un errore';
+      lead.textContent = contact ? 'Un messaggio a Giovanni Chiodi, autore di MSK Atlas.' : 'Aiutaci a migliorare MSK Atlas.';
+      structureLabel.hidden = contact;
+      typeLabel.firstChild.textContent = contact ? 'Argomento' : 'Tipo di problema';
+      form.elements.type.replaceChildren(...(contact ? contactTypes : reportTypes).map(text => new Option(text, text)));
+      descriptionLabel.firstChild.textContent = contact ? 'Messaggio' : 'Descrizione';
+      form.elements.description.placeholder = contact ? 'Raccontami la tua idea o la tua proposta.' : 'Descrivi il problema e, se possibile, indica una fonte.';
+      emailLabel.firstChild.textContent = contact ? 'La tua email' : 'La tua email (facoltativa)';
+      form.elements.email.required = contact;
+      form.elements.email.placeholder = contact ? 'Per poterti rispondere' : 'Solo se desideri una risposta';
+      submit.textContent = contact ? 'Invia messaggio' : 'Invia segnalazione';
+      form.reset();
+      const draft = drafts[mode];
+      if (draft) {
+        for (const [key, value] of Object.entries(draft.values)) if (form.elements[key]) form.elements[key].value = value;
+        context = draft.context;
+        dialog.querySelector('.report-context').textContent = draft.label;
+      }
+      form.hidden = false;
+      setStatus('');
       opener = button;
       // Preserve a draft when reopening; never silently attach it to another structure.
       if (!form.elements.description.value && !busy) {
@@ -63,7 +97,8 @@
       const b = document.createElement('button'); b.type = 'button'; b.className = 'msk-report-link'; b.textContent = 'Segnala un errore';
       b.addEventListener('click', event => { event.stopPropagation(); open(b, specific); }); container.append(b);
     }
-    button(document.querySelector('footer .foot-brand') || document.querySelector('footer'), false);
+    if (!document.getElementById('contatti')) button(document.querySelector('footer .foot-brand') || document.querySelector('footer'), false);
+    document.querySelectorAll('[data-msk-message]').forEach(b => b.addEventListener('click', () => open(b, false, b.dataset.mskMessage)));
     button(document.querySelector('#an-panel'), false);
     function attach() { button(document.querySelector('#cInfo'), true); }
     attach();
@@ -74,12 +109,12 @@
     form.addEventListener('submit', async event => {
       event.preventDefault(); if (busy || !token || !form.reportValidity()) return;
       busy = true; submit.disabled = true; form.setAttribute('aria-busy', 'true'); setStatus('Invio in corso…');
-      const body = Object.fromEntries(new FormData(form)); body.page = context; body.token = token;
+      const body = Object.fromEntries(new FormData(form)); body.page = context; body.token = token; body.kind = mode;
       try {
         const response = await fetch('/api/segnalazioni', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(25000) });
         const result = await response.json();
         if (!response.ok || result.ok !== true) throw new Error(result.error || 'Invio non riuscito. Riprova più tardi.');
-        form.reset(); form.hidden = true; setStatus('Grazie! La segnalazione è stata inviata.');
+        delete drafts[mode]; form.reset(); form.hidden = true; setStatus(mode === 'contact' ? 'Grazie! Il tuo messaggio è stato inviato.' : 'Grazie! La segnalazione è stata inviata.');
       } catch (error) {
         setStatus(error.name === 'TimeoutError' ? 'Invio non confermato. Il testo è conservato: riprova.' : (error.message === 'Failed to fetch' ? 'Connessione non disponibile. Il testo è conservato: riprova.' : error.message));
       } finally {
@@ -91,3 +126,4 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true }); else init();
 })();
+
