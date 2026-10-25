@@ -2,19 +2,20 @@
 
    Uso (dalla cartella del progetto; non serve il server locale):
      node strumenti/icone.mjs
-     → salva in assets/icone/: apple-touch-icon.png 180×180, icon-192.png, icon-512.png, icon-512-maskable.png
-     → salva favicon.ico (16 e 32 px, PNG incorporati) nella radice del sito, per i browser che lo cercano lì
+     → salva in assets/icone/: apple-touch-icon.png 180×180, icon-48.png, icon-192.png, icon-512.png, icon-512-maskable.png
+     → salva favicon.ico (16, 32 e 48 px, PNG incorporati) nella radice del sito, per i browser che lo cercano lì
+       (Google richiede un favicon di lato multiplo di 48 px: sono icon-48.png e l'immagine da 48 px dell'.ico)
 
    Come funziona: disegna in Chrome headless il favicon o il suo simbolo (femore e tibia) e lo esporta in PNG.
    Il simbolo sta in un cerchio di raggio R attorno al centro (32,32) del favicon.
    - apple-touch-icon (iOS): quadrato pieno, perché iOS lo ritaglia con la sua forma (squircle). Il bordo azzurro
      BORDO arriva fino al margine e il fondo SFONDO è una superellisse (esponente N_IOS) rientrata di SPESSORE:
      così la cornice segue il contorno di iOS con spessore costante, anche negli angoli. Simbolo come nel favicon;
-   - icon-192 e icon-512 ("any": installazione da Chrome su computer e Android): il favicon intero, con la sua
-     tessera arrotondata e gli angoli trasparenti;
+   - icon-48 (Google, risultati di ricerca), icon-192 e icon-512 ("any": installazione da Chrome su computer e Android):
+     il favicon intero, con la sua tessera arrotondata e gli angoli trasparenti;
    - icona "maskable": fondo pieno senza bordo (Android la ritaglia in forme diverse), simbolo con raggio pari
      al 40% del lato, cioè dentro la zona sicura (cerchio dell'80% centrale);
-   - favicon.ico: il favicon intero (tessera compresa).
+   - favicon.ico: il favicon intero (tessera compresa), a 16, 32 e 48 px.
 
    Requisiti: Node 22 o successivo, Chrome (vedi lib-chrome.mjs). */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -33,11 +34,12 @@ const SPESSORE = 0.034;  // spessore della cornice iOS, frazione del lato
 
 const ICONE = [
   { file: 'apple-touch-icon.png', lato: 180, tipo: 'ios' },
+  { file: 'icon-48.png', lato: 48, tipo: 'tessera' },
   { file: 'icon-192.png', lato: 192, tipo: 'tessera' },
   { file: 'icon-512.png', lato: 512, tipo: 'tessera' },
   { file: 'icon-512-maskable.png', lato: 512, tipo: 'maskable' },
 ];
-const ICO = [16, 32];
+const ICO = [16, 32, 48];
 
 /* simbolo: gli elementi del favicon tranne la tessera (<rect>) e i commenti */
 const favicon = readFileSync(join(ROOT, 'assets', 'favicon.svg'), 'utf8');
@@ -118,7 +120,7 @@ try {
   }
   const piccole = [];
   for (const lato of ICO) piccole.push({ lato, buf: await png(chrome, favicon, lato, true) });
-  salva(join(ROOT, 'favicon.ico'), ico(piccole), ICO.join(' e ') + ' px');
+  salva(join(ROOT, 'favicon.ico'), ico(piccole), ICO.join(', ') + ' px');
 } finally {
   await chrome.chiudi();
 }
