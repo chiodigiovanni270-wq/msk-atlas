@@ -254,6 +254,46 @@ export function taubin(pos, I, iter) {
   return pos;
 }
 
+/* ============ Semplificazione per collasso di spigoli (metriche quadriche, Garland–Heckbert 1997) ============ */
+// mesh chiusa: collassa lo spigolo di errore minore finché l'errore quadratico (cm²) resta sotto `maxErr` o i triangoli scendono a `minTri`;
+// rifiuta i collassi che ribaltano un triangolo vicino. Restituisce { pos, idx } con soli vertici usati.
+export function semplifica(pos0, idx0, maxErr, minTri = 0) {
+  const nv = pos0.length / 3, P = Float64Array.from(pos0), nt = idx0.length / 3, T = Int32Array.from(idx0), vivo = new Uint8Array(nt).fill(1), VF = Array.from({ length: nv }, () => []);
+  const Q = new Float64Array(nv * 10), ver = new Int32Array(nv), vv = new Uint8Array(nv).fill(1);
+  const quad = (a, b, c, d) => [a * a, a * b, a * c, a * d, b * b, b * c, b * d, c * c, c * d, d * d];
+  for (let t = 0; t < nt; t++) { const a = T[3 * t], b = T[3 * t + 1], c = T[3 * t + 2]; VF[a].push(t); VF[b].push(t); VF[c].push(t);
+    const u = [P[3 * b] - P[3 * a], P[3 * b + 1] - P[3 * a + 1], P[3 * b + 2] - P[3 * a + 2]], w = [P[3 * c] - P[3 * a], P[3 * c + 1] - P[3 * a + 1], P[3 * c + 2] - P[3 * a + 2]];
+    let n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]]; const ar = Math.hypot(...n); if (ar < 1e-14) continue; n = n.map(x => x / ar);
+    const q = quad(n[0], n[1], n[2], -(n[0] * P[3 * a] + n[1] * P[3 * a + 1] + n[2] * P[3 * a + 2])); for (const v of [a, b, c]) for (let k = 0; k < 10; k++) Q[10 * v + k] += q[k] * ar / 2; }
+  const err = (q, x, y, z) => q[0] * x * x + 2 * q[1] * x * y + 2 * q[2] * x * z + 2 * q[3] * x + q[4] * y * y + 2 * q[5] * y * z + 2 * q[6] * y + q[7] * z * z + 2 * q[8] * z + q[9];
+  const sol = q => { const A = [[q[0], q[1], q[2]], [q[1], q[4], q[5]], [q[2], q[5], q[7]]], b = [-q[3], -q[6], -q[8]];
+    const det = A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) - A[0][1] * (A[1][0] * A[2][2] - A[1][2] * A[2][0]) + A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]); if (Math.abs(det) < 1e-12) return null;
+    const c = (i) => { const M = A.map((r, k) => r.map((x, j) => j === i ? b[k] : x)); return M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1]) - M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0]) + M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0]); };
+    return [c(0) / det, c(1) / det, c(2) / det]; };
+  const heap = []; const sw = (i, j) => { const t = heap[i]; heap[i] = heap[j]; heap[j] = t; };
+  const push = e => { heap.push(e); let i = heap.length - 1; while (i > 0) { const p = (i - 1) >> 1; if (heap[p][0] <= heap[i][0]) break; sw(p, i); i = p; } };
+  const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; sw(m, i); i = m; } } return top; };
+  const costo = (a, b) => { const q = Q.slice(10 * a, 10 * a + 10).map((x, k) => x + Q[10 * b + k]); const cand = [[P[3 * a], P[3 * a + 1], P[3 * a + 2]], [P[3 * b], P[3 * b + 1], P[3 * b + 2]], [(P[3 * a] + P[3 * b]) / 2, (P[3 * a + 1] + P[3 * b + 1]) / 2, (P[3 * a + 2] + P[3 * b + 2]) / 2]];
+    const o = sol(q); if (o) cand.push(o); let best = null, be = 1e18; for (const c of cand) { const e = err(q, ...c); if (e < be) { be = e; best = c; } } return [Math.max(0, be), best]; };
+  const spigoli = v => { const S = new Set(); for (const t of VF[v]) if (vivo[t]) for (let k = 0; k < 3; k++) { const u = T[3 * t + k]; if (u !== v) S.add(u); } return S; };
+  for (let t = 0; t < nt; t++) for (let k = 0; k < 3; k++) { const a = T[3 * t + k], b = T[3 * t + (k + 1) % 3]; if (a < b) { const [c, p] = costo(a, b); push([c, a, b, ver[a], ver[b], p]); } }
+  const normale = (a, b, c) => { const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]]; return [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]]; };
+  let n = nt;
+  while (heap.length && n > minTri) { const [c, a, b, va, vb, p] = pop(); if (c > maxErr) break; if (!vv[a] || !vv[b] || ver[a] !== va || ver[b] !== vb) continue;
+    // ribaltamenti: triangoli di a (senza b) e di b (senza a) con il vertice portato in p
+    let ok = true; const pa = [P[3 * a], P[3 * a + 1], P[3 * a + 2]], pb = [P[3 * b], P[3 * b + 1], P[3 * b + 2]];
+    for (const [v, pv] of [[a, pa], [b, pb]]) { if (!ok) break; for (const t of VF[v]) { if (!vivo[t]) continue; const tt = [T[3 * t], T[3 * t + 1], T[3 * t + 2]]; if (tt.includes(a) && tt.includes(b)) continue;
+      const X = tt.map(u => u === v ? pv : [P[3 * u], P[3 * u + 1], P[3 * u + 2]]), Y = tt.map(u => u === v ? p : [P[3 * u], P[3 * u + 1], P[3 * u + 2]]), n0 = normale(...X), n1 = normale(...Y), l0 = Math.hypot(...n0), l1 = Math.hypot(...n1);
+      if (l1 < 1e-12 || n0[0] * n1[0] + n0[1] * n1[1] + n0[2] * n1[2] < 0.2 * l0 * l1) { ok = false; break; } } }
+    if (!ok) continue;
+    for (const t of VF[a]) { if (!vivo[t]) continue; const tt = [T[3 * t], T[3 * t + 1], T[3 * t + 2]]; if (tt.includes(b)) { vivo[t] = 0; n--; continue; } for (let k = 0; k < 3; k++) if (T[3 * t + k] === a) T[3 * t + k] = b; VF[b].push(t); }
+    vv[a] = 0; P[3 * b] = p[0]; P[3 * b + 1] = p[1]; P[3 * b + 2] = p[2]; for (let k = 0; k < 10; k++) Q[10 * b + k] += Q[10 * a + k]; ver[b]++; VF[b] = VF[b].filter(t => vivo[t]);
+    for (const u of spigoli(b)) { const [c2, p2] = costo(Math.min(u, b), Math.max(u, b)); push([c2, Math.min(u, b), Math.max(u, b), ver[Math.min(u, b)], ver[Math.max(u, b)], p2]); } }
+  const nuovo = new Int32Array(nv).fill(-1), out = []; const idx = [];
+  for (let t = 0; t < nt; t++) if (vivo[t]) for (let k = 0; k < 3; k++) { const u = T[3 * t + k]; if (nuovo[u] < 0) { nuovo[u] = out.length / 3; out.push(P[3 * u], P[3 * u + 1], P[3 * u + 2]); } idx.push(nuovo[u]); }
+  return { pos: Float32Array.from(out), idx: Uint32Array.from(idx) };
+}
+
 /* ============ Surface nets su un campo campionato ai centri dei voxel ============ */
 export function nets(V, fd) {
     const cx = NX - 1, cy = NY - 1, cz = NZ - 1, C = new Int32Array(cx * cy * cz).fill(-1), P = [];
