@@ -26,6 +26,7 @@
 /* Colonna desktop allineata al pannello Strutture del distretto corrente. */
 @media(min-width:900px) and (min-height:501px){
   .ms-search{left:auto;right:var(--ms-panel-right,14px);top:var(--ms-panel-top,156px);transform:none;width:var(--ms-panel-width,360px)}
+  #sheet{max-height:var(--ms-sheet-max-height,calc(100dvh - 224px))!important}
   .ms-field{border-radius:16px}
   .ms-popover{position:absolute;top:100%;left:0;right:0;margin-top:8px}
 }

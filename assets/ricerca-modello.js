@@ -44,10 +44,14 @@
     function fit(){
       const v=window.visualViewport,top=v?v.offsetTop:0,height=v?v.height:innerHeight;
       if(desktop.matches&&sheet){
-        const bounds=sheet.getBoundingClientRect();
+        let bounds=sheet.getBoundingClientRect();
         if(bounds.width>0&&bounds.height>0){
           const compass=document.querySelector('.an-orient');
           const minTop=compass?compass.getBoundingClientRect().bottom+12:144;
+          // Reserve room for the search even when the structure list expands.
+          const bottomGap=Math.max(14,innerHeight-bounds.bottom);
+          sheet.style.setProperty('--ms-sheet-max-height',Math.max(180,innerHeight-minTop-56-bottomGap)+'px');
+          bounds=sheet.getBoundingClientRect();
           form.style.setProperty('--ms-panel-right',Math.max(14,innerWidth-bounds.right)+'px');
           form.style.setProperty('--ms-panel-width',Math.min(400,bounds.width)+'px');
           form.style.setProperty('--ms-panel-top',Math.max(minTop,bounds.top-56)+'px');
