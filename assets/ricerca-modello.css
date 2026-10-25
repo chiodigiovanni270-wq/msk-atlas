@@ -1,5 +1,5 @@
 /* Ricerca sopra il canvas: stessa palette e vetro dei comandi comuni.
-   Desktop: centro della prima riga. Schermi stretti: sotto il titolo,
+   Desktop: sopra il pannello Strutture a destra. Schermi stretti: sotto il titolo,
    a sinistra della bussola; si allarga solo durante la ricerca. */
 .ms-search{position:fixed;z-index:22;top:calc(env(safe-area-inset-top,0px) + 64px + var(--ms-offset,0px));left:max(14px,env(safe-area-inset-left,0px));width:min(340px,calc(100% - 140px));margin:0;color:var(--ink,#e5eaef);font:400 14px/1.4 var(--sans,system-ui);box-sizing:border-box}
 .ms-search *{box-sizing:border-box}
@@ -22,3 +22,11 @@
 .ms-search [hidden]{display:none!important}
 @media(max-width:899px){.ms-search.ms-open{width:auto;right:max(14px,env(safe-area-inset-right,0px));max-width:440px}}
 @media(min-width:900px){.ms-search{top:calc(env(safe-area-inset-top,0px) + 10px + var(--ms-offset,0px));left:50%;transform:translateX(-50%);width:340px}}
+
+/* Colonna desktop allineata al pannello Strutture del distretto corrente. */
+@media(min-width:900px) and (min-height:501px){
+  .ms-search{left:auto;right:var(--ms-panel-right,14px);top:var(--ms-panel-top,156px);transform:none;width:var(--ms-panel-width,360px)}
+  #sheet{max-height:var(--ms-sheet-max-height,calc(100dvh - 224px))!important}
+  .ms-field{border-radius:16px}
+  .ms-popover{position:absolute;top:100%;left:0;right:0;margin-top:8px}
+}
