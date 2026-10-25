@@ -138,7 +138,7 @@
   home.href = HOME;
   home.setAttribute('aria-label', 'Torna all’indice di MSK Atlas');
   home.innerHTML = '<span class="an-ico">' + CHEVRON + '</span>' +
-    '<img src="../assets/favicon.svg?v=3" width="24" height="24" alt=""><span class="an-name">MSK <b>Atlas</b></span>';
+    '<img src="../assets/favicon.svg?v=4" width="24" height="24" alt=""><span class="an-name">MSK <b>Atlas</b></span>';
 
   var btn = document.createElement('button');
   btn.type = 'button';

@@ -5,13 +5,15 @@
      → salva in assets/icone/: apple-touch-icon.png 180×180, icon-192.png, icon-512.png, icon-512-maskable.png
      → salva favicon.ico (16 e 32 px, PNG incorporati) nella radice del sito, per i browser che lo cercano lì
 
-   Come funziona: prende dal favicon il simbolo (femore e tibia) e lo disegna in Chrome headless
-   su sfondo pieno SFONDO (nessuna trasparenza, perché iOS e Android ritagliano già l'icona con la loro forma),
-   poi lo esporta in PNG. Il simbolo sta in un cerchio di raggio R attorno al centro (32,32) del favicon.
-   - icone "any" (iOS e installazione Android/desktop): come nella tessera del favicon, bordo azzurro BORDO
-     arrotondato, rientrato dal margine e concentrico all'arrotondamento di iOS; simbolo con raggio pari al 42% del lato (proporzioni del favicon);
-   - icona "maskable": senza bordo (Android la ritaglia in forme diverse), simbolo con raggio pari al 40% del lato,
-     cioè dentro la zona sicura (cerchio dell'80% centrale);
+   Come funziona: disegna in Chrome headless il favicon o il suo simbolo (femore e tibia) e lo esporta in PNG.
+   Il simbolo sta in un cerchio di raggio R attorno al centro (32,32) del favicon.
+   - apple-touch-icon (iOS): quadrato pieno, perché iOS lo ritaglia con la sua forma (squircle). Il bordo azzurro
+     BORDO arriva fino al margine e il fondo SFONDO è una superellisse (esponente N_IOS) rientrata di SPESSORE:
+     così la cornice segue il contorno di iOS con spessore costante, anche negli angoli. Simbolo come nel favicon;
+   - icon-192 e icon-512 ("any": installazione da Chrome su computer e Android): il favicon intero, con la sua
+     tessera arrotondata e gli angoli trasparenti;
+   - icona "maskable": fondo pieno senza bordo (Android la ritaglia in forme diverse), simbolo con raggio pari
+     al 40% del lato, cioè dentro la zona sicura (cerchio dell'80% centrale);
    - favicon.ico: il favicon intero (tessera compresa).
 
    Requisiti: Node 22 o successivo, Chrome (vedi lib-chrome.mjs). */
@@ -26,11 +28,14 @@ const SFONDO = '#0a131a';   // come la tessera del favicon
 const BORDO = '#79c3e3';    // come il bordo del favicon
 const R = 27;   // raggio del cerchio che contiene il simbolo, in unità del viewBox 64×64 del favicon
 
+const N_IOS = 5;          // superellisse che approssima la forma delle icone iOS
+const SPESSORE = 0.034;  // spessore della cornice iOS, frazione del lato
+
 const ICONE = [
-  { file: 'apple-touch-icon.png', lato: 180, k: 0.42, bordo: true },
-  { file: 'icon-192.png', lato: 192, k: 0.42, bordo: true },
-  { file: 'icon-512.png', lato: 512, k: 0.42, bordo: true },
-  { file: 'icon-512-maskable.png', lato: 512, k: 0.40, bordo: false },
+  { file: 'apple-touch-icon.png', lato: 180, tipo: 'ios' },
+  { file: 'icon-192.png', lato: 192, tipo: 'tessera' },
+  { file: 'icon-512.png', lato: 512, tipo: 'tessera' },
+  { file: 'icon-512-maskable.png', lato: 512, tipo: 'maskable' },
 ];
 const ICO = [16, 32];
 
@@ -39,17 +44,30 @@ const favicon = readFileSync(join(ROOT, 'assets', 'favicon.svg'), 'utf8');
 const simbolo = (favicon.match(/<(path|circle)\b[^>]*\/>/g) || []).join('');
 if (!simbolo) { console.error('Nessun <path> o <circle> trovato in assets/favicon.svg'); process.exit(1); }
 
-/* SVG quadrato: viewBox centrato su (32,32) e largo quanto basta perché R valga k del lato.
-   Bordo: rientro 4,5% del lato, spessore 2,4%, raggio 17,5% (iOS arrotonda al 22,4% circa). */
-const svg = (k, bordo) => {
-  const v = R / k, o = 32 - v / 2;
-  const i = v * 0.045, w = v * 0.024;
-  const cornice = bordo
-    ? `<rect x="${o + i}" y="${o + i}" width="${v - 2 * i}" height="${v - 2 * i}" rx="${v * 0.175}" fill="none" stroke="${BORDO}" stroke-width="${w}"/>`
-    : '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${o} ${o} ${v} ${v}">` +
-    `<rect x="${o}" y="${o}" width="${v}" height="${v}" fill="${SFONDO}"/>${cornice}${simbolo}</svg>`;
+/* superellisse |x/a|^n + |y/a|^n = 1 di centro (c,c), come percorso SVG */
+const superellisse = (c, a, n) => {
+  const p = [];
+  for (let i = 0; i < 360; i++) {
+    const t = i / 360 * 2 * Math.PI, co = Math.cos(t), si = Math.sin(t);
+    p.push(`${(c + a * Math.sign(co) * Math.abs(co) ** (2 / n)).toFixed(3)} ${(c + a * Math.sign(si) * Math.abs(si) ** (2 / n)).toFixed(3)}`);
+  }
+  return `M${p.join(' L')}Z`;
 };
+
+/* SVG quadrato con fondo pieno: viewBox centrato su (32,32) e largo quanto basta perché R valga k del lato */
+const svg = (k, cornice) => {
+  const v = R / k, o = 32 - v / 2;
+  const fondo = cornice
+    ? `<rect x="${o}" y="${o}" width="${v}" height="${v}" fill="${BORDO}"/><path d="${superellisse(32, v / 2 * (1 - 2 * SPESSORE), N_IOS)}" fill="${SFONDO}"/>`
+    : `<rect x="${o}" y="${o}" width="${v}" height="${v}" fill="${SFONDO}"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${o} ${o} ${v} ${v}">${fondo}${simbolo}</svg>`;
+};
+
+/* simbolo come nel favicon: raggio R pari al 42% del lato */
+const disegno = tipo =>
+  tipo === 'ios' ? { testo: svg(0.42, true), alpha: false }
+  : tipo === 'tessera' ? { testo: favicon, alpha: true }
+  : { testo: svg(0.40, false), alpha: false };
 
 /* disegna un SVG in PNG lato×lato; con trasparenza solo se alpha */
 const png = async (chrome, testo, lato, alpha) => {
@@ -94,8 +112,10 @@ const salva = (out, buf, cosa) => {
 mkdirSync(OUT, { recursive: true });
 const chrome = await avviaChrome();
 try {
-  for (const { file, lato, k, bordo } of ICONE)
-    salva(join(OUT, file), await png(chrome, svg(k, bordo), lato, false), `${lato}×${lato}`);
+  for (const { file, lato, tipo } of ICONE) {
+    const { testo, alpha } = disegno(tipo);
+    salva(join(OUT, file), await png(chrome, testo, lato, alpha), `${lato}×${lato}`);
+  }
   const piccole = [];
   for (const lato of ICO) piccole.push({ lato, buf: await png(chrome, favicon, lato, true) });
   salva(join(ROOT, 'favicon.ico'), ico(piccole), ICO.join(' e ') + ' px');
