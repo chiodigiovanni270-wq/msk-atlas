@@ -9,6 +9,9 @@
    ostacoli rigidi non trova spazio (i muscoli BodyParts3D si toccano), e ricostruire tutto il muscolo da un campo di distanza ne cambia volume e
    dettagli lontano dai nervi (gran dorsale −11 %, lembi sottili del deltoide).
 
+   Il gran dorsale non è nell'elenco: la sua mesh vicino al tendine è frammentata e il canale non si cuce; il fascio si sposta fuori dal muscolo con
+   `fascio-dorsale-spalla.mjs`, da lanciare PRIMA di questo script.
+
    Uso (dalla cartella del progetto):
      node strumenti/nervi-muscoli-spalla.mjs                → riscrive i muscoli nel file del modello
      PROVA=1 node strumenti/nervi-muscoli-spalla.mjs        → stampa i controlli senza scrivere
@@ -55,7 +58,7 @@ const { riduci, compatta } = await import('./lib-bp3d.mjs');
 
 const PROVA = !!process.env.PROVA, SOLO = process.env.SOLO ? process.env.SOLO.split(',') : null;
 const CORPI = ['plesso', 'n_soprascapolare', 'n_ascellare', 'n_muscolocutaneo', 'n_radiale', 'n_mediano', 'n_ulnare', 'a_succ', 'v_succ', 'a_asc', 'v_asc'];
-const MUSCOLI = ['supra', 'infra', 'tmin', 'subs', 'delt_cl', 'delt_ac', 'delt_sp', 'tmaj', 'pec_cl', 'pec_st', 'pec_ab', 'pmin', 'succl', 'trap_d', 'trap_t', 'trap_a', 'lat', 'romb_mag', 'romb_min', 'elev', 'dent', 'omoi', 'bic_lungo', 'bic_breve', 'coracobr', 'tri_lungo', 'tri_lat', 'tri_med'];
+const MUSCOLI = ['supra', 'infra', 'tmin', 'subs', 'delt_cl', 'delt_ac', 'delt_sp', 'tmaj', 'pec_cl', 'pec_st', 'pec_ab', 'pmin', 'succl', 'trap_d', 'trap_t', 'trap_a', 'romb_mag', 'romb_min', 'elev', 'dent', 'omoi', 'bic_lungo', 'bic_breve', 'coracobr', 'tri_lungo', 'tri_lat', 'tri_med'];
 const SOGLIA_MM3 = 0.05, H_CTRL = 0.02;               // controllo: volume comune minimo (mm³), passo della griglia (cm)
 const H = +(process.env.H ?? 0.02), GIOCO = 0.03, ZONA = 0.5, LIVELLI = process.env.LIVELLI ? process.env.LIVELLI.split(",").map(Number) : [0.35, 0.4, 0.3, 0.45], LATO = 0.04, SNAP = [0.15, 0.28], DENSITA = 1.5, NORM_DIFF = 3, LEVIGA = 40, RACCORDO = +(process.env.RACCORDO ?? 0.06), SUP = +(process.env.SUP ?? 0.04), REGIONE = +(process.env.REGIONE ?? 0.15), FORO = 0.3;   // cm
 
