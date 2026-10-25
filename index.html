@@ -285,8 +285,11 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
 .contact-card .btn-glass{background:rgba(114,180,208,.08)}
 .contact-card .btn-glass:hover{background:rgba(114,180,208,.16)}
 .contact-card .btn{margin-top:auto;min-height:48px;padding:0 22px;font-size:15px;border:1px solid var(--glass-edge);cursor:pointer}
-.contact-author{margin:22px 0 0;font-size:14px;color:var(--muted)}
-.contact-author strong{color:var(--ink-2);font-weight:500}
+.contact-author{margin:28px 0 0;padding:22px 24px;border-left:3px solid var(--accent);border-radius:0 16px 16px 0;background:rgba(114,180,208,.05)}
+.contact-author .author-label{margin:0 0 7px;font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent)}
+.contact-author strong{display:block;color:var(--ink);font-size:21px;line-height:1.3;font-weight:600}
+.contact-author .author-role{margin:6px 0 0;font-size:15px;color:var(--ink-2)}
+.contact-author .author-note{margin:12px 0 0;font-size:13px;line-height:1.5;color:var(--muted)}
 @media(max-width:719px){.contact-grid{grid-template-columns:1fr;gap:16px}.contact-card{padding:24px}.contact-icon{margin-bottom:18px}.contact-card .btn{width:100%}.contact-intro{font-size:16px}}
 @media(max-width:430px){.topnav a{padding:0 9px;font-size:13px}.topnav .nav-cta{padding:0 13px;margin-left:2px}.brand{gap:7px;font-size:12px;letter-spacing:.12em}.bar{padding-left:10px}}
 
@@ -489,7 +492,7 @@ footer{position:relative;overflow:hidden;border-top:1px solid var(--line);paddin
         <button type="button" class="btn btn-glass" data-msk-message="contact">Scrivimi <span aria-hidden="true">↗</span></button>
       </article>
     </div>
-    <p class="contact-author">I messaggi arrivano a <strong>Giovanni Chiodi</strong>, autore di MSK Atlas. Questo canale è dedicato al progetto; non è un servizio di consulenza medica.</p>
+    <div class="contact-author"><p class="author-label">Il tuo contatto</p><strong>Dott. Giovanni Chiodi</strong><p class="author-role">Medico specialista in Radiodiagnostica · Autore di MSK Atlas</p><p class="author-note">Per informazioni sul progetto, suggerimenti e collaborazioni. Il modulo non è destinato a richieste di consulenza medica.</p></div>
   </section>
 
 <section id="uso" class="usage" aria-labelledby="uso-titolo">
