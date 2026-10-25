@@ -12,6 +12,16 @@
   document.documentElement.setAttribute('data-theme', 'dark');
   document.documentElement.style.colorScheme = 'dark';
 
+  /* Vercel Web Analytics (senza cookie): stesso snippet di index.html e 404.html, caricato una sola volta.
+     In locale lo script risponde 404: è normale, funziona solo sul sito online. */
+  window.va = window.va || function(){ (window.vaq = window.vaq || []).push(arguments); };
+  if (!document.querySelector('script[src="/_vercel/insights/script.js"]')) {
+    var va = document.createElement('script');
+    va.defer = true;
+    va.src = '/_vercel/insights/script.js';
+    document.head.appendChild(va);
+  }
+
   var HOME = '../index.html';
   /* pulsanti fluttuanti (stile del pulsante "Strutture"): alti 44 px, a 10 px + safe-area dal bordo superiore */
   var TOP = 'calc(env(safe-area-inset-top,0px) + 10px)';

@@ -35,7 +35,9 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
   e ribadito da `assets/nav.js`; homepage e nuove pagine usano la stessa palette scura dei modelli.
 - Orientamento: nei modelli il menu "Vista" (`.views`) è nascosto da `assets/nav.js`, che aggiunge sotto la "i" un indicatore (ellisse vista dall'alto con Ant/Post/Lat/Med) che ruota con la camera; un tocco su un'etichetta porta la vista su quel lato (preme il pulsante `data-view` nascosto), il ⇅ al centro (gomito, polso) preme `#bFlip`. Legge la camera dal renderer di three.js, quindi non richiede modifiche ai file dei modelli.
 - Responsive: deve funzionare bene su smartphone (touch) e desktop.
-- Nessun cookie, nessun tracciamento di terze parti.
+- Nessun cookie, nessun tracciamento di terze parti. Unica misurazione: Vercel Web Analytics (senza cookie, script servito dal nostro dominio `/_vercel/insights/script.js`).
+  Lo snippet standard sta nel `<head>` di `index.html` e `404.html`; nei modelli lo inietta `assets/nav.js` (una sola volta, senza toccare i file dei modelli).
+  In locale lo script dà 404: è normale, Analytics funziona solo sul sito online.
 - Installazione come app: `manifest.webmanifest` e icone in `assets/icone/` (generate da `strumenti/icone.mjs`). Solo in homepage, da iPhone/iPad/Android e non da app già installata, compare dopo 3 s un foglio dal basso "App MSK Atlas" (iOS: istruzioni Condividi; Android/Chrome: pulsante Installa). Alla chiusura la data si salva in `localStorage` (solo sul dispositivo): non riappare per 1 giorno. Il blocco "App MSK Atlas" in fondo alla homepage con le istruzioni resta sempre visibile.
 - `.vercelignore` esclude dal deploy `strumenti/`, `CLAUDE.md`, `README.md` e `GUIDA_MODELLI.md`: restano nel repository ma non sul sito.
   `sitemap.xml`, `robots.txt` e `404.html` (in radice) vanno pubblicati: non devono mai finire in `.vercelignore`.
