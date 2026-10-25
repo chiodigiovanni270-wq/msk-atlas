@@ -4,7 +4,7 @@
      node strumenti/icone.mjs
      → salva in assets/icone/: apple-touch-icon.png 180×180, icon-192.png, icon-512.png, icon-512-maskable.png
 
-   Come funziona: prende dal favicon solo il simbolo (femore, tibia, cerchio), senza la tessera
+   Come funziona: prende dal favicon solo il simbolo (femore e tibia), senza la tessera
    arrotondata, perché iOS e Android ritagliano già l'icona con la loro forma. Lo disegna in
    Chrome headless su sfondo pieno #161c23 (nessuna trasparenza) e lo esporta in PNG.
    Il simbolo sta in un cerchio di raggio R attorno al centro (32,32) del favicon:
