@@ -180,6 +180,12 @@
       '<p>Ideato e realizzato da <strong>Dott. Giovanni Chiodi</strong>, medico radiologo.</p></section>';
 
   var anchor = document.currentScript;
+  /* Modulo comune per segnalazioni: nessuna modifica ai dati anatomici. */
+  if (anchor && anchor.src) {
+    var reportJS = document.createElement('script');
+    reportJS.src = new URL('segnala.js', anchor.src).href;
+    document.head.appendChild(reportJS);
+  }
   /* scheda struttura su smartphone (foglio compatto): file a parte, stesso percorso di nav.js */
   if (anchor && anchor.src) { var sk = document.createElement('script'); sk.src = anchor.src.replace(/nav\.js([?#].*)?$/, 'scheda.js'); document.head.appendChild(sk); }
   /* Ricerca comune: UI esterna, catalogo e selezione forniti dalla tavola corrente. */
@@ -297,3 +303,4 @@
   }
   requestAnimationFrame(frame);
 })();
+
