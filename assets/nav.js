@@ -182,6 +182,13 @@
   var anchor = document.currentScript;
   /* scheda struttura su smartphone (foglio compatto): file a parte, stesso percorso di nav.js */
   if (anchor && anchor.src) { var sk = document.createElement('script'); sk.src = anchor.src.replace(/nav\.js([?#].*)?$/, 'scheda.js'); document.head.appendChild(sk); }
+  /* Ricerca comune: UI esterna, catalogo e selezione forniti dalla tavola corrente. */
+  if (anchor && anchor.src) {
+    var searchCSS=document.createElement('link'); searchCSS.rel='stylesheet';
+    searchCSS.href=new URL('ricerca-modello.css',anchor.src).href; document.head.appendChild(searchCSS);
+    var searchJS=document.createElement('script');
+    searchJS.src=new URL('ricerca-modello.js',anchor.src).href; document.head.appendChild(searchJS);
+  }
   if (anchor && anchor.parentNode === document.body) anchor.after(home, btn, scrim, panel);
   else document.body.prepend(home, btn, scrim, panel);
 

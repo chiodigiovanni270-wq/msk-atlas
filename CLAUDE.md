@@ -88,3 +88,9 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
 - `assets/ricerca.js` e `assets/ricerca.css`: ricerca accessibile e indice compatto.
 - Dopo modifiche a nomi, ID, categorie o tavole: `node strumenti/indice-ricerca.mjs`, committendo anche `assets/strutture.json`.
 - I modelli accettano `?struttura=<id>` e il polso conserva `#dito` per il dito. A costruzione completata selezionano, isolano con le ossa e centrano la struttura.
+
+## Ricerca interna ai modelli
+- `nav.js` carica `assets/ricerca-modello.js` e `.css` al termine della costruzione. Il catalogo viene dall’elenco `#list .grp .item` della sola tavola attiva (polso e dito separati), senza fetch o duplicazione dei dati.
+- Riusa `.go` e `#cIso`: seleziona e isola con le ossa senza ricaricare, preservando inquadratura e comportamento della scheda. Ripristina prima un isolamento precedente; esce dalle regioni con piano di taglio tramite `#bAll` se attive. Nessun file anatomico modificato.
+- Desktop ≥900 px: campo al centro in alto; mobile/tablet: sotto il titolo, a sinistra della bussola, espanso durante la ricerca. Risultati dimensionati con `visualViewport`; tastiera: frecce/Invio/Escape; nomi, categorie, accenti e alcuni sinonimi.
+- Verifica locale: `python3 -m http.server 8000`, aprire ciascuna tavola (anche `#dito`), cercare e selezionare due strutture successive, provare Ripristina vista, nessun risultato, tastiera e dimensioni 360/390/768/1200 px. Serve un browser con WebGL per la verifica completa.
