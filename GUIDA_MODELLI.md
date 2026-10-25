@@ -177,3 +177,41 @@ assottigliamento arbitrario. Riferimenti: Amis et al. 2003 (PMID 12893142),
 Baldwin 2009 (PMID 19729366). Confronto WebGL reale, stesso orientamento e
 stesse strutture visibili, sia vista selettiva sia completa. Proposta non
 pubblicata, in attesa della revisione dell'utente.
+
+### Ginocchio — zampa d'oca (proposta 25 ottobre 2026)
+
+`node strumenti/rifinitura-zampa-oca.mjs [--prova]` rifinisce esclusivamente
+`semit`, `grac` e `sart`, partendo dalle loro mesh della revisione
+`4df684bf8e94525e74e8a389ca96ec63569aacd7`. `MODELLO=/percorso/copia.html`
+permette di lavorare su una copia. Eseguire dopo le precedenti correzioni del
+ginocchio; non rilanciare tutta la catena. È rilanciabile e conserva le altre
+mesh correnti, incluse le correzioni di crociati e retinacolo mediale.
+
+Il piano profondo comprende ossa, capsula, LCM, borsa anserina e strutture
+adiacenti, dal profondo al superficiale: semitendinoso, gracile, sartorio.
+Una chiusura di 4,5 mm evita che il tendine cada nei piccoli solchi tra le
+mesh. Griglia 0,4 mm; raccordo graduale da y=3 a y=−3 cm, lamina tendinea
+da 1,6–2,2 mm a 1 mm, distanza nominale dal piano profondo 0,35 mm.
+Nell'impronta distale la distanza si annulla con lieve sovrapposizione
+terminale (0,25 mm nominali), senza affondamento brusco. Le normali originali
+distinguono faccia profonda e superficiale; levigatura Taubin del contorno
+e della superficie, con il 3% della posizione originale per evitare collassi
+di lati cortissimi nella quantizzazione. Topologia e tag di colore invariati.
+Sono parametri di modellazione didattica, non misure anatomiche individuali.
+
+Il tronco safeno resta invariato: il suo passaggio tra sartorio e gracile
+non viene chiuso. Il breve tratto del ramo infrarotuleo che scavalca il
+sartorio viene raccordato alla superficie, mantenendo origine e tratto
+finale. Nessuna modifica a calibri, schede, shader, controlli o ricerca.
+
+Verifica su file quantizzato: mesh estranee e codice estraneo al raccordo
+infrarotuleo identici; nessun nuovo triangolo degenere; distanze da ossa e
+decorsi nervosi; confronto WebGL da tre direzioni e con visibilità standard.
+I 17 triangoli degeneri preesistenti del semitendinoso restano invariati.
+Il controllo delle distanze non certifica tutte le intersezioni fra
+triangoli né l'anatomia individuale; i piani fasciali e il grasso non sono
+completamente rappresentati. Riferimenti anatomici già usati per questa
+zona: Standring, Gray's Anatomy, 42ª ed.; Warren e Marshall, JBJS Am 1979.
+Confronto prima–dopo approvato dall’utente il 25 ottobre 2026.
+Anteprima della home rigenerata con `node strumenti/anteprima.mjs ginocchio-3d`
+(inquadratura predefinita, 1600×1000, WebP trasparente).
