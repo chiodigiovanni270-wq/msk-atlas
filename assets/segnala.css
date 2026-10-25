@@ -1,0 +1,23 @@
+.msk-report-link{display:inline-flex;align-items:center;min-height:44px;padding:6px 10px;border:0;border-radius:10px;background:transparent;color:#8cc9e2;font:500 13px/1.4 var(--sans,system-ui);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.msk-report-link:focus-visible,#msk-report :focus-visible{outline:2px solid #8cc9e2;outline-offset:3px}
+#msk-report{box-sizing:border-box;width:min(540px,calc(100% - 24px));max-height:calc(100dvh - 24px);padding:24px;border:1px solid #43505e;border-radius:22px;background:#1e262f;color:#eef3f6;box-shadow:0 24px 80px #0008;font:400 15px/1.5 var(--sans,system-ui);color-scheme:dark;overflow:auto;overscroll-behavior:contain}
+#msk-report::backdrop{background:#070a0dcc}
+#msk-report *{box-sizing:border-box}
+#msk-report h2{font-size:23px;margin:0}
+#msk-report .report-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#msk-report button{font:inherit;cursor:pointer;min-height:44px;border-radius:10px}
+#msk-report .report-close{min-width:44px;border:0;background:transparent;color:#eef3f6;font-size:24px}
+#msk-report label{display:block;margin-top:14px;font-weight:500}
+#msk-report input,#msk-report textarea,#msk-report select{display:block;width:100%;margin-top:6px;padding:11px 12px;border:1px solid #53616e;border-radius:10px;background:#111820;color:#eef3f6;font:400 16px/1.45 var(--sans,system-ui)}
+#msk-report textarea{resize:vertical;min-height:110px}
+#msk-report .report-note{color:#b6c2cc;font-size:13px;margin:12px 0}
+#msk-report a{color:#8cc9e2}
+#msk-report .report-context{overflow-wrap:anywhere}
+#msk-report .report-submit{width:100%;margin-top:14px;padding:10px 16px;border:0;background:#8cc9e2;color:#0d1116;font-weight:600}
+#msk-report button:disabled{opacity:.55;cursor:default}
+#msk-report .report-status{margin:12px 0 0;overflow-wrap:anywhere}
+#msk-report .report-trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+@media(max-width:600px){#msk-report{padding:18px;max-height:calc(100dvh - 16px);width:calc(100% - 16px)}}
+
+
+#msk-report [hidden]{display:none!important}

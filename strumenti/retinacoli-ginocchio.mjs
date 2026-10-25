@@ -52,6 +52,12 @@ const DIST = 0.13, SPESS = 0.12, SPESS_BORDO = 0.04, BORDO = 0.5, PASSO_T = 1.5,
 const CHIUSURA = 3.0, SORMONTO = 2.5, RACCORDO = 0.35, YMAX = 6.5, LISCIA_BORDO = 12;
 const PEZZO_MIN = 0.1;   // pezzi del telo tenuti (frazione del più grande: l'MPFL divide il mediale)
 const PROFONDO = ['femore', 'tibia', 'perone', 'rotula', 'menmed', 'menlat', 'vint', 'tenquad', 'tenrot', 'hoffa'];
+// Variante usata da mpfl-ginocchio.mjs: continuità superficiale sopra l'MPFL,
+// senza la finestra didattica che lo lasciava esposto.
+if (process.argv.includes('--mpfl-profondo')) {
+  LATI.mediale.sopraLui = LATI.mediale.sopraLui.filter(n => n !== 'mpfl');
+  PROFONDO.push('mpfl');
+}
 const APERTE = ['cartfem', 'carttib', 'cartrot', 'capsula'];   // mesh aperte: solo superficie
 
 const deg = Math.PI / 180, theta = (x, z, s) => s * Math.atan2(x - ASSE[0], z - ASSE[1]) / deg; // gradi, positivi verso il lato

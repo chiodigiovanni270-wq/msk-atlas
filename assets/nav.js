@@ -138,7 +138,7 @@
   home.href = HOME;
   home.setAttribute('aria-label', 'Torna all’indice di MSK Atlas');
   home.innerHTML = '<span class="an-ico">' + CHEVRON + '</span>' +
-    '<img src="../assets/favicon.svg" width="24" height="24" alt=""><span class="an-name">MSK <b>Atlas</b></span>';
+    '<img src="../assets/favicon.svg?v=4" width="24" height="24" alt=""><span class="an-name">MSK <b>Atlas</b></span>';
 
   var btn = document.createElement('button');
   btn.type = 'button';
@@ -180,8 +180,21 @@
       '<p>Ideato e realizzato da <strong>Dott. Giovanni Chiodi</strong>, medico radiologo.</p></section>';
 
   var anchor = document.currentScript;
+  /* Modulo comune per segnalazioni: nessuna modifica ai dati anatomici. */
+  if (anchor && anchor.src) {
+    var reportJS = document.createElement('script');
+    reportJS.src = new URL('segnala.js', anchor.src).href;
+    document.head.appendChild(reportJS);
+  }
   /* scheda struttura su smartphone (foglio compatto): file a parte, stesso percorso di nav.js */
   if (anchor && anchor.src) { var sk = document.createElement('script'); sk.src = anchor.src.replace(/nav\.js([?#].*)?$/, 'scheda.js'); document.head.appendChild(sk); }
+  /* Ricerca comune: UI esterna, catalogo e selezione forniti dalla tavola corrente. */
+  if (anchor && anchor.src) {
+    var searchCSS=document.createElement('link'); searchCSS.rel='stylesheet';
+    searchCSS.href=new URL('ricerca-modello.css',anchor.src).href; document.head.appendChild(searchCSS);
+    var searchJS=document.createElement('script');
+    searchJS.src=new URL('ricerca-modello.js',anchor.src).href; document.head.appendChild(searchJS);
+  }
   if (anchor && anchor.parentNode === document.body) anchor.after(home, btn, scrim, panel);
   else document.body.prepend(home, btn, scrim, panel);
 
@@ -290,3 +303,4 @@
   }
   requestAnimationFrame(frame);
 })();
+
