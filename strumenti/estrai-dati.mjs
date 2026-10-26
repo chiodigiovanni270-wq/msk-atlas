@@ -17,8 +17,8 @@
      scrive un messaggio nel riquadro di caricamento. Nient'altro della pagina cambia (strutture, geometrie, controlli).
    Lo script si ferma se la pagina è già convertita o se il caricatore non ha la forma attesa.
 
-   verifica: la pagina non contiene più base64 né atob, e i binari letti da assets/dati/ sono identici byte per byte
-   a quelli incorporati nella revisione REV (quella prima della conversione). */
+   verifica: la pagina non contiene più base64 né atob, lo script DATI_BP segue tutti i blocchi dei dati, e i binari letti
+   da assets/dati/ sono identici byte per byte a quelli incorporati nella revisione REV (quella prima della conversione). */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
@@ -57,6 +57,7 @@ if (VERIFICA) {
   }
   if (/atob\(document\.getElementById/.test(h)) err.push('il caricatore usa ancora atob');
   if (!h.includes('DATI_BP:')) err.push('manca lo script DATI_BP');
+  else if (ids.some(id => h.match(reBlocco(id)).index > h.indexOf('DATI_BP:'))) err.push('lo script DATI_BP precede un blocco dei dati');
   if (!/BP=await loadBP\(\)/.test(h)) err.push('manca BP=await loadBP()');
   if (err.length) { console.error('ERRORI:\n  ' + err.join('\n  ')); process.exit(1); }
   console.log('OK:', REL); process.exit(0);
@@ -88,8 +89,8 @@ for (const id of ids) {
   console.log(`${id}: ${buf.length} byte → ${src}`);
 }
 
-// 3. script di avvio del download, dopo l'ultimo blocco dei dati
-const ult = h.match(reBlocco(ids.at(-1)));
+// 3. script di avvio del download, dopo l'ultimo blocco dei dati nell'ordine della pagina (nel polso bpdat2 precede bpdat)
+const ult = ids.map(id => h.match(reBlocco(id))).sort((a, b) => b.index - a.index)[0];
 h = h.slice(0, ult.index + ult[0].length) + '\n' + DATI_BP + h.slice(ult.index + ult[0].length);
 
 writeFileSync(FILE, h);
