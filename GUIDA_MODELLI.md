@@ -149,6 +149,86 @@ Riferimenti di revisione: [Hip Arteries, NCBI](https://www.ncbi.nlm.nih.gov/site
 `strumenti/indice-ricerca.mjs` legge le tavole dichiarate in `index.html` ed estrae ID, nomi e categorie dai modelli (incluse le due sezioni polso/dito). Genera `assets/strutture.json` senza caricare mesh; verifica conteggi e ID duplicati. Uso: `node strumenti/indice-ricerca.mjs`, rilanciabile dopo qualsiasi aggiornamento ai nomi/ID/tavole. Non fa parte della catena geometrica.
 Ogni visualizzatore applica il parametro `struttura` dopo costruzione e AO: isolamento con ossa, selezione e centratura sulla bounding box; un ID inesistente lascia il modello normale con un avviso. Il passaggio polso/dito elimina il parametro precedente. I file rimangono autonomi e non dipendono dal codice della home.
 
+## Caviglia destra — costruzione per strati
+
+Pagina autonoma `modelli/caviglia-3d.html`, visualizzatore, CSS, shader e comandi
+derivati dalla spalla. **145 strutture in 17 categorie.** Coordinate in cm: origine BodyParts3D `[-80,-60,60]` mm,
+X mediale, Y craniale, Z anteriore. Tagli Y=14 cm e Z=8 cm: gamba distale e piede
+fino alle diafisi metatarsali, senza dita. La lateralità è destra.
+
+Catena ripetibile (Node 22+, curl; nessun pacchetto aggiuntivo):
+
+1. `node strumenti/caviglia-3d.mjs --ossa`: solo base ossea per revisione.
+2. `node strumenti/caviglia-3d.mjs`: ricostruisce la tavola completa dalla base.
+   `MODELLO=/percorso/copia.html` cambia solo l'output; non modificare il base64
+   manualmente. Gli STL sono nella cache `BP3D_DIR`, default `/tmp/bp3d-stl`.
+3. `node strumenti/verifica-caviglia.mjs`: catalogo, buffer, JavaScript,
+   riferimenti, categorie, campi OIF e compatibilità col visualizzatore.
+   `--contatti` aggiunge distanze ossee su campioni delle ricostruzioni.
+4. Dopo l'integrazione in homepage: `node strumenti/indice-ricerca.mjs`.
+   Anteprima e social: `anteprima.mjs caviglia-3d`, `og.mjs caviglia-3d`.
+
+File e metodo:
+
+- `dati-caviglia.mjs`: catalogo italiano, FMA, origine/inserzione/funzione e
+  categorie. Ossa, muscoli e Achille sono BodyParts3D 3.0 (CC BY-SA 2.1 JP),
+  ritagliati con chiusura delle sezioni. I tendini estrinseci sono selezionabili
+  separatamente: la separazione trasversale dal ventre usa quote esplicite
+  `cut`, didattiche, non impronte delle giunzioni miotendinee segmentate.
+- `lib-caviglia.mjs`: BVH sui triangoli per prossimità, raggi esatti, gusci
+  chiusi, nastri con fibre tangenti, curve Catmull–Rom e tubi chiusi a 16 lati.
+  Segno delle distanze con pseudonormali su spigoli e vertici (vertici di taglio
+  saldati per posizione): evita falsi interni vicino alle sezioni prossimali.
+  Adattamento agli ostacoli sui vertici, non unione booleana.
+- `articolazione-caviglia.mjs`: prima delle parti molli. Le cartilagini derivano
+  dalle superfici ossee affrontate (distanza <3,8 mm e normali convergenti), con
+  margine interpolato su triangoli suddivisi; spessore massimo 0,65 mm, limitato
+  al 28% dell'interlinea per lato. Tibia e fibula ricevono cartilagine solo dove
+  affrontano il talo: la sindesmosi non viene rivestita. Complesso laterale,
+  sindesmosi, deltoideo profondo/superficiale, tre componenti dello spring,
+  legamenti subtalari e di Chopart, membrana interossea e capsula tibiotalare.
+  I legamenti hanno estremi proiettati su reperi ossei espliciti e sezioni a
+  nastro (spessore nominale 0,75 mm). Il tibiospring termina sullo spring.
+  Cache in `/tmp` con hash delle ossa e dei due moduli geometrici: viene
+  riutilizzata solo se gli input sono identici.
+- `tessuti-caviglia.mjs`: capsule subtalare, talonavicolare e calcaneocuboidea;
+  vasi e nervi su guide anatomiche adattate alle ossa; vene profonde come coppie
+  satelliti, grande e piccola safena, rami plantari, calcaneali e dorsali.
+  Retinacoli adattati a ossa e tendini; guaine ricavate dalle superfici tendinee;
+  paratenon dell'Achille distinto dalle guaine sinoviali; aponeurosi plantare,
+  borse retrocalcaneale e sottocutanea, grasso di Kager, seno del tarso e tallone.
+  La borsa sottocutanea è dichiarata avventizia/variabile. Capsule, guaine,
+  borse, grasso e fasce sono inizialmente nascosti ma selezionabili.
+- `contatti-caviglia.mjs`: ultimo passaggio, dopo le parti molli. Rifinisce
+  interosseo talocalcaneale, membrana interossea, capsula subtalare, retinacoli
+  estensori superiore/superomediale e grasso del seno del tarso nei punti dove
+  l'adattamento ai tendini può riavvicinarli alle ossa. Ricerca locale del punto
+  libero lungo le normali e 26 direzioni; distanza bersaglio 0,35 mm (0,7 mm
+  per il grasso, che riceve rilievo nello shader), spostamento massimo ammesso
+  4 mm. Un fallimento interrompe la generazione prima della scrittura.
+
+**Limiti di verifica:** fonti e controlli geometrici orientano la ricostruzione,
+non costituiscono una validazione specialistica delle impronte o dei rapporti
+fra tutti i tessuti. Calibri, borse virtuali, guaine e grasso sono didattici.
+Non sono modellati microcircolo, ogni ramo muscolare/articolare terminale,
+varianti, cute, singoli setti del cuscinetto calcaneale e strutture digitali
+fuori campo. Non descrivere la tavola come segmentazione completa o anatomicamente
+certificata. La prova desktop/mobile non sostituisce un test su Safari/iPhone.
+
+Riferimenti: [Sonographic anatomy of the ankle](https://pmc.ncbi.nlm.nih.gov/articles/PMC4033724/),
+[Magnetic resonance imaging of ankle ligaments](https://pmc.ncbi.nlm.nih.gov/articles/PMC6319113/),
+[Magnetic resonance imaging of the ankle and foot](https://pmc.ncbi.nlm.nih.gov/articles/PMC7571512/),
+[Kager's fat pad](https://pubmed.ncbi.nlm.nih.gov/32813031/).
+
+Verifica del 26 ottobre 2026: catalogo e buffer validi, 145 strutture/17 categorie;
+nessun campione delle ricostruzioni controllate oltre 0,3 mm dentro le ossa.
+In Chromium con WebGL/SwiftShader: picking, categorie, scheda, isola/ripristina,
+nascondi, viste, ricerca interna e link diretto verificati; desktop 1200×900,
+mobile 390×844 e 360×780. Dipendenza Three.js r128 identica al CDN, font di
+riserva nella verifica locale. I 428 record di ricerca preesistenti sono
+invariati; con la caviglia l'indice contiene 573 record. La prova non è una
+validazione specialistica o un controllo esaustivo di intersezioni tra tessuti.
+
 ### Ginocchio — rifinitura crociati (25 ottobre 2026)
 
 `node strumenti/crociati-ginocchio.mjs` ricostruisce solo `lca` e `lcp` dalla

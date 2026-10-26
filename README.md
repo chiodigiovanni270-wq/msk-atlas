@@ -28,6 +28,13 @@ GUIDA_MODELLI.md           guida tecnica ai modelli, non pubblicata sul sito
 Nessun framework, nessun build step, nessun cookie o tracciamento.
 Ogni modello resta una pagina indipendente: se `assets/nav.js` manca, funziona lo stesso, solo senza pulsanti di navigazione.
 
+La tavola della **caviglia destra** (`modelli/caviglia-3d.html`) comprende la gamba
+distale, il retropiede, il tarso e le basi metatarsali. Ossa, muscoli e tendine
+calcaneale derivano da BodyParts3D 3.0; cartilagini, legamenti, capsule,
+retinacoli, guaine e decorsi vascolo-nervosi sono ricostruzioni didattiche.
+Campo ed esclusioni sono indicati nel pannello informazioni della tavola.
+Generazione e controlli: sezione «Caviglia destra» di `GUIDA_MODELLI.md`.
+
 ## Provare il sito in locale
 
 ```bash

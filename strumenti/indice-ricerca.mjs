@@ -8,10 +8,13 @@ const prop=k=>`["']?${k}["']?\\s*:\\s*(${literal})`;
 const row=new RegExp(`\\{\\s*${prop('id')}\\s*,\\s*(?:nw\\s*:\\s*1\\s*,\\s*)?${prop('cat')}\\s*,\\s*${prop('name')}`,'g');
 const decode=s=>vm.runInNewContext(s,Object.create(null),{timeout:1000});
 for(const card of home.matchAll(/<li class="card" data-strutture="(\d+)">([\s\S]*?)<\/li>/g)){
- const [,count,body]=card, [,path,label]=body.match(/class="card-link" href="([^"]+)">([^<]+)/);
+ const [,count,body]=card, [,href,label]=body.match(/class="card-link" href="([^"]+)">([^<]+)/);
+ const [path,anchor='']=href.split('#');
  const source=readFileSync(path,'utf8'); let total=0;
  const sections=[...source.matchAll(/(?:const )?CATS\s*=\s*(\[[\s\S]*?\]);/g)];
  for(let i=0;i<sections.length;i++){
+  // Polso e dito condividono il file, ma hanno card e conteggi distinti.
+  if(sections.length>1&&(i?'dito':'polso')!==(anchor||'polso'))continue;
   const block=source.slice(sections[i].index,sections[i+1]?.index??source.length);
   const categories=decode('('+sections[i][1]+')');
   for(const match of block.matchAll(row)){
