@@ -23,6 +23,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { scarica, leggiSTL, ritaglia, riduci, normali, impacchetta, sstep, STL_DIR } from './lib-bp3d.mjs';
 import { CATS, STR } from './dati-spalla.mjs';
+import { leggiDati, scriviDati } from './lib-dati.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = (process.argv.find(a => a.startsWith('--prova=')) || '').slice(8) || resolve(ROOT, 'modelli', 'spalla-3d.html');
@@ -114,11 +115,11 @@ for (const s of SOLO_PAGINA ? [] : STR) {
     log(n.padEnd(12), String(g.idx.length / 3).padStart(7), '→', String(idx.length / 3).padStart(6), 'triangoli');
   }
 }
-let man, dat;
+let man, buf;
 if (SOLO_PAGINA) {
-  const e = readFileSync(OUT, 'utf8'); man = JSON.parse(e.match(/<script id="bpman" type="application\/json">(.*?)<\/script>/s)[1]); dat = e.match(/<script id="bpdat" type="text\/plain">(.*?)<\/script>/s)[1];
-} else ({ man, dat } = impacchetta(mesh));
-log('mesh', man.meshes.length, 'dati', Math.round(dat.length / 1024), 'KB (gzip+base64)');
+  const e = readFileSync(OUT, 'utf8'); man = JSON.parse(e.match(/<script id="bpman" type="application\/json">(.*?)<\/script>/s)[1]); buf = leggiDati(e, 'bpdat', { file: OUT });
+} else ({ man, buf } = impacchetta(mesh));
+log('mesh', man.meshes.length, 'dati', Math.round(buf.length / 1024), 'KB (binario non compresso)');
 
 /* ---- 3. pagina: guscio di gomito-3d.html con strutture, schede e camera della spalla ---- */
 const src = readFileSync(resolve(ROOT, 'modelli', 'gomito-3d.html'), 'utf8');
@@ -137,7 +138,7 @@ sost(/<h1>Gomito destro<\/h1>/, '<h1>Spalla destra</h1>', 'h1');
 sost(/\s*<button class="flip"[^\n]*<\/button>/, '', 'flip html');
 sost(/document\.getElementById\('bFlip'\)[^\n]*\n/, '', 'flip js');
 sost(/<script id="bpman" type="application\/json">.*?<\/script>/s, () => `<script id="bpman" type="application/json">${JSON.stringify(man)}</script>`, 'bpman');
-sost(/<script id="bpdat" type="text\/plain">.*?<\/script>/s, () => `<script id="bpdat" type="text/plain">${dat}</script>`, 'bpdat');
+h = scriviDati(h, 'bpdat', buf, OUT);   // dati in assets/dati/spalla/ (lib-dati.mjs)
 
 // strutture
 const campo = (k, v) => v ? `${k}:${js(v)},` : '';

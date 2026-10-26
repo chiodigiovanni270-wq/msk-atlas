@@ -41,7 +41,6 @@ import { dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { gunzipSync } from 'node:zlib';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 process.env.MODELLO ||= resolve(ROOT, 'modelli', 'spalla-3d.html');
 const G = await import('./lib-modello.mjs');
@@ -66,7 +65,7 @@ const MUSCOLI = ['supra', 'infra', 'tmin', 'subs', 'delt_cl', 'delt_ac', 'delt_s
 const REV = {};
 const daRevisione = (rev, nome) => {
   if (!REV[rev]) { const h = execFileSync('git', ['show', `${rev}:${FILE_REPO}`], { cwd: ROOT, maxBuffer: 1 << 30 }).toString('utf8');
-    const man = JSON.parse(h.match(G.reManRe)[2]); let b = Buffer.from(h.match(G.reDatRe)[2].trim(), 'base64'); if (b[0] === 0x1f && b[1] === 0x8b) b = gunzipSync(b); REV[rev] = { man, b }; }
+    const man = JSON.parse(h.match(G.reManRe)[2]); const b = G.datiDi(h, rev, FILE_REPO); REV[rev] = { man, b }; }
   const { man, b } = REV[rev], m = man.meshes.findLast(x => x.n === nome); if (!m) return null;
   const q = new Uint16Array(b.buffer.slice(b.byteOffset + m.p, b.byteOffset + m.p + m.nv * 6)), pos = new Float32Array(m.nv * 3);
   for (let i = 0; i < m.nv * 3; i++) { const k = i % 3; pos[i] = man.min[k] + q[i] / 65535 * (man.max[k] - man.min[k]); }

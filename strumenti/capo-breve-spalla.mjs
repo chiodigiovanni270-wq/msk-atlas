@@ -40,7 +40,6 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { gunzipSync } from 'node:zlib';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
 const G = await import('./lib-modello.mjs');
 const { REAL, posDaRevisione, saveFile, repack, log, sstep, clamp } = G;
@@ -172,7 +171,7 @@ let nDm = 0, mxD = 0; const toccD = new Set(); for (let i = 0; i < nD; i++) { co
 log('deltoide clavicolare: vertici nel capo breve', reqD.filter(x => x > 0).length, ', spostati', nDm, ', al massimo di', (mxD * 10).toFixed(1), 'mm in avanti');
 // normali di partenza da BASE (non dal file: dopo un primo lancio sono già cambiate), così il rilancio dà lo stesso risultato
 const nrmD = (() => { const h = execFileSync('git', ['show', `${BASE}:${FILE}`], { cwd: resolve(dirname(fileURLToPath(import.meta.url)), '..'), maxBuffer: 1 << 30 }).toString('utf8');
-  const mn = JSON.parse(h.match(G.reManRe)[2]), m = mn.meshes.findLast(x => x.n === 'delt_cl'); let b = Buffer.from(h.match(G.reDatRe)[2].trim(), 'base64'); if (b[0] === 0x1f && b[1] === 0x8b) b = gunzipSync(b);
+  const mn = JSON.parse(h.match(G.reManRe)[2]), m = mn.meshes.findLast(x => x.n === 'delt_cl'); const b = G.datiDi(h, BASE, FILE);
   return m.nm !== undefined ? Int8Array.from(new Int8Array(b.buffer, b.byteOffset + m.nm, nD * 3)) : null; })();
 if (nrmD && toccD.size) { const I = D0.idx, acc = new Map(); for (let t = 0; t < I.length; t += 3) if ([0, 1, 2].some(k => toccD.has(I[t + k]))) for (let k = 0; k < 3; k++) acc.set(I[t + k], [0, 0, 0]);
   for (let t = 0; t < I.length; t += 3) { const T = [I[t], I[t + 1], I[t + 2]]; if (!T.some(i => acc.has(i))) continue;

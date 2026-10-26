@@ -55,7 +55,6 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { gunzipSync } from 'node:zlib';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
 const G = await import('./lib-modello.mjs');
 const B = await import('./lib-bp3d.mjs');
@@ -77,7 +76,7 @@ const P = {};
 for (const n of PARTI) { const m = realDaRevisione(BASE, n, FILE); P[n] = { ...m, nv: m.pos.length / 3 }; G.setMesh(n, { pos: m.pos, idx: m.idx, tag: m.tag, fdir: m.fdir }); }
 { // normali di vertice scritte in BASE (fuori dalla zona delle origini la superficie riprende forma e luce di BASE)
   const h = execFileSync('git', ['show', `${BASE}:${FILE}`], { cwd: resolve(dirname(fileURLToPath(import.meta.url)), '..'), maxBuffer: 1 << 30 }).toString('utf8');
-  const mn = JSON.parse(h.match(G.reManRe)[2]); let b = Buffer.from(h.match(G.reDatRe)[2].trim(), 'base64'); if (b[0] === 0x1f && b[1] === 0x8b) b = gunzipSync(b);
+  const mn = JSON.parse(h.match(G.reManRe)[2]); const b = G.datiDi(h, BASE, FILE);
   for (const n of PARTI) { const m = mn.meshes.findLast(x => x.n === n), d = new Int8Array(b.buffer, b.byteOffset + m.nm, m.nv * 3); P[n].nrm = Float32Array.from(d, x => x / 127); } }
 
 /* ---- griglia e campi ---- */

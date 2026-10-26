@@ -30,11 +30,10 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { gunzipSync } from 'node:zlib';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
 const G = await import('./lib-modello.mjs');
 const { vicini } = await import('./lib-bp3d.mjs');
-const { REAL, realDaRevisione, setMesh, saveFile, repack, log, sstep, dt1, reManRe, reDatRe } = G;
+const { REAL, realDaRevisione, setMesh, saveFile, repack, log, sstep, dt1, reManRe } = G;
 
 const BASE = '5aacd43', NOME = 'subs';
 const VISTA = [0.47, -0.22];                                   // theta, phi (rad)
@@ -48,7 +47,7 @@ const A0 = realDaRevisione(BASE, NOME, 'modelli/spalla-3d.html');
 const nrm = (() => { const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const h = execFileSync('git', ['show', `${BASE}:modelli/spalla-3d.html`], { cwd: root, maxBuffer: 1 << 30 }).toString('utf8');
   const mn = JSON.parse(h.match(reManRe)[2]), m = mn.meshes.findLast(x => x.n === NOME);
-  const b = Buffer.from(h.match(reDatRe)[2].trim(), 'base64'), buf = G.GZIP ? gunzipSync(b) : b;
+  const buf = G.datiDi(h, BASE, 'modelli/spalla-3d.html');
   return m.nm !== undefined ? Int8Array.from(new Int8Array(buf.buffer, buf.byteOffset + m.nm, m.nv * 3)) : null; })();
 const idx = A0.idx, nv = A0.pos.length / 3, pos0 = Float64Array.from(A0.pos), cur = pos0.slice();
 const nb = vicini(nv, idx);

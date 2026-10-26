@@ -29,7 +29,6 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { gunzipSync } from 'node:zlib';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
 const G = await import('./lib-modello.mjs');
 const B = await import('./lib-bp3d.mjs');
@@ -47,7 +46,7 @@ const PEZZO_MIN = 300, TRI = 1.3;
 /* ---- mesh di partenza (BASE), messa al posto di quella del file: voxelizzazione e controlli partono sempre da BASE ---- */
 const P0 = realDaRevisione(BASE, NOME, FILE); P0.nv = P0.pos.length / 3;
 { const h = execFileSync('git', ['show', `${BASE}:${FILE}`], { cwd: resolve(dirname(fileURLToPath(import.meta.url)), '..'), maxBuffer: 1 << 30 }).toString('utf8');
-  const mn = JSON.parse(h.match(G.reManRe)[2]); let b = Buffer.from(h.match(G.reDatRe)[2].trim(), 'base64'); if (b[0] === 0x1f && b[1] === 0x8b) b = gunzipSync(b);
+  const mn = JSON.parse(h.match(G.reManRe)[2]); const b = G.datiDi(h, BASE, FILE);
   const m = mn.meshes.findLast(x => x.n === NOME), d = new Int8Array(b.buffer, b.byteOffset + m.nm, m.nv * 3); P0.nrm = Float32Array.from(d, x => x / 127); }
 G.setMesh(NOME, { pos: P0.pos, idx: P0.idx, tag: P0.tag, fdir: P0.fdir });
 

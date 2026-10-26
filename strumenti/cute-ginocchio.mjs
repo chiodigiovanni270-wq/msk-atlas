@@ -28,7 +28,7 @@
 import { execFileSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { M, REAL, setPos, repack, saveFile, setGriglia, solid, edt, sample, or, sstep, log, man, reManRe, reDatRe } from './lib-modello.mjs';
+import { M, REAL, setPos, repack, saveFile, setGriglia, solid, edt, sample, or, sstep, log, man, reManRe, datiDi } from './lib-modello.mjs';
 import * as G from './lib-modello.mjs';
 
 const PROVA = process.argv.includes('--prova');
@@ -40,7 +40,7 @@ const SOTTOCUTANEI = { vgs: () => true, nsaf: y => y < 2, ninfra: () => true, ns
 
 // cute originale
 const H0 = execFileSync('git', ['show', `${ORIGINALE}:modelli/ginocchio-3d.html`], { cwd: resolve(dirname(fileURLToPath(import.meta.url)), '..'), maxBuffer: 1 << 30 }).toString('utf8');
-const man0 = JSON.parse(H0.match(reManRe)[2]), b0 = Buffer.from(H0.match(reDatRe)[2].trim(), 'base64'), ab0 = b0.buffer.slice(b0.byteOffset, b0.byteOffset + b0.length);
+const man0 = JSON.parse(H0.match(reManRe)[2]), b0 = datiDi(H0, ORIGINALE, 'modelli/ginocchio-3d.html'), ab0 = b0.buffer.slice(b0.byteOffset, b0.byteOffset + b0.length);
 const mc = man0.meshes.findLast(x => x.n === 'cute'), nv = mc.nv;
 const P0 = new Float32Array(nv * 3); { const q = new Uint16Array(ab0, mc.p, nv * 3); for (let i = 0; i < nv * 3; i++) { const k = i % 3; P0[i] = man0.min[k] + q[i] / 65535 * (man0.max[k] - man0.min[k]); } }
 const IDX = REAL('cute').idx; if (REAL('cute').nv !== nv) throw new Error('topologia della cute diversa da quella originale');

@@ -5,7 +5,6 @@
    Test sui vertici, non una validazione clinica o completa delle intersezioni dei triangoli. */
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {gunzipSync} from 'node:zlib';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {NV} from './dati-neurovascolari-anca.mjs';
@@ -14,7 +13,7 @@ process.env.MODELLO ||=resolve(root,'modelli/anca-3d.html');
 const G=await import('./lib-modello.mjs');
 const BASE='ebcccf75183c0081b9477d7c852e6b5e35048e1c';
 const h=execFileSync('git',['show',BASE+':modelli/anca-3d.html'],{cwd:root,maxBuffer:20e6}).toString();
-const man=JSON.parse(h.match(G.reManRe)[2]);let raw=Buffer.from(h.match(G.reDatRe)[2].trim(),'base64');if(raw[0]===31&&raw[1]===139)raw=gunzipSync(raw);
+const man=JSON.parse(h.match(G.reManRe)[2]);const raw=G.datiDi(h,BASE,'modelli/anca-3d.html');
 assert.deepEqual(G.man.min,man.min);assert.deepEqual(G.man.max,man.max);
 for(const m of man.meshes){const g=G.REAL(m.n);const q=new Uint16Array(raw.buffer.slice(raw.byteOffset+m.p,raw.byteOffset+m.p+m.nv*6)),p=Float32Array.from(q,(v,i)=>man.min[i%3]+v/65535*(man.max[i%3]-man.min[i%3]));assert.deepEqual(g.pos,p,m.n+' cambiata');const I=m.i16?Uint16Array:Uint32Array;const idx=new I(raw.buffer.slice(raw.byteOffset+m.i,raw.byteOffset+m.i+m.ni*(m.i16?2:4)));assert.deepEqual(g.idx,idx,m.n+' topologia cambiata');}
 console.log('OK: tutte le 36 mesh preesistenti identiche alla revisione articolare.');

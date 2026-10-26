@@ -45,7 +45,7 @@
 import { execFileSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { M, REAL, setPos, setMesh, repack, saveFile, setGriglia, solid, edt, sample, clamp, sstep, log, reManRe, reDatRe } from './lib-modello.mjs';
+import { M, REAL, setPos, setMesh, repack, saveFile, setGriglia, solid, edt, sample, clamp, sstep, log, reManRe, datiDi } from './lib-modello.mjs';
 import * as G from './lib-modello.mjs'; // griglia corrente (O, H, NX, NY, NZ, N cambiano con setGriglia)
 
 const PROVA = process.argv.includes('--prova');
@@ -80,7 +80,7 @@ const SCAVA = SOLO_CANALI ? JSON.parse(process.env.CANALI || '[]') : [
   { m: 'pop', fine: [{ tubi: ['agen'], y: [-2.2, 0.2] }] },
   { m: 'addmag', fine: [{ tubi: ['adisc', 'agen'], y: [3.5, 8.5] }] },
 ];
-const M0 = JSON.parse(H0.match(reManRe)[2]), B0 = Buffer.from(H0.match(reDatRe)[2].trim(), 'base64');
+const M0 = JSON.parse(H0.match(reManRe)[2]), B0 = datiDi(H0, ORIGINALE, 'modelli/ginocchio-3d.html');
 const vista = (T, off, n) => new T(B0.buffer.slice(B0.byteOffset + off, B0.byteOffset + off + n * T.BYTES_PER_ELEMENT));
 function meshOriginale(nome) { return meshCompleta(nome).pos; }
 function meshCompleta(nome) { // posizioni, indici, tag (colore muscolo/tendine) e direzioni delle fibre della mesh originale

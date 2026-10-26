@@ -1,9 +1,10 @@
 /* Funzioni comuni agli strumenti che modificano le mesh incorporate in modelli/ginocchio-3d.html
    (o in un altro modello indicato con MODELLO=<file>, es. il polso):
    lettura/scrittura di bpdat/bpman, voxelizzazione, trasformata di distanza, campionamento.
-   bpdat può essere compresso con gzip (polso): viene letto e riscritto nello stesso formato. */
+   I dati binari (bpdat) stanno in assets/dati/<nome>/ (lettura e scrittura in lib-dati.mjs, che legge anche
+   il formato incorporato in base64 delle revisioni precedenti all'estrazione). */
 import { readFileSync, writeFileSync } from 'node:fs';
-import { gunzipSync, gzipSync, constants as Z } from 'node:zlib';
+import { leggiDati, scriviDati } from './lib-dati.mjs';
 import { execFileSync } from 'node:child_process';
 import { dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,20 +19,18 @@ export const log = (...a) => console.log(((Date.now() - T0) / 1000).toFixed(1) +
 export const M = { html: readFileSync(FILE, 'utf8') };
 let html = M.html;
 const reMan = /(<script id="bpman" type="application\/json">)(.*?)(<\/script>)/s;
-const reDat = /(<script id="bpdat" type="text\/plain">)(.*?)(<\/script>)/s;
-export const reManRe = reMan, reDatRe = reDat;
-const isGz = b => b[0] === 0x1f && b[1] === 0x8b;
-const leggiDat = s => { const b = Buffer.from(s.trim(), 'base64'); return isGz(b) ? gunzipSync(b) : b; };
-export const GZIP = isGz(Buffer.from(html.match(reDat)[2].trim().slice(0, 8), 'base64'));
+export const reManRe = reMan;
+// dati di una pagina letta da una revisione git (o dal disco se rev è nullo); file = percorso della pagina nel progetto
+export const datiDi = (h, rev = null, file = FILE) => leggiDati(h, 'bpdat', { file, rev });
 export let man = JSON.parse(html.match(reMan)[2]);
-export let buf0 = leggiDat(html.match(reDat)[2]);
+export let buf0 = datiDi(html);
 let ab = buf0.buffer.slice(buf0.byteOffset, buf0.byteOffset + buf0.length);
 // mesh di partenza lette da una revisione git del modello (il resto della pagina resta quello attuale):
 // così uno strumento riparte sempre dalle stesse mesh e si può rilanciare
 export function meshDaRevisione(rev) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const h = execFileSync('git', ['show', `${rev}:${relative(root, FILE).split('\\').join('/')}`], { cwd: root, maxBuffer: 1 << 30 }).toString('utf8');
-  man = JSON.parse(h.match(reMan)[2]); buf0 = leggiDat(h.match(reDat)[2]);
+  man = JSON.parse(h.match(reMan)[2]); buf0 = datiDi(h, rev);
   ab = buf0.buffer.slice(buf0.byteOffset, buf0.byteOffset + buf0.length); override.clear(); topo.clear();
   return h;
 }
@@ -40,7 +39,7 @@ export function meshDaRevisione(rev) {
 export function posDaRevisione(rev, name, file) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const h = execFileSync('git', ['show', `${rev}:${file || relative(root, FILE).split('\\').join('/')}`], { cwd: root, maxBuffer: 1 << 30 }).toString('utf8');
-  const mn = JSON.parse(h.match(reMan)[2]), b = leggiDat(h.match(reDat)[2]), m = mn.meshes.findLast(x => x.n === name);
+  const mn = JSON.parse(h.match(reMan)[2]), b = datiDi(h, rev, file || FILE), m = mn.meshes.findLast(x => x.n === name);
   const q = new Uint16Array(b.buffer.slice(b.byteOffset + m.p, b.byteOffset + m.p + m.nv * 6)), pos = new Float32Array(m.nv * 3);
   for (let i = 0; i < m.nv * 3; i++) { const k = i % 3; pos[i] = mn.min[k] + q[i] / 65535 * (mn.max[k] - mn.min[k]); }
   return pos;
@@ -49,7 +48,7 @@ export function posDaRevisione(rev, name, file) {
 export function realDaRevisione(rev, name, file) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const h = execFileSync('git', ['show', `${rev}:${file || relative(root, FILE).split('\\').join('/')}`], { cwd: root, maxBuffer: 1 << 30 }).toString('utf8');
-  const mn = JSON.parse(h.match(reMan)[2]), b = leggiDat(h.match(reDat)[2]), m = mn.meshes.findLast(x => x.n === name);
+  const mn = JSON.parse(h.match(reMan)[2]), b = datiDi(h, rev, file || FILE), m = mn.meshes.findLast(x => x.n === name);
   const q = new Uint16Array(b.buffer.slice(b.byteOffset + m.p, b.byteOffset + m.p + m.nv * 6)), pos = new Float32Array(m.nv * 3);
   for (let i = 0; i < m.nv * 3; i++) { const k = i % 3; pos[i] = mn.min[k] + q[i] / 65535 * (mn.max[k] - mn.min[k]); }
   const ib = b.buffer.slice(b.byteOffset + m.i, b.byteOffset + m.i + m.ni * (m.i16 ? 2 : 4));
@@ -368,7 +367,6 @@ export function repack() {
   return Buffer.concat(parts);
 }
 export function saveFile(buf) {
-  if (GZIP) buf = gzipSync(buf, { level: Z.Z_BEST_COMPRESSION });
-  const html = M.html.replace(reMan, (_, a, b, c) => a + JSON.stringify(man) + c).replace(reDat, (_, a, b, c) => a + buf.toString('base64') + c);
-  writeFileSync(FILE, html); log('scritto', FILE);
+  const html = scriviDati(M.html.replace(reMan, (_, a, b, c) => a + JSON.stringify(man) + c), 'bpdat', buf, FILE);
+  writeFileSync(FILE, html); M.html = html; log('scritto', FILE);
 }

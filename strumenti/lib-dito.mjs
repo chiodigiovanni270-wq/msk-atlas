@@ -7,13 +7,13 @@
    - Costruzione di nastri e lamine chiusi (spessore, margini arrotondati) con direzione delle fibre per vertice. */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { gunzipSync, gzipSync, constants as Z } from 'node:zlib';
+import { leggiDati, scriviDati } from './lib-dati.mjs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const FILE = resolve(process.env.MODELLO || resolve(ROOT, 'modelli', 'polso-dito-3d.html'));
-const reMan = /(<script id="bpman2" type="application\/json">)(.*?)(<\/script>)/s, reDat = /(<script id="bpdat2" type="text\/plain">)(.*?)(<\/script>)/s;
+const reMan = /(<script id="bpman2" type="application\/json">)(.*?)(<\/script>)/s;
 export const log = (...a) => console.log(...a);
 
 /* ============ Vettori ============ */
@@ -30,7 +30,7 @@ export class Modello {
   constructor(file = FILE, rev = null) {
     const h = rev ? execFileSync('git', ['show', `${rev}:modelli/polso-dito-3d.html`], { cwd: ROOT, maxBuffer: 1 << 30 }).toString('utf8') : readFileSync(file, 'utf8');
     this.file = file; this.man = JSON.parse(h.match(reMan)[2]);
-    let b = Buffer.from(h.match(reDat)[2].trim(), 'base64'); this.gz = b[0] === 0x1f && b[1] === 0x8b; this.buf = this.gz ? gunzipSync(b) : b;
+    this.buf = leggiDati(h, 'bpdat2', { file: rev ? 'modelli/polso-dito-3d.html' : file, rev });
     this.nuove = new Map();
   }
   nomi() { return this.man.meshes.map(m => m.n); }
@@ -57,8 +57,8 @@ export class Modello {
         e.i = push(Buffer.from((i16 ? Uint16Array.from(g.idx) : Uint32Array.from(g.idx)).buffer)); }
       else { e.p = push(buf.subarray(m.p, m.p + m.nv * 6)); if (m.t !== undefined) e.t = push(buf.subarray(m.t, m.t + m.nv)); if (m.d !== undefined) e.d = push(buf.subarray(m.d, m.d + m.nv * 3)); e.i = push(buf.subarray(m.i, m.i + m.ni * (m.i16 ? 2 : 4))); }
       return e; });
-    let out = Buffer.concat(parts); if (this.gz) out = gzipSync(out, { level: Z.Z_BEST_COMPRESSION });
-    const html = readFileSync(this.file, 'utf8').replace(reMan, (_, a, b, c) => a + JSON.stringify({ ...man, meshes: nm }) + c).replace(reDat, (_, a, b, c) => a + out.toString('base64') + c);
+    const out = Buffer.concat(parts);
+    const html = scriviDati(readFileSync(this.file, 'utf8').replace(reMan, (_, a, b, c) => a + JSON.stringify({ ...man, meshes: nm }) + c), 'bpdat2', out, this.file);
     writeFileSync(this.file, html); log('scritto', this.file);
   }
 }

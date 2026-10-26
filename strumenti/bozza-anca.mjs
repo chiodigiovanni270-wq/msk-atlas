@@ -12,6 +12,7 @@ import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {scarica,leggiSTL,ritaglia,riduci,compatta,impacchetta,sstep} from './lib-bp3d.mjs';
 import {BASE_CATS as CATS,BASE_STR as STR} from './dati-anca.mjs';
+import {scriviDati} from './lib-dati.mjs';
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const OUT=(process.argv.find(a=>a.startsWith('--prova='))||'').slice(8)||resolve(ROOT,'modelli/anca-3d.html');
 const O=[-81.75,-93.03,820], MUSC=['cin','cuf','tor','brac'];
@@ -73,7 +74,7 @@ band('iliofemorale_a',-.22,-.02,.36);band('iliofemorale_b',-.22,-1.45,.34);band(
 function strap(n,A,B,w){const d=unit(sub(B,A)),u=unit(cross(d,[0,1,0])),v=cross(d,u);return shell(n,24,8,(t,b,side)=>add(mix(A,B,t),add(mul(u,(b-.5)*w),mul(v,side?-.035:.035))));}
 strap('trasverso',rim[0],rim[100],.26);
 strap('rotondo',mix(rim[0],rim[100],.5),mul(dir(2.8,2.8),2.15),.24);
-const {man,dat}=impacchetta(meshes);
+const {man,buf}=impacchetta(meshes);
 let h=readFileSync(resolve(ROOT,'modelli/spalla-3d.html'),'utf8');
 const change=(re,value,name)=>{if(!re.test(h))throw Error('Template incompatibile: '+name);h=h.replace(re,()=>value);};
 change(/<title>.*?<\/title>/,'<title>Anca 3D | MSK Atlas</title>','title');
@@ -83,7 +84,7 @@ change(/<meta name="strutture-bp3d"[^>]*>/,'<meta name="strutture-bp3d" content=
 change(/<meta name="strutture-modellate"[^>]*>/,'<meta name="strutture-modellate" content="Prima versione da revisionare: cartilagini, labbro, capsula e legamenti sono ricostruzioni indicative; fibre e transizioni tendinee sono grafiche, non segmentazioni. La precisione delle impronte non è ancora validata.">\n<meta name="strutture-escluse" content="Vasi, nervi, borse, cute, varianti anatomiche e dettagli dei singoli tendini non sono inclusi in questa prima versione.">','ricostruzioni');
 change(/<meta name="description"[^>]*>/,'<meta name="description" content="Anca destra 3D: prima versione didattica con ossa, muscoli e strutture articolari selezionabili. In revisione anatomica.">','descrizione');
 change(/<script id="bpman" type="application\/json">.*?<\/script>/s,`<script id="bpman" type="application/json">${JSON.stringify(man)}</script>`,'manifest');
-change(/<script id="bpdat" type="text\/plain">.*?<\/script>/s,`<script id="bpdat" type="text/plain">${dat}</script>`,'dati');
+h=scriviDati(h,'bpdat',buf,OUT); // dati in assets/dati/anca/ (lib-dati.mjs)
 const fields=s=>JSON.stringify(Object.fromEntries(Object.entries(s).filter(([k])=>['id','cat','name','info','o','ins','fn'].includes(k)))).slice(0,-1);
 const rows=STR.map(s=>fields(s)+`,b:()=>[${(s.id==='iliofemorale'?['iliofemorale_a','iliofemorale_b']:[s.id]).map(n=>`REAL(${JSON.stringify(n)})`).join(',')}]}`).join(',\n');
 change(/\/\* ============ Categorie ============ \*\/[\s\S]*?(?=const catById=)/,`/* ============ Categorie ============ */\nconst MUSC=new Set(${JSON.stringify(MUSC)});\nconst LACERTO_FADE=.93,LACERTO_LUCE=1.12;\nconst THMAP={femore:.3,coxale:.18,sacro:.2};\nconst CATS=${JSON.stringify(CATS)};\nconst S=[\n${rows}\n];\n`,'catalogo');

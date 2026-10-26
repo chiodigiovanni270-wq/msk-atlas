@@ -11,7 +11,7 @@
    Riparte sempre dalla cartilagine della revisione ORIGINALE, quindi si può rilanciare. Parametri in testa. */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { gunzipSync, gzipSync, constants as Z } from 'node:zlib';
+import { leggiDati, scriviDati } from './lib-dati.mjs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -21,8 +21,8 @@ const OSSA = ['d_mc3', 'd_p1', 'd_p2', 'd_p3'];
 const VICINO = [0.14, 0.30];            // distanza (cm) dell'altro osso: cartilagine affrontata (intera) → non affrontata (assottigliata)
 const MINF = 0.3, SPMAX = 0.09, MINSP = 0.004; // frazione di spessore che resta dove non è affrontata; spessore massimo; spessore minimo sopra l'osso (evita z-fighting)
 
-const reMan = /(<script id="bpman2" type="application\/json">)(.*?)(<\/script>)/s, reDat = /(<script id="bpdat2" type="text\/plain">)(.*?)(<\/script>)/s;
-const leggi = h => { let b = Buffer.from(h.match(reDat)[2].trim(), 'base64'); const gz = b[0] === 0x1f && b[1] === 0x8b; return { b: gz ? gunzipSync(b) : b, gz, man: JSON.parse(h.match(reMan)[2]) }; };
+const reMan = /(<script id="bpman2" type="application\/json">)(.*?)(<\/script>)/s;
+const leggi = (h, rev = null) => ({ b: leggiDati(h, 'bpdat2', { file: rev ? 'modelli/polso-dito-3d.html' : FILE, rev }), man: JSON.parse(h.match(reMan)[2]) });
 const mesh = ({ b, man }, n) => { const m = man.meshes.find(x => x.n === n), q = new Uint16Array(b.buffer.slice(b.byteOffset + m.p, b.byteOffset + m.p + m.nv * 6)), pos = new Float32Array(m.nv * 3);
   for (let i = 0; i < pos.length; i++) { const k = i % 3; pos[i] = man.min[k] + q[i] / 65535 * (man.max[k] - man.min[k]); }
   const ib = b.buffer.slice(b.byteOffset + m.i, b.byteOffset + m.i + m.ni * (m.i16 ? 2 : 4)); return { pos, idx: m.i16 ? new Uint16Array(ib) : new Uint32Array(ib), m }; };
@@ -42,7 +42,7 @@ function vicino(B, p) { let best = 1e9, q = null, tn = null;
     const c = ptri(p, A[0], A[1], A[2]), v = sub(p, c), d = Math.hypot(...v); if (d < best) { best = d; q = c; tn = cross(sub(A[1], A[0]), sub(A[2], A[0])); } }
   const l = Math.hypot(...tn) || 1; return { d: best, q, tn: mul(tn, 1 / l) }; }
 
-const orig = leggi(execFileSync('git', ['show', `${ORIGINALE}:modelli/polso-dito-3d.html`], { cwd: ROOT, maxBuffer: 1 << 30 }).toString('utf8'));
+const orig = leggi(execFileSync('git', ['show', `${ORIGINALE}:modelli/polso-dito-3d.html`], { cwd: ROOT, maxBuffer: 1 << 30 }).toString('utf8'), ORIGINALE);
 const cur = leggi(readFileSync(FILE, 'utf8'));
 const C = mesh(orig, 'd_cart'), ossa = OSSA.map(n => mesh(cur, n)), pos = C.pos, nv = pos.length / 3;
 const IN = [], f = new Float32Array(nv), d = new Float32Array(nv); let N = [];
@@ -66,6 +66,5 @@ for (let it = 0; it < 4; it++) { const q = out.slice(); for (let i = 0; i < nv; 
 const { man } = cur, m = man.meshes.find(x => x.n === 'd_cart'), q = new Uint16Array(nv * 3);
 for (let i = 0; i < nv * 3; i++) { const k = i % 3; q[i] = Math.round(Math.min(1, Math.max(0, (out[i] - man.min[k]) / (man.max[k] - man.min[k]))) * 65535); }
 Buffer.from(q.buffer).copy(cur.b, m.p);
-let buf = cur.b; if (cur.gz) buf = gzipSync(buf, { level: Z.Z_BEST_COMPRESSION });
-writeFileSync(FILE, readFileSync(FILE, 'utf8').replace(reDat, (_, a, b, c) => a + buf.toString('base64') + c));
+writeFileSync(FILE, scriviDati(readFileSync(FILE, 'utf8'), 'bpdat2', cur.b, FILE));
 console.log('d_cart:', nv, 'vertici;', Math.round(100 * ass / nv) + '% assottigliati (non affrontati)');

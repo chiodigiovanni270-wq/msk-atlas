@@ -6,7 +6,6 @@ import { readFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { gzipSync, constants as Z } from 'node:zlib';
 
 export const STL_URL = 'https://raw.githubusercontent.com/Kevin-Mattheus-Moerman/BodyParts3D/main/assets/BodyParts3D_data/stl/';
 export const STL_DIR = process.env.BP3D_DIR || join(tmpdir(), 'bp3d-stl');
@@ -173,7 +172,7 @@ export function normali(pos, idx) {
   return N;
 }
 
-/* ---- impacchettamento nel formato dei modelli: bpman (indice) + bpdat (binario, gzip, base64) ---- */
+/* ---- impacchettamento nel formato dei modelli: bpman (indice) + bpdat (binario; il file in assets/dati/ si scrive con scriviDati di lib-dati.mjs) ---- */
 export function impacchetta(mesh) { // mesh: [{n, pos(cm), idx, tag?, fdir?, nrm?}]
   const mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9];
   for (const m of mesh) for (let i = 0; i < m.pos.length; i++) { const k = i % 3; if (m.pos[i] < mn[k]) mn[k] = m.pos[i]; if (m.pos[i] > mx[k]) mx[k] = m.pos[i]; }
@@ -191,8 +190,7 @@ export function impacchetta(mesh) { // mesh: [{n, pos(cm), idx, tag?, fdir?, nrm
     e.i = push(Buffer.from((i16 ? Uint16Array.from(m.idx) : Uint32Array.from(m.idx)).buffer));
     return e;
   });
-  const dat = gzipSync(Buffer.concat(parts), { level: Z.Z_BEST_COMPRESSION });
-  return { man: { min: mn, max: mx, meshes }, dat: dat.toString('base64') };
+  return { man: { min: mn, max: mx, meshes }, buf: Buffer.concat(parts) };
 }
 
 /* ---- ritaglio di una mesh con un campo scalare per vertice: resta s >= 0, sul bordo s = 0 (vertici nuovi per interpolazione).
