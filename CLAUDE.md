@@ -26,7 +26,7 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
 
 ## Vincoli tecnici
 - Sito statico, nessun backend. Hosting: Vercel, collegato a un repository GitHub (deploy automatico a ogni push su `main`).
-- Preferire HTML/CSS/JS vanilla, senza framework né build step, salvo mia richiesta esplicita.
+- Preferire HTML/CSS/JS vanilla, senza framework. La pubblicazione usa `node build-site.mjs` per separare bozze e sito pubblico (richiesta del proprietario).
 - Ogni modello deve restare una pagina indipendente e funzionante anche da sola.
 - NON modificare la logica anatomica, le geometrie, i colori o i controlli dei modelli se non te lo chiedo:
   puoi solo aggiungere elementi comuni (pulsanti di navigazione, link alla home, meta tag, favicon).
@@ -106,3 +106,6 @@ Ogni file include dati embedded in base64 (geometrie/immagini): sono file grandi
 - Riusa `.go` e `#cIso`: seleziona e isola con le ossa senza ricaricare, preservando inquadratura e comportamento della scheda. Ripristina prima un isolamento precedente; esce dalle regioni con piano di taglio tramite `#bAll` se attive. Nessun file anatomico modificato.
 - Desktop ≥900 px e altezza >500 px: campo nella colonna destra, 12 px sopra il pannello Strutture, con margine e larghezza misurati dal pannello; segue le sue variazioni di altezza (ResizeObserver), senza sovrapporsi alla bussola. Desktop bassi: posizione originale in alto; mobile/tablet: sotto il titolo, a sinistra della bussola, espanso durante la ricerca. Risultati dimensionati con `visualViewport`; tastiera: frecce/Invio/Escape; nomi, categorie, accenti e alcuni sinonimi.
 - Verifica locale: `python3 -m http.server 8000`, aprire ciascuna tavola (anche `#dito`), cercare e selezionare due strutture successive, provare Ripristina vista, nessun risultato, tastiera e dimensioni 360/390/768/1200 px. Serve un browser con WebGL per la verifica completa.
+
+## Pubblicazione delle bozze
+Anca e Caviglia sono in lavorazione: leggere README.md. Il build pubblico le esclude fisicamente; solo Vercel Preview le include. Non disattivare la protezione delle Preview.

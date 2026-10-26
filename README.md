@@ -25,7 +25,7 @@ GUIDA_MODELLI.md           guida tecnica ai modelli, non pubblicata sul sito
 .vercelignore              esclude dal deploy strumenti/, CLAUDE.md, README.md e GUIDA_MODELLI.md
 ```
 
-Nessun framework, nessun build step, nessun cookie o tracciamento.
+Nessun framework. Build statica senza dipendenze con `node build-site.mjs`.
 Ogni modello resta una pagina indipendente: se `assets/nav.js` manca, funziona lo stesso, solo senza pulsanti di navigazione.
 
 La tavola della **caviglia destra** (`modelli/caviglia-3d.html`) comprende la gamba
@@ -129,3 +129,11 @@ prima del 2025, e non è accertato da quale release derivino ginocchio e polso (
 Distribuire con ShareAlike soddisfa comunque entrambe le licenze. Da rivedere se DBCLS conferma la sola CC BY 4.0.
 
 Mitsuhashi N et al. BodyParts3D: 3D structure database for anatomical concepts. Nucleic Acids Res 2009.
+
+## Modelli in lavorazione
+
+Anca e Caviglia sono visibili in home come «In lavorazione · Prossimamente».
+`node build-site.mjs` genera `dist/` per il pubblico: esclude fisicamente le due pagine, i risultati di ricerca e le voci della sitemap.
+`node build-site.mjs --preview` genera localmente la versione completa. Per verificarla: `python3 -m http.server 8000 --directory dist`.
+Su Vercel solo l’ambiente Preview include i modelli in lavorazione; mantenere attiva Vercel Authentication sulle anteprime. Il ramo `anteprima-modelli` serve per lavorare e vedere i modelli con il proprio account Vercel.
+Per aggiornare l’anteprima, inviare le modifiche al ramo `anteprima-modelli`; per aggiornare il sito pubblico, a `main`. Per pubblicare un modello completato, rimuovere il suo percorso da `drafts` in `build-site.mjs`. I file anatomici restano sempre nel repository.
