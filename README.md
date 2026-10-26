@@ -9,7 +9,9 @@ Sito statico con modelli anatomici 3D interattivi, a scopo didattico
 
 ```
 index.html                 homepage: modello che ruota con lo scorrimento, presentazione, una card per ogni modello, "Come si usa", crediti
-modelli/<nome>-3d.html     un file autocontenuto per modello (three.js r128 da CDN, dati in base64)
+modelli/<nome>-3d.html     pagina del modello (three.js r128 da CDN); le geometrie stanno in assets/dati/ (l'anca le ha ancora in base64)
+assets/dati/<nome>/        dati delle mesh di ogni modello (bpdat.<hash>.br, brotli), caricati dalla pagina con fetch
+vercel.json                intestazioni dei dati: Content-Encoding br e cache permanente (nomi con hash)
 assets/nav.js              navigazione comune dei modelli: pulsanti fluttuanti "‹" (home) e "i" (disclaimer, crediti ed elenco delle strutture del modello)
 assets/favicon.svg
 assets/anteprime/          immagini 1600×1000 delle card (WebP, sfondo trasparente)
@@ -21,22 +23,25 @@ strumenti/anteprima.mjs    genera le anteprime (non pubblicato sul sito)
 strumenti/sequenza-home.mjs genera i fotogrammi della prima schermata (non pubblicato sul sito)
 strumenti/og.mjs           genera le immagini Open Graph 1200×630 dalle anteprime (non pubblicato sul sito)
 strumenti/lib-chrome.mjs   funzioni comuni ai due script (Chrome headless)
+strumenti/server.mjs       server locale (porta 8000) con le stesse intestazioni dei dati di Vercel
+strumenti/estrai-dati.mjs  sposta i dati base64 di un modello in assets/dati/<nome>/ (integrazione di un modello nuovo)
 GUIDA_MODELLI.md           guida tecnica ai modelli, non pubblicata sul sito
 .vercelignore              esclude dal deploy strumenti/, CLAUDE.md, README.md e GUIDA_MODELLI.md
 ```
 
 Nessun framework, nessun build step, nessun cookie o tracciamento.
-Ogni modello resta una pagina indipendente: se `assets/nav.js` manca, funziona lo stesso, solo senza pulsanti di navigazione.
+Ogni modello resta una pagina indipendente (la pagina più la sua cartella `assets/dati/<nome>/`, servite via HTTP):
+se `assets/nav.js` manca, funziona lo stesso, solo senza pulsanti di navigazione.
 
 ## Provare il sito in locale
 
 ```bash
-python3 -m http.server 8000
+node strumenti/server.mjs
 ```
 
 dalla cartella del progetto, poi apri <http://localhost:8000>.
-Le pagine si aprono anche con il doppio clic, ma il server locale riproduce il comportamento del sito online
-ed è necessario per gli script delle anteprime e della sequenza.
+Il server locale invia i dati dei modelli con `Content-Encoding: br`, come Vercel: con `python3 -m http.server` o con il doppio clic
+(`file://`) i modelli non si caricano e il riquadro di caricamento lo spiega. Serve anche agli script delle anteprime e della sequenza.
 
 Cosa controllare dopo una modifica:
 - homepage: modello in alto che ruota scorrendo, card, immagini, link (anche "Polso" / "Dito"), numeri "Tav." e conteggio dei modelli,
@@ -49,6 +54,12 @@ Cosa controllare dopo una modifica:
 ## Aggiungere un modello
 
 1. **File** — copia la pagina in `modelli/<nome>-3d.html` (minuscolo, parole separate da trattini).
+   **Dati** — il modello creato in chat è un file unico con i dati in base64: estraili con
+   ```bash
+   node strumenti/estrai-dati.mjs <nome>-3d
+   node strumenti/estrai-dati.mjs <nome>-3d verifica
+   ```
+   (salva `assets/dati/<nome>/bpdat.<hash>.br` e adatta il caricatore della pagina; la verifica confronta byte per byte i dati con quelli incorporati).
 2. **Righe comuni** — nel file del modello aggiungi solo queste, senza toccare altro:
    ```html
    <html lang="it" data-theme="dark">                                        <!-- attributo sul tag esistente -->
@@ -81,7 +92,7 @@ Cosa controllare dopo una modifica:
    (le sezioni con ancora, come `#dito`, non hanno voce propria).
 6. **Verifica e pubblica** — controlla in locale (anche titolo, descrizione, canonical e immagine social di ogni pagina), poi:
    ```bash
-   git add modelli/<nome>-3d.html assets/anteprime/<nome>-3d.webp assets/og/<nome>-3d.jpg sitemap.xml index.html
+   git add modelli/<nome>-3d.html assets/dati/<nome> assets/anteprime/<nome>-3d.webp assets/og/<nome>-3d.jpg sitemap.xml index.html
    git commit -m "Aggiunge modello <nome>"
    git push
    ```
@@ -106,7 +117,8 @@ Con "riduci movimento" o risparmio dati la pagina mostra solo il primo fotogramm
 ## Pubblicazione
 
 Hosting su Vercel collegato al repository GitHub: ogni push su `main` pubblica il sito.
-Non serve configurazione: Vercel serve i file così come sono.
+Vercel serve i file così come sono; `vercel.json` aggiunge solo le intestazioni dei dati dei modelli (`assets/dati/**.br`:
+`Content-Encoding: br`, `Content-Type: application/octet-stream`, `Cache-Control: public, max-age=31536000, immutable`).
 
 ## Crediti
 
