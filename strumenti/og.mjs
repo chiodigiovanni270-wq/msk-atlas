@@ -1,7 +1,7 @@
 /* Genera le immagini Open Graph / Twitter card (1200×630, JPEG) delle pagine del sito.
 
    Uso (dalla cartella del progetto, con il server locale attivo sulla porta 8000):
-     python3 -m http.server 8000                       (in un altro terminale)
+     node strumenti/server.mjs                         (in un altro terminale)
      node strumenti/og.mjs [pagina …]
    Senza argomenti genera tutte le pagine; altrimenti solo quelle indicate (home, spalla-3d, gomito-3d, polso-dito-3d, anca-3d, ginocchio-3d).
 
@@ -37,7 +37,7 @@ const PAGINE = {
 const richieste = process.argv.slice(2);
 const nomi = richieste.length ? richieste : Object.keys(PAGINE);
 for (const n of nomi) if (!PAGINE[n]) { console.error(`Pagina sconosciuta: ${n}. Valide: ${Object.keys(PAGINE).join(', ')}`); process.exit(1); }
-try { await fetch(SERVER); } catch { console.error(`Server locale non raggiungibile su ${SERVER}.\nAvvialo dalla cartella del progetto: python3 -m http.server 8000`); process.exit(1); }
+try { await fetch(SERVER); } catch { console.error(`Server locale non raggiungibile su ${SERVER}.\nAvvialo dalla cartella del progetto: node strumenti/server.mjs`); process.exit(1); }
 
 const grad = `radial-gradient(circle at 72% 45%, ${SFONDO.map(([p, c]) => `${c} ${Math.round(p * 100)}%`).join(', ')})`;
 const pagina = p => `<!doctype html><html lang="it"><head><meta charset="utf-8">

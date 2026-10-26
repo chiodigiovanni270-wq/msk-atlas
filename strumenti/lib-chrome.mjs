@@ -31,7 +31,7 @@ export async function verificaModello(name) {
   let status;
   try { status = (await fetch(url)).status; }
   catch {
-    console.error(`Server locale non raggiungibile su ${SERVER}.\nAvvialo dalla cartella del progetto: python3 -m http.server 8000`);
+    console.error(`Server locale non raggiungibile su ${SERVER}.\nAvvialo dalla cartella del progetto: node strumenti/server.mjs`);
     process.exit(1);
   }
   if (status !== 200) {

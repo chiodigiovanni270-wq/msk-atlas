@@ -1,7 +1,7 @@
 /* Genera l'anteprima di un modello per la card della homepage.
 
    Uso (dalla cartella del progetto, con il server locale attivo sulla porta 8000):
-     python3 -m http.server 8000                       (in un altro terminale)
+     node strumenti/server.mjs                         (in un altro terminale)
      node strumenti/anteprima.mjs <nome> [--zoom=1] [--dy=0] [--w=1600] [--out=percorso.webp] [--sezione=dito]
            [--vista=lat] [--dx=0] [--ruota=0] [--inclina=0]
 

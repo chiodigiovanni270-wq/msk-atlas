@@ -2,7 +2,7 @@
    attorno all'asse verticale e la pagina mostra il fotogramma corrispondente allo scorrimento.
 
    Uso (dalla cartella del progetto, con il server locale attivo sulla porta 8000):
-     python3 -m http.server 8000                       (in un altro terminale)
+     node strumenti/server.mjs                         (in un altro terminale)
      node strumenti/sequenza-home.mjs <nome> [--passo=4] [--dist=1.4] [--alza=0] [--w=2200] [--ws=1700] [--vista=2240] [--ritaglio=0.25,0.04,0.75,0.98] [--prova]
 
    Esempio:
