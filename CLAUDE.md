@@ -20,13 +20,17 @@ La cartella `modelli/` contiene le pagine dei modelli (three.js r128 da CDN), na
 - `spalla-3d.html` — spalla destra (costruita da BodyParts3D a strati con gli script `*-spalla.mjs`)
 - `ginocchio-3d.html` — ginocchio destro
 - `anca-3d.html` — anca destra, 62 strutture; versione in revisione anatomica sul ramo dedicato (27 strutture vascolo-nervose ricostruite; borse e rami minuti esclusi)
+- `caviglia-3d.html` — caviglia destra, 145 strutture; gamba distale, retropiede e tarso fino alle diafisi metatarsali. Generatore per strati e controlli in `GUIDA_MODELLI.md`.
 
 Le geometrie (mesh BodyParts3D e ricostruite) stanno in file binari versionati in `assets/dati/<nome>/` (`bpdat.<hash>.br`, brotli; il polso anche `bpdat2` per il dito),
-caricati dalla pagina con fetch: la pagina HTML pesa 100–230 KB, i dati 1–7 MB. Fa eccezione `anca-3d.html`, che ha ancora i dati incorporati in base64 (non ancora convertita).
+caricati dalla pagina con fetch: la pagina HTML pesa 100–230 KB, i dati 1–7 MB. Fanno eccezione le bozze `anca-3d.html` e `caviglia-3d.html`, che hanno ancora i dati incorporati in base64 (non ancora convertite).
 
 ## Vincoli tecnici
 - Sito statico, nessun backend. Hosting: Vercel, collegato a un repository GitHub (deploy automatico a ogni push su `main`).
-- Preferire HTML/CSS/JS vanilla, senza framework né build step, salvo mia richiesta esplicita.
+- Preferire HTML/CSS/JS vanilla, senza framework e senza dipendenze npm (niente `package.json`, niente `node_modules`).
+- Pubblicazione con una build minima: Vercel esegue `node build-site.mjs` (Node, senza dipendenze) e pubblica la cartella `dist/` (`buildCommand` e `outputDirectory` in `vercel.json`).
+  La build copia i file così come sono (tutta `assets/`, quindi anche `assets/dati/`); in produzione esclude le bozze elencate in `drafts` (pagine, card in home,
+  `assets/strutture.json`, `sitemap.xml`, `404.html`), che restano solo nelle Preview protette. Nessun altro build step (bundler, minificazione, trascrizioni) salvo mia richiesta esplicita.
 - Ogni modello è una pagina indipendente: `modelli/<nome>-3d.html` più i suoi dati in `assets/dati/<nome>/`, servita via HTTP
   (sul sito da Vercel, in locale con `node strumenti/server.mjs`). Non si apre con il doppio clic (`file://`): il riquadro di caricamento lo spiega.
   Funziona anche senza `assets/nav.js` (solo senza pulsanti di navigazione).
@@ -58,7 +62,7 @@ caricati dalla pagina con fetch: la pagina HTML pesa 100–230 KB, i dati 1–7 
 - Schede delle strutture (card che si apre toccando una struttura), uguali in tutti i modelli: nota `info` breve (decorso essenziale e uno o due rilievi clinico-radiologici);
   per muscoli, legamenti, retinacoli, aponeurosi e membrane anche i campi `o`, `ins`, `fn` (Origine, Inserzione, Funzione), che la nota non ripete;
   per i nervi solo la nota, che dice se sono motori, sensitivi o misti e cosa innervano. Dettagli in `GUIDA_MODELLI.md` (sezione "Dati").
-- Al momento i modelli sono cinque (anca in revisione), ma ne verranno aggiunti altri nel tempo: la struttura del sito deve permettere di aggiungere un nuovo modello in modo semplice e ripetibile, senza riorganizzare tutto.
+- Al momento i modelli sono sei (anca in revisione), ma ne verranno aggiunti altri nel tempo: la struttura del sito deve permettere di aggiungere un nuovo modello in modo semplice e ripetibile, senza riorganizzare tutto.
 
 ## Aggiungere un modello
 1. Copia il file in `modelli/<nome>-3d.html` (nome minuscolo, parole separate da trattini).
@@ -117,3 +121,6 @@ caricati dalla pagina con fetch: la pagina HTML pesa 100–230 KB, i dati 1–7 
 - Riusa `.go` e `#cIso`: seleziona e isola con le ossa senza ricaricare, preservando inquadratura e comportamento della scheda. Ripristina prima un isolamento precedente; esce dalle regioni con piano di taglio tramite `#bAll` se attive. Nessun file anatomico modificato.
 - Desktop ≥900 px e altezza >500 px: campo nella colonna destra, 12 px sopra il pannello Strutture, con margine e larghezza misurati dal pannello; segue le sue variazioni di altezza (ResizeObserver), senza sovrapporsi alla bussola. Desktop bassi: posizione originale in alto; mobile/tablet: sotto il titolo, a sinistra della bussola, espanso durante la ricerca. Risultati dimensionati con `visualViewport`; tastiera: frecce/Invio/Escape; nomi, categorie, accenti e alcuni sinonimi.
 - Verifica locale: `node strumenti/server.mjs`, aprire ciascuna tavola (anche `#dito`), cercare e selezionare due strutture successive, provare Ripristina vista, nessun risultato, tastiera e dimensioni 360/390/768/1200 px. Serve un browser con WebGL per la verifica completa.
+
+## Pubblicazione delle bozze
+Anca e Caviglia sono in lavorazione: leggere README.md. Il build pubblico le esclude fisicamente; solo Vercel Preview le include. Non disattivare la protezione delle Preview.

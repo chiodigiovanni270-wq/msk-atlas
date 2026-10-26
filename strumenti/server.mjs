@@ -4,6 +4,7 @@
 
    Uso (dalla cartella del progetto):
      node strumenti/server.mjs            → http://localhost:8000/
+     node strumenti/server.mjs dist       → serve la build (node build-site.mjs, anche --preview) invece della cartella del progetto
      PORT=8080 node strumenti/server.mjs
 
    Le pagine mancanti rispondono con 404.html. Nessuna cache (Cache-Control: no-store). Requisiti: Node 22+, nessuna dipendenza. */
@@ -12,7 +13,7 @@ import { createReadStream, statSync } from 'node:fs';
 import { dirname, resolve, extname, relative, isAbsolute, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..'), PORT = +process.env.PORT || 8000;
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', process.argv[2] || '.'), PORT = +process.env.PORT || 8000;
 const TIPI = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
   '.webp': 'image/webp', '.ico': 'image/x-icon', '.xml': 'application/xml', '.txt': 'text/plain; charset=utf-8', '.woff2': 'font/woff2', '.mp4': 'video/mp4' };

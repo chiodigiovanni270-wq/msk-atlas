@@ -9,9 +9,9 @@ Sito statico con modelli anatomici 3D interattivi, a scopo didattico
 
 ```
 index.html                 homepage: modello che ruota con lo scorrimento, presentazione, una card per ogni modello, "Come si usa", crediti
-modelli/<nome>-3d.html     pagina del modello (three.js r128 da CDN); le geometrie stanno in assets/dati/ (l'anca le ha ancora in base64)
+modelli/<nome>-3d.html     pagina del modello (three.js r128 da CDN); le geometrie stanno in assets/dati/ (le bozze anca e caviglia le hanno ancora in base64)
 assets/dati/<nome>/        dati delle mesh di ogni modello (bpdat.<hash>.br, brotli), caricati dalla pagina con fetch
-vercel.json                intestazioni dei dati: Content-Encoding br e cache permanente (nomi con hash)
+vercel.json                build (node build-site.mjs → dist/) e intestazioni dei dati: Content-Encoding br, cache permanente (nomi con hash)
 assets/nav.js              navigazione comune dei modelli: pulsanti fluttuanti "‹" (home) e "i" (disclaimer, crediti ed elenco delle strutture del modello)
 assets/favicon.svg
 assets/anteprime/          immagini 1600×1000 delle card (WebP, sfondo trasparente)
@@ -29,9 +29,16 @@ GUIDA_MODELLI.md           guida tecnica ai modelli, non pubblicata sul sito
 .vercelignore              esclude dal deploy strumenti/, CLAUDE.md, README.md e GUIDA_MODELLI.md
 ```
 
-Nessun framework, nessun build step, nessun cookie o tracciamento.
+Nessun framework, nessuna dipendenza npm, nessun cookie o tracciamento. Build statica senza dipendenze con `node build-site.mjs` (copia il sito in `dist/` ed esclude le bozze dalla produzione).
 Ogni modello resta una pagina indipendente (la pagina più la sua cartella `assets/dati/<nome>/`, servite via HTTP):
 se `assets/nav.js` manca, funziona lo stesso, solo senza pulsanti di navigazione.
+
+La tavola della **caviglia destra** (`modelli/caviglia-3d.html`) comprende la gamba
+distale, il retropiede, il tarso e le basi metatarsali. Ossa, muscoli e tendine
+calcaneale derivano da BodyParts3D 3.0; cartilagini, legamenti, capsule,
+retinacoli, guaine e decorsi vascolo-nervosi sono ricostruzioni didattiche.
+Campo ed esclusioni sono indicati nel pannello informazioni della tavola.
+Generazione e controlli: sezione «Caviglia destra» di `GUIDA_MODELLI.md`.
 
 ## Provare il sito in locale
 
@@ -117,7 +124,7 @@ Con "riduci movimento" o risparmio dati la pagina mostra solo il primo fotogramm
 ## Pubblicazione
 
 Hosting su Vercel collegato al repository GitHub: ogni push su `main` pubblica il sito.
-Vercel serve i file così come sono; `vercel.json` aggiunge solo le intestazioni dei dati dei modelli (`assets/dati/**.br`:
+Vercel esegue `node build-site.mjs` e pubblica `dist/` (`buildCommand` e `outputDirectory` in `vercel.json`); `vercel.json` aggiunge le intestazioni dei dati dei modelli (`assets/dati/**.br`:
 `Content-Encoding: br`, `Content-Type: application/octet-stream`, `Cache-Control: public, max-age=31536000, immutable`).
 
 ## Crediti
@@ -134,3 +141,11 @@ prima del 2025, e non è accertato da quale release derivino ginocchio e polso (
 Distribuire con ShareAlike soddisfa comunque entrambe le licenze. Da rivedere se DBCLS conferma la sola CC BY 4.0.
 
 Mitsuhashi N et al. BodyParts3D: 3D structure database for anatomical concepts. Nucleic Acids Res 2009.
+
+## Modelli in lavorazione
+
+Anca e Caviglia sono visibili in home come «In lavorazione · Prossimamente».
+`node build-site.mjs` genera `dist/` per il pubblico: esclude fisicamente le due pagine, i risultati di ricerca e le voci della sitemap.
+`node build-site.mjs --preview` genera localmente la versione completa. Per verificarla: `node strumenti/server.mjs dist` (serve `dist/` con le intestazioni dei dati dei modelli).
+Su Vercel solo l’ambiente Preview include i modelli in lavorazione; mantenere attiva Vercel Authentication sulle anteprime. Il ramo `anteprima-modelli` serve per lavorare e vedere i modelli con il proprio account Vercel.
+Per aggiornare l’anteprima, inviare le modifiche al ramo `anteprima-modelli`; per aggiornare il sito pubblico, a `main`. Per pubblicare un modello completato, rimuovere il suo percorso da `drafts` in `build-site.mjs`. I file anatomici restano sempre nel repository.

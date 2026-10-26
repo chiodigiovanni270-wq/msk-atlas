@@ -164,6 +164,8 @@ h1 span{color:var(--accent)}
 /* numero di modelli, calcolato dal CSS: si aggiorna da solo aggiungendo card */
 .grid::after{content:counter(tav) " modelli";position:absolute;top:calc(clamp(40px,6vw,72px) + 26px);right:var(--pad);display:flex;align-items:center;height:36px;padding:0 16px;border-radius:999px;
   border:1px solid var(--glass-edge);background:var(--glass-bg);box-shadow:inset 0 1px 0 rgba(255,255,255,.28);font-size:13px;font-weight:600;color:var(--ink-2)}
+.grid[data-summary]::after{content:attr(data-summary)}
+.card[data-state="coming-soon"] .meta{color:var(--accent)}
 .grid:has(> .card:only-child)::after{content:"1 modello"}
 @media (min-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}}
 
@@ -501,6 +503,21 @@ footer{border-top:1px solid var(--line);padding:48px 0 26px;background:var(--bg-
         </div>
       </li>
       <!-- /CARD MODELLO -->
+
+      <!-- CARD MODELLO -->
+      <li class="card" data-strutture="145">
+        <figure class="card-media">
+          <img src="assets/anteprime/caviglia-3d.webp" width="1600" height="1000" loading="lazy"
+               alt="Anteprima del modello 3D della caviglia destra in vista anterolaterale">
+        </figure>
+        <span class="chip card-num glass"></span>
+        <span class="chip card-region glass">Arto inferiore</span>
+        <div class="card-body glass">
+          <h3><a class="card-link" href="modelli/caviglia-3d.html">Caviglia</a><span class="go" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></span></h3>
+          <p class="meta"></p>
+        </div>
+      </li>
+      <!-- /CARD MODELLO -->
     </ul>
   </section>
 
@@ -634,12 +651,13 @@ footer{border-top:1px solid var(--line);padding:48px 0 26px;background:var(--bg-
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
   /* numero di tavole = numero di card */
-  var n = document.querySelectorAll('.grid > .card').length;
+  var n = document.querySelectorAll('.grid > .card:not([data-state="coming-soon"])').length;
   document.querySelectorAll('[data-count-models]').forEach(function(el){ el.textContent = n; });
 
   /* strutture con scheda: riga di ogni card e somma di data-strutture */
   var ns = 0;
   document.querySelectorAll('.grid > .card').forEach(function(c){
+    if (c.dataset.state === 'coming-soon') return;
     var k = +c.dataset.strutture || 0, m = c.querySelector('.meta');
     ns += k;
     if (k && m) m.textContent = k + ' strutture';

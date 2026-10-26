@@ -32,6 +32,7 @@ const PAGINE = {
   'polso-dito-3d': { titolo: 'Polso e dito', img: 'polso-dito-3d' },
   'anca-3d': { titolo: 'Anca', img: 'anca-3d' },
   'ginocchio-3d': { titolo: 'Ginocchio', img: 'ginocchio-3d' },
+  'caviglia-3d': { titolo: 'Caviglia', img: 'caviglia-3d' },
 };
 
 const richieste = process.argv.slice(2);
