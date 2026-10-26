@@ -1,5 +1,0 @@
-{
-  "name": "msk-atlas",
-  "private": true,
-  "scripts": { "vercel-build": "node build-site.mjs" }
-}
