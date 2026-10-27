@@ -427,7 +427,7 @@
       },
       "info": {
         "it": "Sindrome da attrito sul condilo femorale laterale nei corridori.",
-        "en": "Friction syndrome over the lateral femoral condyle in runners."
+        "en": "Iliotibial band friction syndrome over the lateral femoral condyle in runners."
       },
       "o": {
         "it": "Ispessimento laterale della fascia lata; riceve prossimalmente il tensore della fascia lata e le fibre superficiali del grande gluteo.",
@@ -1138,8 +1138,8 @@
         "en": "Deep fibular (peroneal) nerve"
       },
       "info": {
-        "it": "Attraversa il setto intermuscolare anteriore, passa profondo all’estensore lungo delle dita e scende sulla membrana interossea, lateralmente all’arteria tibiale anteriore, tra tibiale anteriore ed estensore lungo; innerva i muscoli estensori.",
-        "en": "Pierces the anterior intermuscular septum, passes deep to the extensor digitorum longus and descends on the interosseous membrane, lateral to the anterior tibial artery, between the tibialis anterior and the extensor longus muscles; it supplies the extensor muscles."
+        "it": "Attraversa il setto intermuscolare anteriore, passa profondo all’estensore lungo delle dita e scende sulla membrana interossea, lateralmente all’arteria tibiale anteriore, tra tibiale anteriore ed estensore lungo delle dita (più in basso, estensore lungo dell’alluce); innerva i muscoli estensori.",
+        "en": "Pierces the anterior intermuscular septum, passes deep to the extensor digitorum longus and descends on the interosseous membrane, lateral to the anterior tibial artery, between the tibialis anterior and the extensor digitorum longus (further down, the extensor hallucis longus); it supplies the extensor muscles."
       }
     },
     "nsaf": {
@@ -1245,7 +1245,7 @@
     "hoffa": {
       "name": {
         "it": "Corpo adiposo di Hoffa",
-        "en": "Hoffa fat pad"
+        "en": "Infrapatellar (Hoffa) fat pad"
       },
       "info": {
         "it": "Intracapsulare ma extrasinoviale, posteriore al tendine rotuleo. Sede di impingement, edema e fibrosi post-chirurgica.",
@@ -1337,12 +1337,12 @@
       "nota": "TA2: anserine bursa; ho usato la forma clinica più comune."
     },
     {
-      "termine": "Corpo adiposo di Hoffa → Hoffa fat pad",
-      "nota": "TA2: infrapatellar fat pad; in RM USA si dicono entrambi."
+      "termine": "Corpo adiposo di Hoffa → Infrapatellar (Hoffa) fat pad",
+      "nota": "TA2: infrapatellar fat pad; nel nome entrambe le forme, nelle note «Hoffa fat pad»."
     },
     {
       "termine": "Tratto ileotibiale → iliotibial tract",
-      "nota": "TA2; in clinica anche «iliotibial band» (ITB). Sindrome = «IT band friction syndrome»: nella nota ho scritto «friction syndrome»."
+      "nota": "TA2; in clinica anche «iliotibial band» (ITB). Nella nota: «Iliotibial band friction syndrome»."
     },
     {
       "termine": "Eponimi senza genitivo (Gerdy tubercle, Hoffa fat pad, Baker cyst, Segond fracture)",
@@ -1351,10 +1351,6 @@
     {
       "termine": "Inserzione a «tuberosità ischiatica (impronta supero-laterale)» → superolateral facet",
       "nota": "In inglese per le impronte sulla tuberosità si usa «facet»."
-    },
-    {
-      "termine": "Estensore lungo / tibiale anteriore (nervo peroneo profondo) → «extensor longus muscles»",
-      "nota": "Nella nota del peroneo profondo «tra tibiale anteriore ed estensore lungo» è reso con «between the tibialis anterior and the extensor longus muscles» per non scegliere tra EDL ed EHL: l’italiano è ambiguo."
     }
   ]
 }
