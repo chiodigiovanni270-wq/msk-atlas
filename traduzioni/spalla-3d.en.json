@@ -2,1136 +2,1189 @@
   "meta": {
     "title": {
       "it": "Spalla 3D interattiva: cuffia e legamenti | MSK Atlas",
-      "en": ""
+      "en": "Interactive 3D shoulder: rotator cuff, ligaments | MSK Atlas"
     },
     "strutture-bp3d": {
       "it": "Ossa (scapola, clavicola, omero, coste I–V, sterno), cartilagini costali, cuffia dei rotatori, deltoide, grande rotondo, muscoli del torace e del dorso, muscoli del braccio e vasi succlavi.",
-      "en": ""
+      "en": "Bones (scapula, clavicle, humerus, ribs 1–5, sternum), costal cartilages, rotator cuff, deltoid, teres major, chest and back muscles, arm muscles and subclavian vessels."
     },
     "strutture-modellate": {
       "it": "Cartilagine della testa omerale e della glenoide, labbro glenoideo, capsula articolare e legamenti (coracoclavicolari, coracoacromiale, acromioclavicolare, sternoclavicolare, coraco-omerale, gleno-omerali, trasverso dell’omero), borsa subacromion-deltoidea e tratto intra-articolare del tendine del capo lungo del bicipite: ricostruiti sulle ossa reali, con inserzioni e decorso verificati rispetto alle altre strutture.",
-      "en": ""
+      "en": "Cartilage of the humeral head and glenoid, glenoid labrum, joint capsule and ligaments (coracoclavicular, coracoacromial, acromioclavicular, sternoclavicular, coracohumeral, glenohumeral, transverse humeral), subacromial-subdeltoid bursa and intra-articular segment of the long head of biceps tendon: reconstructed on the real bones, with attachments and course checked against the other structures."
     },
     "description": {
       "it": "Spalla 3D interattiva: ossa, cuffia dei rotatori, legamenti, vasi e nervi selezionabili, con note clinico-radiologiche. Materiale didattico.",
-      "en": ""
+      "en": "Interactive 3D shoulder: selectable bones, rotator cuff, ligaments, vessels and nerves, with clinical and radiological notes. Educational material."
     },
     "image_alt": {
       "it": "Modello 3D della spalla destra — MSK Atlas",
-      "en": ""
+      "en": "3D model of the right shoulder — MSK Atlas"
     }
   },
   "strutture": {
     "scapola": {
       "name": {
         "it": "Scapola",
-        "en": ""
+        "en": "Scapula"
       },
       "info": {
         "it": "Osso piatto triangolare con spina, acromion e processo coracoideo. La cavità glenoidea, piccola e poco profonda, accoglie la testa omerale; il tubercolo sopraglenoideo e il sottoglenoideo danno origine al capo lungo di bicipite e tricipite. L’incisura soprascapolare, chiusa dal legamento trasverso superiore, lascia passare il nervo soprascapolare. In radiografia la proiezione \"Y\" e la outlet view mostrano la forma dell’acromion (tipi di Bigliani: piatto, curvo, uncinato).",
-        "en": ""
+        "en": "Flat triangular bone with spine, acromion and coracoid process. The glenoid cavity, small and shallow, receives the humeral head; the supraglenoid and infraglenoid tubercles give origin to the long heads of biceps and triceps. The suprascapular notch, closed by the superior transverse scapular ligament, transmits the suprascapular nerve. On radiographs, the \"Y\" view and the outlet view show the shape of the acromion (Bigliani types: flat, curved, hooked)."
       }
     },
     "clavicola": {
       "name": {
         "it": "Clavicola",
-        "en": ""
+        "en": "Clavicle"
       },
       "info": {
         "it": "Osso a S che collega lo scheletro assile alla scapola (articolazioni sternoclavicolare e acromioclavicolare). Il terzo medio è la sede più frequente di frattura; il tubercolo conoide e la linea trapezoide, sul terzo laterale, danno inserzione ai legamenti coracoclavicolari.",
-        "en": ""
+        "en": "S-shaped bone connecting the axial skeleton to the scapula (sternoclavicular and acromioclavicular joints). The middle third is the most common fracture site; the conoid tubercle and the trapezoid line, on the lateral third, give attachment to the coracoclavicular ligaments."
       }
     },
     "omero": {
       "name": {
         "it": "Omero (estremità prossimale)",
-        "en": ""
+        "en": "Humerus (proximal end)"
       },
       "info": {
         "it": "Testa emisferica rivolta in alto, medialmente e indietro (retroversione di circa 30°), separata dai tubercoli dal collo anatomico. Tubercolo maggiore (inserzioni di sovraspinato, sottospinato e piccolo rotondo) e minore (sottoscapolare) delimitano il solco intertubercolare del capo lungo del bicipite. Il collo chirurgico, sotto i tubercoli, è la sede tipica delle fratture; il nervo ascellare vi passa a contatto.",
-        "en": ""
+        "en": "Hemispherical head facing upward, medially and backward (retroversion of about 30°), separated from the tubercles by the anatomical neck. The greater tubercle (insertions of supraspinatus, infraspinatus and teres minor) and the lesser tubercle (subscapularis) bound the intertubercular groove for the long head of biceps. The surgical neck, below the tubercles, is the typical fracture site; the axillary nerve runs in contact with it."
       }
     },
     "coste": {
       "name": {
         "it": "Coste I–V",
-        "en": ""
+        "en": "Ribs 1–5"
       },
       "info": {
         "it": "Parte alta della gabbia toracica, sulla quale scorre la scapola. La prima costa, corta e piatta, è attraversata dai solchi dell’arteria e della vena succlavie; tra i due solchi si inserisce lo scaleno anteriore, e il plesso brachiale passa dietro l’arteria. I muscoli dentato anteriore e piccolo pettorale si inseriscono sulle coste.",
-        "en": ""
+        "en": "Upper part of the rib cage, over which the scapula glides. The first rib, short and flat, is crossed by the grooves for the subclavian artery and vein; the anterior scalene inserts between the two grooves, and the brachial plexus passes behind the artery. The serratus anterior and pectoralis minor attach to the ribs."
       }
     },
     "sterno": {
       "name": {
         "it": "Sterno (manubrio e corpo)",
-        "en": ""
+        "en": "Sternum (manubrium and body)"
       },
       "info": {
         "it": "Il manubrio, con l’incisura giugulare e le incisure claveari, articola con le clavicole (articolazione sternoclavicolare) e con la prima cartilagine costale; l’angolo sternale lo separa dal corpo, a livello della seconda cartilagine costale.",
-        "en": ""
+        "en": "The manubrium, with the jugular notch and the clavicular notches, articulates with the clavicles (sternoclavicular joint) and with the first costal cartilage; the sternal angle separates it from the body, at the level of the second costal cartilage."
       }
     },
     "cart_cost": {
       "name": {
         "it": "Cartilagini costali I–V",
-        "en": ""
+        "en": "Costal cartilages 1–5"
       },
       "info": {
         "it": "Prolungano le coste verso lo sterno. La prima si unisce direttamente al manubrio (sincondrosi); le altre formano articolazioni sternocostali sinoviali (dalla seconda alla settima).",
-        "en": ""
+        "en": "They extend the ribs toward the sternum. The first joins the manubrium directly (synchondrosis); the others form synovial sternocostal joints (from the second to the seventh)."
       }
     },
     "cart_omero": {
       "name": {
         "it": "Cartilagine della testa omerale",
-        "en": ""
+        "en": "Cartilage of the humeral head"
       },
       "info": {
         "it": "Riveste la testa, più spessa al centro che ai margini, e termina al collo anatomico. In artro-RM si valutano spessore e continuità. Dopo una lussazione anteriore può associarsi la lesione di Hill-Sachs, impronta ossea (con cartilagine) della parte posterosuperiore della testa contro il margine anteriore della glenoide.",
-        "en": ""
+        "en": "Covers the head, thicker centrally than at the margins, and ends at the anatomical neck. MR arthrography assesses thickness and continuity. After an anterior dislocation a Hill-Sachs lesion may occur: an osseous (and chondral) impaction of the posterosuperior head against the anterior glenoid rim."
       }
     },
     "cart_glen": {
       "name": {
         "it": "Cartilagine glenoidea",
-        "en": ""
+        "en": "Glenoid cartilage"
       },
       "info": {
         "it": "Riveste la cavità glenoidea; al contrario della testa è più sottile al centro e più spessa in periferia. Il labbro la circonda. Nell’instabilità anteriore ripetuta la glenoide può perdere osso (Bankart osseo) e assumere la forma di una pera rovesciata.",
-        "en": ""
+        "en": "Covers the glenoid cavity; unlike the head, it is thinner centrally and thicker peripherally. The labrum surrounds it. In recurrent anterior instability the glenoid may lose bone (bony Bankart) and take on an inverted-pear shape."
       }
     },
     "labbro": {
       "name": {
         "it": "Labbro glenoideo",
-        "en": ""
+        "en": "Glenoid labrum"
       },
       "info": {
         "it": "Anello di fibrocartilagine a sezione triangolare che circonda il margine della glenoide e ne aumenta profondità e superficie. In alto si continua con il tendine del capo lungo del bicipite, in basso e in avanti con il legamento gleno-omerale inferiore. In artro-RM si cercano lesioni di Bankart (antero-inferiore, dopo lussazione anteriore), SLAP (superiore) e lesioni ossee associate.",
-        "en": ""
+        "en": "Ring of fibrocartilage, triangular in cross-section, surrounding the glenoid rim and increasing its depth and surface. Superiorly it is continuous with the long head of biceps tendon, anteroinferiorly with the inferior glenohumeral ligament. MR arthrography looks for Bankart lesions (anteroinferior, after anterior dislocation), SLAP lesions (superior) and associated bone lesions."
       },
       "o": {
         "it": "Margine della cavità glenoidea (si fonde con la cartilagine e con il periostio del collo della scapola).",
-        "en": ""
+        "en": "Rim of the glenoid cavity (blends with the cartilage and with the periosteum of the scapular neck)."
       },
       "ins": {
         "it": "Anello chiuso sul margine glenoideo; in alto accoglie il tendine del capo lungo del bicipite, in basso il legamento gleno-omerale inferiore.",
-        "en": ""
+        "en": "Closed ring on the glenoid rim; superiorly it receives the long head of biceps tendon, inferiorly the inferior glenohumeral ligament."
       },
       "fn": {
         "it": "Approfondisce la cavità glenoidea (stabilità concavità-compressione) e fa da ancoraggio ai legamenti gleno-omerali.",
-        "en": ""
+        "en": "Deepens the glenoid cavity (concavity-compression stability) and anchors the glenohumeral ligaments."
       }
     },
     "caps": {
       "name": {
         "it": "Capsula articolare",
-        "en": ""
+        "en": "Joint capsule"
       },
       "info": {
         "it": "Manicotto sottile e lasso che dalla glenoide e dal labbro raggiunge il collo anatomico dell’omero; inferiormente forma il recesso ascellare, che si distende in abduzione. È rinforzata dai legamenti gleno-omerali e dal tendine della cuffia, che vi aderisce. In artro-RM la distensione con mezzo di contrasto o le pieghe del recesso ascellare ispessite sono segno di capsulite adesiva.",
-        "en": ""
+        "en": "Thin, lax sleeve extending from the glenoid and labrum to the anatomical neck of the humerus; inferiorly it forms the axillary recess, which unfolds in abduction. It is reinforced by the glenohumeral ligaments and by the rotator cuff tendons, which adhere to it. On MR arthrography, distension with contrast medium or thickened folds of the axillary recess are signs of adhesive capsulitis."
       },
       "o": {
         "it": "Margine della glenoide e labbro glenoideo (e base del processo coracoideo per il capo lungo del bicipite).",
-        "en": ""
+        "en": "Glenoid rim and glenoid labrum (and base of the coracoid process for the long head of biceps)."
       },
       "ins": {
         "it": "Collo anatomico dell’omero; inferiormente scende fino al collo chirurgico (recesso ascellare).",
-        "en": ""
+        "en": "Anatomical neck of the humerus; inferiorly it descends to the surgical neck (axillary recess)."
       },
       "fn": {
         "it": "Contiene la sinovia e il liquido articolare, limita le escursioni estreme (in rotazione esterna si tende anteriormente) e collabora alla stabilità statica.",
-        "en": ""
+        "en": "Contains the synovium and joint fluid, limits extreme ranges of motion (it tightens anteriorly in external rotation) and contributes to static stability."
       }
     },
     "borsa_sad": {
       "name": {
         "it": "Borsa subacromion-deltoidea",
-        "en": ""
+        "en": "Subacromial-subdeltoid bursa"
       },
       "info": {
         "it": "Borsa sinoviale tra la cuffia dei rotatori (sovraspinato e infraspinato) sotto e acromion, legamento coracoacromiale e deltoide sopra; normalmente virtuale, con pareti sottili (meno di 2 mm). Permette lo scorrimento della cuffia sotto l’arco coracoacromiale. In ecografia e RM la distensione liquida (borsite) accompagna l’impingement subacromiale; liquido nella borsa con lesione a tutto spessore del sovraspinato indica la comunicazione con l’articolazione.",
-        "en": ""
+        "en": "Synovial bursa between the rotator cuff (supraspinatus and infraspinatus) below and the acromion, coracoacromial ligament and deltoid above; normally a potential space with thin walls (less than 2 mm). It allows the cuff to glide under the coracoacromial arch. On ultrasound and MRI, fluid distension (bursitis) accompanies subacromial impingement; fluid in the bursa with a full-thickness supraspinatus tear indicates communication with the joint."
       }
     },
     "cc_conoide": {
       "name": {
         "it": "Legamento conoide",
-        "en": ""
+        "en": "Conoid ligament"
       },
       "info": {
         "it": "Componente mediale e posteriore del legamento coracoclavicolare, a forma di cono con apice sul coracoide. Si rompe nelle lussazioni acromioclavicolari di grado III–V (classificazione di Rockwood): l’aumento della distanza coracoclavicolare in radiografia da carico indica la lesione.",
-        "en": ""
+        "en": "Medial and posterior component of the coracoclavicular ligament, cone-shaped with its apex on the coracoid. It tears in grade III–V acromioclavicular dislocations (Rockwood classification): an increased coracoclavicular distance on weighted radiographs indicates the injury."
       },
       "o": {
         "it": "Ginocchio (parte posteromediale) della base del processo coracoideo.",
-        "en": ""
+        "en": "Bend (posteromedial part) of the base of the coracoid process."
       },
       "ins": {
         "it": "Tubercolo conoide della clavicola, sulla faccia inferiore del terzo laterale.",
-        "en": ""
+        "en": "Conoid tubercle of the clavicle, on the inferior surface of the lateral third."
       },
       "fn": {
         "it": "Sospende la scapola alla clavicola; limita la traslazione anteriore e superiore della clavicola (stabilizzatore verticale).",
-        "en": ""
+        "en": "Suspends the scapula from the clavicle; limits anterior and superior translation of the clavicle (vertical stabilizer)."
       }
     },
     "cc_trapezoide": {
       "name": {
         "it": "Legamento trapezoide",
-        "en": ""
+        "en": "Trapezoid ligament"
       },
       "info": {
         "it": "Componente laterale e anteriore del legamento coracoclavicolare, lamina quadrangolare quasi orizzontale. Lavora con il conoide: insieme sono gli stabilizzatori verticali dell’articolazione acromioclavicolare.",
-        "en": ""
+        "en": "Lateral and anterior component of the coracoclavicular ligament, a nearly horizontal quadrilateral sheet. It works with the conoid: together they are the vertical stabilizers of the acromioclavicular joint."
       },
       "o": {
         "it": "Faccia superiore del processo coracoideo.",
-        "en": ""
+        "en": "Superior surface of the coracoid process."
       },
       "ins": {
         "it": "Linea trapezoide, sulla faccia inferiore del terzo laterale della clavicola.",
-        "en": ""
+        "en": "Trapezoid line, on the inferior surface of the lateral third of the clavicle."
       },
       "fn": {
         "it": "Limita la compressione dell’articolazione acromioclavicolare e la traslazione verticale della clavicola.",
-        "en": ""
+        "en": "Limits compression of the acromioclavicular joint and vertical translation of the clavicle."
       }
     },
     "cal": {
       "name": {
         "it": "Legamento coracoacromiale",
-        "en": ""
+        "en": "Coracoacromial ligament"
       },
       "info": {
         "it": "Banda triangolare che chiude l’arco coracoacromiale, il “tetto” dello spazio sottoacromiale sopra la cuffia dei rotatori. Nel conflitto subacromiale si ispessisce e può essere sezionato nella decompressione.",
-        "en": ""
+        "en": "Triangular band that closes the coracoacromial arch, the “roof” of the subacromial space above the rotator cuff. In subacromial impingement it thickens and may be released during decompression."
       },
       "o": {
         "it": "Margine laterale del processo coracoideo.",
-        "en": ""
+        "en": "Lateral border of the coracoid process."
       },
       "ins": {
         "it": "Apice e margine anteriore dell’acromion.",
-        "en": ""
+        "en": "Tip and anterior border of the acromion."
       },
       "fn": {
         "it": "Protegge la testa omerale dall’alto e limita la sua migrazione superiore.",
-        "en": ""
+        "en": "Protects the humeral head from above and limits its superior migration."
       }
     },
     "ac_leg": {
       "name": {
         "it": "Legamento acromioclavicolare",
-        "en": ""
+        "en": "Acromioclavicular ligament"
       },
       "info": {
         "it": "Ispessimento della capsula dell’articolazione acromioclavicolare, più robusto in alto, dove si fonde con le fibre di trapezio e deltoide. Stabilizza il piano orizzontale della clavicola; in caso di lesione di grado I–II i coracoclavicolari restano integri.",
-        "en": ""
+        "en": "Thickening of the acromioclavicular joint capsule, strongest superiorly, where it blends with fibers of the trapezius and deltoid. It stabilizes the clavicle in the horizontal plane; in grade I–II injuries the coracoclavicular ligaments remain intact."
       },
       "o": {
         "it": "Estremo laterale della clavicola.",
-        "en": ""
+        "en": "Lateral end of the clavicle."
       },
       "ins": {
         "it": "Margine mediale dell’acromion.",
-        "en": ""
+        "en": "Medial border of the acromion."
       },
       "fn": {
         "it": "Stabilizzatore orizzontale (antero-posteriore) dell’articolazione acromioclavicolare.",
-        "en": ""
+        "en": "Horizontal (anteroposterior) stabilizer of the acromioclavicular joint."
       }
     },
     "sc_leg": {
       "name": {
         "it": "Legamento sternoclavicolare anteriore",
-        "en": ""
+        "en": "Anterior sternoclavicular ligament"
       },
       "info": {
         "it": "Rinforza la capsula dell’articolazione sternoclavicolare, unico vero punto di appoggio del cingolo scapolare sullo scheletro assile. La lussazione posteriore, più rara, può comprimere trachea e vasi del mediastino.",
-        "en": ""
+        "en": "Reinforces the capsule of the sternoclavicular joint, the only true articulation of the shoulder girdle with the axial skeleton. Posterior dislocation, less common, can compress the trachea and mediastinal vessels."
       },
       "o": {
         "it": "Estremo mediale della clavicola (faccia anteriore).",
-        "en": ""
+        "en": "Medial end of the clavicle (anterior surface)."
       },
       "ins": {
         "it": "Faccia anteriore del manubrio dello sterno.",
-        "en": ""
+        "en": "Anterior surface of the manubrium of the sternum."
       },
       "fn": {
         "it": "Impedisce la traslazione anteriore dell’estremo mediale della clavicola e ne limita l’elevazione.",
-        "en": ""
+        "en": "Prevents anterior translation of the medial end of the clavicle and limits its elevation."
       }
     },
     "coraco_om": {
       "name": {
         "it": "Legamento coraco-omerale",
-        "en": ""
+        "en": "Coracohumeral ligament"
       },
       "info": {
         "it": "Banda fibrosa sopra la testa omerale, tra tubercolo minore e maggiore, che copre l’intervallo dei rotatori con il gleno-omerale superiore. Il suo ispessimento è tipico della capsulite adesiva (segno in artro-RM nell’intervallo dei rotatori).",
-        "en": ""
+        "en": "Fibrous band above the humeral head, between the lesser and greater tubercles, covering the rotator interval together with the superior glenohumeral ligament. Its thickening is typical of adhesive capsulitis (an MR arthrography sign in the rotator interval)."
       },
       "o": {
         "it": "Base laterale del processo coracoideo.",
-        "en": ""
+        "en": "Lateral base of the coracoid process."
       },
       "ins": {
         "it": "Tubercoli minore e maggiore dell’omero, sopra il solco intertubercolare.",
-        "en": ""
+        "en": "Lesser and greater tubercles of the humerus, above the intertubercular groove."
       },
       "fn": {
         "it": "Sostiene la testa omerale contro la gravità e limita la rotazione esterna con il braccio addotto.",
-        "en": ""
+        "en": "Supports the humeral head against gravity and limits external rotation with the arm adducted."
       }
     },
     "sghl": {
       "name": {
         "it": "Legamento gleno-omerale superiore",
-        "en": ""
+        "en": "Superior glenohumeral ligament"
       },
       "info": {
         "it": "Sottile, nell’intervallo dei rotatori, davanti al tendine del capo lungo del bicipite. Insieme al coraco-omerale limita la traslazione inferiore con il braccio addotto.",
-        "en": ""
+        "en": "Thin, in the rotator interval, in front of the long head of biceps tendon. Together with the coracohumeral ligament it limits inferior translation with the arm adducted."
       },
       "o": {
         "it": "Labbro glenoideo antero-superiore (tubercolo sopraglenoideo, ore 1).",
-        "en": ""
+        "en": "Anterosuperior glenoid labrum (supraglenoid tubercle, 1 o’clock)."
       },
       "ins": {
         "it": "Poco sopra il tubercolo minore dell’omero.",
-        "en": ""
+        "en": "Just above the lesser tubercle of the humerus."
       },
       "fn": {
         "it": "Stabilizzatore del braccio addotto: limita traslazione inferiore e rotazione esterna.",
-        "en": ""
+        "en": "Stabilizer of the adducted arm: limits inferior translation and external rotation."
       }
     },
     "mghl": {
       "name": {
         "it": "Legamento gleno-omerale medio",
-        "en": ""
+        "en": "Middle glenohumeral ligament"
       },
       "info": {
         "it": "Di spessore molto variabile (può mancare); sotto il tendine del sottoscapolare. Forma con il superiore e il coraco-omerale il “complesso capsulare anteriore”; il foro di Weitbrecht è l’apertura tra il medio e il superiore.",
-        "en": ""
+        "en": "Highly variable in thickness (it may be absent); it lies under the subscapularis tendon. With the superior glenohumeral and coracohumeral ligaments it forms the “anterior capsular complex”; the foramen of Weitbrecht is the opening between the middle and superior ligaments."
       },
       "o": {
         "it": "Labbro glenoideo anteriore (ore 3).",
-        "en": ""
+        "en": "Anterior glenoid labrum (3 o’clock)."
       },
       "ins": {
         "it": "Collo anatomico, medialmente al tubercolo minore.",
-        "en": ""
+        "en": "Anatomical neck, medial to the lesser tubercle."
       },
       "fn": {
         "it": "Limita la rotazione esterna a 45° di abduzione e la traslazione anteriore.",
-        "en": ""
+        "en": "Limits external rotation at 45° of abduction and anterior translation."
       }
     },
     "ighl_a": {
       "name": {
         "it": "Legamento gleno-omerale inferiore – banda anteriore",
-        "en": ""
+        "en": "Inferior glenohumeral ligament – anterior band"
       },
       "info": {
         "it": "Banda più importante del complesso gleno-omerale inferiore, a forma di amaca con la banda posteriore e il recesso ascellare. È la struttura lesionata nell’instabilità anteriore: distacco dal labbro (lesione di Bankart) o lesione dell’inserzione omerale (HAGL, lesione di Bankart omerale).",
-        "en": ""
+        "en": "The most important band of the inferior glenohumeral complex, forming a hammock with the posterior band and the axillary recess. It is the structure injured in anterior instability: detachment from the labrum (Bankart lesion) or injury at the humeral attachment (HAGL, humeral avulsion of the glenohumeral ligament)."
       },
       "o": {
         "it": "Labbro glenoideo antero-inferiore (ore 4–5).",
-        "en": ""
+        "en": "Anteroinferior glenoid labrum (4–5 o’clock)."
       },
       "ins": {
         "it": "Collo anatomico dell’omero, antero-inferiormente.",
-        "en": ""
+        "en": "Anatomical neck of the humerus, anteroinferiorly."
       },
       "fn": {
         "it": "Stabilizzatore principale contro la lussazione anteriore in abduzione e rotazione esterna (posizione di apprensione).",
-        "en": ""
+        "en": "Main stabilizer against anterior dislocation in abduction and external rotation (apprehension position)."
       }
     },
     "ighl_p": {
       "name": {
         "it": "Legamento gleno-omerale inferiore – banda posteriore",
-        "en": ""
+        "en": "Inferior glenohumeral ligament – posterior band"
       },
       "info": {
         "it": "Banda posteriore dell’amaca inferiore; più sottile dell’anteriore. Nella contrattura in rotazione interna si ispessisce e limita la rotazione interna e la flessione-adduzione.",
-        "en": ""
+        "en": "Posterior band of the inferior hammock; thinner than the anterior band. In internal rotation contracture it thickens and limits internal rotation and flexion-adduction."
       },
       "o": {
         "it": "Labbro glenoideo postero-inferiore (ore 7–8).",
-        "en": ""
+        "en": "Posteroinferior glenoid labrum (7–8 o’clock)."
       },
       "ins": {
         "it": "Collo anatomico dell’omero, postero-inferiormente.",
-        "en": ""
+        "en": "Anatomical neck of the humerus, posteroinferiorly."
       },
       "fn": {
         "it": "Limita la traslazione posteriore e la rotazione interna con il braccio in flessione e abduzione.",
-        "en": ""
+        "en": "Limits posterior translation and internal rotation with the arm flexed and abducted."
       }
     },
     "trasv_om": {
       "name": {
         "it": "Legamento trasverso dell’omero",
-        "en": ""
+        "en": "Transverse humeral ligament"
       },
       "info": {
         "it": "Lamina sottile che chiude in alto il solco intertubercolare e tiene il tendine del capo lungo del bicipite nel solco. Gli studi anatomici recenti la descrivono come fibre superficiali del sottoscapolare, con contributi del sovraspinato e del coraco-omerale, più che come legamento autonomo (Gleason 2006; MacDonald 2007). La lesione di questo tetto, spesso con lesione del sottoscapolare, permette la sublussazione mediale del tendine, visibile in ecografia dinamica e RM.",
-        "en": ""
+        "en": "Thin sheet that roofs the intertubercular groove and holds the long head of biceps tendon in the groove. Recent anatomical studies describe it as superficial fibers of the subscapularis, with contributions from the supraspinatus and coracohumeral ligament, rather than as a separate ligament (Gleason 2006; MacDonald 2007). Injury to this roof, often with a subscapularis tear, allows medial subluxation of the tendon, visible on dynamic ultrasound and MRI."
       },
       "o": {
         "it": "Tubercolo minore dell’omero (labbro mediale del solco), in continuità con le fibre del sottoscapolare.",
-        "en": ""
+        "en": "Lesser tubercle of the humerus (medial lip of the groove), continuous with the subscapularis fibers."
       },
       "ins": {
         "it": "Tubercolo maggiore dell’omero (labbro laterale del solco).",
-        "en": ""
+        "en": "Greater tubercle of the humerus (lateral lip of the groove)."
       },
       "fn": {
         "it": "Mantiene il tendine del capo lungo del bicipite nel solco intertubercolare e ne impedisce la sublussazione mediale.",
-        "en": ""
+        "en": "Keeps the long head of biceps tendon in the intertubercular groove and prevents its medial subluxation."
       }
     },
     "supra": {
       "name": {
         "it": "Sovraspinato",
-        "en": ""
+        "en": "Supraspinatus"
       },
       "info": {
         "it": "Passa sotto l’arco coracoacromiale e l’articolazione acromioclavicolare, nello spazio sottoacromiale: è la sede più frequente di tendinopatia, conflitto e rottura della cuffia, soprattutto nella zona critica a circa 1 cm dall’inserzione. Nervo soprascapolare (C5–C6).",
-        "en": ""
+        "en": "Passes under the coracoacromial arch and the acromioclavicular joint, in the subacromial space: it is the most common site of tendinopathy, impingement and cuff tear, especially in the critical zone about 1 cm from the insertion. Suprascapular nerve (C5–C6)."
       },
       "o": {
         "it": "Fossa sopraspinata della scapola (due terzi mediali) e fascia sopraspinata.",
-        "en": ""
+        "en": "Supraspinous fossa of the scapula (medial two thirds) and supraspinous fascia."
       },
       "ins": {
         "it": "Faccetta superiore del tubercolo maggiore dell’omero, con fibre che si fondono con la capsula.",
-        "en": ""
+        "en": "Superior facet of the greater tubercle of the humerus, with fibers blending into the capsule."
       },
       "fn": {
         "it": "Abduzione del braccio (primi 15°); centra e stabilizza la testa omerale nella glenoide.",
-        "en": ""
+        "en": "Abduction of the arm (first 15°); centers and stabilizes the humeral head in the glenoid."
       }
     },
     "infra": {
       "name": {
         "it": "Sottospinato",
-        "en": ""
+        "en": "Infraspinatus"
       },
       "info": {
         "it": "Copre in parte la capsula posteriore. Nervo soprascapolare (C5–C6), che passa nell’incisura spinoglenoidea: una cisti paralabrale può comprimerlo e causare atrofia isolata del sottospinato.",
-        "en": ""
+        "en": "Partly covers the posterior capsule. Suprascapular nerve (C5–C6), which runs through the spinoglenoid notch: a paralabral cyst can compress it and cause isolated infraspinatus atrophy."
       },
       "o": {
         "it": "Fossa sottospinata (due terzi mediali) e fascia sottospinata.",
-        "en": ""
+        "en": "Infraspinous fossa (medial two thirds) and infraspinous fascia."
       },
       "ins": {
         "it": "Faccetta media del tubercolo maggiore dell’omero.",
-        "en": ""
+        "en": "Middle facet of the greater tubercle of the humerus."
       },
       "fn": {
         "it": "Rotazione esterna del braccio; stabilizzatore posteriore dell’articolazione.",
-        "en": ""
+        "en": "External rotation of the arm; posterior stabilizer of the joint."
       }
     },
     "tmin": {
       "name": {
         "it": "Piccolo rotondo",
-        "en": ""
+        "en": "Teres minor"
       },
       "info": {
         "it": "Delimita in alto lo spazio quadrangolare. Nervo ascellare (C5–C6), che emerge dallo spazio quadrangolare e gira attorno al collo chirurgico dell’omero con l’arteria circonflessa posteriore. L’atrofia isolata si osserva nella sindrome dello spazio quadrangolare.",
-        "en": ""
+        "en": "Forms the upper border of the quadrangular space. Axillary nerve (C5–C6), which emerges from the quadrangular space and winds around the surgical neck of the humerus with the posterior circumflex humeral artery. Isolated atrophy is seen in quadrilateral space syndrome."
       },
       "o": {
         "it": "Due terzi superiori del margine laterale della scapola (faccia dorsale).",
-        "en": ""
+        "en": "Upper two thirds of the lateral border of the scapula (dorsal surface)."
       },
       "ins": {
         "it": "Faccetta inferiore del tubercolo maggiore dell’omero e capsula articolare.",
-        "en": ""
+        "en": "Inferior facet of the greater tubercle of the humerus and joint capsule."
       },
       "fn": {
         "it": "Rotazione esterna; debole adduzione.",
-        "en": ""
+        "en": "External rotation; weak adduction."
       }
     },
     "subs": {
       "name": {
         "it": "Sottoscapolare",
-        "en": ""
+        "en": "Subscapularis"
       },
       "info": {
         "it": "Il più voluminoso della cuffia. Il tendine passa sotto il processo coracoideo e davanti alla capsula; la borsa sottoscapolare comunica con l’articolazione. La lesione è tipica della lussazione anteriore e si associa all’instabilità del capo lungo del bicipite. Nervi sottoscapolari superiore e inferiore (C5–C7).",
-        "en": ""
+        "en": "The largest cuff muscle. Its tendon passes under the coracoid process and in front of the capsule; the subscapular bursa communicates with the joint. Tears are typical of anterior dislocation and are associated with instability of the long head of biceps. Upper and lower subscapular nerves (C5–C7)."
       },
       "o": {
         "it": "Fossa sottoscapolare (faccia costale della scapola).",
-        "en": ""
+        "en": "Subscapular fossa (costal surface of the scapula)."
       },
       "ins": {
         "it": "Tubercolo minore dell’omero e capsula anteriore.",
-        "en": ""
+        "en": "Lesser tubercle of the humerus and anterior capsule."
       },
       "fn": {
         "it": "Rotazione interna; stabilizzatore anteriore dell’articolazione.",
-        "en": ""
+        "en": "Internal rotation; anterior stabilizer of the joint."
       }
     },
     "delt_cl": {
       "name": {
         "it": "Deltoide, parte clavicolare",
-        "en": ""
+        "en": "Deltoid, clavicular part"
       },
       "info": {
         "it": "Fascio anteriore del deltoide. Nervo ascellare (C5–C6), che emerge dallo spazio quadrangolare e gira attorno al collo chirurgico dell’omero con l’arteria circonflessa posteriore. Il solco deltoideo-pettorale, con la vena cefalica, lo separa dal grande pettorale.",
-        "en": ""
+        "en": "Anterior portion of the deltoid. Axillary nerve (C5–C6), which emerges from the quadrangular space and winds around the surgical neck of the humerus with the posterior circumflex humeral artery. The deltopectoral groove, containing the cephalic vein, separates it from the pectoralis major."
       },
       "o": {
         "it": "Terzo laterale del margine anteriore e della faccia superiore della clavicola.",
-        "en": ""
+        "en": "Lateral third of the anterior border and superior surface of the clavicle."
       },
       "ins": {
         "it": "Tuberosità deltoidea dell’omero (tendine comune alle tre parti).",
-        "en": ""
+        "en": "Deltoid tuberosity of the humerus (common tendon of the three parts)."
       },
       "fn": {
         "it": "Flessione, abduzione e rotazione interna del braccio.",
-        "en": ""
+        "en": "Flexion, abduction and internal rotation of the arm."
       }
     },
     "delt_ac": {
       "name": {
         "it": "Deltoide, parte acromiale",
-        "en": ""
+        "en": "Deltoid, acromial part"
       },
       "info": {
         "it": "Fascio medio, multipennato. Sotto di esso la borsa subacromiale-subdeltoidea e la cuffia dei rotatori. Nervo ascellare (C5–C6), che emerge dallo spazio quadrangolare e gira attorno al collo chirurgico dell’omero con l’arteria circonflessa posteriore.",
-        "en": ""
+        "en": "Middle portion, multipennate. Beneath it lie the subacromial-subdeltoid bursa and the rotator cuff. Axillary nerve (C5–C6), which emerges from the quadrangular space and winds around the surgical neck of the humerus with the posterior circumflex humeral artery."
       },
       "o": {
         "it": "Margine laterale e faccia superiore dell’acromion.",
-        "en": ""
+        "en": "Lateral border and superior surface of the acromion."
       },
       "ins": {
         "it": "Tuberosità deltoidea dell’omero.",
-        "en": ""
+        "en": "Deltoid tuberosity of the humerus."
       },
       "fn": {
         "it": "Abduzione del braccio, soprattutto oltre i primi 15°.",
-        "en": ""
+        "en": "Abduction of the arm, especially beyond the first 15°."
       }
     },
     "delt_sp": {
       "name": {
         "it": "Deltoide, parte spinale",
-        "en": ""
+        "en": "Deltoid, spinal part"
       },
       "info": {
         "it": "Fascio posteriore, adiacente al piccolo rotondo. Nervo ascellare (C5–C6), che emerge dallo spazio quadrangolare e gira attorno al collo chirurgico dell’omero con l’arteria circonflessa posteriore.",
-        "en": ""
+        "en": "Posterior portion, adjacent to the teres minor. Axillary nerve (C5–C6), which emerges from the quadrangular space and winds around the surgical neck of the humerus with the posterior circumflex humeral artery."
       },
       "o": {
         "it": "Margine inferiore della spina della scapola.",
-        "en": ""
+        "en": "Inferior border of the spine of the scapula."
       },
       "ins": {
         "it": "Tuberosità deltoidea dell’omero.",
-        "en": ""
+        "en": "Deltoid tuberosity of the humerus."
       },
       "fn": {
         "it": "Estensione, abduzione e rotazione esterna del braccio.",
-        "en": ""
+        "en": "Extension, abduction and external rotation of the arm."
       }
     },
     "tmaj": {
       "name": {
         "it": "Grande rotondo",
-        "en": ""
+        "en": "Teres major"
       },
       "info": {
         "it": "Delimita lo spazio quadrangolare (in alto il piccolo rotondo, lateralmente il collo chirurgico, medialmente il capo lungo del tricipite) e lo spazio triangolare. Nervo sottoscapolare inferiore (C5–C6).",
-        "en": ""
+        "en": "Bounds the quadrangular space (teres minor above, surgical neck laterally, long head of triceps medially) and the triangular space. Lower subscapular nerve (C5–C6)."
       },
       "o": {
         "it": "Angolo inferiore e terzo inferiore del margine laterale della scapola (faccia dorsale).",
-        "en": ""
+        "en": "Inferior angle and lower third of the lateral border of the scapula (dorsal surface)."
       },
       "ins": {
         "it": "Labbro mediale del solco intertubercolare dell’omero.",
-        "en": ""
+        "en": "Medial lip of the intertubercular groove of the humerus."
       },
       "fn": {
         "it": "Adduzione, estensione e rotazione interna del braccio.",
-        "en": ""
+        "en": "Adduction, extension and internal rotation of the arm."
       }
     },
     "pec_cl": {
       "name": {
         "it": "Grande pettorale, parte clavicolare",
-        "en": ""
+        "en": "Pectoralis major, clavicular part"
       },
       "info": {
         "it": "Le tre parti convergono in un tendine a U che si inserisce con torsione: le fibre inferiori si portano più in alto. Nervi pettorali laterale e mediale (C5–T1).",
-        "en": ""
+        "en": "The three parts converge into a U-shaped tendon that inserts with a twist: the lower fibers attach higher. Lateral and medial pectoral nerves (C5–T1)."
       },
       "o": {
         "it": "Metà mediale della clavicola.",
-        "en": ""
+        "en": "Medial half of the clavicle."
       },
       "ins": {
         "it": "Labbro laterale del solco intertubercolare dell’omero.",
-        "en": ""
+        "en": "Lateral lip of the intertubercular groove of the humerus."
       },
       "fn": {
         "it": "Flessione, adduzione e rotazione interna del braccio.",
-        "en": ""
+        "en": "Flexion, adduction and internal rotation of the arm."
       }
     },
     "pec_st": {
       "name": {
         "it": "Grande pettorale, parte sternocostale",
-        "en": ""
+        "en": "Pectoralis major, sternocostal part"
       },
       "info": {
         "it": "La rottura, tipica nel sollevamento pesi, interessa il tendine all’inserzione omerale; l’assenza congenita fa parte della sindrome di Poland. Nervi pettorali laterale e mediale (C5–T1).",
-        "en": ""
+        "en": "Rupture, typical in weightlifting, involves the tendon at its humeral insertion; congenital absence is part of Poland syndrome. Lateral and medial pectoral nerves (C5–T1)."
       },
       "o": {
         "it": "Faccia anteriore dello sterno e prime sei cartilagini costali.",
-        "en": ""
+        "en": "Anterior surface of the sternum and first six costal cartilages."
       },
       "ins": {
         "it": "Labbro laterale del solco intertubercolare dell’omero.",
-        "en": ""
+        "en": "Lateral lip of the intertubercular groove of the humerus."
       },
       "fn": {
         "it": "Adduzione e rotazione interna del braccio; abbassa il braccio sollevato.",
-        "en": ""
+        "en": "Adduction and internal rotation of the arm; lowers the raised arm."
       }
     },
     "pec_ab": {
       "name": {
         "it": "Grande pettorale, parte addominale",
-        "en": ""
+        "en": "Pectoralis major, abdominal part"
       },
       "info": {
         "it": "Parte inferiore del grande pettorale; forma il pilastro anteriore dell’ascella. Nervi pettorali laterale e mediale (C5–T1).",
-        "en": ""
+        "en": "Lower part of the pectoralis major; it forms the anterior axillary fold. Lateral and medial pectoral nerves (C5–T1)."
       },
       "o": {
         "it": "Guaina del muscolo retto dell’addome.",
-        "en": ""
+        "en": "Sheath of the rectus abdominis."
       },
       "ins": {
         "it": "Labbro laterale del solco intertubercolare dell’omero.",
-        "en": ""
+        "en": "Lateral lip of the intertubercular groove of the humerus."
       },
       "fn": {
         "it": "Adduzione e rotazione interna; abbassa il braccio sollevato.",
-        "en": ""
+        "en": "Adduction and internal rotation; lowers the raised arm."
       }
     },
     "pmin": {
       "name": {
         "it": "Piccolo pettorale",
-        "en": ""
+        "en": "Pectoralis minor"
       },
       "info": {
         "it": "Il fascio vascolonervoso ascellare gli passa sotto: la compressione sotto il suo tendine è una causa di sindrome dello stretto toracico. Nervo pettorale mediale (C8–T1).",
-        "en": ""
+        "en": "The axillary neurovascular bundle passes beneath it: compression under its tendon is one cause of thoracic outlet syndrome. Medial pectoral nerve (C8–T1)."
       },
       "o": {
         "it": "Facce esterne delle coste III–V, vicino alle cartilagini.",
-        "en": ""
+        "en": "Outer surfaces of ribs 3–5, near the cartilages."
       },
       "ins": {
         "it": "Processo coracoideo (margine mediale e faccia superiore).",
-        "en": ""
+        "en": "Coracoid process (medial border and superior surface)."
       },
       "fn": {
         "it": "Abbassa e protrae la scapola, inclinandola in avanti.",
-        "en": ""
+        "en": "Depresses and protracts the scapula, tilting it forward."
       }
     },
     "succl": {
       "name": {
         "it": "Succlavio",
-        "en": ""
+        "en": "Subclavius"
       },
       "info": {
         "it": "Piccolo muscolo tra clavicola e prima costa, davanti al fascio neurovascolare. Nervo del succlavio (C5–C6).",
-        "en": ""
+        "en": "Small muscle between the clavicle and the first rib, in front of the neurovascular bundle. Nerve to subclavius (C5–C6)."
       },
       "o": {
         "it": "Faccia superiore della prima costa, alla giunzione con la cartilagine.",
-        "en": ""
+        "en": "Superior surface of the first rib, at its junction with the cartilage."
       },
       "ins": {
         "it": "Solco del succlavio, sulla faccia inferiore del terzo medio della clavicola.",
-        "en": ""
+        "en": "Subclavian groove, on the inferior surface of the middle third of the clavicle."
       },
       "fn": {
         "it": "Abbassa e stabilizza la clavicola nell’articolazione sternoclavicolare.",
-        "en": ""
+        "en": "Depresses and stabilizes the clavicle at the sternoclavicular joint."
       }
     },
     "trap_d": {
       "name": {
         "it": "Trapezio, parte discendente",
-        "en": ""
+        "en": "Trapezius, descending part"
       },
       "info": {
         "it": "Fibre superiori del trapezio, quelle che formano il profilo del collo. Nervo accessorio (XI) e rami cervicali C3–C4; la lesione dell’accessorio (per esempio nelle dissezioni del collo) causa abbassamento della spalla.",
-        "en": ""
+        "en": "Upper fibers of the trapezius, which form the contour of the neck. Accessory nerve (CN XI) and cervical branches C3–C4; injury to the accessory nerve (for example during neck dissection) causes a drooping shoulder."
       },
       "o": {
         "it": "Linea nucale superiore, protuberanza occipitale esterna e legamento nucale.",
-        "en": ""
+        "en": "Superior nuchal line, external occipital protuberance and nuchal ligament."
       },
       "ins": {
         "it": "Terzo laterale della clavicola.",
-        "en": ""
+        "en": "Lateral third of the clavicle."
       },
       "fn": {
         "it": "Eleva la scapola e ne ruota in alto l’angolo laterale.",
-        "en": ""
+        "en": "Elevates the scapula and rotates its lateral angle upward."
       }
     },
     "trap_t": {
       "name": {
         "it": "Trapezio, parte trasversa",
-        "en": ""
+        "en": "Trapezius, transverse part"
       },
       "info": {
         "it": "Fibre medie del trapezio, orizzontali. Nervo accessorio (XI) e rami cervicali C3–C4.",
-        "en": ""
+        "en": "Middle, horizontal fibers of the trapezius. Accessory nerve (CN XI) and cervical branches C3–C4."
       },
       "o": {
         "it": "Processi spinosi da C7 a T3.",
-        "en": ""
+        "en": "Spinous processes from C7 to T3."
       },
       "ins": {
         "it": "Margine mediale dell’acromion e labbro superiore della spina della scapola.",
-        "en": ""
+        "en": "Medial border of the acromion and superior lip of the spine of the scapula."
       },
       "fn": {
         "it": "Adduce (retrae) la scapola.",
-        "en": ""
+        "en": "Adducts (retracts) the scapula."
       }
     },
     "trap_a": {
       "name": {
         "it": "Trapezio, parte ascendente",
-        "en": ""
+        "en": "Trapezius, ascending part"
       },
       "info": {
         "it": "Fibre inferiori del trapezio; il tendine di inserzione scorre su un triangolo liscio alla radice della spina. Nervo accessorio (XI) e rami cervicali C3–C4. Nel modello si vede solo il tratto superiore.",
-        "en": ""
+        "en": "Lower fibers of the trapezius; the insertion tendon glides over a smooth triangle at the root of the spine. Accessory nerve (CN XI) and cervical branches C3–C4. Only the upper segment is visible in the model."
       },
       "o": {
         "it": "Processi spinosi da T4 a T12.",
-        "en": ""
+        "en": "Spinous processes from T4 to T12."
       },
       "ins": {
         "it": "Tubercolo alla radice della spina della scapola.",
-        "en": ""
+        "en": "Tubercle at the root of the spine of the scapula."
       },
       "fn": {
         "it": "Abbassa la scapola e ne ruota in alto l’angolo laterale.",
-        "en": ""
+        "en": "Depresses the scapula and rotates its lateral angle upward."
       }
     },
     "lat": {
       "name": {
         "it": "Gran dorsale",
-        "en": ""
+        "en": "Latissimus dorsi"
       },
       "info": {
         "it": "Il tendine si porta davanti al grande rotondo con una torsione e forma con esso il pilastro posteriore dell’ascella. Nervo toracodorsale (C6–C8). Nella finestra del modello si vede solo la parte superiore.",
-        "en": ""
+        "en": "Its tendon passes in front of the teres major with a twist and forms with it the posterior axillary fold. Thoracodorsal nerve (C6–C8). Only the upper part is visible in the model window."
       },
       "o": {
         "it": "Processi spinosi da T7 a L5, fascia toracolombare, cresta iliaca, ultime 3–4 coste e angolo inferiore della scapola.",
-        "en": ""
+        "en": "Spinous processes from T7 to L5, thoracolumbar fascia, iliac crest, last 3–4 ribs and inferior angle of the scapula."
       },
       "ins": {
         "it": "Fondo del solco intertubercolare dell’omero.",
-        "en": ""
+        "en": "Floor of the intertubercular groove of the humerus."
       },
       "fn": {
         "it": "Estensione, adduzione e rotazione interna del braccio.",
-        "en": ""
+        "en": "Extension, adduction and internal rotation of the arm."
       }
     },
     "romb_mag": {
       "name": {
         "it": "Romboide maggiore",
-        "en": ""
+        "en": "Rhomboid major"
       },
       "info": {
         "it": "Sotto il trapezio, parallelo al romboide minore. Nervo dorsale della scapola (C4–C5).",
-        "en": ""
+        "en": "Beneath the trapezius, parallel to the rhomboid minor. Dorsal scapular nerve (C4–C5)."
       },
       "o": {
         "it": "Processi spinosi da T2 a T5.",
-        "en": ""
+        "en": "Spinous processes from T2 to T5."
       },
       "ins": {
         "it": "Margine mediale della scapola, sotto la spina.",
-        "en": ""
+        "en": "Medial border of the scapula, below the spine."
       },
       "fn": {
         "it": "Adduce la scapola e ne ruota in basso l’angolo laterale.",
-        "en": ""
+        "en": "Adducts the scapula and rotates its lateral angle downward."
       }
     },
     "romb_min": {
       "name": {
         "it": "Romboide minore",
-        "en": ""
+        "en": "Rhomboid minor"
       },
       "info": {
         "it": "Sottile, al di sopra del romboide maggiore. Nervo dorsale della scapola (C4–C5).",
-        "en": ""
+        "en": "Thin, above the rhomboid major. Dorsal scapular nerve (C4–C5)."
       },
       "o": {
         "it": "Legamento nucale e processi spinosi di C7 e T1.",
-        "en": ""
+        "en": "Nuchal ligament and spinous processes of C7 and T1."
       },
       "ins": {
         "it": "Margine mediale della scapola, alla radice della spina.",
-        "en": ""
+        "en": "Medial border of the scapula, at the root of the spine."
       },
       "fn": {
         "it": "Adduce la scapola e ne ruota in basso l’angolo laterale.",
-        "en": ""
+        "en": "Adducts the scapula and rotates its lateral angle downward."
       }
     },
     "elev": {
       "name": {
         "it": "Elevatore della scapola",
-        "en": ""
+        "en": "Levator scapulae"
       },
       "info": {
         "it": "Segue il collo, sotto lo sternocleidomastoideo e il trapezio. Nervo dorsale della scapola e rami cervicali C3–C4.",
-        "en": ""
+        "en": "Follows the neck, beneath the sternocleidomastoid and trapezius. Dorsal scapular nerve and cervical branches C3–C4."
       },
       "o": {
         "it": "Tubercoli posteriori dei processi trasversi di C1–C4.",
-        "en": ""
+        "en": "Posterior tubercles of the transverse processes of C1–C4."
       },
       "ins": {
         "it": "Angolo superiore e margine mediale della scapola, sopra la spina.",
-        "en": ""
+        "en": "Superior angle and medial border of the scapula, above the spine."
       },
       "fn": {
         "it": "Eleva la scapola e ne ruota in basso l’angolo laterale.",
-        "en": ""
+        "en": "Elevates the scapula and rotates its lateral angle downward."
       }
     },
     "dent": {
       "name": {
         "it": "Dentato anteriore",
-        "en": ""
+        "en": "Serratus anterior"
       },
       "info": {
         "it": "Tiene la scapola contro il torace: la paralisi del nervo toracico lungo (C5–C7), per esempio dopo uno svuotamento ascellare, causa la scapola alata. Nel modello si vede solo la parte superiore.",
-        "en": ""
+        "en": "Holds the scapula against the chest wall: palsy of the long thoracic nerve (C5–C7), for example after axillary lymph node dissection, causes scapular winging. Only the upper part is visible in the model."
       },
       "o": {
         "it": "Facce esterne delle prime otto o nove coste, con digitazioni.",
-        "en": ""
+        "en": "Outer surfaces of the first eight or nine ribs, by digitations."
       },
       "ins": {
         "it": "Margine mediale della scapola (faccia costale), con la porzione più robusta all’angolo inferiore.",
-        "en": ""
+        "en": "Medial border of the scapula (costal surface), with the strongest portion at the inferior angle."
       },
       "fn": {
         "it": "Protrae la scapola e ne ruota in alto l’angolo laterale; la fissa alla parete toracica.",
-        "en": ""
+        "en": "Protracts the scapula and rotates its lateral angle upward; holds it against the chest wall."
       }
     },
     "omoi": {
       "name": {
         "it": "Omoioideo (ventre inferiore)",
-        "en": ""
+        "en": "Omohyoid (inferior belly)"
       },
       "info": {
         "it": "Nasce dalla scapola e, con un tendine intermedio sotto lo sternocleidomastoideo, raggiunge l’osso ioide. Delimita in basso il triangolo posteriore del collo (triangolo sopraclaveare). Ansa cervicale.",
-        "en": ""
+        "en": "Arises from the scapula and, through an intermediate tendon beneath the sternocleidomastoid, reaches the hyoid bone. It forms the lower boundary of the posterior triangle of the neck (supraclavicular triangle). Ansa cervicalis."
       },
       "o": {
         "it": "Margine superiore della scapola, vicino all’incisura soprascapolare.",
-        "en": ""
+        "en": "Superior border of the scapula, near the suprascapular notch."
       },
       "ins": {
         "it": "Osso ioide (tramite tendine intermedio e ventre superiore).",
-        "en": ""
+        "en": "Hyoid bone (through the intermediate tendon and superior belly)."
       },
       "fn": {
         "it": "Abbassa e stabilizza l’osso ioide; tende la fascia cervicale media.",
-        "en": ""
+        "en": "Depresses and stabilizes the hyoid bone; tenses the middle layer of the deep cervical fascia."
       }
     },
     "bic_lungo": {
       "name": {
         "it": "Bicipite, capo lungo",
-        "en": ""
+        "en": "Biceps, long head"
       },
       "info": {
         "it": "Il tendine è intra-articolare ma extrasinoviale: passa sopra la testa omerale, esce nel solco intertubercolare sotto il legamento trasverso dell’omero. Tenosinovite, sublussazione e rottura (segno di Popeye) sono frequenti; la lesione del labbro superiore (SLAP) coinvolge l’ancora. Nervo muscolocutaneo (C5–C6).",
-        "en": ""
+        "en": "The tendon is intra-articular but extrasynovial: it passes over the humeral head and exits into the intertubercular groove under the transverse humeral ligament. Tenosynovitis, subluxation and rupture (Popeye sign) are common; a superior labral lesion (SLAP) involves the anchor. Musculocutaneous nerve (C5–C6)."
       },
       "o": {
         "it": "Tubercolo sopraglenoideo della scapola e labbro glenoideo superiore.",
-        "en": ""
+        "en": "Supraglenoid tubercle of the scapula and superior glenoid labrum."
       },
       "ins": {
         "it": "Tuberosità del radio (tendine comune con il capo breve).",
-        "en": ""
+        "en": "Radial tuberosity (common tendon with the short head)."
       },
       "fn": {
         "it": "Flessione del gomito e supinazione dell’avambraccio; debole flessione della spalla; stabilizza la testa omerale.",
-        "en": ""
+        "en": "Elbow flexion and forearm supination; weak shoulder flexion; stabilizes the humeral head."
       }
     },
     "bic_breve": {
       "name": {
         "it": "Bicipite, capo breve",
-        "en": ""
+        "en": "Biceps, short head"
       },
       "info": {
         "it": "Con il coracobrachiale forma il tendine congiunto, che si inserisce sull’apice del processo coracoideo. Nervo muscolocutaneo (C5–C6).",
-        "en": ""
+        "en": "With the coracobrachialis it forms the conjoint tendon, which inserts on the tip of the coracoid process. Musculocutaneous nerve (C5–C6)."
       },
       "o": {
         "it": "Apice del processo coracoideo (tendine comune con il coracobrachiale).",
-        "en": ""
+        "en": "Tip of the coracoid process (common tendon with the coracobrachialis)."
       },
       "ins": {
         "it": "Tuberosità del radio e, tramite il lacerto fibroso, fascia antibrachiale.",
-        "en": ""
+        "en": "Radial tuberosity and, through the bicipital aponeurosis, the antebrachial fascia."
       },
       "fn": {
         "it": "Flessione del gomito e supinazione; flette e adduce la spalla.",
-        "en": ""
+        "en": "Elbow flexion and supination; flexes and adducts the shoulder."
       }
     },
     "coracobr": {
       "name": {
         "it": "Coracobrachiale",
-        "en": ""
+        "en": "Coracobrachialis"
       },
       "info": {
         "it": "Il nervo muscolocutaneo lo attraversa e ne è un repere. L’arteria ascellare gli decorre medialmente. Nervo muscolocutaneo (C5–C7).",
-        "en": ""
+        "en": "The musculocutaneous nerve pierces it and it serves as a landmark for the nerve. The axillary artery runs medial to it. Musculocutaneous nerve (C5–C7)."
       },
       "o": {
         "it": "Apice del processo coracoideo (tendine comune con il capo breve del bicipite).",
-        "en": ""
+        "en": "Tip of the coracoid process (common tendon with the short head of biceps)."
       },
       "ins": {
         "it": "Terzo medio della faccia mediale dell’omero.",
-        "en": ""
+        "en": "Middle third of the medial surface of the humerus."
       },
       "fn": {
         "it": "Flessione e adduzione del braccio.",
-        "en": ""
+        "en": "Flexion and adduction of the arm."
       }
     },
     "tri_lungo": {
       "name": {
         "it": "Tricipite, capo lungo",
-        "en": ""
+        "en": "Triceps, long head"
       },
       "info": {
         "it": "Passa tra piccolo e grande rotondo, dividendo lo spazio quadrangolare (lateralmente) da quello triangolare (medialmente). Nervo radiale (C6–C8).",
-        "en": ""
+        "en": "Passes between the teres minor and teres major, separating the quadrangular space (laterally) from the triangular space (medially). Radial nerve (C6–C8)."
       },
       "o": {
         "it": "Tubercolo sottoglenoideo della scapola.",
-        "en": ""
+        "en": "Infraglenoid tubercle of the scapula."
       },
       "ins": {
         "it": "Olecrano, con il tendine comune dei tre capi.",
-        "en": ""
+        "en": "Olecranon, through the common tendon of the three heads."
       },
       "fn": {
         "it": "Estende il gomito; estende e adduce il braccio.",
-        "en": ""
+        "en": "Extends the elbow; extends and adducts the arm."
       }
     },
     "tri_lat": {
       "name": {
         "it": "Tricipite, capo laterale",
-        "en": ""
+        "en": "Triceps, lateral head"
       },
       "info": {
         "it": "Si origina sopra il solco del nervo radiale, che lo separa dal capo mediale. Nervo radiale (C6–C8).",
-        "en": ""
+        "en": "Arises above the radial groove, which separates it from the medial head. Radial nerve (C6–C8)."
       },
       "o": {
         "it": "Faccia posteriore dell’omero sopra il solco del nervo radiale e setto intermuscolare laterale.",
-        "en": ""
+        "en": "Posterior surface of the humerus above the radial groove and lateral intermuscular septum."
       },
       "ins": {
         "it": "Olecrano, con il tendine comune.",
-        "en": ""
+        "en": "Olecranon, through the common tendon."
       },
       "fn": {
         "it": "Estende il gomito.",
-        "en": ""
+        "en": "Extends the elbow."
       }
     },
     "tri_med": {
       "name": {
         "it": "Tricipite, capo mediale",
-        "en": ""
+        "en": "Triceps, medial head"
       },
       "info": {
         "it": "Profondo, sotto il solco del nervo radiale. Nervo radiale (C6–C8).",
-        "en": ""
+        "en": "Deep, below the radial groove. Radial nerve (C6–C8)."
       },
       "o": {
         "it": "Faccia posteriore dell’omero sotto il solco del nervo radiale e setti intermuscolari.",
-        "en": ""
+        "en": "Posterior surface of the humerus below the radial groove and intermuscular septa."
       },
       "ins": {
         "it": "Olecrano, con il tendine comune.",
-        "en": ""
+        "en": "Olecranon, through the common tendon."
       },
       "fn": {
         "it": "Estende il gomito.",
-        "en": ""
+        "en": "Extends the elbow."
       }
     },
     "a_succ": {
       "name": {
         "it": "Arteria succlavia",
-        "en": ""
+        "en": "Subclavian artery"
       },
       "info": {
         "it": "A destra nasce dal tronco brachiocefalico; passa tra scaleno anteriore e medio, sopra la prima costa, e diventa ascellare al margine laterale della prima costa. Il plesso brachiale le passa dietro e in alto.",
-        "en": ""
+        "en": "On the right it arises from the brachiocephalic trunk; it passes between the anterior and middle scalenes, over the first rib, and becomes the axillary artery at the lateral border of the first rib. The brachial plexus lies behind and above it."
       }
     },
     "v_succ": {
       "name": {
         "it": "Vena succlavia",
-        "en": ""
+        "en": "Subclavian vein"
       },
       "info": {
         "it": "Davanti allo scaleno anteriore e all’arteria, sopra la prima costa; si unisce alla giugulare interna formando la vena brachiocefalica. Sede di accesso venoso centrale; trombosi da sforzo (sindrome di Paget-Schroetter).",
-        "en": ""
+        "en": "In front of the anterior scalene and the artery, over the first rib; it joins the internal jugular vein to form the brachiocephalic vein. A central venous access site; effort thrombosis (Paget-Schroetter syndrome)."
       }
     },
     "a_asc": {
       "name": {
         "it": "Arteria ascellare e brachiale",
-        "en": ""
+        "en": "Axillary and brachial artery"
       },
       "info": {
         "it": "Continua la succlavia dal margine laterale della prima costa e diventa brachiale al margine inferiore del grande rotondo. Passa dietro il piccolo pettorale (che la divide in tre porzioni) e davanti al sottoscapolare; il plesso brachiale la circonda con i suoi fasci. Dà toracoacromiale, toracica laterale, sottoscapolare e le circonflesse omerali (la posteriore accompagna il nervo ascellare). Nelle fratture del collo chirurgico può lesionarsi la circonflessa; in angio-TC o angio-RM si studia il calibro e il decorso.",
-        "en": ""
+        "en": "Continues the subclavian artery from the lateral border of the first rib and becomes the brachial artery at the lower border of the teres major. It passes behind the pectoralis minor (which divides it into three parts) and in front of the subscapularis; the brachial plexus surrounds it with its cords. Branches: thoracoacromial, lateral thoracic, subscapular and the circumflex humeral arteries (the posterior one accompanies the axillary nerve). Surgical neck fractures can injure the circumflex artery; CT or MR angiography assesses caliber and course."
       }
     },
     "v_asc": {
       "name": {
         "it": "Vena ascellare e brachiale",
-        "en": ""
+        "en": "Axillary and brachial vein"
       },
       "info": {
         "it": "Medialmente e davanti all’arteria; riceve le vene brachiali e la basilica, la cefalica la raggiunge sotto la clavicola e si continua nella succlavia al margine laterale della prima costa. Trombosi da catetere o da sforzo causano gonfiore dell’arto; in ecografia si comprime con la sonda (la mancata comprimibilità indica trombosi).",
-        "en": ""
+        "en": "Medial to and in front of the artery; it receives the brachial and basilic veins, the cephalic vein joins it below the clavicle, and it continues as the subclavian vein at the lateral border of the first rib. Catheter-related or effort thrombosis causes swelling of the limb; on ultrasound the vein is compressed with the probe (non-compressibility indicates thrombosis)."
       }
     },
     "plesso": {
       "name": {
         "it": "Plesso brachiale (tronchi e fasci)",
-        "en": ""
+        "en": "Brachial plexus (trunks and cords)"
       },
       "info": {
         "it": "Nasce dai rami anteriori di C5–T1: tre tronchi (superiore, medio, inferiore) tra scaleno anteriore e medio, sopra la prima costa; sotto la clavicola ognuno si divide in una porzione anteriore e una posteriore, che formano i fasci laterale, posteriore e mediale (così chiamati dalla relazione con l’arteria ascellare). In RM si studia sul piano coronale obliquo e sagittale; si comprime nello stretto toracico (sindrome dello stretto toracico superiore) e nei tumori dell’apice polmonare (sindrome di Pancoast).",
-        "en": ""
+        "en": "Arises from the anterior rami of C5–T1: three trunks (superior, middle, inferior) between the anterior and middle scalenes, above the first rib; below the clavicle each divides into an anterior and a posterior division, which form the lateral, posterior and medial cords (named for their relation to the axillary artery). On MRI it is studied in oblique coronal and sagittal planes; it can be compressed in the thoracic outlet (thoracic outlet syndrome) and by lung apex tumors (Pancoast syndrome)."
       }
     },
     "n_soprascapolare": {
       "name": {
         "it": "Nervo soprascapolare",
-        "en": ""
+        "en": "Suprascapular nerve"
       },
       "info": {
         "it": "Nervo misto (C5–C6) dal tronco superiore. Passa nell’incisura soprascapolare sotto il legamento trasverso superiore (l’arteria resta sopra), innerva il sovraspinato, poi aggira il margine laterale della spina nell’incisura spinoglenoidea per innervare il sottospinato e dare rami articolari alla spalla. Una cisti paralabrale può comprimerlo e causare atrofia selettiva di sovraspinato o sottospinato, visibile in RM come edema o atrofia muscolare.",
-        "en": ""
+        "en": "Mixed nerve (C5–C6) from the superior trunk. It passes through the suprascapular notch under the superior transverse scapular ligament (the artery stays above), supplies the supraspinatus, then curves around the lateral border of the spine through the spinoglenoid notch to supply the infraspinatus and give articular branches to the shoulder. A paralabral cyst can compress it and cause selective atrophy of the supraspinatus or infraspinatus, seen on MRI as muscle edema or atrophy."
       }
     },
     "n_ascellare": {
       "name": {
         "it": "Nervo ascellare",
-        "en": ""
+        "en": "Axillary nerve"
       },
       "info": {
         "it": "Nervo misto (C5–C6) dal fascio posteriore. Esce dallo spazio quadrangolare (sottospinato e piccolo rotondo sopra, grande rotondo sotto, capo lungo del tricipite medialmente, collo chirurgico lateralmente), con l’arteria circonflessa posteriore; innerva deltoide e piccolo rotondo e dà il nervo cutaneo laterale superiore del braccio (sensibilità del moncone della spalla). Lo spazio quadrangolare è sede di sindrome da compressione; è a rischio nelle lussazioni anteriori e nelle fratture del collo chirurgico.",
-        "en": ""
+        "en": "Mixed nerve (C5–C6) from the posterior cord. It exits through the quadrangular space (infraspinatus and teres minor above, teres major below, long head of triceps medially, surgical neck laterally) with the posterior circumflex humeral artery; it supplies the deltoid and teres minor and gives off the superior lateral cutaneous nerve of arm (sensation over the lower deltoid). The quadrangular space is a site of compression syndrome; the nerve is at risk in anterior dislocations and surgical neck fractures."
       }
     },
     "n_muscolocutaneo": {
       "name": {
         "it": "Nervo muscolocutaneo",
-        "en": ""
+        "en": "Musculocutaneous nerve"
       },
       "info": {
         "it": "Nervo misto (C5–C7) dal fascio laterale. Perfora il coracobrachiale, che innerva, e scende tra bicipite e brachiale (anch’essi innervati); continua come nervo cutaneo laterale dell’avambraccio (sensitivo per il lato radiale dell’avambraccio). Un decorso alto del nervo è un rischio nelle vie d’accesso anteriori della spalla.",
-        "en": ""
+        "en": "Mixed nerve (C5–C7) from the lateral cord. It pierces the coracobrachialis, which it supplies, and descends between the biceps and brachialis (also supplied); it continues as the lateral cutaneous nerve of forearm (sensory to the radial side of the forearm). A high course of the nerve is a risk in anterior approaches to the shoulder."
       }
     },
     "n_radiale": {
       "name": {
         "it": "Nervo radiale",
-        "en": ""
+        "en": "Radial nerve"
       },
       "info": {
         "it": "Nervo misto (C5–T1) dal fascio posteriore. Passa sotto il grande rotondo con l’arteria profonda del braccio, aggira l’omero nel solco del nervo radiale (tra capo lungo e mediale del tricipite) e a metà braccio perfora il setto intermuscolare laterale. Innerva il tricipite e, più in basso, i muscoli estensori; sensitivo per il dorso del braccio, dell’avambraccio e della mano radiale. La frattura della diafisi dell’omero lo lesiona tipicamente (mano cadente).",
-        "en": ""
+        "en": "Mixed nerve (C5–T1) from the posterior cord. It passes under the teres major with the deep artery of arm, winds around the humerus in the radial groove (between the long and medial heads of triceps) and at mid-arm pierces the lateral intermuscular septum. It supplies the triceps and, further down, the extensor muscles; sensory to the back of the arm, forearm and radial hand. Humeral shaft fractures typically injure it (wrist drop)."
       }
     },
     "n_mediano": {
       "name": {
         "it": "Nervo mediano",
-        "en": ""
+        "en": "Median nerve"
       },
       "info": {
         "it": "Nervo misto (C6–T1) dai fasci laterale e mediale, che si uniscono davanti all’arteria ascellare. Nel braccio scende con l’arteria brachiale (prima lateralmente, poi medialmente) e non dà rami; motorio per i flessori dell’avambraccio e i muscoli tenari, sensitivo per la mano palmare radiale. Siti di compressione: al polso (tunnel carpale) e sotto il pronatore rotondo.",
-        "en": ""
+        "en": "Mixed nerve (C6–T1) from the lateral and medial cords, which join in front of the axillary artery. In the arm it descends with the brachial artery (first lateral, then medial to it) and gives no branches; motor to the forearm flexors and thenar muscles, sensory to the radial palm. Compression sites: at the wrist (carpal tunnel) and under the pronator teres."
       }
     },
     "n_ulnare": {
       "name": {
         "it": "Nervo ulnare",
-        "en": ""
+        "en": "Ulnar nerve"
       },
       "info": {
         "it": "Nervo misto (C8–T1) dal fascio mediale. Scende medialmente all’arteria; a metà braccio perfora il setto intermuscolare mediale e passa dietro l’epicondilo mediale. Nel braccio non dà rami; motorio per il flessore ulnare del carpo, parte del flessore profondo delle dita e i muscoli intrinseci della mano, sensitivo per il bordo ulnare della mano. Sede di compressione al gomito (tunnel cubitale).",
-        "en": ""
+        "en": "Mixed nerve (C8–T1) from the medial cord. It descends medial to the artery; at mid-arm it pierces the medial intermuscular septum and passes behind the medial epicondyle. It gives no branches in the arm; motor to the flexor carpi ulnaris, part of the flexor digitorum profundus and the intrinsic hand muscles, sensory to the ulnar border of the hand. Compression site at the elbow (cubital tunnel)."
       }
     }
   },
   "testi": {
-    "Modello 3D della spalla: trascina per ruotare, pizzica per ingrandire, tocca una struttura per il dettaglio": "",
-    "Spalla destra": "",
-    "Cuffia dei rotatori": "",
-    "Muscoli della spalla": "",
-    "Muscoli del torace e del dorso": ""
+    "Modello 3D della spalla: trascina per ruotare, pizzica per ingrandire, tocca una struttura per il dettaglio": "3D model of the shoulder: drag to rotate, pinch to zoom, tap a structure for details",
+    "Spalla destra": "Right shoulder",
+    "Cuffia dei rotatori": "Rotator cuff",
+    "Muscoli della spalla": "Shoulder muscles",
+    "Muscoli del torace e del dorso": "Chest and back muscles"
   },
   "ignora": [],
-  "dubbi": []
+  "dubbi": [
+    {
+      "termine": "Borsa subacromion-deltoidea → Subacromial-subdeltoid bursa",
+      "nota": "TA2 elenca separatamente subacromial bursa e subdeltoid bursa; ho usato il nome clinico unico (SASD), come in ecografia e RM."
+    },
+    {
+      "termine": "Deltoide parte clavicolare/acromiale/spinale → clavicular/acromial/spinal part",
+      "nota": "Termini TA2. Nell’uso clinico inglese sono comuni anterior/middle/posterior deltoid: li ho lasciati come in TA2, coerenti con l’italiano."
+    },
+    {
+      "termine": "Trapezio parte discendente/trasversa/ascendente → descending/transverse/ascending part",
+      "nota": "TA2. In clinica inglese si dice spesso upper/middle/lower trapezius."
+    },
+    {
+      "termine": "Spazio quadrangolare → quadrangular space; sindrome → quadrilateral space syndrome",
+      "nota": "TA2 usa quadrangular space; la sindrome negli USA si chiama quasi sempre quadrilateral space syndrome. Ho tenuto entrambe le forme dove il testo parla della sindrome."
+    },
+    {
+      "termine": "Coste I–V → Ribs 1–5 (anche cartilagini costali, coste 3–5)",
+      "nota": "In inglese i numeri romani per le coste sono rari; ho usato i numeri arabi. Da confermare se preferisci I–V."
+    },
+    {
+      "termine": "Lesione di Bankart omerale → HAGL, humeral avulsion of the glenohumeral ligament",
+      "nota": "«Bankart omerale» non si usa in inglese; ho sciolto la sigla HAGL."
+    },
+    {
+      "termine": "Ginocchio della base del coracoide → Bend (posteromedial part) of the base of the coracoid process",
+      "nota": "Non c’è un termine TA2; in inglese si trova knee, angle o bend of the coracoid. Scelta da confermare."
+    },
+    {
+      "termine": "Moncone della spalla → over the lower deltoid",
+      "nota": "Area sensitiva del nervo cutaneo laterale superiore del braccio; in inglese clinico anche «regimental badge area»."
+    },
+    {
+      "termine": "Nervo cutaneo laterale dell’avambraccio → lateral cutaneous nerve of forearm",
+      "nota": "Forma TA2; nell’uso clinico USA è più comune lateral antebrachial cutaneous nerve."
+    },
+    {
+      "termine": "Arteria profonda del braccio → deep artery of arm",
+      "nota": "TA2; in clinica anche profunda brachii artery."
+    },
+    {
+      "termine": "Radiografia da carico → weighted radiographs",
+      "nota": "In inglese anche stress views (con pesi): ho scelto weighted radiographs."
+    },
+    {
+      "termine": "Fascia cervicale media → middle layer of the deep cervical fascia",
+      "nota": "TA2 chiama la lamina pretracheal layer; ho scelto la forma descrittiva."
+    },
+    {
+      "termine": "Scheda (pulsante) → Details",
+      "nota": "Scelta di interfaccia valida per tutti i modelli: «card» suona poco naturale come pulsante in inglese."
+    }
+  ]
 }
