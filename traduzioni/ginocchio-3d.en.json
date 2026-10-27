@@ -2,1314 +2,1359 @@
   "meta": {
     "title": {
       "it": "Ginocchio 3D interattivo: menischi e legamenti | MSK Atlas",
-      "en": ""
+      "en": "Interactive 3D knee: menisci and ligaments | MSK Atlas"
     },
     "strutture-bp3d": {
       "it": "Ossa, muscoli e cute.",
-      "en": ""
+      "en": "Bones, muscles and skin."
     },
     "strutture-modellate": {
       "it": "Tutte le altre strutture, modellate e adattate.",
-      "en": ""
+      "en": "All other structures, modeled and adapted."
     },
     "description": {
       "it": "Ginocchio 3D interattivo: ossa, cartilagini, menischi, legamenti, tendini, muscoli, vasi e nervi. Materiale didattico.",
-      "en": ""
+      "en": "Interactive 3D knee: bones, cartilage, menisci, ligaments, tendons, muscles, vessels and nerves. Educational material."
     },
     "image_alt": {
       "it": "Modello 3D del ginocchio destro — MSK Atlas",
-      "en": ""
+      "en": "3D model of the right knee — MSK Atlas"
     }
   },
   "strutture": {
     "femore": {
       "name": {
         "it": "Femore (epifisi distale)",
-        "en": ""
+        "en": "Femur (distal end)"
       },
       "info": {
         "it": "Condili mediale e laterale separati posteriormente dalla fossa intercondiloidea; anteriormente la troclea accoglie la rotula. Epicondili: inserzione dei collaterali; tubercolo adduttorio: inserzione dell’adduttore magno.",
-        "en": ""
+        "en": "Medial and lateral condyles separated posteriorly by the intercondylar fossa; anteriorly the trochlea receives the patella. Epicondyles: attachment of the collateral ligaments; adductor tubercle: insertion of the adductor magnus."
       }
     },
     "tibia": {
       "name": {
         "it": "Tibia (epifisi prossimale)",
-        "en": ""
+        "en": "Tibia (proximal end)"
       },
       "info": {
         "it": "Piatto mediale concavo e laterale convesso, eminenza intercondiloidea con le spine tibiali; anteriormente la tuberosità (tendine rotuleo), anterolateralmente il tubercolo di Gerdy (tratto ileotibiale).",
-        "en": ""
+        "en": "Concave medial plateau and convex lateral plateau, intercondylar eminence with the tibial spines; anteriorly the tuberosity (patellar tendon), anterolaterally Gerdy tubercle (iliotibial tract)."
       }
     },
     "perone": {
       "name": {
         "it": "Perone (testa e collo)",
-        "en": ""
+        "en": "Fibula (head and neck)"
       },
       "info": {
         "it": "La testa articola con il condilo tibiale laterale (articolazione tibio-peroneale prossimale) e non partecipa al ginocchio. Apice: inserzione di LCL, bicipite femorale e legamento popliteo-fibulare.",
-        "en": ""
+        "en": "The head articulates with the lateral tibial condyle (proximal tibiofibular joint) and is not part of the knee joint. Apex: attachment of the LCL, biceps femoris and popliteofibular ligament."
       }
     },
     "rotula": {
       "name": {
         "it": "Rotula",
-        "en": ""
+        "en": "Patella"
       },
       "info": {
         "it": "Osso sesamoide nel tendine del quadricipite. Faccette mediale e laterale separate da una cresta verticale; la cartilagine retropatellare è la più spessa dell’organismo.",
-        "en": ""
+        "en": "Sesamoid bone in the quadriceps tendon. Medial and lateral facets separated by a vertical ridge; the retropatellar cartilage is the thickest in the body."
       }
     },
     "cartfem": {
       "name": {
         "it": "Cartilagine femorale",
-        "en": ""
+        "en": "Femoral cartilage"
       },
       "info": {
         "it": "Ricopre condili e troclea. In RM valutare spessore, fissurazioni, delaminazione e lesioni osteocondrali (classificazione ICRS).",
-        "en": ""
+        "en": "Covers the condyles and the trochlea. On MRI, assess thickness, fissures, delamination and osteochondral lesions (ICRS classification)."
       }
     },
     "carttib": {
       "name": {
         "it": "Cartilagine dei piatti tibiali",
-        "en": ""
+        "en": "Tibial plateau cartilage"
       },
       "info": {
         "it": "Copre i piatti tibiali, in parte sotto i menischi; più spessa al centro del piatto, dove non protetta dal menisco.",
-        "en": ""
+        "en": "Covers the tibial plateaus, partly under the menisci; thickest at the center of the plateau, where it is not covered by the meniscus."
       }
     },
     "cartrot": {
       "name": {
         "it": "Cartilagine rotulea",
-        "en": ""
+        "en": "Patellar cartilage"
       },
       "info": {
         "it": "Superficie posteriore della rotula; sede tipica di condromalacia e dolore femoro-rotuleo.",
-        "en": ""
+        "en": "Posterior surface of the patella; typical site of chondromalacia and patellofemoral pain."
       }
     },
     "menmed": {
       "name": {
         "it": "Menisco mediale",
-        "en": ""
+        "en": "Medial meniscus"
       },
       "info": {
         "it": "A forma di C, più ampio posteriormente, adeso alla capsula e allo strato profondo del LCM: meno mobile e più spesso lesionato, soprattutto al corno posteriore.",
-        "en": ""
+        "en": "C-shaped, wider posteriorly, attached to the capsule and the deep layer of the MCL: less mobile and more often torn, especially at the posterior horn."
       }
     },
     "menlat": {
       "name": {
         "it": "Menisco laterale",
-        "en": ""
+        "en": "Lateral meniscus"
       },
       "info": {
         "it": "Quasi circolare, più mobile; non aderisce al LCL. Posterolateralmente lo iato popliteo lo separa dalla capsula: non confonderlo con una lesione.",
-        "en": ""
+        "en": "Nearly circular, more mobile; not attached to the LCL. Posterolaterally the popliteal hiatus separates it from the capsule: do not mistake it for a tear."
       }
     },
     "lca": {
       "name": {
         "it": "Legamento crociato anteriore (LCA)",
-        "en": ""
+        "en": "Anterior cruciate ligament (ACL)"
       },
       "info": {
         "it": "Fasci antero-mediale e postero-laterale.",
-        "en": ""
+        "en": "Anteromedial and posterolateral bundles."
       },
       "o": {
         "it": "Faccia mediale del condilo femorale laterale, nella parte posteriore della fossa intercondiloidea.",
-        "en": ""
+        "en": "Medial surface of the lateral femoral condyle, in the posterior part of the intercondylar fossa."
       },
       "ins": {
         "it": "Area intercondiloidea anteriore della tibia, davanti e lateralmente alla spina tibiale mediale.",
-        "en": ""
+        "en": "Anterior intercondylar area of the tibia, anterior and lateral to the medial tibial spine."
       },
       "fn": {
         "it": "Limita la traslazione anteriore e la rotazione interna della tibia.",
-        "en": ""
+        "en": "Restrains anterior translation and internal rotation of the tibia."
       }
     },
     "lcp": {
       "name": {
         "it": "Legamento crociato posteriore (LCP)",
-        "en": ""
+        "en": "Posterior cruciate ligament (PCL)"
       },
       "info": {
         "it": "Più spesso e robusto del LCA; fasci antero-laterale e postero-mediale.",
-        "en": ""
+        "en": "Thicker and stronger than the ACL; anterolateral and posteromedial bundles."
       },
       "o": {
         "it": "Faccia laterale del condilo femorale mediale, nella parte anteriore della fossa intercondiloidea.",
-        "en": ""
+        "en": "Lateral surface of the medial femoral condyle, in the anterior part of the intercondylar fossa."
       },
       "ins": {
         "it": "Area intercondiloidea posteriore della tibia, sulla superficie posteriore circa 1 cm sotto il piatto.",
-        "en": ""
+        "en": "Posterior intercondylar area of the tibia, on the posterior surface about 1 cm below the plateau."
       },
       "fn": {
         "it": "Limita la traslazione posteriore della tibia.",
-        "en": ""
+        "en": "Restrains posterior translation of the tibia."
       }
     },
     "menfem": {
       "name": {
         "it": "Legamenti menisco-femorali",
-        "en": ""
+        "en": "Meniscofemoral ligaments"
       },
       "info": {
         "it": "Humphrey anteriore al LCP, Wrisberg posteriore. Possibile pseudo-lesione del corno posteriore in RM.",
-        "en": ""
+        "en": "Humphrey anterior to the PCL, Wrisberg posterior. Possible pseudotear of the posterior horn on MRI."
       },
       "o": {
         "it": "Corno posteriore del menisco laterale.",
-        "en": ""
+        "en": "Posterior horn of the lateral meniscus."
       },
       "ins": {
         "it": "Faccia laterale del condilo femorale mediale.",
-        "en": ""
+        "en": "Lateral surface of the medial femoral condyle."
       },
       "fn": {
         "it": "Stabilizzano il corno posteriore del menisco laterale; stabilizzatori secondari della traslazione posteriore della tibia.",
-        "en": ""
+        "en": "Stabilize the posterior horn of the lateral meniscus; secondary restraints to posterior tibial translation."
       }
     },
     "trasv": {
       "name": {
         "it": "Legamento trasverso (intermeniscale)",
-        "en": ""
+        "en": "Transverse (intermeniscal) ligament"
       },
       "info": {
         "it": "In RM può simulare una lesione del corno anteriore del menisco laterale.",
-        "en": ""
+        "en": "On MRI it can mimic a tear of the anterior horn of the lateral meniscus."
       },
       "o": {
         "it": "Corno anteriore del menisco mediale.",
-        "en": ""
+        "en": "Anterior horn of the medial meniscus."
       },
       "ins": {
         "it": "Corno anteriore del menisco laterale.",
-        "en": ""
+        "en": "Anterior horn of the lateral meniscus."
       },
       "fn": {
         "it": "Collega e stabilizza i corni anteriori dei menischi.",
-        "en": ""
+        "en": "Connects and stabilizes the anterior horns of the menisci."
       }
     },
     "lcm": {
       "name": {
         "it": "Legamento collaterale mediale (LCM)",
-        "en": ""
+        "en": "Medial collateral ligament (MCL)"
       },
       "info": {
         "it": "Profondo alla zampa d’oca; lo strato profondo è adeso al menisco mediale.",
-        "en": ""
+        "en": "Deep to the pes anserinus; the deep layer is attached to the medial meniscus."
       },
       "o": {
         "it": "Epicondilo mediale del femore.",
-        "en": ""
+        "en": "Medial epicondyle of the femur."
       },
       "ins": {
         "it": "Strato superficiale: metafisi tibiale mediale, circa 5–6 cm sotto l’interlinea. Strato profondo: margine tibiale sotto l’interlinea, tramite i legamenti menisco-femorale e menisco-tibiale.",
-        "en": ""
+        "en": "Superficial layer: medial tibial metaphysis, about 5–6 cm below the joint line. Deep layer: tibial margin below the joint line, through the meniscofemoral and meniscotibial ligaments."
       },
       "fn": {
         "it": "Stabilizzatore primario contro il valgo; secondario contro la rotazione esterna della tibia.",
-        "en": ""
+        "en": "Primary restraint to valgus; secondary restraint to external rotation of the tibia."
       }
     },
     "lcl": {
       "name": {
         "it": "Legamento collaterale laterale (LCL)",
-        "en": ""
+        "en": "Lateral collateral ligament (LCL)"
       },
       "info": {
         "it": "Extracapsulare; parte del complesso postero-laterale.",
-        "en": ""
+        "en": "Extracapsular; part of the posterolateral corner."
       },
       "o": {
         "it": "Epicondilo laterale del femore.",
-        "en": ""
+        "en": "Lateral epicondyle of the femur."
       },
       "ins": {
         "it": "Faccia laterale della testa del perone, davanti all’apice.",
-        "en": ""
+        "en": "Lateral surface of the fibular head, anterior to the apex."
       },
       "fn": {
         "it": "Stabilizzatore primario contro il varo; limita la rotazione esterna della tibia.",
-        "en": ""
+        "en": "Primary restraint to varus; limits external rotation of the tibia."
       }
     },
     "all": {
       "name": {
         "it": "Legamento anterolaterale",
-        "en": ""
+        "en": "Anterolateral ligament"
       },
       "info": {
         "it": "Associato alla frattura di Segond.",
-        "en": ""
+        "en": "Associated with the Segond fracture."
       },
       "o": {
         "it": "Femore laterale, in prossimità dell’epicondilo.",
-        "en": ""
+        "en": "Lateral femur, near the epicondyle."
       },
       "ins": {
         "it": "Tibia anterolaterale, tra tubercolo di Gerdy e testa del perone.",
-        "en": ""
+        "en": "Anterolateral tibia, between Gerdy tubercle and the fibular head."
       },
       "fn": {
         "it": "Controlla la rotazione interna della tibia.",
-        "en": ""
+        "en": "Controls internal rotation of the tibia."
       }
     },
     "popfib": {
       "name": {
         "it": "Legamento popliteo-fibulare",
-        "en": ""
+        "en": "Popliteofibular ligament"
       },
       "info": {
         "it": "Componente chiave del complesso postero-laterale.",
-        "en": ""
+        "en": "Key component of the posterolateral corner."
       },
       "o": {
         "it": "Giunzione muscolo-tendinea del popliteo.",
-        "en": ""
+        "en": "Popliteus musculotendinous junction."
       },
       "ins": {
         "it": "Apice della testa del perone.",
-        "en": ""
+        "en": "Apex of the fibular head."
       },
       "fn": {
         "it": "Limita la rotazione esterna della tibia e il varo.",
-        "en": ""
+        "en": "Restrains external rotation of the tibia and varus."
       }
     },
     "popobl": {
       "name": {
         "it": "Legamento popliteo obliquo",
-        "en": ""
+        "en": "Oblique popliteal ligament"
       },
       "info": {
         "it": "Espansione del semimembranoso.",
-        "en": ""
+        "en": "Expansion of the semimembranosus."
       },
       "o": {
         "it": "Tendine del semimembranoso, presso l’inserzione tibiale postero-mediale.",
-        "en": ""
+        "en": "Semimembranosus tendon, near its posteromedial tibial insertion."
       },
       "ins": {
         "it": "Capsula posteriore, obliquamente verso il condilo femorale laterale.",
-        "en": ""
+        "en": "Posterior capsule, obliquely toward the lateral femoral condyle."
       },
       "fn": {
         "it": "Rinforza la capsula posteriore; limita iperestensione e rotazione esterna.",
-        "en": ""
+        "en": "Reinforces the posterior capsule; limits hyperextension and external rotation."
       }
     },
     "mpfl": {
       "name": {
         "it": "Legamento patello-femorale mediale (MPFL)",
-        "en": ""
+        "en": "Medial patellofemoral ligament (MPFL)"
       },
       "info": {
         "it": "Frequentemente lesionato nella lussazione di rotula.",
-        "en": ""
+        "en": "Frequently torn in patellar dislocation."
       },
       "o": {
         "it": "Femore, tra tubercolo adduttorio ed epicondilo mediale.",
-        "en": ""
+        "en": "Femur, between the adductor tubercle and the medial epicondyle."
       },
       "ins": {
         "it": "Margine mediale della rotula (due terzi superiori).",
-        "en": ""
+        "en": "Medial margin of the patella (upper two thirds)."
       },
       "fn": {
         "it": "Principale stabilizzatore passivo contro la lateralizzazione della rotula, soprattutto nei primi gradi di flessione.",
-        "en": ""
+        "en": "Main passive restraint to lateral displacement of the patella, especially in early flexion."
       }
     },
     "retmed": {
       "name": {
         "it": "Retinacolo rotuleo mediale",
-        "en": ""
+        "en": "Medial patellar retinaculum"
       },
       "info": {
         "it": "Espansione fibrosa del vasto mediale e della fascia.",
-        "en": ""
+        "en": "Fibrous expansion of the vastus medialis and the fascia."
       },
       "o": {
         "it": "Vasto mediale e fascia profonda.",
-        "en": ""
+        "en": "Vastus medialis and deep fascia."
       },
       "ins": {
         "it": "Margini mediali di rotula e tendine rotuleo, fino alla tibia.",
-        "en": ""
+        "en": "Medial margins of the patella and patellar tendon, down to the tibia."
       },
       "fn": {
         "it": "Stabilizza medialmente la rotula.",
-        "en": ""
+        "en": "Stabilizes the patella medially."
       }
     },
     "retlat": {
       "name": {
         "it": "Retinacolo rotuleo laterale",
-        "en": ""
+        "en": "Lateral patellar retinaculum"
       },
       "info": {
         "it": "Più robusto del mediale; la sua retrazione favorisce il tilt rotuleo laterale.",
-        "en": ""
+        "en": "Stronger than the medial; its tightness favors lateral patellar tilt."
       },
       "o": {
         "it": "Vasto laterale e tratto ileotibiale.",
-        "en": ""
+        "en": "Vastus lateralis and iliotibial tract."
       },
       "ins": {
         "it": "Margini laterali di rotula e tendine rotuleo, fino alla tibia.",
-        "en": ""
+        "en": "Lateral margins of the patella and patellar tendon, down to the tibia."
       },
       "fn": {
         "it": "Stabilizza lateralmente la rotula.",
-        "en": ""
+        "en": "Stabilizes the patella laterally."
       }
     },
     "tenrot": {
       "name": {
         "it": "Tendine rotuleo",
-        "en": ""
+        "en": "Patellar tendon"
       },
       "info": {
         "it": "Dall’apice rotuleo alla tuberosità tibiale. Sede di tendinopatia prossimale (jumper’s knee) e, distalmente, di Osgood-Schlatter.",
-        "en": ""
+        "en": "From the patellar apex to the tibial tuberosity. Site of proximal tendinopathy (jumper’s knee) and, distally, of Osgood-Schlatter disease."
       },
       "o": {
         "it": "Apice (polo inferiore) della rotula.",
-        "en": ""
+        "en": "Apex (inferior pole) of the patella."
       },
       "ins": {
         "it": "Tuberosità tibiale.",
-        "en": ""
+        "en": "Tibial tuberosity."
       },
       "fn": {
         "it": "Trasmette alla tibia la forza del quadricipite: estensione del ginocchio. Anatomicamente è il legamento rotuleo.",
-        "en": ""
+        "en": "Transmits the quadriceps force to the tibia: knee extension. Anatomically it is the patellar ligament."
       }
     },
     "tenquad": {
       "name": {
         "it": "Tendine quadricipitale",
-        "en": ""
+        "en": "Quadriceps tendon"
       },
       "info": {
         "it": "Tendine comune dei quattro capi. Aspetto trilaminare in RM ed ecografia: retto femorale superficiale, vasti mediale e laterale intermedi, vasto intermedio profondo. Sede di tendinopatia e di rottura, di solito entro 2 cm dal polo superiore della rotula, in età adulta-avanzata.",
-        "en": ""
+        "en": "Common tendon of the four heads. Trilaminar appearance on MRI and ultrasound: rectus femoris superficial, vastus medialis and lateralis intermediate, vastus intermedius deep. Site of tendinopathy and rupture, usually within 2 cm of the superior pole of the patella, in middle-aged and older adults."
       },
       "o": {
         "it": "Confluenza dei quattro capi del quadricipite nel terzo distale della coscia: retto femorale in superficie, vasti mediale e laterale ai margini, vasto intermedio in profondità.",
-        "en": ""
+        "en": "Confluence of the four quadriceps heads in the distal third of the thigh: rectus femoris superficially, vastus medialis and lateralis at the margins, vastus intermedius deep."
       },
       "ins": {
         "it": "Base (polo superiore) della rotula; le fibre superficiali passano davanti alla rotula (espansione prerotulea) e proseguono nel tendine rotuleo.",
-        "en": ""
+        "en": "Base (superior pole) of the patella; the superficial fibers pass in front of the patella (prepatellar expansion) and continue into the patellar tendon."
       },
       "fn": {
         "it": "Trasmette alla rotula la forza del quadricipite: estensione del ginocchio.",
-        "en": ""
+        "en": "Transmits the quadriceps force to the patella: knee extension."
       }
     },
     "itb": {
       "name": {
         "it": "Tratto ileotibiale",
-        "en": ""
+        "en": "Iliotibial tract"
       },
       "info": {
         "it": "Sindrome da attrito sul condilo femorale laterale nei corridori.",
-        "en": ""
+        "en": "Friction syndrome over the lateral femoral condyle in runners."
       },
       "o": {
         "it": "Ispessimento laterale della fascia lata; riceve prossimalmente il tensore della fascia lata e le fibre superficiali del grande gluteo.",
-        "en": ""
+        "en": "Lateral thickening of the fascia lata; proximally it receives the tensor fasciae latae and the superficial fibers of the gluteus maximus."
       },
       "ins": {
         "it": "Tubercolo di Gerdy (tibia anterolaterale); fibre al retinacolo rotuleo laterale e, prossimalmente, al setto intermuscolare laterale (fibre di Kaplan).",
-        "en": ""
+        "en": "Gerdy tubercle (anterolateral tibia); fibers to the lateral patellar retinaculum and, proximally, to the lateral intermuscular septum (Kaplan fibers)."
       },
       "fn": {
         "it": "Stabilizzatore laterale e anterolaterale del ginocchio; trasmette la tensione di tensore della fascia lata e grande gluteo.",
-        "en": ""
+        "en": "Lateral and anterolateral stabilizer of the knee; transmits the tension of the tensor fasciae latae and gluteus maximus."
       }
     },
     "retto": {
       "name": {
         "it": "Retto femorale",
-        "en": ""
+        "en": "Rectus femoris"
       },
       "info": {
         "it": "Muscolo biarticolare; il ventre si continua in una lamina tendinea che forma lo strato superficiale del tendine quadricipitale.",
-        "en": ""
+        "en": "Biarticular muscle; the belly continues into a tendinous sheet that forms the superficial layer of the quadriceps tendon."
       },
       "o": {
         "it": "Capo diretto: spina iliaca anteriore inferiore. Capo riflesso: solco sopra-acetabolare (tetto acetabolare) e capsula dell’anca.",
-        "en": ""
+        "en": "Direct head: anterior inferior iliac spine. Reflected head: supra-acetabular groove (acetabular roof) and hip capsule."
       },
       "ins": {
         "it": "Base della rotula con il tendine quadricipitale e, tramite il tendine rotuleo, tuberosità tibiale.",
-        "en": ""
+        "en": "Base of the patella through the quadriceps tendon and, through the patellar tendon, tibial tuberosity."
       },
       "fn": {
         "it": "Estende il ginocchio; flette l’anca.",
-        "en": ""
+        "en": "Extends the knee; flexes the hip."
       }
     },
     "vint": {
       "name": {
         "it": "Vasto intermedio",
-        "en": ""
+        "en": "Vastus intermedius"
       },
       "info": {
         "it": "Profondo al retto femorale; forma lo strato profondo del tendine quadricipitale.",
-        "en": ""
+        "en": "Deep to the rectus femoris; forms the deep layer of the quadriceps tendon."
       },
       "o": {
         "it": "Faccia anteriore e laterale dei due terzi superiori della diafisi femorale.",
-        "en": ""
+        "en": "Anterior and lateral surfaces of the upper two thirds of the femoral shaft."
       },
       "ins": {
         "it": "Base della rotula con lo strato profondo del tendine quadricipitale e, tramite il tendine rotuleo, tuberosità tibiale.",
-        "en": ""
+        "en": "Base of the patella through the deep layer of the quadriceps tendon and, through the patellar tendon, tibial tuberosity."
       },
       "fn": {
         "it": "Estende il ginocchio. Le fibre più profonde (muscolo articolare del ginocchio) sollevano il recesso sovrapatellare durante l’estensione.",
-        "en": ""
+        "en": "Extends the knee. Its deepest fibers (articularis genus) lift the suprapatellar recess during extension."
       }
     },
     "vmed": {
       "name": {
         "it": "Vasto mediale",
-        "en": ""
+        "en": "Vastus medialis"
       },
       "info": {
         "it": "Le fibre oblique distali (VMO) si inseriscono sul margine mediale della rotula e ne contrastano la lateralizzazione.",
-        "en": ""
+        "en": "The distal oblique fibers (VMO) insert on the medial margin of the patella and counteract its lateral displacement."
       },
       "o": {
         "it": "Parte inferiore della linea intertrocanterica, linea spirale, labbro mediale della linea aspra, linea sopracondiloidea mediale, setto intermuscolare mediale e tendine dell’adduttore magno (fibre oblique, VMO).",
-        "en": ""
+        "en": "Lower part of the intertrochanteric line, spiral line, medial lip of the linea aspera, medial supracondylar line, medial intermuscular septum and adductor magnus tendon (oblique fibers, VMO)."
       },
       "ins": {
         "it": "Margine mediale della rotula e tendine quadricipitale; retinacolo rotuleo mediale; tramite il tendine rotuleo, tuberosità tibiale.",
-        "en": ""
+        "en": "Medial margin of the patella and quadriceps tendon; medial patellar retinaculum; through the patellar tendon, tibial tuberosity."
       },
       "fn": {
         "it": "Estende il ginocchio; il VMO è il principale stabilizzatore dinamico mediale della rotula.",
-        "en": ""
+        "en": "Extends the knee; the VMO is the main dynamic medial stabilizer of the patella."
       }
     },
     "vlat": {
       "name": {
         "it": "Vasto laterale",
-        "en": ""
+        "en": "Vastus lateralis"
       },
       "info": {
         "it": "Il capo più voluminoso del quadricipite. Le fibre distali, più oblique, arrivano al margine supero-laterale della rotula; la sua lamina tendinea confluisce nel margine laterale del tendine quadricipitale.",
-        "en": ""
+        "en": "The largest head of the quadriceps. Its distal fibers, more oblique, reach the superolateral margin of the patella; its tendinous sheet merges into the lateral margin of the quadriceps tendon."
       },
       "o": {
         "it": "Parte superiore della linea intertrocanterica, margini anteriore e inferiore del grande trocantere, tuberosità glutea, labbro laterale della linea aspra, setto intermuscolare laterale.",
-        "en": ""
+        "en": "Upper part of the intertrochanteric line, anterior and inferior margins of the greater trochanter, gluteal tuberosity, lateral lip of the linea aspera, lateral intermuscular septum."
       },
       "ins": {
         "it": "Margine laterale della base della rotula e tendine quadricipitale; retinacolo rotuleo laterale; tramite il tendine rotuleo, tuberosità tibiale.",
-        "en": ""
+        "en": "Lateral margin of the base of the patella and quadriceps tendon; lateral patellar retinaculum; through the patellar tendon, tibial tuberosity."
       },
       "fn": {
         "it": "Estende il ginocchio.",
-        "en": ""
+        "en": "Extends the knee."
       }
     },
     "sart": {
       "name": {
         "it": "Sartorio",
-        "en": ""
+        "en": "Sartorius"
       },
       "info": {
         "it": "Con gracile e semitendinoso forma la zampa d’oca (pes anserinus), inserzione comune sulla tibia antero-mediale circa 4 cm sotto l’interlinea: il sartorio ne è la componente più anteriore e superficiale e con la sua espansione copre gli altri due tendini.",
-        "en": ""
+        "en": "With the gracilis and semitendinosus it forms the pes anserinus, a common insertion on the anteromedial tibia about 4 cm below the joint line: the sartorius is its most anterior and superficial component, and its expansion covers the other two tendons."
       },
       "o": {
         "it": "Spina iliaca anteriore superiore.",
-        "en": ""
+        "en": "Anterior superior iliac spine."
       },
       "ins": {
         "it": "Faccia mediale della tibia prossimale (zampa d’oca), anteriormente a gracile e semitendinoso; espansione alla fascia crurale.",
-        "en": ""
+        "en": "Medial surface of the proximal tibia (pes anserinus), anterior to the gracilis and semitendinosus; expansion to the crural fascia."
       },
       "fn": {
         "it": "Flette il ginocchio e, a ginocchio flesso, ruota internamente la tibia; flette, abduce e ruota esternamente l’anca.",
-        "en": ""
+        "en": "Flexes the knee and, with the knee flexed, internally rotates the tibia; flexes, abducts and externally rotates the hip."
       }
     },
     "grac": {
       "name": {
         "it": "Gracile",
-        "en": ""
+        "en": "Gracilis"
       },
       "info": {
         "it": "Con sartorio e semitendinoso forma la zampa d’oca (pes anserinus), sulla tibia antero-mediale: il gracile vi si inserisce tra sartorio (davanti) e semitendinoso (sotto). Prelevato con il semitendinoso per la ricostruzione del LCA.",
-        "en": ""
+        "en": "With the sartorius and semitendinosus it forms the pes anserinus, on the anteromedial tibia: the gracilis inserts between the sartorius (in front) and the semitendinosus (below). Harvested with the semitendinosus for ACL reconstruction."
       },
       "o": {
         "it": "Corpo del pube (metà inferiore, presso la sinfisi) e branca ischio-pubica.",
-        "en": ""
+        "en": "Body of the pubis (lower half, near the symphysis) and ischiopubic ramus."
       },
       "ins": {
         "it": "Faccia mediale della tibia prossimale (zampa d’oca), tra sartorio e semitendinoso.",
-        "en": ""
+        "en": "Medial surface of the proximal tibia (pes anserinus), between the sartorius and semitendinosus."
       },
       "fn": {
         "it": "Adduce l’anca; flette il ginocchio e ruota internamente la tibia.",
-        "en": ""
+        "en": "Adducts the hip; flexes the knee and internally rotates the tibia."
       }
     },
     "semit": {
       "name": {
         "it": "Semitendinoso",
-        "en": ""
+        "en": "Semitendinosus"
       },
       "info": {
         "it": "Con sartorio e gracile forma la zampa d’oca (pes anserinus), sulla tibia antero-mediale; il suo lungo tendine distale ne è la componente più inferiore.",
-        "en": ""
+        "en": "With the sartorius and gracilis it forms the pes anserinus, on the anteromedial tibia; its long distal tendon is the lowest component."
       },
       "o": {
         "it": "Tuberosità ischiatica, con tendine comune al capo lungo del bicipite femorale.",
-        "en": ""
+        "en": "Ischial tuberosity, with a tendon shared with the long head of biceps femoris."
       },
       "ins": {
         "it": "Faccia mediale della tibia prossimale (zampa d’oca), posteriormente e distalmente al gracile.",
-        "en": ""
+        "en": "Medial surface of the proximal tibia (pes anserinus), posterior and distal to the gracilis."
       },
       "fn": {
         "it": "Flette il ginocchio e ruota internamente la tibia; estende l’anca.",
-        "en": ""
+        "en": "Flexes the knee and internally rotates the tibia; extends the hip."
       }
     },
     "semim": {
       "name": {
         "it": "Semimembranoso",
-        "en": ""
-      },
-      "info": {
-        "it": "",
-        "en": ""
+        "en": "Semimembranosus"
       },
       "o": {
         "it": "Tuberosità ischiatica (impronta supero-laterale).",
-        "en": ""
+        "en": "Ischial tuberosity (superolateral facet)."
       },
       "ins": {
         "it": "Principale: faccia postero-mediale del condilo tibiale mediale. Espansioni: braccio anteriore sotto il LCM, legamento popliteo obliquo, capsula postero-mediale e fascia del popliteo.",
-        "en": ""
+        "en": "Main: posteromedial surface of the medial tibial condyle. Expansions: anterior arm under the MCL, oblique popliteal ligament, posteromedial capsule and popliteus fascia."
       },
       "fn": {
         "it": "Flette il ginocchio e ruota internamente la tibia; estende l’anca; tende la capsula posteriore e stabilizza l’angolo postero-mediale.",
-        "en": ""
+        "en": "Flexes the knee and internally rotates the tibia; extends the hip; tenses the posterior capsule and stabilizes the posteromedial corner."
       }
     },
     "biclong": {
       "name": {
         "it": "Bicipite femorale, capo lungo",
-        "en": ""
+        "en": "Biceps femoris, long head"
       },
       "info": {
         "it": "Tendine comune con il capo breve sulla testa del perone, insieme al LCL.",
-        "en": ""
+        "en": "Common tendon with the short head on the fibular head, together with the LCL."
       },
       "o": {
         "it": "Tuberosità ischiatica, con tendine comune al semitendinoso; legamento sacrotuberoso.",
-        "en": ""
+        "en": "Ischial tuberosity, with a tendon shared with the semitendinosus; sacrotuberous ligament."
       },
       "ins": {
         "it": "Testa del perone (faccia laterale, davanti all’apice), con tendine comune al capo breve; espansioni al condilo tibiale laterale e alla fascia crurale.",
-        "en": ""
+        "en": "Fibular head (lateral surface, anterior to the apex), with a tendon shared with the short head; expansions to the lateral tibial condyle and the crural fascia."
       },
       "fn": {
         "it": "Flette il ginocchio e ruota esternamente la tibia; estende l’anca.",
-        "en": ""
+        "en": "Flexes the knee and externally rotates the tibia; extends the hip."
       }
     },
     "bicbrev": {
       "name": {
         "it": "Bicipite femorale, capo breve",
-        "en": ""
-      },
-      "info": {
-        "it": "",
-        "en": ""
+        "en": "Biceps femoris, short head"
       },
       "o": {
         "it": "Labbro laterale della linea aspra, linea sopracondiloidea laterale e setto intermuscolare laterale.",
-        "en": ""
+        "en": "Lateral lip of the linea aspera, lateral supracondylar line and lateral intermuscular septum."
       },
       "ins": {
         "it": "Testa del perone, con tendine comune al capo lungo.",
-        "en": ""
+        "en": "Fibular head, with a tendon shared with the long head."
       },
       "fn": {
         "it": "Flette il ginocchio e ruota esternamente la tibia (monoarticolare: non agisce sull’anca).",
-        "en": ""
+        "en": "Flexes the knee and externally rotates the tibia (monoarticular: no action on the hip)."
       }
     },
     "addmag": {
       "name": {
         "it": "Adduttore magno (porzione distale)",
-        "en": ""
+        "en": "Adductor magnus (distal portion)"
       },
       "info": {
         "it": "L’iato degli adduttori è attraversato dai vasi femorali, che diventano poplitei.",
-        "en": ""
+        "en": "The femoral vessels pass through the adductor hiatus and become the popliteal vessels."
       },
       "o": {
         "it": "Porzione adduttoria: branca ischio-pubica. Porzione ischiocondiloidea: tuberosità ischiatica.",
-        "en": ""
+        "en": "Adductor portion: ischiopubic ramus. Ischiocondylar portion: ischial tuberosity."
       },
       "ins": {
         "it": "Porzione adduttoria: tuberosità glutea, linea aspra e linea sopracondiloidea mediale. Porzione ischiocondiloidea: tubercolo adduttorio del femore, con tendine distale.",
-        "en": ""
+        "en": "Adductor portion: gluteal tuberosity, linea aspera and medial supracondylar line. Ischiocondylar portion: adductor tubercle of the femur, through the distal tendon."
       },
       "fn": {
         "it": "Adduce l’anca; la porzione adduttoria la flette, la porzione ischiocondiloidea la estende.",
-        "en": ""
+        "en": "Adducts the hip; the adductor portion flexes it, the ischiocondylar portion extends it."
       }
     },
     "gmed": {
       "name": {
         "it": "Gastrocnemio, capo mediale",
-        "en": ""
+        "en": "Gastrocnemius, medial head"
       },
       "info": {
         "it": "Tra il suo tendine e il semimembranoso la borsa della cisti di Baker. Sede tipica di strappo (tennis leg).",
-        "en": ""
+        "en": "The bursa of the Baker cyst lies between its tendon and the semimembranosus. Typical site of strain (tennis leg)."
       },
       "o": {
         "it": "Faccia posteriore del femore sopra il condilo mediale e capsula articolare adiacente.",
-        "en": ""
+        "en": "Posterior surface of the femur above the medial condyle and adjacent joint capsule."
       },
       "ins": {
         "it": "Faccia posteriore del calcagno, tramite il tendine calcaneale (d’Achille) comune con capo laterale e soleo.",
-        "en": ""
+        "en": "Posterior surface of the calcaneus, through the calcaneal (Achilles) tendon shared with the lateral head and the soleus."
       },
       "fn": {
         "it": "Flessione plantare della caviglia; flette il ginocchio (biarticolare).",
-        "en": ""
+        "en": "Plantar flexion of the ankle; flexes the knee (biarticular)."
       }
     },
     "glat": {
       "name": {
         "it": "Gastrocnemio, capo laterale",
-        "en": ""
+        "en": "Gastrocnemius, lateral head"
       },
       "info": {
         "it": "Nel tendine d’origine può essere presente la fabella (sesamoide).",
-        "en": ""
+        "en": "A fabella (sesamoid bone) may be present in its tendon of origin."
       },
       "o": {
         "it": "Faccia laterale del condilo femorale laterale, parte inferiore della linea sopracondiloidea laterale e capsula articolare adiacente.",
-        "en": ""
+        "en": "Lateral surface of the lateral femoral condyle, lower part of the lateral supracondylar line and adjacent joint capsule."
       },
       "ins": {
         "it": "Faccia posteriore del calcagno, tramite il tendine calcaneale (d’Achille).",
-        "en": ""
+        "en": "Posterior surface of the calcaneus, through the calcaneal (Achilles) tendon."
       },
       "fn": {
         "it": "Flessione plantare della caviglia; flette il ginocchio (biarticolare).",
-        "en": ""
+        "en": "Plantar flexion of the ankle; flexes the knee (biarticular)."
       }
     },
     "plant": {
       "name": {
         "it": "Plantare",
-        "en": ""
+        "en": "Plantaris"
       },
       "info": {
         "it": "Piccolo ventre sopra il capo laterale del gastrocnemio; lungo tendine sottile tra gastrocnemio e soleo fino al calcagno.",
-        "en": ""
+        "en": "Small belly above the lateral head of the gastrocnemius; long, thin tendon between the gastrocnemius and soleus down to the calcaneus."
       },
       "o": {
         "it": "Parte inferiore della linea sopracondiloidea laterale del femore e legamento popliteo obliquo.",
-        "en": ""
+        "en": "Lower part of the lateral supracondylar line of the femur and oblique popliteal ligament."
       },
       "ins": {
         "it": "Faccia posteriore del calcagno, medialmente al tendine d’Achille o fuso con esso.",
-        "en": ""
+        "en": "Posterior surface of the calcaneus, medial to the Achilles tendon or merged with it."
       },
       "fn": {
         "it": "Azione trascurabile: coadiuva il gastrocnemio nella flessione plantare della caviglia e nella flessione del ginocchio.",
-        "en": ""
+        "en": "Negligible action: assists the gastrocnemius in ankle plantar flexion and knee flexion."
       }
     },
     "pop": {
       "name": {
         "it": "Popliteo",
-        "en": ""
+        "en": "Popliteus"
       },
       "info": {
         "it": "Il tendine, intracapsulare ma extrasinoviale, passa nello iato popliteo del menisco laterale.",
-        "en": ""
+        "en": "The tendon, intracapsular but extrasynovial, passes through the popliteal hiatus of the lateral meniscus."
       },
       "o": {
         "it": "Faccia laterale del condilo femorale laterale (sotto l’epicondilo), con tendine intra-articolare; fibre accessorie dal menisco laterale e dalla testa del perone (legamento popliteo-fibulare).",
-        "en": ""
+        "en": "Lateral surface of the lateral femoral condyle (below the epicondyle), through an intra-articular tendon; accessory fibers from the lateral meniscus and the fibular head (popliteofibular ligament)."
       },
       "ins": {
         "it": "Faccia posteriore della tibia, sopra la linea del soleo.",
-        "en": ""
+        "en": "Posterior surface of the tibia, above the soleal line."
       },
       "fn": {
         "it": "All’inizio della flessione ruota internamente la tibia (o esternamente il femore a piede fisso), “sbloccando” il ginocchio esteso; stabilizzatore postero-laterale.",
-        "en": ""
+        "en": "At the start of flexion it internally rotates the tibia (or externally rotates the femur with the foot planted), “unlocking” the extended knee; posterolateral stabilizer."
       }
     },
     "sol": {
       "name": {
         "it": "Soleo",
-        "en": ""
+        "en": "Soleus"
       },
       "info": {
         "it": "L’arcata tendinea del soleo, tra perone e tibia, è attraversata dai vasi poplitei e dal nervo tibiale; profondo al gastrocnemio, forma con esso il tricipite surale.",
-        "en": ""
+        "en": "The tendinous arch of the soleus, between the fibula and the tibia, is crossed by the popliteal vessels and the tibial nerve; deep to the gastrocnemius, with which it forms the triceps surae."
       },
       "o": {
         "it": "Faccia posteriore della testa e del terzo prossimale del perone, linea del soleo e terzo medio del margine mediale della tibia, arcata tendinea del soleo.",
-        "en": ""
+        "en": "Posterior surface of the head and proximal third of the fibula, soleal line and middle third of the medial border of the tibia, tendinous arch of the soleus."
       },
       "ins": {
         "it": "Faccia posteriore del calcagno, tramite il tendine calcaneale (d’Achille).",
-        "en": ""
+        "en": "Posterior surface of the calcaneus, through the calcaneal (Achilles) tendon."
       },
       "fn": {
         "it": "Flessione plantare della caviglia (monoarticolare); stabilizza la gamba nella stazione eretta e agisce da pompa muscolare venosa.",
-        "en": ""
+        "en": "Plantar flexion of the ankle (monoarticular); stabilizes the leg in standing and acts as a venous muscle pump."
       }
     },
     "tibant": {
       "name": {
         "it": "Tibiale anteriore",
-        "en": ""
+        "en": "Tibialis anterior"
       },
       "info": {
         "it": "Loggia anteriore.",
-        "en": ""
+        "en": "Anterior compartment."
       },
       "o": {
         "it": "Condilo laterale e metà superiore della faccia laterale della tibia, membrana interossea e fascia crurale.",
-        "en": ""
+        "en": "Lateral condyle and upper half of the lateral surface of the tibia, interosseous membrane and crural fascia."
       },
       "ins": {
         "it": "Faccia mediale e plantare del cuneiforme mediale e base del I metatarso.",
-        "en": ""
+        "en": "Medial and plantar surfaces of the medial cuneiform and base of the 1st metatarsal."
       },
       "fn": {
         "it": "Dorsiflessione della caviglia e inversione del piede; sostiene l’arco longitudinale mediale.",
-        "en": ""
+        "en": "Ankle dorsiflexion and foot inversion; supports the medial longitudinal arch."
       }
     },
     "extdig": {
       "name": {
         "it": "Estensore lungo delle dita",
-        "en": ""
+        "en": "Extensor digitorum longus"
       },
       "info": {
         "it": "Loggia anteriore.",
-        "en": ""
+        "en": "Anterior compartment."
       },
       "o": {
         "it": "Condilo laterale della tibia, tre quarti superiori della faccia mediale (anteriore) del perone, membrana interossea.",
-        "en": ""
+        "en": "Lateral condyle of the tibia, upper three quarters of the medial (anterior) surface of the fibula, interosseous membrane."
       },
       "ins": {
         "it": "Con quattro tendini sull’aponeurosi dorsale delle dita II–V, fino alle falangi media e distale.",
-        "en": ""
+        "en": "Through four tendons on the dorsal aponeurosis of the 2nd–5th toes, to the middle and distal phalanges."
       },
       "fn": {
         "it": "Estende le dita II–V; coadiuva la dorsiflessione della caviglia e l’eversione del piede.",
-        "en": ""
+        "en": "Extends the 2nd–5th toes; assists ankle dorsiflexion and foot eversion."
       }
     },
     "perlong": {
       "name": {
         "it": "Peroneo lungo",
-        "en": ""
+        "en": "Fibularis longus (peroneus longus)"
       },
       "info": {
         "it": "Loggia laterale; il nervo peroneo comune passa tra il muscolo e il collo del perone.",
-        "en": ""
+        "en": "Lateral compartment; the common fibular nerve passes between the muscle and the fibular neck."
       },
       "o": {
         "it": "Testa e due terzi superiori della faccia laterale del perone; setti intermuscolari.",
-        "en": ""
+        "en": "Head and upper two thirds of the lateral surface of the fibula; intermuscular septa."
       },
       "ins": {
         "it": "Base del I metatarso e cuneiforme mediale (lato plantare), dopo aver attraversato la pianta nel solco del cuboide.",
-        "en": ""
+        "en": "Base of the 1st metatarsal and medial cuneiform (plantar side), after crossing the sole in the groove of the cuboid."
       },
       "fn": {
         "it": "Everte il piede e flette plantarmente la caviglia; sostiene l’arco trasverso e longitudinale.",
-        "en": ""
+        "en": "Everts the foot and plantar flexes the ankle; supports the transverse and longitudinal arches."
       }
     },
     "tibpost": {
       "name": {
         "it": "Tibiale posteriore",
-        "en": ""
+        "en": "Tibialis posterior"
       },
       "info": {
         "it": "Il muscolo più profondo della loggia posteriore; il tendine passa dietro al malleolo mediale.",
-        "en": ""
+        "en": "The deepest muscle of the posterior compartment; its tendon passes behind the medial malleolus."
       },
       "o": {
         "it": "Membrana interossea e facce posteriori contigue di tibia (sotto la linea del soleo) e perone.",
-        "en": ""
+        "en": "Interosseous membrane and adjacent posterior surfaces of the tibia (below the soleal line) and fibula."
       },
       "ins": {
         "it": "Tuberosità del navicolare e cuneiforme mediale; espansioni plantari agli altri cuneiformi, al cuboide e alle basi del II–IV metatarso.",
-        "en": ""
+        "en": "Navicular tuberosity and medial cuneiform; plantar expansions to the other cuneiforms, the cuboid and the bases of the 2nd–4th metatarsals."
       },
       "fn": {
         "it": "Inversione del piede e flessione plantare; principale stabilizzatore dinamico dell’arco plantare mediale.",
-        "en": ""
+        "en": "Foot inversion and plantar flexion; main dynamic stabilizer of the medial arch."
       }
     },
     "fdl": {
       "name": {
         "it": "Flessore lungo delle dita",
-        "en": ""
+        "en": "Flexor digitorum longus"
       },
       "info": {
         "it": "Loggia posteriore profonda: decorre medialmente al tibiale posteriore e passa dietro al malleolo mediale.",
-        "en": ""
+        "en": "Deep posterior compartment: it runs medial to the tibialis posterior and passes behind the medial malleolus."
       },
       "o": {
         "it": "Faccia posteriore della tibia, medialmente, sotto la linea del soleo.",
-        "en": ""
+        "en": "Posterior surface of the tibia, medially, below the soleal line."
       },
       "ins": {
         "it": "Basi delle falangi distali delle dita II–V.",
-        "en": ""
+        "en": "Bases of the distal phalanges of the 2nd–5th toes."
       },
       "fn": {
         "it": "Flette le ultime quattro dita; coadiuva flessione plantare e inversione del piede.",
-        "en": ""
+        "en": "Flexes the lateral four toes; assists plantar flexion and foot inversion."
       }
     },
     "fhl": {
       "name": {
         "it": "Flessore lungo dell'alluce",
-        "en": ""
+        "en": "Flexor hallucis longus"
       },
       "info": {
         "it": "Loggia posteriore profonda, lateralmente; il tendine incrocia poi verso il malleolo mediale.",
-        "en": ""
+        "en": "Deep posterior compartment, laterally; the tendon then crosses toward the medial malleolus."
       },
       "o": {
         "it": "Due terzi inferiori della faccia posteriore del perone e membrana interossea.",
-        "en": ""
+        "en": "Lower two thirds of the posterior surface of the fibula and interosseous membrane."
       },
       "ins": {
         "it": "Base della falange distale dell’alluce (faccia plantare).",
-        "en": ""
+        "en": "Base of the distal phalanx of the great toe (plantar surface)."
       },
       "fn": {
         "it": "Flette l’alluce; coadiuva la flessione plantare e sostiene l’arco mediale nella spinta del passo.",
-        "en": ""
+        "en": "Flexes the great toe; assists plantar flexion and supports the medial arch at push-off."
       }
     },
     "ehl": {
       "name": {
         "it": "Estensore lungo dell'alluce",
-        "en": ""
+        "en": "Extensor hallucis longus"
       },
       "info": {
         "it": "Loggia anteriore: tra tibiale anteriore ed estensore lungo delle dita, che prossimalmente lo coprono.",
-        "en": ""
+        "en": "Anterior compartment: between the tibialis anterior and the extensor digitorum longus, which cover it proximally."
       },
       "o": {
         "it": "Terzo medio della faccia mediale del perone e membrana interossea.",
-        "en": ""
+        "en": "Middle third of the medial surface of the fibula and interosseous membrane."
       },
       "ins": {
         "it": "Base della falange distale dell’alluce (faccia dorsale).",
-        "en": ""
+        "en": "Base of the distal phalanx of the great toe (dorsal surface)."
       },
       "fn": {
         "it": "Estende l’alluce; coadiuva la dorsiflessione della caviglia.",
-        "en": ""
+        "en": "Extends the great toe; assists ankle dorsiflexion."
       }
     },
     "perbrev": {
       "name": {
         "it": "Peroneo breve",
-        "en": ""
+        "en": "Fibularis brevis (peroneus brevis)"
       },
       "info": {
         "it": "Loggia laterale, profondo al peroneo lungo; l’origine inizia circa 12 cm sotto la testa del perone. Il modello si ferma a metà gamba: se ne vede solo il tratto prossimale del ventre.",
-        "en": ""
+        "en": "Lateral compartment, deep to the fibularis longus; its origin begins about 12 cm below the fibular head. The model stops at mid-leg: only the proximal part of the belly is visible."
       },
       "o": {
         "it": "Due terzi inferiori della faccia laterale del perone; setti intermuscolari.",
-        "en": ""
+        "en": "Lower two thirds of the lateral surface of the fibula; intermuscular septa."
       },
       "ins": {
         "it": "Tuberosità della base del V metatarso.",
-        "en": ""
+        "en": "Tuberosity of the base of the 5th metatarsal."
       },
       "fn": {
         "it": "Everte il piede e flette plantarmente la caviglia.",
-        "en": ""
+        "en": "Everts the foot and plantar flexes the ankle."
       }
     },
     "apop": {
       "name": {
         "it": "Arteria femorale superficiale → poplitea",
-        "en": ""
+        "en": "Superficial femoral artery → popliteal artery"
       },
       "info": {
         "it": "Nel canale degli adduttori, sotto il sartorio, tra vasto mediale e adduttore magno; diventa poplitea all’iato degli adduttori. Nella fossa poplitea è la struttura più profonda del fascio neurovascolare, sulla faccia poplitea del femore e sulla capsula, posteriore al legamento popliteo obliquo (non lo attraversa); si divide al margine inferiore del popliteo, sotto l’arcata del soleo.",
-        "en": ""
+        "en": "In the adductor canal, under the sartorius, between the vastus medialis and the adductor magnus; it becomes the popliteal artery at the adductor hiatus. In the popliteal fossa it is the deepest structure of the neurovascular bundle, on the popliteal surface of the femur and on the capsule, posterior to the oblique popliteal ligament (it does not pierce it); it divides at the lower border of the popliteus, under the soleal arch."
       }
     },
     "adisc": {
       "name": {
         "it": "Arteria genicolare discendente",
-        "en": ""
+        "en": "Descending genicular artery"
       },
       "info": {
         "it": "Nasce dalla femorale nel canale degli adduttori; dà rami articolari alla rete genicolare e un ramo safeno.",
-        "en": ""
+        "en": "Arises from the femoral artery in the adductor canal; it gives articular branches to the genicular network and a saphenous branch."
       }
     },
     "agen": {
       "name": {
         "it": "Arterie genicolari",
-        "en": ""
+        "en": "Genicular arteries"
       },
       "info": {
         "it": "Superiori e inferiori, mediali e laterali (la media, per i crociati, non è rappresentata): rete anastomotica periarticolare, bersaglio dell’embolizzazione genicolare.",
-        "en": ""
+        "en": "Superior and inferior, medial and lateral (the middle genicular artery, supplying the cruciate ligaments, is not shown): periarticular anastomotic network, target of genicular artery embolization."
       }
     },
     "asur": {
       "name": {
         "it": "Arterie surali",
-        "en": ""
+        "en": "Sural arteries"
       },
       "info": {
         "it": "Rami della poplitea per i capi del gastrocnemio, il soleo e il plantare.",
-        "en": ""
+        "en": "Branches of the popliteal artery to the heads of the gastrocnemius, the soleus and the plantaris."
       }
     },
     "atant": {
       "name": {
         "it": "Arteria tibiale anteriore",
-        "en": ""
+        "en": "Anterior tibial artery"
       },
       "info": {
         "it": "Nasce dalla poplitea e passa anteriormente sopra la membrana interossea, scendendo nella loggia anteriore.",
-        "en": ""
+        "en": "Arises from the popliteal artery and passes anteriorly over the interosseous membrane, descending into the anterior compartment."
       }
     },
     "aric": {
       "name": {
         "it": "Arteria ricorrente tibiale anteriore",
-        "en": ""
+        "en": "Anterior tibial recurrent artery"
       },
       "info": {
         "it": "Dalla tibiale anteriore risale anteriormente e si anastomizza con le genicolari inferiori.",
-        "en": ""
+        "en": "From the anterior tibial artery it ascends anteriorly and anastomoses with the inferior genicular arteries."
       }
     },
     "atpost": {
       "name": {
         "it": "Arteria tibiale posteriore",
-        "en": ""
+        "en": "Posterior tibial artery"
       },
       "info": {
         "it": "Continuazione della poplitea nella loggia posteriore profonda; dà origine all’arteria peroniera.",
-        "en": ""
+        "en": "Continuation of the popliteal artery in the deep posterior compartment; gives rise to the fibular artery."
       }
     },
     "aper": {
       "name": {
         "it": "Arteria peroniera",
-        "en": ""
+        "en": "Fibular (peroneal) artery"
       },
       "info": {
         "it": "Nasce dalla tibiale posteriore e scende lungo il perone nella loggia posteriore profonda.",
-        "en": ""
+        "en": "Arises from the posterior tibial artery and descends along the fibula in the deep posterior compartment."
       }
     },
     "vpop": {
       "name": {
         "it": "Vena poplitea",
-        "en": ""
+        "en": "Popliteal vein"
       },
       "info": {
         "it": "Superficiale all’arteria e profonda al nervo tibiale; riceve la piccola safena. Sede frequente di TVP da escludere con eco-Doppler.",
-        "en": ""
+        "en": "Superficial to the artery and deep to the tibial nerve; receives the small saphenous vein. A common site of DVT, to be ruled out with Doppler ultrasound."
       }
     },
     "vtpost": {
       "name": {
         "it": "Vene tibiali posteriori",
-        "en": ""
+        "en": "Posterior tibial veins"
       },
       "info": {
         "it": "Solitamente doppie (qui una sola); unendosi alle tibiali anteriori formano la vena poplitea.",
-        "en": ""
+        "en": "Usually paired (a single one here); joining the anterior tibial veins they form the popliteal vein."
       }
     },
     "vtant": {
       "name": {
         "it": "Vene tibiali anteriori",
-        "en": ""
+        "en": "Anterior tibial veins"
       },
       "info": {
         "it": "Satelliti dell’arteria tibiale anteriore, sopra la membrana interossea (solitamente doppie, qui una sola); al margine inferiore del popliteo si uniscono alle tibiali posteriori e formano la vena poplitea.",
-        "en": ""
+        "en": "Accompany the anterior tibial artery, over the interosseous membrane (usually paired, a single one here); at the lower border of the popliteus they join the posterior tibial veins to form the popliteal vein."
       }
     },
     "vps": {
       "name": {
         "it": "Vena piccola safena",
-        "en": ""
+        "en": "Small saphenous vein"
       },
       "info": {
         "it": "Risale posteriormente sul polpaccio tra i capi del gastrocnemio e sbocca nella poplitea (giunzione safeno-poplitea, livello variabile).",
-        "en": ""
+        "en": "Ascends posteriorly on the calf between the heads of the gastrocnemius and drains into the popliteal vein (saphenopopliteal junction, variable level)."
       }
     },
     "vgs": {
       "name": {
         "it": "Vena grande safena",
-        "en": ""
+        "en": "Great saphenous vein"
       },
       "info": {
         "it": "Sottocutanea per tutto il decorso: al ginocchio passa dietro il condilo femorale mediale, superficiale ai tendini della zampa d’oca; sotto il ginocchio è accompagnata dal nervo safeno.",
-        "en": ""
+        "en": "Subcutaneous along its whole course: at the knee it passes behind the medial femoral condyle, superficial to the pes anserinus tendons; below the knee it is accompanied by the saphenous nerve."
       }
     },
     "nsci": {
       "name": {
         "it": "Nervo sciatico",
-        "en": ""
+        "en": "Sciatic nerve"
       },
       "info": {
         "it": "Scende nella coscia posteriore profondo al capo lungo del bicipite, sull’adduttore magno; si divide in nervo tibiale e peroneo comune, di solito all’apice della fossa poplitea (livello variabile, talvolta più prossimale).",
-        "en": ""
+        "en": "Descends in the posterior thigh deep to the long head of biceps femoris, on the adductor magnus; it divides into the tibial and common fibular nerves, usually at the apex of the popliteal fossa (variable level, sometimes more proximal)."
       }
     },
     "ntib": {
       "name": {
         "it": "Nervo tibiale",
-        "en": ""
+        "en": "Tibial nerve"
       },
       "info": {
         "it": "La struttura più superficiale del fascio neurovascolare popliteo; scende profondo al gastrocnemio e sotto l’arcata del soleo.",
-        "en": ""
+        "en": "The most superficial structure of the popliteal neurovascular bundle; it descends deep to the gastrocnemius and under the soleal arch."
       }
     },
     "nper": {
       "name": {
         "it": "Nervo peroneo comune",
-        "en": ""
+        "en": "Common fibular (peroneal) nerve"
       },
       "info": {
         "it": "Segue il margine mediale del bicipite femorale e avvolge il collo del perone, dove è superficiale: vulnerabile a fratture, compressioni e traumi (piede cadente).",
-        "en": ""
+        "en": "Follows the medial margin of the biceps femoris and winds around the fibular neck, where it is superficial: vulnerable to fractures, compression and trauma (foot drop)."
       }
     },
     "nperS": {
       "name": {
         "it": "Nervo peroneo superficiale",
-        "en": ""
+        "en": "Superficial fibular (peroneal) nerve"
       },
       "info": {
         "it": "Nasce al collo del perone, profondo al peroneo lungo, e scende nella loggia laterale tra i peronieri e l’estensore lungo delle dita; innerva i muscoli peronieri. Diventa sottocutaneo nel terzo distale della gamba: sensibilità del dorso del piede.",
-        "en": ""
+        "en": "Arises at the fibular neck, deep to the fibularis longus, and descends in the lateral compartment between the fibular muscles and the extensor digitorum longus; it supplies the fibular muscles. It becomes subcutaneous in the distal third of the leg: sensation to the dorsum of the foot."
       }
     },
     "nperP": {
       "name": {
         "it": "Nervo peroneo profondo",
-        "en": ""
+        "en": "Deep fibular (peroneal) nerve"
       },
       "info": {
         "it": "Attraversa il setto intermuscolare anteriore, passa profondo all’estensore lungo delle dita e scende sulla membrana interossea, lateralmente all’arteria tibiale anteriore, tra tibiale anteriore ed estensore lungo; innerva i muscoli estensori.",
-        "en": ""
+        "en": "Pierces the anterior intermuscular septum, passes deep to the extensor digitorum longus and descends on the interosseous membrane, lateral to the anterior tibial artery, between the tibialis anterior and the extensor longus muscles; it supplies the extensor muscles."
       }
     },
     "nsaf": {
       "name": {
         "it": "Nervo safeno",
-        "en": ""
+        "en": "Saphenous nerve"
       },
       "info": {
         "it": "Ramo sensitivo del nervo femorale: nel canale degli adduttori e poi dietro il sartorio; al lato mediale del ginocchio perfora la fascia tra i tendini di sartorio e gracile, diventa sottocutaneo e scende con la grande safena.",
-        "en": ""
+        "en": "Sensory branch of the femoral nerve: in the adductor canal and then behind the sartorius; on the medial side of the knee it pierces the fascia between the sartorius and gracilis tendons, becomes subcutaneous and descends with the great saphenous vein."
       }
     },
     "ninfra": {
       "name": {
         "it": "Ramo infrarotuleo del safeno",
-        "en": ""
+        "en": "Infrapatellar branch of saphenous nerve"
       },
       "info": {
         "it": "Sensibilità della cute anteriore sotto la rotula; a rischio negli accessi chirurgici e artroscopici mediali.",
-        "en": ""
+        "en": "Sensation of the anterior skin below the patella; at risk in medial surgical and arthroscopic approaches."
       }
     },
     "nsurmed": {
       "name": {
         "it": "Nervo cutaneo surale mediale",
-        "en": ""
+        "en": "Medial sural cutaneous nerve"
       },
       "info": {
         "it": "Dal nervo tibiale, scende tra i capi del gastrocnemio con la piccola safena e contribuisce a formare il nervo surale.",
-        "en": ""
+        "en": "From the tibial nerve, it descends between the heads of the gastrocnemius with the small saphenous vein and contributes to the sural nerve."
       }
     },
     "nsurlat": {
       "name": {
         "it": "Nervo cutaneo surale laterale",
-        "en": ""
+        "en": "Lateral sural cutaneous nerve"
       },
       "info": {
         "it": "Dal peroneo comune; sensibilità della cute postero-laterale della gamba.",
-        "en": ""
+        "en": "From the common fibular nerve; sensation of the posterolateral skin of the leg."
       }
     },
     "bsovra": {
       "name": {
         "it": "Recesso (borsa) sovrapatellare",
-        "en": ""
+        "en": "Suprapatellar recess (bursa)"
       },
       "info": {
         "it": "Comunica con l’articolazione: primo sito di raccolta del versamento (in ecografia scansione sovrapatellare in lieve flessione).",
-        "en": ""
+        "en": "Communicates with the joint: the first site where effusion collects (on ultrasound, suprapatellar scan in slight flexion)."
       }
     },
     "bprep": {
       "name": {
         "it": "Borsa prepatellare",
-        "en": ""
+        "en": "Prepatellar bursa"
       },
       "info": {
         "it": "Tra cute e rotula; borsite da inginocchiamento prolungato (housemaid’s knee).",
-        "en": ""
+        "en": "Between the skin and the patella; bursitis from prolonged kneeling (housemaid’s knee)."
       }
     },
     "binfprof": {
       "name": {
         "it": "Borsa infrapatellare profonda",
-        "en": ""
+        "en": "Deep infrapatellar bursa"
       },
       "info": {
         "it": "Tra tendine rotuleo distale e tibia, sotto il corpo di Hoffa; una minima quantità di liquido è fisiologica.",
-        "en": ""
+        "en": "Between the distal patellar tendon and the tibia, below the Hoffa fat pad; a small amount of fluid is physiologic."
       }
     },
     "binfsup": {
       "name": {
         "it": "Borsa infrapatellare superficiale",
-        "en": ""
+        "en": "Superficial infrapatellar bursa"
       },
       "info": {
         "it": "Sottocutanea, anteriore alla tuberosità tibiale.",
-        "en": ""
+        "en": "Subcutaneous, anterior to the tibial tuberosity."
       }
     },
     "bans": {
       "name": {
         "it": "Borsa anserina",
-        "en": ""
+        "en": "Pes anserinus bursa"
       },
       "info": {
         "it": "Tra zampa d’oca e LCM/tibia; la borsite causa dolore mediale sotto l’interlinea.",
-        "en": ""
+        "en": "Between the pes anserinus and the MCL/tibia; bursitis causes medial pain below the joint line."
       }
     },
     "bgsm": {
       "name": {
         "it": "Borsa gastrocnemio-semimembranosa",
-        "en": ""
+        "en": "Gastrocnemius-semimembranosus bursa"
       },
       "info": {
         "it": "Tra tendine del gastrocnemio mediale e semimembranoso; spesso comunica con l’articolazione e si distende nella cisti di Baker (in ecografia il \"collo\" tra i due tendini).",
-        "en": ""
+        "en": "Between the medial gastrocnemius tendon and the semimembranosus; it often communicates with the joint and distends into a Baker cyst (on ultrasound, the \"neck\" between the two tendons)."
       }
     },
     "hoffa": {
       "name": {
         "it": "Corpo adiposo di Hoffa",
-        "en": ""
+        "en": "Hoffa fat pad"
       },
       "info": {
         "it": "Intracapsulare ma extrasinoviale, posteriore al tendine rotuleo. Sede di impingement, edema e fibrosi post-chirurgica.",
-        "en": ""
+        "en": "Intracapsular but extrasynovial, posterior to the patellar tendon. Site of impingement, edema and postsurgical fibrosis."
       }
     },
     "capsula": {
       "name": {
         "it": "Capsula articolare",
-        "en": ""
+        "en": "Joint capsule"
       },
       "info": {
         "it": "Involucro fibroso rivestito da sinoviale; anteriormente si estende nel recesso sovrapatellare, posteriormente forma i recessi condilari. Rappresentata semi-trasparente.",
-        "en": ""
+        "en": "Fibrous envelope lined by synovium; anteriorly it extends into the suprapatellar recess, posteriorly it forms the condylar recesses. Shown semi-transparent."
       }
     },
     "cute": {
       "name": {
         "it": "Cute",
-        "en": ""
+        "en": "Skin"
       },
       "info": {
         "it": "Contorno cutaneo semi-trasparente, per riferimento con i reperi superficiali.",
-        "en": ""
+        "en": "Semi-transparent skin outline, as a reference for surface landmarks."
       }
     },
     "@PES": {
       "name": {
         "it": "Zampa d'oca (pes anserinus)",
-        "en": ""
+        "en": "Pes anserinus"
       },
       "info": {
         "it": "Sartorio, gracile e semitendinoso formano insieme la zampa d'oca: inserzione comune dei tre tendini sulla faccia anteromediale della tibia prossimale, circa 4 cm sotto l'interlinea, medialmente alla tuberosità tibiale. Si trova superficialmente all'inserzione tibiale del LCM; tra tendini e LCM/tibia è interposta la borsa anserina.",
-        "en": ""
+        "en": "The sartorius, gracilis and semitendinosus together form the pes anserinus: common insertion of the three tendons on the anteromedial surface of the proximal tibia, about 4 cm below the joint line, medial to the tibial tuberosity. It lies superficial to the tibial insertion of the MCL; the pes anserinus bursa is interposed between the tendons and the MCL/tibia."
       },
       "o": {
         "it": "Sartorio: spina iliaca anteriore superiore. Gracile: corpo del pube e branca ischio-pubica. Semitendinoso: tuberosità ischiatica.",
-        "en": ""
+        "en": "Sartorius: anterior superior iliac spine. Gracilis: body of the pubis and ischiopubic ramus. Semitendinosus: ischial tuberosity."
       },
       "ins": {
         "it": "Faccia antero-mediale della tibia prossimale, dall'avanti all'indietro: sartorio, gracile, semitendinoso.",
-        "en": ""
+        "en": "Anteromedial surface of the proximal tibia, from front to back: sartorius, gracilis, semitendinosus."
       },
       "fn": {
         "it": "Flessione del ginocchio e rotazione interna della tibia; stabilizzazione dinamica mediale contro valgo e rotazione esterna.",
-        "en": ""
+        "en": "Knee flexion and internal rotation of the tibia; dynamic medial stabilization against valgus and external rotation."
       }
     }
   },
   "testi": {
-    "Modello 3D del ginocchio: trascina per ruotare, pizzica per ingrandire, tocca una struttura per il dettaglio": "",
-    "Ginocchio destro": "",
-    "Menischi": "",
-    "Tendini e fasce": "",
-    "Muscoli": ""
+    "Modello 3D del ginocchio: trascina per ruotare, pizzica per ingrandire, tocca una struttura per il dettaglio": "3D model of the knee: drag to rotate, pinch to zoom, tap a structure for details",
+    "Ginocchio destro": "Right knee",
+    "Menischi": "Menisci",
+    "Tendini e fasce": "Tendons and fasciae",
+    "Muscoli": "Muscles"
   },
   "ignora": [],
-  "dubbi": []
+  "dubbi": [
+    {
+      "termine": "Peroneo/peroniero → fibular (peroneal)",
+      "nota": "TA2 usa fibularis/fibular; in clinica e radiologia USA prevale «peroneal». Nei nomi ho scritto entrambe le forme (es. «Fibularis longus (peroneus longus)», «Common fibular (peroneal) nerve»); nelle note solo fibular. Il perone osso è sempre «fibula»."
+    },
+    {
+      "termine": "LCL → Lateral collateral ligament (LCL)",
+      "nota": "TA2: fibular collateral ligament. Ho tenuto LCL, d’uso universale in RM; si può aggiungere «fibular collateral» tra parentesi."
+    },
+    {
+      "termine": "LCA/LCP/LCM → ACL/PCL/MCL",
+      "nota": "Sigle inglesi standard; MCL in TA2 è «tibial collateral ligament»."
+    },
+    {
+      "termine": "Complesso postero-laterale → posterolateral corner",
+      "nota": "Termine clinico inglese (PLC); in italiano «complesso», in inglese si dice quasi sempre corner."
+    },
+    {
+      "termine": "Tendine rotuleo / legamento rotuleo → patellar tendon / patellar ligament",
+      "nota": "TA2: patellar ligament; la nota italiana già lo spiega, quindi la traduzione è coerente."
+    },
+    {
+      "termine": "Arteria femorale superficiale → superficial femoral artery",
+      "nota": "Termine clinico (SFA); TA2 parla solo di femoral artery."
+    },
+    {
+      "termine": "Recesso (borsa) sovrapatellare → suprapatellar recess (bursa)",
+      "nota": "TA2: suprapatellar bursa; in imaging si usa anche recess."
+    },
+    {
+      "termine": "Borsa anserina → pes anserinus bursa",
+      "nota": "TA2: anserine bursa; ho usato la forma clinica più comune."
+    },
+    {
+      "termine": "Corpo adiposo di Hoffa → Hoffa fat pad",
+      "nota": "TA2: infrapatellar fat pad; in RM USA si dicono entrambi."
+    },
+    {
+      "termine": "Tratto ileotibiale → iliotibial tract",
+      "nota": "TA2; in clinica anche «iliotibial band» (ITB). Sindrome = «IT band friction syndrome»: nella nota ho scritto «friction syndrome»."
+    },
+    {
+      "termine": "Eponimi senza genitivo (Gerdy tubercle, Hoffa fat pad, Baker cyst, Segond fracture)",
+      "nota": "Stile AMA, come negli altri modelli. Eccezioni d’uso: jumper’s knee, housemaid’s knee."
+    },
+    {
+      "termine": "Inserzione a «tuberosità ischiatica (impronta supero-laterale)» → superolateral facet",
+      "nota": "In inglese per le impronte sulla tuberosità si usa «facet»."
+    },
+    {
+      "termine": "Estensore lungo / tibiale anteriore (nervo peroneo profondo) → «extensor longus muscles»",
+      "nota": "Nella nota del peroneo profondo «tra tibiale anteriore ed estensore lungo» è reso con «between the tibialis anterior and the extensor longus muscles» per non scegliere tra EDL ed EHL: l’italiano è ambiguo."
+    }
+  ]
 }
