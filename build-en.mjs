@@ -293,7 +293,7 @@ export function creaContesto(nome, tabelle) {
     stato.ok++; return e.en;
   };
   const traduci = u => {
-    if (u.tipo === 'struttura') return voce(pagina.strutture?.[u.id]?.[u.prop], `strutture.${u.id}.${u.prop}`, u.it);
+    if (u.tipo === 'struttura') return norm(u.it) ? voce(pagina.strutture?.[u.id]?.[u.prop], `strutture.${u.id}.${u.prop}`, u.it) : null;
     if (u.tipo === 'meta') return norm(u.it) ? voce(pagina.meta?.[u.chiave], `meta.${u.chiave}`, u.it) : null;
     const k = norm(u.it);
     if (!k) return null;
