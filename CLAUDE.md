@@ -128,6 +128,9 @@ caricati dalla pagina con fetch: la pagina HTML pesa 100–230 KB, i dati 1–7 
   (voci con testo `it` di riferimento ed `en`; `comune`, `home`, `404` e un file per modello). Inglese USA, terminologia TA2; credito e licenza tradotti alla lettera dall'italiano.
 - I file italiani non contengono traduzioni: unica aggiunta il selettore (link `data-lingua` nascosti in home e 404, che la build mostra solo se la pagina inglese è pubblicata;
   riga «Lingua» nel pannello «i» di `nav.js`, solo se ci sono i `link hreflang`). La build aggiunge hreflang it/en/x-default alle pagine pubblicate e alla sitemap.
+- Avviso lingua (`assets/avviso-lingua.js`, caricato dalla home e da `nav.js`): pillola «This page is also available in English» con link alla pagina /en/ corrispondente (conserva `?struttura=` e `#dito`) e ✕; nessun reindirizzamento.
+  Solo su pagine italiane con l'alternativa inglese (non /en/, non bozze) e se `navigator.languages` non contiene l'italiano; la chiusura si ricorda in `localStorage` (`msk-avviso-lingua`).
+  Modelli: smartphone sopra «Strutture» (nascosto con pannello o scheda aperti), tablet sopra il pannello, da 900 px in alto al centro; home sotto la barra in alto (l'invito «App MSK Atlas» non compare in quella visita).
 - In produzione una pagina inglese va online solo se completa; la build segnala voci senza traduzione, modificate e obsolete (`--traduzioni` per i dettagli).
 - **Regola:** se cambia una nota `info`/`o`/`ins`/`fn` (o un nome), l'inglese va aggiornato nello stesso ramo prima del merge su `main`.
 - Immagini social inglesi: `node strumenti/og.mjs --lingua=en <nome>-3d` → `assets/og/en/<nome>-3d.jpg` (testi in `PAGINE_EN`); la build le usa per le pagine /en/ se esistono.

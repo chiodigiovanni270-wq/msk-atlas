@@ -329,6 +329,7 @@ footer{border-top:1px solid var(--line);padding:48px 0 26px;background:var(--bg-
 <link rel="stylesheet" href="assets/ricerca.css">
 <script src="assets/ricerca.js" defer></script>
 <script src="assets/segnala.js" defer></script>
+<script src="assets/avviso-lingua.js" defer></script>
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
@@ -876,7 +877,8 @@ footer{border-top:1px solid var(--line);padding:48px 0 26px;background:var(--bg-
   });
   addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); ev = e; go.textContent = 'Installa'; });
   addEventListener('appinstalled', function(){ box.hidden = true; try { localStorage.setItem(KEY, String(Date.now() + 3650 * 24 * 3600 * 1000)); } catch (e) {} });
-  setTimeout(function(){ box.hidden = false; requestAnimationFrame(function(){ box.classList.add('on'); }); }, 3000);
+  /* visitatori non italiani: se è visibile l'avviso lingua (assets/avviso-lingua.js), l'invito non compare in questa visita */
+  setTimeout(function(){ if (document.documentElement.classList.contains('avviso-lingua')) return; box.hidden = false; requestAnimationFrame(function(){ box.classList.add('on'); }); }, 3000);
 })();
 </script>
 </body>

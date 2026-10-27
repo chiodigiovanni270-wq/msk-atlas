@@ -208,6 +208,11 @@
     reportJS.src = new URL('segnala.js', anchor.src).href;
     document.head.appendChild(reportJS);
   }
+  /* avviso «This page is also available in English» per i visitatori non italiani: file a parte, stesso percorso di nav.js;
+     solo sulle pagine italiane con l'alternativa inglese (non sulle pagine /en/ né sulle bozze) */
+  if (anchor && anchor.src && document.documentElement.lang === 'it' && document.querySelector('link[rel="alternate"][hreflang="en"]')) {
+    var al = document.createElement('script'); al.src = new URL('avviso-lingua.js', anchor.src).href; document.head.appendChild(al);
+  }
   /* scheda struttura su smartphone (foglio compatto): file a parte, stesso percorso di nav.js */
   if (anchor && anchor.src) { var sk = document.createElement('script'); sk.src = anchor.src.replace(/nav\.js([?#].*)?$/, 'scheda.js'); document.head.appendChild(sk); }
   /* Ricerca comune: UI esterna, catalogo e selezione forniti dalla tavola corrente. */

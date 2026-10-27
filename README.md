@@ -135,6 +135,8 @@ Le pagine italiane restano l'unica fonte. `node build-site.mjs` (tramite `build-
 indice di ricerca, manifest e sitemap (con `xhtml:link` hreflang). Le pagine italiane pubblicate ricevono solo i `<link rel="alternate" hreflang>`
 e il selettore di lingua (pillola «EN» e link «English» in home, link «English» nella 404, riga «Lingua» nel pannello «i» dei modelli),
 che compare solo se la pagina inglese esiste. Le bozze sono escluse.
+Ai visitatori il cui browser non indica l'italiano (`navigator.languages`) le pagine italiane mostrano anche l'avviso
+«This page is also available in English» (`assets/avviso-lingua.js`, caricato dalla home e da `nav.js`), senza reindirizzamenti; chiuso con ✕, non riappare su quel dispositivo (`localStorage`).
 
 La build stampa per ogni pagina le voci **senza traduzione**, **modificate** (il testo italiano non coincide più con quello di riferimento:
 resta l'inglese precedente) e **obsolete**; dettagli con `node build-site.mjs --traduzioni`, errore con `--rigoroso`.
