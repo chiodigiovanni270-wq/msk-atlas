@@ -141,7 +141,8 @@
     "posteriore": "posterior",
     "risultato": "result",
     "risultati": "results",
-    "strutture": "structures"
+    "strutture": "structures",
+    "Lingua": "Language"
   },
   "ignora": [
     "Android",
@@ -155,7 +156,10 @@
     "MSK Atlas",
     "Med",
     "Post",
-    "use strict"
+    "use strict",
+    "Italiano",
+    "English",
+    "EN"
   ],
   "codice": [
     {

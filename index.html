@@ -87,6 +87,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-off
 .topnav .nav-extra{display:none}
 .topnav .nav-cta{min-height:44px;margin-left:8px;padding:0 20px;background:#f2f6f8;color:var(--bg);font-weight:600}
 .topnav .nav-cta:hover{background:#fff;color:var(--bg)}
+.topnav .nav-lang{padding:0 12px;border:1px solid var(--line);font-size:13px;font-weight:600;letter-spacing:.08em}
+[data-lingua][hidden]{display:none}
 @media (min-width:760px){.topnav .nav-extra{display:inline-flex}}
 
 /* pulsanti */
@@ -337,6 +339,7 @@ footer{border-top:1px solid var(--line);padding:48px 0 26px;background:var(--bg-
     <nav class="topnav" aria-label="Sezioni della pagina">
       <a class="nav-extra" href="#uso">Come si usa</a>
       <a href="#contatti">Contatti</a>
+      <a class="nav-lang" href="/en/" hreflang="en" lang="en" aria-label="English" data-lingua hidden>EN</a>
       <a class="nav-cta" href="#modelli">Modelli</a>
     </nav>
   </div>
@@ -626,7 +629,7 @@ footer{border-top:1px solid var(--line);padding:48px 0 26px;background:var(--bg-
           Per prudenza i modelli modificati sono distribuiti con la licenza più restrittiva, CC BY-SA 2.1 JP.</p></details>
 <p class="f-cite"><cite>Mitsuhashi N et al. BodyParts3D: 3D structure database for anatomical concepts.</cite><br>Nucleic Acids Research, 2009.</p></div></div>
 <div class="foot-bottom"><p class="foot-note"><strong>Materiale didattico.</strong> Non destinato a uso clinico o diagnostico.</p>
-<nav class="foot-links" aria-label="Collegamenti di fine pagina"><a href="#contatti">Contatti</a><a href="#titolo">Torna in alto ↑</a></nav></div></div></footer>
+<nav class="foot-links" aria-label="Collegamenti di fine pagina"><a href="/en/" hreflang="en" lang="en" data-lingua hidden>English</a><a href="#contatti">Contatti</a><a href="#titolo">Torna in alto ↑</a></nav></div></div></footer>
 
 
 <!-- invito a installare l'app (solo da telefono/tablet, solo in homepage; testo adattato da script) -->

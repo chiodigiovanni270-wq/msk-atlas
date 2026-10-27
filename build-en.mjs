@@ -385,6 +385,13 @@ function collegamentiRotti(s, dist) {
   }
   return rotti;
 }
+/* selettore di lingua di home e 404 (link data-lingua, nascosti nei sorgenti): si mostra solo se la pagina inglese è pubblicata;
+   nella pagina inglese lo stesso link porta alla versione italiana */
+const LINK_LINGUA = /<a\b([^>]*\bdata-lingua\b[^>]*)>([^<]*)<\/a>/g;
+const linguaIt = s => s.replace(LINK_LINGUA, (m, attr, testo) => `<a${attr.replace(/ hidden\b/, '')}>${testo}</a>`);
+const linguaEn = s => s.replace(LINK_LINGUA, (m, attr, testo) => `<a${attr.replace(/ hidden\b/, '').replace(/href="[^"]*"/, 'href="/"')
+  .replace('hreflang="en"', 'hreflang="it"').replace(' lang="en"', ' lang="it"').replace('aria-label="English"', 'aria-label="Italiano"')}>${testo === 'EN' ? 'IT' : 'Italiano'}</a>`);
+
 export function hreflang(s, it, en) {
   const righe = `\n<link rel="alternate" hreflang="it" href="${it}">\n<link rel="alternate" hreflang="en" href="${en}">\n<link rel="alternate" hreflang="x-default" href="${it}">`;
   const m = s.match(/<link rel="canonical"[^>]*>/);
@@ -441,13 +448,15 @@ export async function costruisciInglese({ preview, drafts, dist = 'dist', dettag
     s = s.replace(/(<meta property="og:locale" content=")it_IT(")/, '$1en_US$2')
       .replace(/(<meta property="og:url" content=")[^"]*(")/, `$1${en}$2`)
       .replace(/(\/assets\/og\/)([\w-]+\.jpg)/g, (m, a, f) => existsSync(`${dist}/assets/og/en/${f}`) ? `${a}en/${f}` : m);
+    s = linguaEn(s);
+    let sorgente = linguaIt(await readFile(`${dist}/${pagina}`, 'utf8'));
     if (n !== '404') {
       s = s.replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${en}$2`);
       s = hreflang(s, it, en);
-      const sorgente = await readFile(`${dist}/${pagina}`, 'utf8');
-      await writeFile(`${dist}/${pagina}`, hreflang(sorgente, it, en));
+      sorgente = hreflang(sorgente, it, en);
       indicizzate.add(pagina);
     }
+    await writeFile(`${dist}/${pagina}`, sorgente);
     await writeFile(`${dist}/en/${pagina}`, s);
   }
 

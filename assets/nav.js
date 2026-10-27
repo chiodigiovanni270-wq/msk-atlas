@@ -143,6 +143,17 @@
       righe.map(function(r){ return '<p><strong>' + r[0] + '.</strong> ' + esc(r[1]) + '</p>'; }).join('') + '</section>';
   }
 
+  /* riga «Lingua»: solo se la build ha aggiunto i <link rel="alternate" hreflang> (pagina pubblicata in entrambe le lingue) */
+  function lingua(){
+    var it = document.querySelector('link[rel="alternate"][hreflang="it"]'), en = document.querySelector('link[rel="alternate"][hreflang="en"]');
+    if (!it || !en) return '';
+    var inglese = document.documentElement.lang === 'en', altra = inglese ? it : en;
+    var link = '<a href="' + new URL(altra.href).pathname + '" hreflang="' + (inglese ? 'it' : 'en') + '" lang="' + (inglese ? 'it' : 'en') + '" data-lingua>' +
+      (inglese ? 'Italiano' : 'English') + '</a>';
+    var corrente = '<strong aria-current="page">' + (inglese ? 'English' : 'Italiano') + '</strong>';
+    return '<section class="an-sec"><span class="an-label">Lingua</span><p>' + (inglese ? link + ' · ' + corrente : corrente + ' · ' + link) + '</p></section>';
+  }
+
   var home = document.createElement('a');
   home.className = 'an-home';
   home.href = HOME;
@@ -175,6 +186,7 @@
       '<button type="button" class="an-close" aria-label="Chiudi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" ' +
       'stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button></div>' +
     '<p class="an-brand"><strong>MSK Atlas</strong> — Atlante anatomico 3D</p>' +
+    lingua() +
     '<section class="an-sec an-warn"><span class="an-label">Avvertenza</span>' +
       '<p><strong>Materiale didattico.</strong> Non destinato a uso clinico o diagnostico.</p></section>' +
     '<section class="an-sec"><span class="an-label">Fonte e licenza</span>' +
@@ -207,6 +219,12 @@
   }
   if (anchor && anchor.parentNode === document.body) anchor.after(home, btn, scrim, panel);
   else document.body.prepend(home, btn, scrim, panel);
+
+  /* cambio lingua: conserva ?struttura= e la sezione (#dito) */
+  panel.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('a[data-lingua]');
+    if (a) a.href = a.pathname + location.search + location.hash;
+  });
 
   function setOpen(open, refocus){
     panel.hidden = !open;
