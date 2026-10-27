@@ -2,19 +2,19 @@
   "meta": {
     "title": {
       "it": "Pagina non trovata | MSK Atlas",
-      "en": ""
+      "en": "Page not found | MSK Atlas"
     },
     "description": {
       "it": "La pagina cercata non esiste. Torna a MSK Atlas, atlante anatomico 3D.",
-      "en": ""
+      "en": "The page you are looking for does not exist. Return to MSK Atlas, the 3D anatomy atlas."
     }
   },
   "testi": {
-    "Errore 404": "",
-    "Pagina <span>non trovata.</span>": "",
-    "L’indirizzo non esiste o è stato spostato. Puoi tornare all’indice dell’atlante o aprire direttamente una tavola.": "",
-    "Modelli 3D": "",
-    "Torna a MSK Atlas": "",
-    "Materiale didattico. Non destinato a uso clinico o diagnostico.": ""
+    "Errore 404": "Error 404",
+    "Pagina <span>non trovata.</span>": "Page <span>not found.</span>",
+    "L’indirizzo non esiste o è stato spostato. Puoi tornare all’indice dell’atlante o aprire direttamente una tavola.": "The address does not exist or has moved. You can return to the atlas index or open a plate directly.",
+    "Modelli 3D": "3D models",
+    "Torna a MSK Atlas": "Back to MSK Atlas",
+    "Materiale didattico. Non destinato a uso clinico o diagnostico.": "Educational material. Not intended for clinical or diagnostic use."
   }
 }
