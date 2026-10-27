@@ -63,3 +63,22 @@ test('provider error or timeout cannot return success', async () => {
   assert.ok(sent.text.startsWith('Messaggio MSK Atlas'));
   assert.equal((await call({...body(),kind:'contact',type:'Errore anatomico',email:'reader@example.com'})).code,400);
  });
+
+test('English pages: translated types mapped to Italian, language noted, errors in English', async () => {
+  let sent;
+  global.fetch=async(url,options)=>{
+    if(url.includes('siteverify')) return {ok:true,json:async()=>({success:true,hostname:'atlas.example',action:'report'})};
+    sent=JSON.parse(options.body);return {ok:true,json:async()=>({id:'en-test'})};
+  };
+  const en={...body(),type:'Anatomical error',page:'/en/modelli/ginocchio-3d.html',lang:'en'};
+  assert.equal((await call(en)).code,200);
+  assert.equal(sent.subject,'MSK Atlas — Errore anatomico');
+  assert.ok(sent.text.includes('Tipo: Errore anatomico\nLingua: inglese'));assert.ok(sent.text.includes('/en/modelli/ginocchio-3d.html'));
+  const contact=await call({...en,kind:'contact',type:'Collaboration',email:'reader@example.com'});
+  assert.equal(contact.code,200);assert.equal(sent.subject,'MSK Atlas — Contatto: Collaborazione');
+  const wrong=await call({...en,type:'Errore anatomico'});
+  assert.equal(wrong.code,400);assert.equal(wrong.data.error,'Check the report fields.');
+  assert.equal((await call({...en,kind:'contact',type:'Anatomical error',email:'reader@example.com'})).code,400);
+  assert.equal((await call({...en,lang:'fr'})).code,400);
+  assert.ok(!(await call({...body(),type:'Anatomical error'})).data.ok);
+});

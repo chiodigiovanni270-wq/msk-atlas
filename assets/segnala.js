@@ -109,7 +109,7 @@
     form.addEventListener('submit', async event => {
       event.preventDefault(); if (busy || !token || !form.reportValidity()) return;
       busy = true; submit.disabled = true; form.setAttribute('aria-busy', 'true'); setStatus('Invio in corso…');
-      const body = Object.fromEntries(new FormData(form)); body.page = context; body.token = token; body.kind = mode;
+      const body = Object.fromEntries(new FormData(form)); body.page = context; body.token = token; body.kind = mode; body.lang = document.documentElement.lang === 'en' ? 'en' : 'it';
       try {
         const response = await fetch('/api/segnalazioni', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(25000) });
         const result = await response.json();
