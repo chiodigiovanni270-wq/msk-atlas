@@ -1427,7 +1427,7 @@
     "vp_mcp": {
       "name": {
         "it": "Placca volare della MCF",
-        "en": "Palmar plate of MCP joint"
+        "en": "Palmar (volar) plate of MCP joint"
       },
       "info": {
         "it": "Fibrocartilaginea distalmente e membranosa prossimalmente, per consentire la flessione. È continua lateralmente con il legamento intermetacarpale trasverso profondo; su di essa origina la puleggia A1.",
@@ -1437,7 +1437,7 @@
     "vp_pip": {
       "name": {
         "it": "Placca volare della IFP",
-        "en": "Palmar plate of PIP joint"
+        "en": "Palmar (volar) plate of PIP joint"
       },
       "info": {
         "it": "Fissata distalmente alla base della falange intermedia, prossimalmente con i legamenti \"checkrein\". Impedisce l’iperestensione: nella lussazione dorsale può distaccare un frammento volare dalla base della P2.",
@@ -1447,7 +1447,7 @@
     "vp_dip": {
       "name": {
         "it": "Placca volare della IFD",
-        "en": "Palmar plate of DIP joint"
+        "en": "Palmar (volar) plate of DIP joint"
       },
       "info": {
         "it": "Più sottile, a livello della puleggia A5.",
@@ -1456,7 +1456,7 @@
     },
     "cl_mcp_rad": {
       "name": {
-        "it": "Collaterali radiale della MCF (proprio e accessorio)",
+        "it": "Collaterali radiali della MCF (proprio e accessorio)",
         "en": "Radial collateral ligaments of MCP joint (proper and accessory)"
       },
       "info": {
@@ -1466,7 +1466,7 @@
     },
     "cl_mcp_uln": {
       "name": {
-        "it": "Collaterali ulnare della MCF (proprio e accessorio)",
+        "it": "Collaterali ulnari della MCF (proprio e accessorio)",
         "en": "Ulnar collateral ligaments of MCP joint (proper and accessory)"
       },
       "info": {
@@ -1476,7 +1476,7 @@
     },
     "cl_pip_rad": {
       "name": {
-        "it": "Collaterali radiale della IFP (proprio e accessorio)",
+        "it": "Collaterali radiali della IFP (proprio e accessorio)",
         "en": "Radial collateral ligaments of PIP joint (proper and accessory)"
       },
       "info": {
@@ -1486,7 +1486,7 @@
     },
     "cl_pip_uln": {
       "name": {
-        "it": "Collaterali ulnare della IFP (proprio e accessorio)",
+        "it": "Collaterali ulnari della IFP (proprio e accessorio)",
         "en": "Ulnar collateral ligaments of PIP joint (proper and accessory)"
       },
       "info": {
@@ -1496,7 +1496,7 @@
     },
     "cl_dip_rad": {
       "name": {
-        "it": "Collaterali radiale della IFD (proprio e accessorio)",
+        "it": "Collaterali radiali della IFD (proprio e accessorio)",
         "en": "Radial collateral ligaments of DIP joint (proper and accessory)"
       },
       "info": {
@@ -1506,7 +1506,7 @@
     },
     "cl_dip_uln": {
       "name": {
-        "it": "Collaterali ulnare della IFD (proprio e accessorio)",
+        "it": "Collaterali ulnari della IFD (proprio e accessorio)",
         "en": "Ulnar collateral ligaments of DIP joint (proper and accessory)"
       },
       "info": {
@@ -1640,8 +1640,8 @@
         "en": "Extensor hood"
       },
       "info": {
-        "it": "Lamina fibrosa dorsale distale alle bendelle sagittali, sul collo e sulla base della falange prossimale: vi confluiscono l’EDC e le espansioni di interossei e lombricale, con fibre oblique verso la linea mediana. Si continua con le bendellette laterali; per suo tramite gli intrinseci estendono le interfalangee.",
-        "en": "Dorsal fibrous sheet distal to the sagittal bands, over the neck of the metacarpal and the base of the proximal phalanx: the EDC and the expansions of the interossei and lumbrical converge on it, with fibers running obliquely toward the midline. It continues into the lateral bands; through it the intrinsic muscles extend the interphalangeal joints."
+        "it": "Lamina fibrosa dorsale distale alle bendelle sagittali, sulla MCF e sulla base della falange prossimale: vi confluiscono l’EDC e le espansioni di interossei e lombricale, con fibre oblique verso la linea mediana. Si continua con le bendellette laterali; per suo tramite gli intrinseci estendono le interfalangee.",
+        "en": "Dorsal fibrous sheet distal to the sagittal bands, over the MCP joint and the base of the proximal phalanx: the EDC and the expansions of the interossei and lumbrical converge on it, with fibers running obliquely toward the midline. It continues into the lateral bands; through it the intrinsic muscles extend the interphalangeal joints."
       }
     },
     "bl": {
@@ -1750,7 +1750,7 @@
         "en": "Proper palmar digital nerves"
       },
       "info": {
-        "it": "Una per lato, volarmente all’arteria. Nel dito medio derivano dal mediano (II e III digitale comune); a rischio nelle ferite laterali e nel rilascio percutaneo della A1.",
+        "it": "Uno per lato, volarmente all’arteria. Nel dito medio derivano dal mediano (II e III digitale comune); a rischio nelle ferite laterali e nel rilascio percutaneo della A1.",
         "en": "One on each side, palmar to the artery. In the middle finger they derive from the median nerve (2nd and 3rd common digital nerves); at risk in lateral wounds and during percutaneous A1 release."
       }
     },
@@ -1814,7 +1814,7 @@
   "dubbi": [
     {
       "termine": "Volare → palmar (placca volare → palmar plate)",
-      "nota": "TA2 usa palmar; in clinica USA «volar» (volar plate, volar tilt) è molto comune. Ho usato palmar ovunque, come già nella homepage («palmar view»). Se preferisci «volar» per placca e inclinazione, lo cambio in blocco."
+      "nota": "TA2 usa palmar; in clinica USA «volar» è molto comune. Palmar ovunque (come in homepage), ma nei nomi delle placche «Palmar (volar) plate of …», la forma più cercata (approvato il 27/10)."
     },
     {
       "termine": "Inclinazione volare → palmar tilt",
