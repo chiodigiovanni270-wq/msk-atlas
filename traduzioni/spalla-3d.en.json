@@ -162,8 +162,8 @@
         "en": "Conoid ligament"
       },
       "info": {
-        "it": "Componente mediale e posteriore del legamento coracoclavicolare, a forma di cono con apice sul coracoide. Si rompe nelle lussazioni acromioclavicolari di grado III–V (classificazione di Rockwood): l’aumento della distanza coracoclavicolare in radiografia da carico indica la lesione.",
-        "en": "Medial and posterior component of the coracoclavicular ligament, cone-shaped with its apex on the coracoid. It tears in grade III–V acromioclavicular dislocations (Rockwood classification): an increased coracoclavicular distance on weighted radiographs indicates the injury."
+        "it": "Componente mediale e posteriore del legamento coracoclavicolare, a forma di cono con apice sul coracoide. Si rompe nelle lussazioni acromioclavicolari di tipo III–V (classificazione di Rockwood): l’aumento della distanza coracoclavicolare in radiografia da carico indica la lesione.",
+        "en": "Medial and posterior component of the coracoclavicular ligament, cone-shaped with its apex on the coracoid. It tears in type III–V acromioclavicular dislocations (Rockwood classification): an increased coracoclavicular distance on stress (weighted) radiographs indicates the injury."
       },
       "o": {
         "it": "Ginocchio (parte posteromediale) della base del processo coracoideo.",
@@ -228,8 +228,8 @@
         "en": "Acromioclavicular ligament"
       },
       "info": {
-        "it": "Ispessimento della capsula dell’articolazione acromioclavicolare, più robusto in alto, dove si fonde con le fibre di trapezio e deltoide. Stabilizza il piano orizzontale della clavicola; in caso di lesione di grado I–II i coracoclavicolari restano integri.",
-        "en": "Thickening of the acromioclavicular joint capsule, strongest superiorly, where it blends with fibers of the trapezius and deltoid. It stabilizes the clavicle in the horizontal plane; in grade I–II injuries the coracoclavicular ligaments remain intact."
+        "it": "Ispessimento della capsula dell’articolazione acromioclavicolare, più robusto in alto, dove si fonde con le fibre di trapezio e deltoide. Stabilizza il piano orizzontale della clavicola; in caso di lesione di tipo I–II i coracoclavicolari restano integri.",
+        "en": "Thickening of the acromioclavicular joint capsule, strongest superiorly, where it blends with fibers of the trapezius and deltoid. It stabilizes the clavicle in the horizontal plane; in type I–II injuries the coracoclavicular ligaments remain intact."
       },
       "o": {
         "it": "Estremo laterale della clavicola.",
@@ -1080,8 +1080,8 @@
         "en": "Axillary nerve"
       },
       "info": {
-        "it": "Nervo misto (C5–C6) dal fascio posteriore. Esce dallo spazio quadrangolare (sottospinato e piccolo rotondo sopra, grande rotondo sotto, capo lungo del tricipite medialmente, collo chirurgico lateralmente), con l’arteria circonflessa posteriore; innerva deltoide e piccolo rotondo e dà il nervo cutaneo laterale superiore del braccio (sensibilità del moncone della spalla). Lo spazio quadrangolare è sede di sindrome da compressione; è a rischio nelle lussazioni anteriori e nelle fratture del collo chirurgico.",
-        "en": "Mixed nerve (C5–C6) from the posterior cord. It exits through the quadrangular space (infraspinatus and teres minor above, teres major below, long head of triceps medially, surgical neck laterally) with the posterior circumflex humeral artery; it supplies the deltoid and teres minor and gives off the superior lateral cutaneous nerve of arm (sensation over the lower deltoid). The quadrangular space is a site of compression syndrome; the nerve is at risk in anterior dislocations and surgical neck fractures."
+        "it": "Nervo misto (C5–C6) dal fascio posteriore. Esce dallo spazio quadrangolare (piccolo rotondo sopra, con il sottoscapolare anteriormente, grande rotondo sotto, capo lungo del tricipite medialmente, collo chirurgico lateralmente), con l’arteria circonflessa posteriore; innerva deltoide e piccolo rotondo e dà il nervo cutaneo laterale superiore del braccio (sensibilità del moncone della spalla). Lo spazio quadrangolare è sede di sindrome da compressione; è a rischio nelle lussazioni anteriori e nelle fratture del collo chirurgico.",
+        "en": "Mixed nerve (C5–C6) from the posterior cord. It exits through the quadrangular space (teres minor above, with the subscapularis anteriorly, teres major below, long head of triceps medially, surgical neck laterally) with the posterior circumflex humeral artery; it supplies the deltoid and teres minor and gives off the superior lateral cutaneous nerve of arm (sensation over the lower deltoid). The quadrangular space is a site of compression syndrome; the nerve is at risk in anterior dislocations and surgical neck fractures."
       }
     },
     "n_muscolocutaneo": {
@@ -1175,8 +1175,8 @@
       "nota": "TA2; in clinica anche profunda brachii artery."
     },
     {
-      "termine": "Radiografia da carico → weighted radiographs",
-      "nota": "In inglese anche stress views (con pesi): ho scelto weighted radiographs."
+      "termine": "Radiografia da carico → stress (weighted) radiographs",
+      "nota": "Resa con «stress (weighted) radiographs», come richiesto il 27/10."
     },
     {
       "termine": "Fascia cervicale media → middle layer of the deep cervical fascia",
