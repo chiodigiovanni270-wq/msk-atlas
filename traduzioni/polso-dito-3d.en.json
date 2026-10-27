@@ -2,1813 +2,1883 @@
   "meta": {
     "title": {
       "it": "Polso e dito 3D interattivi: TFCC e tendini | MSK Atlas",
-      "en": ""
+      "en": "Interactive 3D wrist and finger: TFCC and tendons | MSK Atlas"
     },
     "strutture-bp3d": {
       "it": "Ossa, muscoli, tendini, retinacolo dei flessori, membrana interossea e cute.",
-      "en": ""
+      "en": "Bones, muscles, tendons, flexor retinaculum, interosseous membrane and skin."
     },
     "strutture-modellate": {
       "it": "Cartilagini, legamenti, capsula volare, TFCC, retinacolo degli estensori, guaine, cuscinetto adiposo del pronatore quadrato, vasi e nervi: ricostruiti sulle ossa reali.",
-      "en": ""
+      "en": "Cartilage, ligaments, palmar capsule, TFCC, extensor retinaculum, tendon sheaths, pronator quadratus fat pad, vessels and nerves: reconstructed on the real bones."
     },
     "strutture-bp3d-dito": {
       "it": "Ossa, tendini flessori ed estensori, lombricale, interossei e cute.",
-      "en": ""
+      "en": "Bones, flexor and extensor tendons, lumbrical, interossei and skin."
     },
     "strutture-modellate-dito": {
       "it": "Pulegge, placche volari, collaterali, bendelle sagittali, apparato estensore distale, guaina, vasi e nervi: ricostruiti sulle ossa reali.",
-      "en": ""
+      "en": "Pulleys, palmar plates, collateral ligaments, sagittal bands, distal extensor apparatus, tendon sheath, vessels and nerves: reconstructed on the real bones."
     },
     "description": {
       "it": "Polso e dito 3D interattivi: carpo, legamenti e TFCC, retinacoli, tendini, tunnel carpale, canale di Guyon e pulegge. Materiale didattico.",
-      "en": ""
+      "en": "Interactive 3D wrist and finger: carpus, ligaments and TFCC, retinacula, tendons, carpal tunnel, Guyon canal and pulleys. Educational material."
     },
     "image_alt": {
       "it": "Modello 3D del polso destro e del dito medio — MSK Atlas",
-      "en": ""
+      "en": "3D model of the right wrist and middle finger — MSK Atlas"
     }
   },
   "strutture": {
     "radio": {
       "name": {
         "it": "Radio (epifisi distale)",
-        "en": ""
+        "en": "Radius (distal end)"
       },
       "info": {
         "it": "Faccette scafoidea e lunata; inclinazione radiale circa 22°, volare circa 11°. Dorsalmente il tubercolo di Lister separa il II compartimento estensore dal III; ulnarmente l’incisura sigmoidea articola con la testa ulnare (RUD).",
-        "en": ""
+        "en": "Scaphoid and lunate facets; radial inclination about 22°, palmar tilt about 11°. Dorsally, Lister tubercle separates the 2nd extensor compartment from the 3rd; on the ulnar side the sigmoid notch articulates with the ulnar head (DRUJ)."
       }
     },
     "ulna": {
       "name": {
         "it": "Ulna (testa e stiloide)",
-        "en": ""
+        "en": "Ulna (head and styloid)"
       },
       "info": {
         "it": "La testa articola con l’incisura sigmoidea del radio; il TFCC si inserisce alla fovea e alla base dello stiloide. Una varianza ulnare positiva predispone all’impingement ulno-carpale (nel modello è vicina alla neutralità).",
-        "en": ""
+        "en": "The head articulates with the sigmoid notch of the radius; the TFCC attaches to the fovea and the base of the styloid. Positive ulnar variance predisposes to ulnocarpal impaction (in the model it is close to neutral)."
       }
     },
     "scafoide": {
       "name": {
         "it": "Scafoide",
-        "en": ""
+        "en": "Scaphoid"
       },
       "info": {
         "it": "Collega le due filiere carpali. Vascolarizzazione retrograda dal polo distale: le fratture del polo prossimale e della vita sono a rischio di pseudoartrosi e necrosi avascolare. Il tubercolo volare dà inserzione al retinacolo dei flessori.",
-        "en": ""
+        "en": "Links the two carpal rows. Retrograde blood supply from the distal pole: fractures of the proximal pole and waist are at risk of nonunion and avascular necrosis. The palmar tubercle gives attachment to the flexor retinaculum."
       }
     },
     "semilunare": {
       "name": {
         "it": "Semilunare",
-        "en": ""
+        "en": "Lunate"
       },
       "info": {
         "it": "Osso chiave della filiera prossimale, stabilizzato dai legamenti scafo-lunato e luno-piramidale. Sede della malattia di Kienböck; il suo allineamento con il capitato si valuta nella radiografia laterale (DISI/VISI).",
-        "en": ""
+        "en": "Keystone of the proximal row, stabilized by the scapholunate and lunotriquetral ligaments. Site of Kienböck disease; its alignment with the capitate is assessed on the lateral radiograph (DISI/VISI)."
       }
     },
     "piramidale": {
       "name": {
         "it": "Piramidale",
-        "en": ""
+        "en": "Triquetrum"
       },
       "info": {
         "it": "Articola con semilunare, uncinato e pisiforme. Frattura dorsale da avulsione (chip dorsale) frequente nelle cadute sul palmo.",
-        "en": ""
+        "en": "Articulates with the lunate, hamate and pisiform. Dorsal avulsion fracture (dorsal chip) is common after falls on the outstretched hand."
       }
     },
     "pisiforme": {
       "name": {
         "it": "Pisiforme",
-        "en": ""
+        "en": "Pisiform"
       },
       "info": {
         "it": "Sesamoide nel tendine del flessore ulnare del carpo; si continua con i legamenti piso-uncinato e piso-metacarpale. Limite ulnare del canale di Guyon.",
-        "en": ""
+        "en": "Sesamoid bone in the flexor carpi ulnaris tendon; continues into the pisohamate and pisometacarpal ligaments. Ulnar boundary of the Guyon canal."
       }
     },
     "trapezio": {
       "name": {
         "it": "Trapezio",
-        "en": ""
+        "en": "Trapezium"
       },
       "info": {
         "it": "Articolazione a sella con la base del I metacarpo (trapezio-metacarpale, sede di rizoartrosi). La cresta volare dà inserzione al retinacolo dei flessori; il solco adiacente accoglie il tendine del FCR.",
-        "en": ""
+        "en": "Saddle joint with the base of the 1st metacarpal (trapeziometacarpal joint, site of thumb basal joint arthritis). The palmar ridge gives attachment to the flexor retinaculum; the adjacent groove carries the FCR tendon."
       }
     },
     "trapezoide": {
       "name": {
         "it": "Trapezoide",
-        "en": ""
+        "en": "Trapezoid"
       },
       "info": {
         "it": "Piccolo osso incastrato tra trapezio, capitato, scafoide e base del II metacarpo; raramente fratturato.",
-        "en": ""
+        "en": "Small bone wedged between the trapezium, capitate, scaphoid and base of the 2nd metacarpal; rarely fractured."
       }
     },
     "capitato": {
       "name": {
         "it": "Capitato",
-        "en": ""
+        "en": "Capitate"
       },
       "info": {
         "it": "L’osso carpale più grande, al centro della filiera distale; la testa articola con semilunare e scafoide (articolazione mediocarpica). Base del III metacarpo.",
-        "en": ""
+        "en": "The largest carpal bone, at the center of the distal row; its head articulates with the lunate and scaphoid (midcarpal joint). Base for the 3rd metacarpal."
       }
     },
     "uncinato": {
       "name": {
         "it": "Uncinato (hamato)",
-        "en": ""
+        "en": "Hamate"
       },
       "info": {
         "it": "L’uncino (hamulus) delimita radialmente il canale di Guyon e ulnarmente il tunnel carpale; la sua frattura è tipica di golf, tennis e baseball. Articola con IV e V metacarpo.",
-        "en": ""
+        "en": "The hook (hamulus) forms the radial boundary of the Guyon canal and the ulnar boundary of the carpal tunnel; hook fractures are typical in golf, tennis and baseball. Articulates with the 4th and 5th metacarpals."
       }
     },
     "mc1": {
       "name": {
         "it": "I metacarpo",
-        "en": ""
+        "en": "1st metacarpal"
       },
       "info": {
         "it": "Base a sella sul trapezio; frattura-lussazione di Bennett e frattura di Rolando alla base.",
-        "en": ""
+        "en": "Saddle-shaped base on the trapezium; Bennett fracture-dislocation and Rolando fracture at the base."
       }
     },
     "mc2": {
       "name": {
         "it": "II metacarpo",
-        "en": ""
+        "en": "2nd metacarpal"
       },
       "info": {
         "it": "Base incastrata tra trapezio, trapezoide e capitato; inserzione dell’ECRL (dorsale) e del FCR (volare).",
-        "en": ""
+        "en": "Base wedged between the trapezium, trapezoid and capitate; insertion of the ECRL (dorsal) and FCR (palmar)."
       }
     },
     "mc3": {
       "name": {
         "it": "III metacarpo",
-        "en": ""
+        "en": "3rd metacarpal"
       },
       "info": {
         "it": "Base con processo stiloideo dorsale (carpal boss); inserzione dell’ECRB.",
-        "en": ""
+        "en": "Base with a dorsal styloid process (carpal boss); insertion of the ECRB."
       }
     },
     "mc4": {
       "name": {
         "it": "IV metacarpo",
-        "en": ""
+        "en": "4th metacarpal"
       },
       "info": {
         "it": "Il più sottile; articola con capitato e uncinato.",
-        "en": ""
+        "en": "The thinnest; articulates with the capitate and hamate."
       }
     },
     "mc5": {
       "name": {
         "it": "V metacarpo",
-        "en": ""
+        "en": "5th metacarpal"
       },
       "info": {
         "it": "Inserzione dell’ECU alla base. Il collo è la sede tipica della frattura del pugile.",
-        "en": ""
+        "en": "ECU insertion at the base. The neck is the typical site of boxer's fracture."
       }
     },
     "f1": {
       "name": {
         "it": "Falange prossimale del pollice",
-        "en": ""
+        "en": "Proximal phalanx of thumb"
       },
       "info": {
         "it": "Base con la placca volare e i sesamoidi dell’articolazione MCF; sul versante ulnare il legamento collaterale ulnare (lesione di Stener).",
-        "en": ""
+        "en": "Base with the palmar plate and the sesamoids of the MCP joint; on the ulnar side the ulnar collateral ligament (Stener lesion)."
       }
     },
     "cartrad": {
       "name": {
         "it": "Cartilagine del radio",
-        "en": ""
+        "en": "Cartilage of the radius"
       },
       "info": {
         "it": "Riveste le fossette scafoidea e lunata e l’incisura sigmoidea. Ricostruita sulle superfici che si affrontano con le ossa reali.",
-        "en": ""
+        "en": "Covers the scaphoid and lunate fossae and the sigmoid notch. Reconstructed on the surfaces facing the real bones."
       }
     },
     "cartuln": {
       "name": {
         "it": "Cartilagine della testa ulnare",
-        "en": ""
+        "en": "Cartilage of the ulnar head"
       },
       "info": {
         "it": "Copre la porzione della testa che articola con l’incisura sigmoidea e la cupola distale, a contatto con il TFCC.",
-        "en": ""
+        "en": "Covers the part of the head that articulates with the sigmoid notch and the distal dome, in contact with the TFCC."
       }
     },
     "cartcarpo": {
       "name": {
         "it": "Cartilagini intercarpali",
-        "en": ""
+        "en": "Intercarpal cartilage"
       },
       "info": {
         "it": "Superfici articolari radiocarpica, mediocarpica, intercarpali e piso-piramidale.",
-        "en": ""
+        "en": "Radiocarpal, midcarpal, intercarpal and pisotriquetral articular surfaces."
       }
     },
     "cartmc": {
       "name": {
         "it": "Cartilagini carpo-metacarpali",
-        "en": ""
+        "en": "Carpometacarpal cartilage"
       },
       "info": {
         "it": "Basi dei metacarpi, inclusa la trapezio-metacarpale del pollice.",
-        "en": ""
+        "en": "Bases of the metacarpals, including the trapeziometacarpal joint of the thumb."
       }
     },
     "tfcc": {
       "name": {
         "it": "Complesso fibrocartilagineo triangolare (TFCC)",
-        "en": ""
+        "en": "Triangular fibrocartilage complex (TFCC)"
       },
       "info": {
         "it": "Disco fibrocartilagineo tra testa ulnare e carpo, dal margine dell’incisura sigmoidea del radio alla fovea e alla base dello stiloide ulnare. I margini dorsale e volare (legamenti radioulnari) stabilizzano la RUD; il centro, sottile, è sede di perforazioni degenerative. Lesioni secondo Palmer (1 traumatiche, 2 degenerative).",
-        "en": ""
+        "en": "Fibrocartilage disc between the ulnar head and the carpus, from the margin of the sigmoid notch of the radius to the fovea and the base of the ulnar styloid. Its dorsal and palmar margins (radioulnar ligaments) stabilize the DRUJ; the thin center is the site of degenerative perforations. Lesions graded with the Palmer classification (1 traumatic, 2 degenerative)."
       }
     },
     "lsl": {
       "name": {
         "it": "Legamento scafo-lunato",
-        "en": ""
+        "en": "Scapholunate ligament"
       },
       "info": {
         "it": "A forma di C: porzione dorsale (la più robusta, stabilizzatore principale), prossimale membranosa e volare. La rottura porta a diastasi scafo-lunata, deformità DISI e, nel tempo, artrosi SLAC.",
-        "en": ""
+        "en": "C-shaped: dorsal portion (the strongest, main stabilizer), proximal membranous portion and palmar portion. Rupture leads to scapholunate diastasis, DISI deformity and, over time, SLAC arthritis."
       }
     },
     "llt": {
       "name": {
         "it": "Legamento luno-piramidale",
-        "en": ""
+        "en": "Lunotriquetral ligament"
       },
       "info": {
         "it": "Porzione volare più robusta. La lesione può associarsi a instabilità VISI e a patologia del TFCC.",
-        "en": ""
+        "en": "The palmar portion is the strongest. Injury may be associated with VISI instability and TFCC pathology."
       }
     },
     "rsc": {
       "name": {
         "it": "Legamento radio-scafo-capitato",
-        "en": ""
+        "en": "Radioscaphocapitate ligament"
       },
       "info": {
         "it": "Dallo stiloide radiale, volarmente sulla vita dello scafoide, al capitato; fa da fulcro per la rotazione dello scafoide.",
-        "en": ""
+        "en": "From the radial styloid, palmar to the scaphoid waist, to the capitate; acts as a fulcrum for scaphoid rotation."
       }
     },
     "lrl": {
       "name": {
         "it": "Legamento radio-lunato lungo",
-        "en": ""
+        "en": "Long radiolunate ligament"
       },
       "info": {
         "it": "Dal margine volare del radio al semilunare, ulnarmente al radio-scafo-capitato; tra i due lo spazio di Poirier, punto debole volare.",
-        "en": ""
+        "en": "From the palmar rim of the radius to the lunate, ulnar to the radioscaphocapitate; between the two lies the space of Poirier, a palmar weak point."
       }
     },
     "srl": {
       "name": {
         "it": "Legamento radio-lunato corto",
-        "en": ""
+        "en": "Short radiolunate ligament"
       },
       "info": {
         "it": "Dal margine volare della fossetta lunata al semilunare; stabilizza il semilunare contro la traslazione.",
-        "en": ""
+        "en": "From the palmar rim of the lunate fossa to the lunate; stabilizes the lunate against translation."
       }
     },
     "ul": {
       "name": {
         "it": "Legamento ulno-lunato",
-        "en": ""
+        "en": "Ulnolunate ligament"
       },
       "info": {
         "it": "Dal legamento radioulnare volare del TFCC al semilunare, non dall’ulna; componente del complesso ulno-carpale.",
-        "en": ""
+        "en": "From the palmar radioulnar ligament of the TFCC to the lunate, not from the ulna; part of the ulnocarpal complex."
       }
     },
     "ut": {
       "name": {
         "it": "Legamento ulno-piramidale",
-        "en": ""
+        "en": "Ulnotriquetral ligament"
       },
       "info": {
         "it": "Dal TFCC volare al piramidale; parte del complesso ulno-carpale insieme all’ulno-lunato.",
-        "en": ""
+        "en": "From the palmar TFCC to the triquetrum; part of the ulnocarpal complex together with the ulnolunate."
       }
     },
     "uc": {
       "name": {
         "it": "Legamento ulno-capitato",
-        "en": ""
+        "en": "Ulnocapitate ligament"
       },
       "info": {
         "it": "Dalla fovea ulnare, superficiale a ulno-lunato e ulno-piramidale, al capitato; con il radio-scafo-capitato forma il legamento arcuato, distalmente allo spazio di Poirier.",
-        "en": ""
+        "en": "From the ulnar fovea, superficial to the ulnolunate and ulnotriquetral, to the capitate; with the radioscaphocapitate it forms the arcuate ligament, distal to the space of Poirier."
       }
     },
     "capvol": {
       "name": {
         "it": "Capsula volare e zona fibrosa intermedia",
-        "en": ""
+        "en": "Palmar capsule and intermediate fibrous zone"
       },
       "info": {
         "it": "Tra pronatore quadrato e rima volare il radio è coperto da una zona fibrosa che continua nella capsula radiocarpica, di cui i legamenti volari sono ispessimenti. Qui scorrono FPL e FDP: una placca posta sulla watershed line o oltre può danneggiarli.",
-        "en": ""
+        "en": "Between the pronator quadratus and the palmar rim, the radius is covered by a fibrous zone that continues into the radiocarpal capsule, of which the palmar ligaments are thickenings. The FPL and FDP glide over it: a plate placed on or beyond the watershed line can damage them."
       }
     },
     "drc": {
       "name": {
         "it": "Legamento radio-carpale dorsale",
-        "en": ""
+        "en": "Dorsal radiocarpal ligament"
       },
       "info": {
         "it": "Dal margine dorsale del radio, obliquo in senso ulnare fino al piramidale (radio-piramidale dorsale). Forma con l’intercarpale dorsale una \"V\" orizzontale.",
-        "en": ""
+        "en": "From the dorsal rim of the radius, running obliquely ulnarward to the triquetrum (dorsal radiotriquetral). With the dorsal intercarpal ligament it forms a horizontal \"V\"."
       }
     },
     "dic": {
       "name": {
         "it": "Legamento intercarpale dorsale",
-        "en": ""
+        "en": "Dorsal intercarpal ligament"
       },
       "info": {
         "it": "Dal piramidale in senso trasversale allo scafoide e al trapezoide; stabilizzatore secondario dello scafo-lunato.",
-        "en": ""
+        "en": "From the triquetrum, transversely to the scaphoid and trapezoid; secondary stabilizer of the scapholunate joint."
       }
     },
     "rcl": {
       "name": {
         "it": "Legamento collaterale radiale",
-        "en": ""
+        "en": "Radial collateral ligament"
       },
       "info": {
         "it": "Dallo stiloide radiale allo scafoide; più capsulare che vero collaterale.",
-        "en": ""
+        "en": "From the radial styloid to the scaphoid; more a capsular thickening than a true collateral ligament."
       }
     },
     "ucl": {
       "name": {
         "it": "Legamento collaterale ulnare",
-        "en": ""
+        "en": "Ulnar collateral ligament"
       },
       "info": {
         "it": "Dallo stiloide ulnare al piramidale e al pisiforme; ispessimento capsulare del versante ulnare.",
-        "en": ""
+        "en": "From the ulnar styloid to the triquetrum and pisiform; capsular thickening on the ulnar side."
       }
     },
     "pisham": {
       "name": {
         "it": "Legamento piso-uncinato",
-        "en": ""
+        "en": "Pisohamate ligament"
       },
       "info": {
         "it": "Continuazione del FCU dal pisiforme all’uncino dell’uncinato: forma il pavimento del canale di Guyon.",
-        "en": ""
+        "en": "Continuation of the FCU from the pisiform to the hook of the hamate: forms the floor of the Guyon canal."
       }
     },
     "pismc": {
       "name": {
         "it": "Legamento piso-metacarpale",
-        "en": ""
+        "en": "Pisometacarpal ligament"
       },
       "info": {
         "it": "Dal pisiforme alla base del V metacarpo, continuazione distale del FCU.",
-        "en": ""
+        "en": "From the pisiform to the base of the 5th metacarpal, distal continuation of the FCU."
       }
     },
     "mio": {
       "name": {
         "it": "Membrana interossea (porzione distale)",
-        "en": ""
+        "en": "Interosseous membrane (distal portion)"
       },
       "info": {
         "it": "Tra radio e ulna; distalmente sottile, profonda al pronatore quadrato. Il nervo e l’arteria interossei anteriori decorrono sulla sua faccia volare.",
-        "en": ""
+        "en": "Between the radius and ulna; thin distally, deep to the pronator quadratus. The anterior interosseous nerve and artery run on its palmar surface."
       }
     },
     "retfl": {
       "name": {
         "it": "Retinacolo dei flessori (legamento trasverso del carpo)",
-        "en": ""
+        "en": "Flexor retinaculum (transverse carpal ligament)"
       },
       "info": {
         "it": "Dal tubercolo dello scafoide e dalla cresta del trapezio al pisiforme e all’uncino dell’uncinato: tetto del tunnel carpale e origine dei muscoli tenari e ipotenari. Radialmente una lamina profonda chiude il tunnel proprio del FCR. In ecografia valutarne l’incurvamento volare (bowing).",
-        "en": ""
+        "en": "From the scaphoid tubercle and the trapezium ridge to the pisiform and the hook of the hamate: roof of the carpal tunnel and origin of the thenar and hypothenar muscles. On the radial side a deep layer closes the FCR's own tunnel. On ultrasound, assess its palmar bowing."
       }
     },
     "retext": {
       "name": {
         "it": "Retinacolo degli estensori",
-        "en": ""
+        "en": "Extensor retinaculum"
       },
       "info": {
         "it": "Dal margine laterale del radio a piramidale e pisiforme; i setti verso il radio formano sei compartimenti: I APL-EPB, II ECRL-ECRB, III EPL, IV EDC-EIP, V EDM, VI ECU. Non si inserisce sull’ulna, così non limita la prono-supinazione. Qui è rappresentato senza i setti.",
-        "en": ""
+        "en": "From the lateral border of the radius to the triquetrum and pisiform; its septa to the radius form six compartments: I APL-EPB, II ECRL-ECRB, III EPL, IV EDC-EIP, V EDM, VI ECU. It does not attach to the ulna, so it does not restrict pronation and supination. Shown here without the septa."
       }
     },
     "lumtc": {
       "name": {
         "it": "Tunnel carpale (spazio)",
-        "en": ""
+        "en": "Carpal tunnel (space)"
       },
       "info": {
         "it": "Pavimento e pareti formati dalle ossa del carpo, tetto dal retinacolo dei flessori. Contiene il nervo mediano, 4 tendini del FDS, 4 del FDP e il FPL. Il punto più stretto è a livello dell’uncino dell’uncinato.",
-        "en": ""
+        "en": "Floor and walls formed by the carpal bones, roof by the flexor retinaculum. Contains the median nerve, 4 FDS tendons, 4 FDP tendons and the FPL. The narrowest point is at the level of the hook of the hamate."
       }
     },
     "lumguy": {
       "name": {
         "it": "Canale di Guyon (spazio)",
-        "en": ""
+        "en": "Guyon canal (space)"
       },
       "info": {
         "it": "Tra pisiforme e uncino dell’uncinato; pavimento: retinacolo dei flessori e legamento piso-uncinato; tetto: legamento carpale volare. Contiene nervo e arteria ulnari (l’arteria radialmente al nervo). Zone di Gross: I prossimale alla biforcazione (deficit misto), II ramo profondo (motorio), III ramo superficiale (sensitivo).",
-        "en": ""
+        "en": "Between the pisiform and the hook of the hamate; floor: flexor retinaculum and pisohamate ligament; roof: palmar carpal ligament. Contains the ulnar nerve and artery (the artery radial to the nerve). Gross zones: I proximal to the bifurcation (mixed deficit), II deep branch (motor), III superficial branch (sensory)."
       }
     },
     "tettoguy": {
       "name": {
         "it": "Legamento carpale volare (tetto del canale di Guyon)",
-        "en": ""
+        "en": "Palmar carpal ligament (roof of the Guyon canal)"
       },
       "info": {
         "it": "Ispessimento della fascia antibrachiale sopra nervo e arteria ulnari: dal pisiforme e dal FCU si fonde radialmente con il retinacolo dei flessori. Distalmente prosegue con il palmare breve (non rappresentato).",
-        "en": ""
+        "en": "Thickening of the antebrachial fascia over the ulnar nerve and artery: from the pisiform and the FCU it blends radially with the flexor retinaculum. Distally it continues with the palmaris brevis (not shown)."
       }
     },
     "fcr": {
       "name": {
         "it": "Flessore radiale del carpo (FCR)",
-        "en": ""
+        "en": "Flexor carpi radialis (FCR)"
       },
       "info": {
         "it": "Al polso scorre in un proprio tunnel nel solco del trapezio, fuori dal tunnel carpale; ulnarmente il nervo mediano, radialmente l’arteria radiale.",
-        "en": ""
+        "en": "At the wrist it runs in its own tunnel in the trapezium groove, outside the carpal tunnel; the median nerve lies ulnar to it, the radial artery radial."
       },
       "o": {
         "it": "Epicondilo mediale dell’omero (tendine comune dei flessori).",
-        "en": ""
+        "en": "Medial epicondyle of the humerus (common flexor tendon)."
       },
       "ins": {
         "it": "Base del II metacarpo (faccia volare).",
-        "en": ""
+        "en": "Base of the 2nd metacarpal (palmar surface)."
       },
       "fn": {
         "it": "Flette il polso e lo abduce (deviazione radiale).",
-        "en": ""
+        "en": "Flexes and abducts the wrist (radial deviation)."
       }
     },
     "pl": {
       "name": {
         "it": "Palmare lungo e aponeurosi palmare",
-        "en": ""
+        "en": "Palmaris longus and palmar aponeurosis"
       },
       "info": {
         "it": "Superficiale al retinacolo, sulla linea mediana. Assente in circa il 15% dei soggetti; usato come innesto tendineo. L’aponeurosi è la sede della malattia di Dupuytren.",
-        "en": ""
+        "en": "Superficial to the retinaculum, in the midline. Absent in about 15% of people; used as a tendon graft. The aponeurosis is the site of Dupuytren disease."
       },
       "o": {
         "it": "Epicondilo mediale dell’omero (tendine comune dei flessori).",
-        "en": ""
+        "en": "Medial epicondyle of the humerus (common flexor tendon)."
       },
       "ins": {
         "it": "Faccia superficiale del retinacolo dei flessori e aponeurosi palmare.",
-        "en": ""
+        "en": "Superficial surface of the flexor retinaculum and palmar aponeurosis."
       },
       "fn": {
         "it": "Flette il polso e tende l’aponeurosi palmare.",
-        "en": ""
+        "en": "Flexes the wrist and tenses the palmar aponeurosis."
       }
     },
     "fcu": {
       "name": {
         "it": "Flessore ulnare del carpo (FCU)",
-        "en": ""
+        "en": "Flexor carpi ulnaris (FCU)"
       },
       "info": {
         "it": "Il pisiforme è un sesamoide nel suo tendine; nervo e arteria ulnari decorrono sotto e radialmente al tendine.",
-        "en": ""
+        "en": "The pisiform is a sesamoid bone in its tendon; the ulnar nerve and artery run beneath and radial to the tendon."
       },
       "o": {
         "it": "Capo omerale: epicondilo mediale. Capo ulnare: olecrano e margine posteriore dell’ulna.",
-        "en": ""
+        "en": "Humeral head: medial epicondyle. Ulnar head: olecranon and posterior border of the ulna."
       },
       "ins": {
         "it": "Pisiforme e, tramite i legamenti piso-uncinato e piso-metacarpale, uncinato e base del V metacarpo.",
-        "en": ""
+        "en": "Pisiform and, through the pisohamate and pisometacarpal ligaments, hamate and base of the 5th metacarpal."
       },
       "fn": {
         "it": "Flette il polso e lo adduce (deviazione ulnare).",
-        "en": ""
+        "en": "Flexes and adducts the wrist (ulnar deviation)."
       }
     },
     "fds": {
       "name": {
         "it": "Flessore superficiale delle dita (FDS)",
-        "en": ""
+        "en": "Flexor digitorum superficialis (FDS)"
       },
       "info": {
         "it": "Quattro tendini nel tunnel carpale, su due strati: III e IV superficiali, II e V profondi.",
-        "en": ""
+        "en": "Four tendons in the carpal tunnel, in two layers: 3rd and 4th superficial, 2nd and 5th deep."
       },
       "o": {
         "it": "Capo omero-ulnare: epicondilo mediale e processo coronoideo. Capo radiale: faccia anteriore del radio.",
-        "en": ""
+        "en": "Humeroulnar head: medial epicondyle and coronoid process. Radial head: anterior surface of the radius."
       },
       "ins": {
         "it": "Ai lati della falange intermedia del II–V dito (chiasma di Camper).",
-        "en": ""
+        "en": "Sides of the middle phalanx of the 2nd–5th fingers (Camper chiasm)."
       },
       "fn": {
         "it": "Flette le IFP e, secondariamente, MCF e polso.",
-        "en": ""
+        "en": "Flexes the PIP joints and, secondarily, the MCP joints and the wrist."
       }
     },
     "fdp": {
       "name": {
         "it": "Flessore profondo delle dita (FDP)",
-        "en": ""
+        "en": "Flexor digitorum profundus (FDP)"
       },
       "info": {
         "it": "Sul pavimento del tunnel carpale; nel palmo dà origine ai lombricali. II–III dito innervati dall’interosseo anteriore (mediano), IV–V dall’ulnare. L’avulsione distale è il jersey finger.",
-        "en": ""
+        "en": "On the floor of the carpal tunnel; in the palm it gives origin to the lumbricals. 2nd–3rd fingers innervated by the anterior interosseous nerve (median), 4th–5th by the ulnar nerve. Distal avulsion is jersey finger."
       },
       "o": {
         "it": "Faccia anteriore e mediale dell’ulna e membrana interossea.",
-        "en": ""
+        "en": "Anterior and medial surfaces of the ulna and interosseous membrane."
       },
       "ins": {
         "it": "Base volare della falange distale del II–V dito.",
-        "en": ""
+        "en": "Palmar base of the distal phalanx of the 2nd–5th fingers."
       },
       "fn": {
         "it": "Flette le IFD e, secondariamente, IFP, MCF e polso.",
-        "en": ""
+        "en": "Flexes the DIP joints and, secondarily, the PIP and MCP joints and the wrist."
       }
     },
     "fpl": {
       "name": {
         "it": "Flessore lungo del pollice (FPL)",
-        "en": ""
+        "en": "Flexor pollicis longus (FPL)"
       },
       "info": {
         "it": "Il tendine più radiale del tunnel carpale, nella propria guaina (borsa radiale).",
-        "en": ""
+        "en": "The most radial tendon in the carpal tunnel, in its own sheath (radial bursa)."
       },
       "o": {
         "it": "Faccia anteriore del radio e membrana interossea.",
-        "en": ""
+        "en": "Anterior surface of the radius and interosseous membrane."
       },
       "ins": {
         "it": "Base volare della falange distale del pollice.",
-        "en": ""
+        "en": "Palmar base of the distal phalanx of the thumb."
       },
       "fn": {
         "it": "Flette la IF del pollice e, secondariamente, la MCF.",
-        "en": ""
+        "en": "Flexes the IP joint of the thumb and, secondarily, the MCP joint."
       }
     },
     "pq": {
       "name": {
         "it": "Pronatore quadrato",
-        "en": ""
+        "en": "Pronator quadratus"
       },
       "info": {
         "it": "Il muscolo più profondo dell’avambraccio volare. Si ferma poco prossimalmente alla watershed line; il grasso sovrastante (spazio di Parona) si oblitera nelle fratture occulte del radio distale.",
-        "en": ""
+        "en": "The deepest muscle of the palmar forearm. It ends just proximal to the watershed line; the overlying fat (Parona space) is obliterated in occult distal radius fractures."
       },
       "o": {
         "it": "Quarto distale della faccia volare dell’ulna.",
-        "en": ""
+        "en": "Distal quarter of the palmar surface of the ulna."
       },
       "ins": {
         "it": "Quarto distale della faccia volare del radio, fino al margine anteriore.",
-        "en": ""
+        "en": "Distal quarter of the palmar surface of the radius, up to the anterior margin."
       },
       "fn": {
         "it": "Principale pronatore dell’avambraccio; stabilizza la radio-ulnare distale.",
-        "en": ""
+        "en": "Main pronator of the forearm; stabilizes the distal radioulnar joint."
       }
     },
     "adipq": {
       "name": {
         "it": "Cuscinetto adiposo del pronatore quadrato",
-        "en": ""
+        "en": "Pronator quadratus fat pad"
       },
       "info": {
         "it": "Sottile strato adiposo tra pronatore quadrato e flessori profondi (spazio di Parona). Nella radiografia laterale lo spostamento o la scomparsa della stria adiposa indica edema o ematoma, per esempio in una frattura occulta del radio distale (segno indiretto, di accuratezza limitata).",
-        "en": ""
+        "en": "Thin fat layer between the pronator quadratus and the deep flexors (Parona space). On the lateral radiograph, displacement or loss of the fat stripe indicates edema or hematoma, for example in an occult distal radius fracture (indirect sign, of limited accuracy)."
       }
     },
     "br": {
       "name": {
         "it": "Brachioradiale",
-        "en": ""
+        "en": "Brachioradialis"
       },
       "info": {
         "it": "Flessore del gomito pur essendo innervato dal radiale. Il ramo superficiale del nervo radiale emerge sotto il suo margine.",
-        "en": ""
+        "en": "An elbow flexor even though it is innervated by the radial nerve. The superficial branch of the radial nerve emerges from under its margin."
       },
       "o": {
         "it": "Cresta sopracondiloidea laterale dell’omero.",
-        "en": ""
+        "en": "Lateral supracondylar ridge of the humerus."
       },
       "ins": {
         "it": "Base dello stiloide radiale.",
-        "en": ""
+        "en": "Base of the radial styloid process."
       },
       "fn": {
         "it": "Flette il gomito, soprattutto in semipronazione.",
-        "en": ""
+        "en": "Flexes the elbow, especially in midpronation."
       }
     },
     "ecrl": {
       "name": {
         "it": "Estensore radiale lungo del carpo (ECRL)",
-        "en": ""
+        "en": "Extensor carpi radialis longus (ECRL)"
       },
       "info": {
         "it": "II compartimento. 4–8 cm sopra il polso è incrociato da APL ed EPB: sindrome da intersezione.",
-        "en": ""
+        "en": "2nd compartment. 4–8 cm above the wrist it is crossed by the APL and EPB: intersection syndrome."
       },
       "o": {
         "it": "Terzo distale della cresta sopracondiloidea laterale dell’omero.",
-        "en": ""
+        "en": "Distal third of the lateral supracondylar ridge of the humerus."
       },
       "ins": {
         "it": "Base del II metacarpo (faccia dorsale).",
-        "en": ""
+        "en": "Base of the 2nd metacarpal (dorsal surface)."
       },
       "fn": {
         "it": "Estende il polso e lo abduce (deviazione radiale).",
-        "en": ""
+        "en": "Extends and abducts the wrist (radial deviation)."
       }
     },
     "ecrb": {
       "name": {
         "it": "Estensore radiale breve del carpo (ECRB)",
-        "en": ""
+        "en": "Extensor carpi radialis brevis (ECRB)"
       },
       "info": {
         "it": "II compartimento, radiale al tubercolo di Lister. La sua origine è la sede principale dell’epicondilite laterale.",
-        "en": ""
+        "en": "2nd compartment, radial to Lister tubercle. Its origin is the main site of lateral epicondylitis."
       },
       "o": {
         "it": "Epicondilo laterale dell’omero (tendine comune degli estensori).",
-        "en": ""
+        "en": "Lateral epicondyle of the humerus (common extensor tendon)."
       },
       "ins": {
         "it": "Base del III metacarpo (faccia dorsale).",
-        "en": ""
+        "en": "Base of the 3rd metacarpal (dorsal surface)."
       },
       "fn": {
         "it": "Estende il polso.",
-        "en": ""
+        "en": "Extends the wrist."
       }
     },
     "apl": {
       "name": {
         "it": "Abduttore lungo del pollice (APL)",
-        "en": ""
+        "en": "Abductor pollicis longus (APL)"
       },
       "info": {
         "it": "I compartimento, spesso con più bandellette. Con l’EPB: tenosinovite di De Quervain (talora con setto intracompartimentale) e limite volare della tabacchiera.",
-        "en": ""
+        "en": "1st compartment, often with multiple slips. With the EPB: De Quervain tenosynovitis (sometimes with an intracompartmental septum) and palmar boundary of the snuffbox."
       },
       "o": {
         "it": "Faccia posteriore di radio e ulna e membrana interossea.",
-        "en": ""
+        "en": "Posterior surfaces of the radius and ulna and interosseous membrane."
       },
       "ins": {
         "it": "Base del I metacarpo (lato radiale).",
-        "en": ""
+        "en": "Base of the 1st metacarpal (radial side)."
       },
       "fn": {
         "it": "Abduce ed estende il pollice alla trapezio-metacarpale.",
-        "en": ""
+        "en": "Abducts and extends the thumb at the trapeziometacarpal joint."
       }
     },
     "epb": {
       "name": {
         "it": "Estensore breve del pollice (EPB)",
-        "en": ""
+        "en": "Extensor pollicis brevis (EPB)"
       },
       "info": {
         "it": "I compartimento, dorsale all’APL; limite volare della tabacchiera anatomica.",
-        "en": ""
+        "en": "1st compartment, dorsal to the APL; palmar boundary of the anatomical snuffbox."
       },
       "o": {
         "it": "Faccia posteriore del radio e membrana interossea.",
-        "en": ""
+        "en": "Posterior surface of the radius and interosseous membrane."
       },
       "ins": {
         "it": "Base dorsale della falange prossimale del pollice.",
-        "en": ""
+        "en": "Dorsal base of the proximal phalanx of the thumb."
       },
       "fn": {
         "it": "Estende la MCF del pollice.",
-        "en": ""
+        "en": "Extends the MCP joint of the thumb."
       }
     },
     "epl": {
       "name": {
         "it": "Estensore lungo del pollice (EPL)",
-        "en": ""
+        "en": "Extensor pollicis longus (EPL)"
       },
       "info": {
         "it": "III compartimento: usa il tubercolo di Lister come puleggia. Rottura tardiva dopo frattura del radio distale, anche composta. Limite dorsale della tabacchiera.",
-        "en": ""
+        "en": "3rd compartment: uses Lister tubercle as a pulley. Delayed rupture after distal radius fracture, even when nondisplaced. Dorsal boundary of the snuffbox."
       },
       "o": {
         "it": "Faccia posteriore dell’ulna e membrana interossea.",
-        "en": ""
+        "en": "Posterior surface of the ulna and interosseous membrane."
       },
       "ins": {
         "it": "Base dorsale della falange distale del pollice.",
-        "en": ""
+        "en": "Dorsal base of the distal phalanx of the thumb."
       },
       "fn": {
         "it": "Estende la IF del pollice; lo adduce e lo retropone.",
-        "en": ""
+        "en": "Extends the IP joint of the thumb; adducts and retropulses it."
       }
     },
     "edc": {
       "name": {
         "it": "Estensore comune delle dita (EDC)",
-        "en": ""
+        "en": "Extensor digitorum (EDC)"
       },
       "info": {
         "it": "IV compartimento con l’EIP; il nervo interosseo posteriore ne percorre il pavimento. I tendini sono uniti dalle juncturae tendinum.",
-        "en": ""
+        "en": "4th compartment with the EIP; the posterior interosseous nerve runs along its floor. The tendons are linked by the juncturae tendinum."
       },
       "o": {
         "it": "Epicondilo laterale dell’omero (tendine comune degli estensori).",
-        "en": ""
+        "en": "Lateral epicondyle of the humerus (common extensor tendon)."
       },
       "ins": {
         "it": "Apparato estensore del II–V dito (falangi intermedia e distale).",
-        "en": ""
+        "en": "Extensor apparatus of the 2nd–5th fingers (middle and distal phalanges)."
       },
       "fn": {
         "it": "Estende le dita e il polso.",
-        "en": ""
+        "en": "Extends the fingers and the wrist."
       }
     },
     "eip": {
       "name": {
         "it": "Estensore proprio dell’indice (EIP)",
-        "en": ""
+        "en": "Extensor indicis (EIP)"
       },
       "info": {
         "it": "IV compartimento, profondo all’EDC; alla MCF è ulnare al tendine dell’EDC per l’indice. Usato per il transfer dopo rottura dell’EPL.",
-        "en": ""
+        "en": "4th compartment, deep to the EDC; at the MCP joint it lies ulnar to the EDC tendon of the index finger. Used for tendon transfer after EPL rupture."
       },
       "o": {
         "it": "Faccia posteriore dell’ulna distale e membrana interossea.",
-        "en": ""
+        "en": "Posterior surface of the distal ulna and interosseous membrane."
       },
       "ins": {
         "it": "Apparato estensore dell’indice.",
-        "en": ""
+        "en": "Extensor apparatus of the index finger."
       },
       "fn": {
         "it": "Estende l’indice in modo indipendente.",
-        "en": ""
+        "en": "Extends the index finger independently."
       }
     },
     "edm": {
       "name": {
         "it": "Estensore proprio del mignolo (EDM)",
-        "en": ""
+        "en": "Extensor digiti minimi (EDM)"
       },
       "info": {
         "it": "V compartimento, sopra la radio-ulnare distale; spesso bifido. Nell’artrite reumatoide è il primo a rompersi sulla testa ulnare (Vaughan-Jackson).",
-        "en": ""
+        "en": "5th compartment, over the distal radioulnar joint; often bifid. In rheumatoid arthritis it is the first to rupture over the ulnar head (Vaughan-Jackson)."
       },
       "o": {
         "it": "Epicondilo laterale dell’omero (tendine comune degli estensori).",
-        "en": ""
+        "en": "Lateral epicondyle of the humerus (common extensor tendon)."
       },
       "ins": {
         "it": "Apparato estensore del mignolo.",
-        "en": ""
+        "en": "Extensor apparatus of the little finger."
       },
       "fn": {
         "it": "Estende il mignolo.",
-        "en": ""
+        "en": "Extends the little finger."
       }
     },
     "ecu": {
       "name": {
         "it": "Estensore ulnare del carpo (ECU)",
-        "en": ""
+        "en": "Extensor carpi ulnaris (ECU)"
       },
       "info": {
         "it": "VI compartimento, nel solco dell’ulna, con una sottoguaina propria che contribuisce alla stabilità del TFCC. Sublussazione valutabile in ecografia dinamica in supinazione.",
-        "en": ""
+        "en": "6th compartment, in the ulnar groove, with its own subsheath that contributes to TFCC stability. Subluxation can be assessed with dynamic ultrasound in supination."
       },
       "o": {
         "it": "Epicondilo laterale e margine posteriore dell’ulna.",
-        "en": ""
+        "en": "Lateral epicondyle and posterior border of the ulna."
       },
       "ins": {
         "it": "Base del V metacarpo (lato ulnare).",
-        "en": ""
+        "en": "Base of the 5th metacarpal (ulnar side)."
       },
       "fn": {
         "it": "Estende il polso e lo adduce (deviazione ulnare).",
-        "en": ""
+        "en": "Extends and adducts the wrist (ulnar deviation)."
       }
     },
     "apb": {
       "name": {
         "it": "Abduttore breve del pollice",
-        "en": ""
+        "en": "Abductor pollicis brevis"
       },
       "info": {
         "it": "Il tenare più superficiale (ramo motorio del mediano). L’ipotrofia è un segno tardivo della sindrome del tunnel carpale.",
-        "en": ""
+        "en": "The most superficial thenar muscle (recurrent motor branch of the median nerve). Atrophy is a late sign of carpal tunnel syndrome."
       },
       "o": {
         "it": "Retinacolo dei flessori, scafoide e trapezio.",
-        "en": ""
+        "en": "Flexor retinaculum, scaphoid and trapezium."
       },
       "ins": {
         "it": "Base della falange prossimale del pollice (lato radiale).",
-        "en": ""
+        "en": "Base of the proximal phalanx of the thumb (radial side)."
       },
       "fn": {
         "it": "Abduce il pollice; partecipa all’opposizione.",
-        "en": ""
+        "en": "Abducts the thumb; contributes to opposition."
       }
     },
     "fpb": {
       "name": {
         "it": "Flessore breve del pollice",
-        "en": ""
+        "en": "Flexor pollicis brevis"
       },
       "info": {
         "it": "Capo superficiale innervato dal mediano, profondo dall’ulnare (variabile).",
-        "en": ""
+        "en": "Superficial head innervated by the median nerve, deep head by the ulnar nerve (variable)."
       },
       "o": {
         "it": "Capo superficiale: retinacolo dei flessori e trapezio. Capo profondo: trapezoide e capitato.",
-        "en": ""
+        "en": "Superficial head: flexor retinaculum and trapezium. Deep head: trapezoid and capitate."
       },
       "ins": {
         "it": "Base della falange prossimale del pollice (lato radiale).",
-        "en": ""
+        "en": "Base of the proximal phalanx of the thumb (radial side)."
       },
       "fn": {
         "it": "Flette la MCF del pollice.",
-        "en": ""
+        "en": "Flexes the MCP joint of the thumb."
       }
     },
     "op": {
       "name": {
         "it": "Opponente del pollice",
-        "en": ""
+        "en": "Opponens pollicis"
       },
       "info": {
         "it": "Profondo all’abduttore breve (ramo motorio del mediano).",
-        "en": ""
+        "en": "Deep to the abductor pollicis brevis (recurrent motor branch of the median nerve)."
       },
       "o": {
         "it": "Retinacolo dei flessori e tubercolo del trapezio.",
-        "en": ""
+        "en": "Flexor retinaculum and tubercle of the trapezium."
       },
       "ins": {
         "it": "Margine radiale del I metacarpo.",
-        "en": ""
+        "en": "Radial border of the 1st metacarpal."
       },
       "fn": {
         "it": "Oppone il pollice.",
-        "en": ""
+        "en": "Opposes the thumb."
       }
     },
     "add": {
       "name": {
         "it": "Adduttore del pollice",
-        "en": ""
+        "en": "Adductor pollicis"
       },
       "info": {
         "it": "Profondo, nel primo spazio (ramo profondo dell’ulnare). Tra i due capi passa l’arteria radiale; la sua aponeurosi si interpone nella lesione di Stener.",
-        "en": ""
+        "en": "Deep, in the first web space (deep branch of the ulnar nerve). The radial artery passes between its two heads; its aponeurosis is interposed in the Stener lesion."
       },
       "o": {
         "it": "Capo obliquo: capitato e basi del II–III metacarpo. Capo trasverso: III metacarpo.",
-        "en": ""
+        "en": "Oblique head: capitate and bases of the 2nd–3rd metacarpals. Transverse head: 3rd metacarpal."
       },
       "ins": {
         "it": "Base della falange prossimale del pollice (lato ulnare).",
-        "en": ""
+        "en": "Base of the proximal phalanx of the thumb (ulnar side)."
       },
       "fn": {
         "it": "Adduce il pollice; stabilizza la pinza pollice-indice.",
-        "en": ""
+        "en": "Adducts the thumb; stabilizes the thumb-index pinch."
       }
     },
     "adm": {
       "name": {
         "it": "Abduttore del mignolo",
-        "en": ""
+        "en": "Abductor digiti minimi"
       },
       "info": {
         "it": "Il più ulnare e superficiale degli ipotenari (ramo profondo dell’ulnare).",
-        "en": ""
+        "en": "The most ulnar and superficial hypothenar muscle (deep branch of the ulnar nerve)."
       },
       "o": {
         "it": "Pisiforme e tendine del FCU.",
-        "en": ""
+        "en": "Pisiform and FCU tendon."
       },
       "ins": {
         "it": "Base della falange prossimale del mignolo (lato ulnare).",
-        "en": ""
+        "en": "Base of the proximal phalanx of the little finger (ulnar side)."
       },
       "fn": {
         "it": "Abduce il mignolo.",
-        "en": ""
+        "en": "Abducts the little finger."
       }
     },
     "fdm": {
       "name": {
         "it": "Flessore breve del mignolo",
-        "en": ""
+        "en": "Flexor digiti minimi brevis"
       },
       "info": {
         "it": "Ipotenare, radiale all’abduttore (ramo profondo dell’ulnare).",
-        "en": ""
+        "en": "Hypothenar muscle, radial to the abductor (deep branch of the ulnar nerve)."
       },
       "o": {
         "it": "Uncino dell’uncinato e retinacolo dei flessori.",
-        "en": ""
+        "en": "Hook of the hamate and flexor retinaculum."
       },
       "ins": {
         "it": "Base della falange prossimale del mignolo.",
-        "en": ""
+        "en": "Base of the proximal phalanx of the little finger."
       },
       "fn": {
         "it": "Flette la MCF del mignolo.",
-        "en": ""
+        "en": "Flexes the MCP joint of the little finger."
       }
     },
     "odm": {
       "name": {
         "it": "Opponente del mignolo",
-        "en": ""
+        "en": "Opponens digiti minimi"
       },
       "info": {
         "it": "Il più profondo degli ipotenari; lo attraversano il ramo profondo del nervo e dell’arteria ulnari.",
-        "en": ""
+        "en": "The deepest hypothenar muscle; the deep branches of the ulnar nerve and artery pass through it."
       },
       "o": {
         "it": "Uncino dell’uncinato e retinacolo dei flessori.",
-        "en": ""
+        "en": "Hook of the hamate and flexor retinaculum."
       },
       "ins": {
         "it": "Margine ulnare del V metacarpo.",
-        "en": ""
+        "en": "Ulnar border of the 5th metacarpal."
       },
       "fn": {
         "it": "Porta in avanti e ruota il V metacarpo (opposizione del mignolo).",
-        "en": ""
+        "en": "Draws forward and rotates the 5th metacarpal (opposition of the little finger)."
       }
     },
     "lumb": {
       "name": {
         "it": "Lombricali",
-        "en": ""
+        "en": "Lumbricals"
       },
       "info": {
         "it": "Quattro, originano dai tendini del FDP. I–II innervati dal mediano, III–IV dall’ulnare.",
-        "en": ""
+        "en": "Four, arising from the FDP tendons. 1st–2nd innervated by the median nerve, 3rd–4th by the ulnar nerve."
       },
       "o": {
         "it": "Tendini del FDP nel palmo.",
-        "en": ""
+        "en": "FDP tendons in the palm."
       },
       "ins": {
         "it": "Margine radiale dell’apparato estensore del dito corrispondente.",
-        "en": ""
+        "en": "Radial margin of the extensor apparatus of the corresponding finger."
       },
       "fn": {
         "it": "Flettono le MCF ed estendono le interfalangee.",
-        "en": ""
+        "en": "Flex the MCP joints and extend the interphalangeal joints."
       }
     },
     "iod": {
       "name": {
         "it": "Interossei dorsali",
-        "en": ""
+        "en": "Dorsal interossei"
       },
       "info": {
         "it": "Quattro, bipennati, tra i metacarpi (ramo profondo dell’ulnare).",
-        "en": ""
+        "en": "Four, bipennate, between the metacarpals (deep branch of the ulnar nerve)."
       },
       "o": {
         "it": "Facce affrontate dei metacarpi adiacenti.",
-        "en": ""
+        "en": "Facing surfaces of adjacent metacarpals."
       },
       "ins": {
         "it": "Base della falange prossimale e apparato estensore di II, III e IV dito.",
-        "en": ""
+        "en": "Base of the proximal phalanx and extensor apparatus of the 2nd, 3rd and 4th fingers."
       },
       "fn": {
         "it": "Abducono le dita dall’asse del medio (DAB).",
-        "en": ""
+        "en": "Abduct the fingers away from the axis of the middle finger (DAB)."
       }
     },
     "iop": {
       "name": {
         "it": "Interossei palmari",
-        "en": ""
+        "en": "Palmar interossei"
       },
       "info": {
         "it": "Tre, unipennati (ramo profondo dell’ulnare).",
-        "en": ""
+        "en": "Three, unipennate (deep branch of the ulnar nerve)."
       },
       "o": {
         "it": "Faccia palmare di II, IV e V metacarpo.",
-        "en": ""
+        "en": "Palmar surface of the 2nd, 4th and 5th metacarpals."
       },
       "ins": {
         "it": "Base della falange prossimale e apparato estensore di II, IV e V dito.",
-        "en": ""
+        "en": "Base of the proximal phalanx and extensor apparatus of the 2nd, 4th and 5th fingers."
       },
       "fn": {
         "it": "Adducono le dita verso l’asse del medio (PAD).",
-        "en": ""
+        "en": "Adduct the fingers toward the axis of the middle finger (PAD)."
       }
     },
     "arad": {
       "name": {
         "it": "Arteria radiale e arco palmare profondo",
-        "en": ""
+        "en": "Radial artery and deep palmar arch"
       },
       "info": {
         "it": "Nell’avambraccio tra brachioradiale e FCR, dove si palpa il polso radiale. Al polso gira dorsalmente sotto APL ed EPB, attraversa la tabacchiera anatomica, perfora il primo spazio interosseo e forma l’arco palmare profondo. Test di Allen prima di prelievo o incannulamento.",
-        "en": ""
+        "en": "In the forearm between the brachioradialis and the FCR, where the radial pulse is felt. At the wrist it turns dorsally under the APL and EPB, crosses the anatomical snuffbox, pierces the first interosseous space and forms the deep palmar arch. Allen test before blood sampling or cannulation."
       }
     },
     "aradsup": {
       "name": {
         "it": "Ramo palmare superficiale dell’arteria radiale",
-        "en": ""
+        "en": "Superficial palmar branch of radial artery"
       },
       "info": {
         "it": "Nasce al polso e attraversa i muscoli tenari; completa l’arco palmare superficiale (incostante).",
-        "en": ""
+        "en": "Arises at the wrist and crosses the thenar muscles; completes the superficial palmar arch (inconstant)."
       }
     },
     "auln": {
       "name": {
         "it": "Arteria ulnare e arco palmare superficiale",
-        "en": ""
+        "en": "Ulnar artery and superficial palmar arch"
       },
       "info": {
         "it": "Sotto il FCU, radialmente al nervo ulnare; attraversa il canale di Guyon e forma l’arco palmare superficiale, più distale del profondo. Trombosi o aneurisma nella sindrome del martello ipotenare.",
-        "en": ""
+        "en": "Under the FCU, radial to the ulnar nerve; it crosses the Guyon canal and forms the superficial palmar arch, distal to the deep arch. Thrombosis or aneurysm in hypothenar hammer syndrome."
       }
     },
     "aulnprof": {
       "name": {
         "it": "Ramo palmare profondo dell’arteria ulnare",
-        "en": ""
+        "en": "Deep palmar branch of ulnar artery"
       },
       "info": {
         "it": "Segue il ramo profondo del nervo ulnare attorno all’uncino dell’uncinato e chiude l’arco palmare profondo.",
-        "en": ""
+        "en": "Follows the deep branch of the ulnar nerve around the hook of the hamate and closes the deep palmar arch."
       }
     },
     "adig": {
       "name": {
         "it": "Arterie digitali palmari comuni",
-        "en": ""
+        "en": "Common palmar digital arteries"
       },
       "info": {
         "it": "Dall’arco palmare superficiale agli spazi interdigitali II–IV, dove si dividono nelle digitali proprie; in più la digitale propria del margine ulnare del V dito.",
-        "en": ""
+        "en": "From the superficial palmar arch to the 2nd–4th web spaces, where they divide into the proper digital arteries; in addition, the proper digital artery of the ulnar border of the little finger."
       }
     },
     "amcp": {
       "name": {
         "it": "Arterie metacarpali palmari",
-        "en": ""
+        "en": "Palmar metacarpal arteries"
       },
       "info": {
         "it": "Dall’arco palmare profondo, sugli interossei, si uniscono alle digitali comuni: anastomosi tra i due archi.",
-        "en": ""
+        "en": "From the deep palmar arch, on the interossei, they join the common digital arteries: anastomoses between the two arches."
       }
     },
     "aprinc": {
       "name": {
         "it": "Arteria principale del pollice e radiale dell’indice",
-        "en": ""
+        "en": "Princeps pollicis and radialis indicis arteries"
       },
       "info": {
         "it": "Dalla radiale nel primo spazio interosseo: irrorano il pollice e il margine radiale dell’indice.",
-        "en": ""
+        "en": "From the radial artery in the first interosseous space: they supply the thumb and the radial border of the index finger."
       }
     },
     "adca": {
       "name": {
         "it": "Arco carpale dorsale e arterie metacarpali dorsali",
-        "en": ""
+        "en": "Dorsal carpal arch and dorsal metacarpal arteries"
       },
       "info": {
         "it": "Rete sul dorso del carpo, profonda agli estensori, formata dai rami carpali dorsali di radiale e ulnare; ne originano le metacarpali dorsali II–IV.",
-        "en": ""
+        "en": "Network on the dorsum of the carpus, deep to the extensors, formed by the dorsal carpal branches of the radial and ulnar arteries; the 2nd–4th dorsal metacarpal arteries arise from it."
       }
     },
     "vcef": {
       "name": {
         "it": "Vena cefalica",
-        "en": ""
+        "en": "Cephalic vein"
       },
       "info": {
         "it": "Dal versante radiale della rete venosa dorsale passa sulla tabacchiera e risale sul margine radiale dell’avambraccio. Vicina al ramo superficiale del nervo radiale: attenzione nell’incannulamento al polso.",
-        "en": ""
+        "en": "From the radial side of the dorsal venous network it passes over the snuffbox and ascends along the radial border of the forearm. Close to the superficial branch of the radial nerve: take care during cannulation at the wrist."
       }
     },
     "vbas": {
       "name": {
         "it": "Vena basilica",
-        "en": ""
+        "en": "Basilic vein"
       },
       "info": {
         "it": "Dal versante ulnare della rete venosa dorsale risale sul margine ulnare dell’avambraccio verso il gomito.",
-        "en": ""
+        "en": "From the ulnar side of the dorsal venous network it ascends along the ulnar border of the forearm toward the elbow."
       }
     },
     "varco": {
       "name": {
         "it": "Rete venosa dorsale della mano",
-        "en": ""
+        "en": "Dorsal venous network of hand"
       },
       "info": {
         "it": "Arcata sottocutanea sul dorso dei metacarpi che riceve le vene metacarpali dorsali; continua radialmente nella cefalica e ulnarmente nella basilica.",
-        "en": ""
+        "en": "Subcutaneous arch over the dorsum of the metacarpals that receives the dorsal metacarpal veins; it continues radially into the cephalic vein and ulnarly into the basilic vein."
       }
     },
     "vmed": {
       "name": {
         "it": "Vena mediana dell’avambraccio",
-        "en": ""
+        "en": "Median antebrachial vein"
       },
       "info": {
         "it": "Origina dal plesso venoso palmare superficiale e risale sottocutanea sulla faccia volare dell’avambraccio; decorso variabile, di solito termina nella basilica o nella mediana cubitale al gomito.",
-        "en": ""
+        "en": "Arises from the superficial palmar venous plexus and ascends subcutaneously on the palmar surface of the forearm; variable course, usually ending in the basilic or median cubital vein at the elbow."
       }
     },
     "vmcd": {
       "name": {
         "it": "Vene metacarpali dorsali",
-        "en": ""
+        "en": "Dorsal metacarpal veins"
       },
       "info": {
         "it": "Dalle dita confluiscono nella rete venosa dorsale; la vena del pollice sbocca nella cefalica, la marginale ulnare nella basilica.",
-        "en": ""
+        "en": "From the fingers they drain into the dorsal venous network; the thumb vein drains into the cephalic vein, the ulnar marginal vein into the basilic vein."
       }
     },
     "nmed": {
       "name": {
         "it": "Nervo mediano",
-        "en": ""
+        "en": "Median nerve"
       },
       "info": {
         "it": "Nervo misto. Nell’avambraccio tra FDS e FDP; al polso tra FCR e PL, poi nel tunnel carpale sotto il retinacolo dei flessori. Motorio per flessori e pronatori dell’avambraccio (esclusi FCU e FDP di IV–V), tenari superficiali (APB, OP, capo superficiale del FPB) e lombricali I–II; sensitivo per la faccia palmare di pollice, indice, medio e metà radiale dell’anulare. In ecografia, area all’ingresso del tunnel sospetta oltre 9–10 mm², più specifica oltre 12 mm²; rapporto polso/avambraccio oltre 1,4.",
-        "en": ""
+        "en": "Mixed nerve. In the forearm between the FDS and FDP; at the wrist between the FCR and PL, then in the carpal tunnel under the flexor retinaculum. Motor to the forearm flexors and pronators (except the FCU and the FDP of the 4th–5th fingers), the superficial thenar muscles (APB, OP, superficial head of FPB) and the 1st–2nd lumbricals; sensory to the palmar surface of the thumb, index, middle and radial half of the ring finger. On ultrasound, an area at the tunnel inlet above 9–10 mm² is suspicious, above 12 mm² more specific; wrist-to-forearm ratio above 1.4."
       }
     },
     "nmedmot": {
       "name": {
         "it": "Ramo motorio ricorrente del mediano",
-        "en": ""
+        "en": "Recurrent motor branch of median nerve"
       },
       "info": {
         "it": "Motorio per APB, OP e capo superficiale del FPB. Nasce all’uscita del tunnel, di solito dal versante radiale, e risale nei tenari; le varianti transligamentose sono a rischio nella decompressione chirurgica.",
-        "en": ""
+        "en": "Motor to the APB, OP and superficial head of the FPB. It arises at the tunnel outlet, usually from the radial side, and curves back into the thenar muscles; transligamentous variants are at risk during surgical release."
       }
     },
     "ndig": {
       "name": {
         "it": "Nervi digitali palmari comuni (mediano)",
-        "en": ""
+        "en": "Common palmar digital nerves (median)"
       },
       "info": {
         "it": "Prevalentemente sensitivi, con rami motori per i lombricali I–II. Tre rami, profondi all’arco palmare superficiale, verso il I–III spazio: sensibilità palmare di pollice, indice, medio e metà radiale dell’anulare.",
-        "en": ""
+        "en": "Mainly sensory, with motor branches to the 1st–2nd lumbricals. Three branches, deep to the superficial palmar arch, to the 1st–3rd web spaces: palmar sensation of the thumb, index, middle and radial half of the ring finger."
       }
     },
     "nuln": {
       "name": {
         "it": "Nervo ulnare",
-        "en": ""
+        "en": "Ulnar nerve"
       },
       "info": {
         "it": "Nervo misto. Sotto il FCU, ulnarmente all’arteria; nel canale di Guyon si divide in ramo superficiale (sensitivo per mignolo e metà ulnare dell’anulare) e profondo (motorio per gran parte dei muscoli intrinseci). Il deficit varia con la zona di compressione (Gross).",
-        "en": ""
+        "en": "Mixed nerve. Under the FCU, ulnar to the artery; in the Guyon canal it divides into a superficial branch (sensory to the little finger and ulnar half of the ring finger) and a deep branch (motor to most intrinsic muscles). The deficit depends on the zone of compression (Gross)."
       }
     },
     "nulnsup": {
       "name": {
         "it": "Ramo superficiale del nervo ulnare",
-        "en": ""
+        "en": "Superficial branch of ulnar nerve"
       },
       "info": {
         "it": "Prevalentemente sensitivo: faccia palmare del mignolo e della metà ulnare dell’anulare; motorio solo per il palmare breve. Dal canale di Guyon scende superficiale agli ipotenari.",
-        "en": ""
+        "en": "Mainly sensory: palmar surface of the little finger and the ulnar half of the ring finger; motor only to the palmaris brevis. From the Guyon canal it descends superficial to the hypothenar muscles."
       }
     },
     "nulnprof": {
       "name": {
         "it": "Ramo profondo del nervo ulnare",
-        "en": ""
+        "en": "Deep branch of ulnar nerve"
       },
       "info": {
         "it": "Motorio per ipotenari, interossei, lombricali III–IV, adduttore del pollice e capo profondo del FPB. Gira attorno all’uncino dell’uncinato e segue l’arco palmare profondo; la compressione (zona 2 di Gross) dà un deficit solo motorio.",
-        "en": ""
+        "en": "Motor to the hypothenar muscles, interossei, 3rd–4th lumbricals, adductor pollicis and deep head of the FPB. It winds around the hook of the hamate and follows the deep palmar arch; compression (Gross zone 2) causes a purely motor deficit."
       }
     },
     "nulndors": {
       "name": {
         "it": "Ramo cutaneo dorsale del nervo ulnare",
-        "en": ""
+        "en": "Dorsal cutaneous branch of ulnar nerve"
       },
       "info": {
         "it": "Sensitivo per il dorso ulnare della mano, del mignolo e di metà anulare. Nasce 5–7 cm sopra il polso e gira dorsalmente sotto il FCU; è risparmiato nelle compressioni del canale di Guyon.",
-        "en": ""
+        "en": "Sensory to the ulnar dorsum of the hand, the little finger and half of the ring finger. It arises 5–7 cm above the wrist and turns dorsally under the FCU; it is spared in Guyon canal compression."
       }
     },
     "npalm": {
       "name": {
         "it": "Ramo cutaneo palmare del nervo mediano",
-        "en": ""
+        "en": "Palmar cutaneous branch of median nerve"
       },
       "info": {
         "it": "Sensitivo per la cute dell’eminenza tenare e del palmo centrale. Passa sopra il retinacolo, fuori dal tunnel: per questo la sensibilità tenare è risparmiata nella sindrome del tunnel carpale.",
-        "en": ""
+        "en": "Sensory to the skin of the thenar eminence and the central palm. It passes over the retinaculum, outside the tunnel: this is why thenar sensation is spared in carpal tunnel syndrome."
       }
     },
     "nradsup": {
       "name": {
         "it": "Ramo superficiale del nervo radiale",
-        "en": ""
+        "en": "Superficial branch of radial nerve"
       },
       "info": {
         "it": "Sensitivo per il dorso radiale della mano, del pollice e della parte prossimale di indice e medio. Emerge sotto il brachioradiale circa 8–9 cm dallo stiloide e decorre nel sottocute sul I compartimento. Sindrome di Wartenberg; a rischio da bracciali stretti e incannulamento della cefalica.",
-        "en": ""
+        "en": "Sensory to the radial dorsum of the hand, the thumb and the proximal part of the index and middle fingers. It emerges from under the brachioradialis about 8–9 cm from the styloid and runs subcutaneously over the 1st compartment. Wartenberg syndrome; at risk from tight bracelets and cephalic vein cannulation."
       }
     },
     "g1": {
       "name": {
         "it": "Guaina del I compartimento (APL-EPB)",
-        "en": ""
+        "en": "Sheath of the 1st compartment (APL-EPB)"
       },
       "info": {
         "it": "Sede della tenosinovite stenosante di De Quervain; in ecografia si vedono ispessimento del retinacolo, liquido e iperemia al Doppler, e un eventuale setto intracompartimentale.",
-        "en": ""
+        "en": "Site of De Quervain stenosing tenosynovitis; on ultrasound, retinacular thickening, fluid and Doppler hyperemia, and any intracompartmental septum."
       }
     },
     "g2": {
       "name": {
         "it": "Guaina del II compartimento (ECRL-ECRB)",
-        "en": ""
+        "en": "Sheath of the 2nd compartment (ECRL-ECRB)"
       },
       "info": {
         "it": "Prossimalmente è incrociata dal I compartimento (sindrome da intersezione).",
-        "en": ""
+        "en": "Proximally it is crossed by the 1st compartment (intersection syndrome)."
       }
     },
     "g3": {
       "name": {
         "it": "Guaina del III compartimento (EPL)",
-        "en": ""
+        "en": "Sheath of the 3rd compartment (EPL)"
       },
       "info": {
         "it": "Attorno al tubercolo di Lister, dove il tendine cambia direzione.",
-        "en": ""
+        "en": "Around Lister tubercle, where the tendon changes direction."
       }
     },
     "g4": {
       "name": {
         "it": "Guaina del IV compartimento (EDC-EIP)",
-        "en": ""
+        "en": "Sheath of the 4th compartment (EDC-EIP)"
       },
       "info": {
         "it": "Sede frequente di tenosinovite reumatoide.",
-        "en": ""
+        "en": "Common site of rheumatoid tenosynovitis."
       }
     },
     "g5": {
       "name": {
         "it": "Guaina del V compartimento (EDM)",
-        "en": ""
+        "en": "Sheath of the 5th compartment (EDM)"
       },
       "info": {
         "it": "Sopra la radio-ulnare distale.",
-        "en": ""
+        "en": "Over the distal radioulnar joint."
       }
     },
     "g6": {
       "name": {
         "it": "Guaina del VI compartimento (ECU)",
-        "en": ""
+        "en": "Sheath of the 6th compartment (ECU)"
       },
       "info": {
         "it": "Tenosinovite e instabilità dell’ECU; spesso interessata nell’artrite reumatoide precoce.",
-        "en": ""
+        "en": "ECU tenosynovitis and instability; often involved in early rheumatoid arthritis."
       }
     },
     "gfpl": {
       "name": {
         "it": "Guaina del FPL (borsa radiale)",
-        "en": ""
+        "en": "FPL sheath (radial bursa)"
       },
       "info": {
         "it": "Accompagna il tendine del FPL dal tunnel carpale al pollice.",
-        "en": ""
+        "en": "Accompanies the FPL tendon from the carpal tunnel to the thumb."
       }
     },
     "gulnare": {
       "name": {
         "it": "Guaina comune dei flessori (borsa ulnare)",
-        "en": ""
+        "en": "Common flexor sheath (ulnar bursa)"
       },
       "info": {
         "it": "Avvolge FDS e FDP nel tunnel carpale; si continua con la guaina del V dito. Le infezioni possono comunicare con la borsa radiale e dare il \"flemmone a V\".",
-        "en": ""
+        "en": "Envelops the FDS and FDP in the carpal tunnel; it continues with the sheath of the little finger. Infections can spread to the radial bursa and form a \"horseshoe abscess\"."
       }
     },
     "gfcr": {
       "name": {
         "it": "Guaina del FCR",
-        "en": ""
+        "en": "FCR sheath"
       },
       "info": {
         "it": "Nel tunnel proprio del FCR, lungo il solco del trapezio; sede di tenosinovite e di gangli volari.",
-        "en": ""
+        "en": "In the FCR's own tunnel, along the trapezium groove; site of tenosynovitis and palmar ganglia."
       }
     },
     "cute": {
       "name": {
         "it": "Cute",
-        "en": ""
+        "en": "Skin"
       },
       "info": {
         "it": "Contorno cutaneo semi-trasparente, utile come riferimento per i reperi superficiali.",
-        "en": ""
+        "en": "Semi-transparent skin outline, useful as a reference for surface landmarks."
       }
     },
     "d_mc3": {
       "name": {
         "it": "III metacarpo (testa)",
-        "en": ""
+        "en": "3rd metacarpal (head)"
       },
       "info": {
         "it": "La testa è eccentrica, più larga in senso volare: per questo i collaterali della MCF si tendono in flessione (effetto camma). Da qui la posizione di immobilizzazione \"intrinsic plus\", con MCF flesse e interfalangee estese.",
-        "en": ""
+        "en": "The head is eccentric, wider palmarly: this is why the MCP collateral ligaments tighten in flexion (cam effect). Hence the \"intrinsic plus\" immobilization position, with the MCP joints flexed and the interphalangeal joints extended."
       }
     },
     "d_p1": {
       "name": {
         "it": "Falange prossimale",
-        "en": ""
+        "en": "Proximal phalanx"
       },
       "info": {
         "it": "Sulla faccia volare le creste laterali danno inserzione alla puleggia A2. La base articola con la testa metacarpale, la testa bicondilare con la falange intermedia (IFP).",
-        "en": ""
+        "en": "On the palmar surface the lateral ridges give attachment to the A2 pulley. The base articulates with the metacarpal head, the bicondylar head with the middle phalanx (PIP joint)."
       }
     },
     "d_p2": {
       "name": {
         "it": "Falange intermedia",
-        "en": ""
+        "en": "Middle phalanx"
       },
       "info": {
         "it": "Alla base, dorsalmente, si inserisce la bendella centrale; ai lati si inseriscono le due metà del FDS. A metà diafisi si trova la puleggia A4.",
-        "en": ""
+        "en": "The central slip inserts dorsally at the base; the two halves of the FDS insert on the sides. The A4 pulley lies at mid-shaft."
       }
     },
     "d_p3": {
       "name": {
         "it": "Falange distale",
-        "en": ""
+        "en": "Distal phalanx"
       },
       "info": {
         "it": "Alla base dorsale si inserisce il tendine terminale (dito a martello), a quella volare il FDP (jersey finger). La tuberosità ungueale è il supporto del polpastrello.",
-        "en": ""
+        "en": "The terminal tendon inserts at the dorsal base (mallet finger), the FDP at the palmar base (jersey finger). The ungual tuberosity supports the fingertip pulp."
       }
     },
     "d_cart": {
       "name": {
         "it": "Cartilagini articolari",
-        "en": ""
+        "en": "Articular cartilage"
       },
       "info": {
         "it": "Superfici della MCF, della IFP e della IFD, ricostruite sulle ossa reali.",
-        "en": ""
+        "en": "Surfaces of the MCP, PIP and DIP joints, reconstructed on the real bones."
       }
     },
     "vp_mcp": {
       "name": {
         "it": "Placca volare della MCF",
-        "en": ""
+        "en": "Palmar plate of MCP joint"
       },
       "info": {
         "it": "Fibrocartilaginea distalmente e membranosa prossimalmente, per consentire la flessione. È continua lateralmente con il legamento intermetacarpale trasverso profondo; su di essa origina la puleggia A1.",
-        "en": ""
+        "en": "Fibrocartilaginous distally and membranous proximally, to allow flexion. It is continuous laterally with the deep transverse metacarpal ligament; the A1 pulley arises from it."
       }
     },
     "vp_pip": {
       "name": {
         "it": "Placca volare della IFP",
-        "en": ""
+        "en": "Palmar plate of PIP joint"
       },
       "info": {
         "it": "Fissata distalmente alla base della falange intermedia, prossimalmente con i legamenti \"checkrein\". Impedisce l’iperestensione: nella lussazione dorsale può distaccare un frammento volare dalla base della P2.",
-        "en": ""
+        "en": "Attached distally to the base of the middle phalanx, proximally by the \"checkrein\" ligaments. It prevents hyperextension: in dorsal dislocation it can avulse a palmar fragment from the base of P2."
       }
     },
     "vp_dip": {
       "name": {
         "it": "Placca volare della IFD",
-        "en": ""
+        "en": "Palmar plate of DIP joint"
       },
       "info": {
         "it": "Più sottile, a livello della puleggia A5.",
-        "en": ""
+        "en": "Thinner, at the level of the A5 pulley."
       }
     },
     "cl_mcp_rad": {
       "name": {
         "it": "Collaterali radiale della MCF (proprio e accessorio)",
-        "en": ""
+        "en": "Radial collateral ligaments of MCP joint (proper and accessory)"
       },
       "info": {
         "it": "Il proprio va dalla fossetta dorso-laterale della testa metacarpale alla base volare della falange prossimale; l’accessorio va alla placca volare. Tesi in flessione, lassi in estensione.",
-        "en": ""
+        "en": "The proper ligament runs from the dorsolateral fossa of the metacarpal head to the palmar base of the proximal phalanx; the accessory ligament runs to the palmar plate. Taut in flexion, lax in extension."
       }
     },
     "cl_mcp_uln": {
       "name": {
         "it": "Collaterali ulnare della MCF (proprio e accessorio)",
-        "en": ""
+        "en": "Ulnar collateral ligaments of MCP joint (proper and accessory)"
       },
       "info": {
         "it": "Il proprio va dalla fossetta dorso-laterale della testa metacarpale alla base volare della falange prossimale; l’accessorio va alla placca volare. Tesi in flessione, lassi in estensione.",
-        "en": ""
+        "en": "The proper ligament runs from the dorsolateral fossa of the metacarpal head to the palmar base of the proximal phalanx; the accessory ligament runs to the palmar plate. Taut in flexion, lax in extension."
       }
     },
     "cl_pip_rad": {
       "name": {
         "it": "Collaterali radiale della IFP (proprio e accessorio)",
-        "en": ""
+        "en": "Radial collateral ligaments of PIP joint (proper and accessory)"
       },
       "info": {
         "it": "Il proprio è teso in tutto l’arco di movimento; l’accessorio si porta alla placca volare. Le distorsioni della IFP, più spesso del collaterale radiale, sono frequenti negli sport con la palla; in ecografia si valutano continuità e stress in varo o valgo.",
-        "en": ""
+        "en": "The proper ligament is taut throughout the range of motion; the accessory ligament runs to the palmar plate. PIP sprains, most often of the radial collateral ligament, are common in ball sports; on ultrasound, assess continuity and varus or valgus stress."
       }
     },
     "cl_pip_uln": {
       "name": {
         "it": "Collaterali ulnare della IFP (proprio e accessorio)",
-        "en": ""
+        "en": "Ulnar collateral ligaments of PIP joint (proper and accessory)"
       },
       "info": {
         "it": "Il proprio è teso in tutto l’arco di movimento; l’accessorio si porta alla placca volare. Le distorsioni della IFP, più spesso del collaterale radiale, sono frequenti negli sport con la palla; in ecografia si valutano continuità e stress in varo o valgo.",
-        "en": ""
+        "en": "The proper ligament is taut throughout the range of motion; the accessory ligament runs to the palmar plate. PIP sprains, most often of the radial collateral ligament, are common in ball sports; on ultrasound, assess continuity and varus or valgus stress."
       }
     },
     "cl_dip_rad": {
       "name": {
         "it": "Collaterali radiale della IFD (proprio e accessorio)",
-        "en": ""
+        "en": "Radial collateral ligaments of DIP joint (proper and accessory)"
       },
       "info": {
         "it": "Collaterale proprio e accessorio, più piccoli, con la stessa organizzazione della IFP.",
-        "en": ""
+        "en": "Proper and accessory collateral ligaments, smaller, with the same arrangement as at the PIP joint."
       }
     },
     "cl_dip_uln": {
       "name": {
         "it": "Collaterali ulnare della IFD (proprio e accessorio)",
-        "en": ""
+        "en": "Ulnar collateral ligaments of DIP joint (proper and accessory)"
       },
       "info": {
         "it": "Collaterale proprio e accessorio, più piccoli, con la stessa organizzazione della IFP.",
-        "en": ""
+        "en": "Proper and accessory collateral ligaments, smaller, with the same arrangement as at the PIP joint."
       }
     },
     "A1": {
       "name": {
         "it": "Puleggia A1",
-        "en": ""
+        "en": "A1 pulley"
       },
       "info": {
         "it": "Sulla placca volare della MCF. È la sede del dito a scatto (tenosinovite stenosante): in ecografia si vedono puleggia ispessita e ipoecogena, tenosinovite e scatto dinamico del tendine. È il bersaglio dell’infiltrazione e del rilascio percutaneo.",
-        "en": ""
+        "en": "On the palmar plate of the MCP joint. It is the site of trigger finger (stenosing tenosynovitis): on ultrasound, a thickened, hypoechoic pulley, tenosynovitis and dynamic tendon catching. It is the target of injection and percutaneous release."
       }
     },
     "A2": {
       "name": {
         "it": "Puleggia A2",
-        "en": ""
+        "en": "A2 pulley"
       },
       "info": {
         "it": "La più lunga e robusta, sulla metà prossimale della falange prossimale. Con la A4 è la più importante contro il bowstringing. La rottura è tipica degli arrampicatori: in ecografia aumenta la distanza tra tendine e osso, meglio valutata in flessione contro resistenza.",
-        "en": ""
+        "en": "The longest and strongest, on the proximal half of the proximal phalanx. With A4 it is the most important against bowstringing. Rupture is typical in climbers: on ultrasound the tendon-to-bone distance increases, best assessed in flexion against resistance."
       }
     },
     "A3": {
       "name": {
         "it": "Puleggia A3",
-        "en": ""
+        "en": "A3 pulley"
       },
       "info": {
         "it": "Sottile, sulla placca volare della IFP.",
-        "en": ""
+        "en": "Thin, on the palmar plate of the PIP joint."
       }
     },
     "A4": {
       "name": {
         "it": "Puleggia A4",
-        "en": ""
+        "en": "A4 pulley"
       },
       "info": {
         "it": "A metà della falange intermedia. Con la A2 è essenziale per l’efficacia dei flessori; spesso lesa insieme alla A3 negli arrampicatori.",
-        "en": ""
+        "en": "At the middle of the middle phalanx. With A2 it is essential for flexor efficiency; often injured together with A3 in climbers."
       }
     },
     "A5": {
       "name": {
         "it": "Puleggia A5",
-        "en": ""
+        "en": "A5 pulley"
       },
       "info": {
         "it": "Sottile e inconstante, sulla placca volare della IFD.",
-        "en": ""
+        "en": "Thin and inconstant, on the palmar plate of the DIP joint."
       }
     },
     "C1": {
       "name": {
         "it": "Puleggia cruciforme C1",
-        "en": ""
+        "en": "C1 cruciate pulley"
       },
       "info": {
         "it": "Tra A2 e A3: fibre incrociate e sottili che si accorciano durante la flessione.",
-        "en": ""
+        "en": "Between A2 and A3: thin crossing fibers that shorten during flexion."
       }
     },
     "C2": {
       "name": {
         "it": "Puleggia cruciforme C2",
-        "en": ""
+        "en": "C2 cruciate pulley"
       },
       "info": {
         "it": "Tra A3 e A4.",
-        "en": ""
+        "en": "Between A3 and A4."
       }
     },
     "C3": {
       "name": {
         "it": "Puleggia cruciforme C3",
-        "en": ""
+        "en": "C3 cruciate pulley"
       },
       "info": {
         "it": "Tra A4 e A5.",
-        "en": ""
+        "en": "Between A4 and A5."
       }
     },
     "d_fds": {
       "name": {
         "it": "Flessore superficiale (FDS)",
-        "en": ""
+        "en": "Flexor digitorum superficialis (FDS)"
       },
       "info": {
         "it": "A livello della falange prossimale si divide in due bandellette che circondano il FDP e si riuniscono dorsalmente a esso (chiasma di Camper), inserendosi ai lati della falange intermedia. Flette la IFP.",
-        "en": ""
+        "en": "At the level of the proximal phalanx it splits into two slips that encircle the FDP and rejoin dorsal to it (Camper chiasm), inserting on the sides of the middle phalanx. Flexes the PIP joint."
       }
     },
     "d_fdp": {
       "name": {
         "it": "Flessore profondo (FDP)",
-        "en": ""
+        "en": "Flexor digitorum profundus (FDP)"
       },
       "info": {
         "it": "Passa attraverso il FDS e si inserisce alla base volare della falange distale; flette la IFD. L’avulsione (jersey finger, più frequente al IV dito) si classifica secondo Leddy-Packer in base al livello di retrazione.",
-        "en": ""
+        "en": "Passes through the FDS and inserts at the palmar base of the distal phalanx; flexes the DIP joint. Avulsion (jersey finger, most common in the ring finger) is graded with the Leddy-Packer classification by level of retraction."
       }
     },
     "d_edc": {
       "name": {
         "it": "Estensore comune (EDC) e bendella centrale",
-        "en": ""
+        "en": "Extensor digitorum (EDC) and central slip"
       },
       "info": {
         "it": "Sul dorso della MCF è centrato dalle bendelle sagittali e si appiattisce nel cappuccio degli estensori; sulla falange prossimale cede le bendellette laterali e prosegue come bendella centrale, che si inserisce al tubercolo dorsale della base della falange intermedia. La rottura della bendella centrale (test di Elson) porta alla deformità a occhiello (boutonnière).",
-        "en": ""
+        "en": "Over the dorsum of the MCP joint it is centered by the sagittal bands and flattens into the extensor hood; on the proximal phalanx it gives off the lateral slips and continues as the central slip, which inserts on the dorsal tubercle at the base of the middle phalanx. Central slip rupture (Elson test) leads to the boutonnière deformity."
       }
     },
     "sagittali": {
       "name": {
         "it": "Bendelle sagittali",
-        "en": ""
+        "en": "Sagittal bands"
       },
       "info": {
         "it": "Dal tendine estensore alla placca volare e al legamento intermetacarpale trasverso profondo: mantengono il tendine centrato sulla testa metacarpale. La lesione, più spesso radiale al III dito (boxer’s knuckle), causa la sublussazione ulnare del tendine, visibile in ecografia dinamica in flessione.",
-        "en": ""
+        "en": "From the extensor tendon to the palmar plate and the deep transverse metacarpal ligament: they keep the tendon centered over the metacarpal head. Injury, most often radial at the middle finger (boxer’s knuckle), causes ulnar subluxation of the tendon, visible with dynamic ultrasound in flexion."
       }
     },
     "cappuccio": {
       "name": {
         "it": "Cappuccio degli estensori",
-        "en": ""
+        "en": "Extensor hood"
       },
       "info": {
         "it": "Lamina fibrosa dorsale distale alle bendelle sagittali, sul collo e sulla base della falange prossimale: vi confluiscono l’EDC e le espansioni di interossei e lombricale, con fibre oblique verso la linea mediana. Si continua con le bendellette laterali; per suo tramite gli intrinseci estendono le interfalangee.",
-        "en": ""
+        "en": "Dorsal fibrous sheet distal to the sagittal bands, over the neck of the metacarpal and the base of the proximal phalanx: the EDC and the expansions of the interossei and lumbrical converge on it, with fibers running obliquely toward the midline. It continues into the lateral bands; through it the intrinsic muscles extend the interphalangeal joints."
       }
     },
     "bl": {
       "name": {
         "it": "Bendellette laterali",
-        "en": ""
+        "en": "Lateral bands"
       },
       "info": {
         "it": "Ciascuna nasce sulla falange prossimale dalla fusione dell’espansione degli intrinseci (interossei e lombricale) con la bendelletta laterale dell’EDC; la radiale riceve il tendine del lombricale. Decorrono dorsalmente all’asse della IFP e lateralmente alla bendella centrale, si uniscono sulla falange intermedia e confluiscono nel tendine terminale. Scivolano in senso volare nella boutonnière e in senso dorsale nel collo di cigno.",
-        "en": ""
+        "en": "Each arises on the proximal phalanx from the fusion of the intrinsic expansion (interossei and lumbrical) with the lateral slip of the EDC; the radial band receives the lumbrical tendon. They run dorsal to the PIP axis and lateral to the central slip, join over the middle phalanx and merge into the terminal tendon. They slide palmarly in boutonnière and dorsally in swan-neck deformity."
       }
     },
     "triangolare": {
       "name": {
         "it": "Legamento triangolare",
-        "en": ""
+        "en": "Triangular ligament"
       },
       "info": {
         "it": "Lamina dorsale sulla falange intermedia, distale alla bendella centrale, che unisce le due bendellette laterali e ne impedisce lo scivolamento volare; il suo cedimento è parte della boutonnière.",
-        "en": ""
+        "en": "Dorsal sheet over the middle phalanx, distal to the central slip, which joins the two lateral bands and prevents their palmar subluxation; its failure is part of the boutonnière deformity."
       }
     },
     "terminale": {
       "name": {
         "it": "Tendine terminale",
-        "en": ""
+        "en": "Terminal tendon"
       },
       "info": {
         "it": "Dalla fusione delle bendellette laterali alla base dorsale della falange distale. Rottura o avulsione ossea: dito a martello (mallet finger).",
-        "en": ""
+        "en": "From the fusion of the lateral bands to the dorsal base of the distal phalanx. Rupture or bony avulsion: mallet finger."
       }
     },
     "trl": {
       "name": {
         "it": "Legamenti retinacolari trasversi",
-        "en": ""
+        "en": "Transverse retinacular ligaments"
       },
       "info": {
         "it": "A livello della IFP collegano le bendellette laterali alla guaina dei flessori e alla placca volare, impedendone lo scivolamento dorsale; la loro lassità favorisce il collo di cigno.",
-        "en": ""
+        "en": "At the PIP joint they connect the lateral bands to the flexor sheath and the palmar plate, preventing their dorsal subluxation; their laxity favors swan-neck deformity."
       }
     },
     "orl": {
       "name": {
         "it": "Legamenti retinacolari obliqui (di Landsmeer)",
-        "en": ""
+        "en": "Oblique retinacular ligaments (of Landsmeer)"
       },
       "info": {
         "it": "Dalla falange prossimale e dalla guaina dei flessori, volarmente all’asse della IFP, fino al tendine terminale: coordinano l’estensione della IFP con quella della IFD.",
-        "en": ""
+        "en": "From the proximal phalanx and the flexor sheath, palmar to the PIP axis, to the terminal tendon: they coordinate PIP and DIP extension."
       }
     },
     "d_lumb": {
       "name": {
         "it": "Lombricale (II)",
-        "en": ""
+        "en": "Lumbrical (2nd)"
       },
       "info": {
         "it": "Origina dal FDP e si inserisce sulla bendelletta laterale radiale: flette la MCF ed estende le interfalangee. Ogni dito ha un solo lombricale, sempre sul lato radiale; sul lato ulnare del dito medio la bendelletta riceve solo l’interosseo dorsale. Il \"lumbrical plus finger\" è l’estensione paradossale della IFP durante la flessione, dopo lesione del FDP.",
-        "en": ""
+        "en": "Arises from the FDP and inserts on the radial lateral band: flexes the MCP joint and extends the interphalangeal joints. Each finger has only one lumbrical, always on the radial side; on the ulnar side of the middle finger the band receives only the dorsal interosseous. \"Lumbrical plus finger\" is paradoxical PIP extension during attempted flexion, after FDP injury."
       }
     },
     "d_iod": {
       "name": {
         "it": "Interossei dorsali II e III",
-        "en": ""
+        "en": "2nd and 3rd dorsal interossei"
       },
       "info": {
         "it": "Si inseriscono sulla base della falange prossimale e sul cappuccio degli estensori; abducono il dito medio in senso radiale e ulnare. Innervati dal ramo profondo del nervo ulnare.",
-        "en": ""
+        "en": "They insert on the base of the proximal phalanx and on the extensor hood; they abduct the middle finger radially and ulnarly. Innervated by the deep branch of the ulnar nerve."
       }
     },
     "iod_t": {
       "name": {
         "it": "Tendini degli interossei dorsali",
-        "en": ""
+        "en": "Dorsal interosseous tendons"
       },
       "info": {
         "it": "Ciascun interosseo termina in un tendine che passa dorsalmente al legamento intermetacarpale trasverso profondo e volarmente all’asse della MCF; poi si divide: un fascio corto si inserisce sul tubercolo laterale della base della falange prossimale, uno obliquo si porta al cappuccio degli estensori e alla bendelletta laterale.",
-        "en": ""
+        "en": "Each interosseous ends in a tendon that passes dorsal to the deep transverse metacarpal ligament and palmar to the MCP axis; it then divides: a short slip inserts on the lateral tubercle at the base of the proximal phalanx, an oblique slip runs to the extensor hood and the lateral band."
       }
     },
     "guaina": {
       "name": {
         "it": "Guaina sinoviale dei flessori",
-        "en": ""
+        "en": "Flexor synovial sheath"
       },
       "info": {
         "it": "Avvolge FDS e FDP dalla regione della A1 fino alla IFD, sotto il sistema delle pulegge. Nella tenosinovite infettiva si osservano i segni di Kanavel; in ecografia versamento e sinovia ispessita.",
-        "en": ""
+        "en": "Envelops the FDS and FDP from the A1 region to the DIP joint, beneath the pulley system. In infectious tenosynovitis the Kanavel signs are seen; on ultrasound, effusion and thickened synovium."
       }
     },
     "arterie": {
       "name": {
         "it": "Arterie digitali palmari proprie",
-        "en": ""
+        "en": "Proper palmar digital arteries"
       },
       "info": {
         "it": "Una per lato, lungo il margine volare-laterale della guaina, dorsalmente al nervo.",
-        "en": ""
+        "en": "One on each side, along the palmar-lateral margin of the sheath, dorsal to the nerve."
       }
     },
     "nervi": {
       "name": {
         "it": "Nervi digitali palmari propri",
-        "en": ""
+        "en": "Proper palmar digital nerves"
       },
       "info": {
         "it": "Una per lato, volarmente all’arteria. Nel dito medio derivano dal mediano (II e III digitale comune); a rischio nelle ferite laterali e nel rilascio percutaneo della A1.",
-        "en": ""
+        "en": "One on each side, palmar to the artery. In the middle finger they derive from the median nerve (2nd and 3rd common digital nerves); at risk in lateral wounds and during percutaneous A1 release."
       }
     },
     "d_cute": {
       "name": {
         "it": "Cute",
-        "en": ""
+        "en": "Skin"
       },
       "info": {
         "it": "Contorno cutaneo semi-trasparente, utile per i reperi superficiali e le pieghe.",
-        "en": ""
+        "en": "Semi-transparent skin outline, useful for surface landmarks and creases."
       }
     }
   },
   "testi": {
-    "Modello 3D del polso: trascina per ruotare, pizzica per ingrandire, tocca una struttura per il dettaglio": "",
-    "Polso destro": "",
-    "Volare": "",
-    "Dorsale": "",
-    "Radiale": "",
-    "Ulnare": "",
-    "Dita in alto o in basso": "",
-    "Dita in alto / in basso": "",
-    "Legamenti e TFCC": "",
-    "Flessori": "",
-    "Estensori": "",
-    "Muscoli della mano": "",
-    "Guaine tendinee": "",
-    "Spazi anatomici": "",
-    "Legamenti e placche volari": "",
-    "Pulegge": "",
-    "Tendini flessori": "",
-    "Apparato estensore": "",
-    "Muscoli intrinseci": "",
-    "Guaina dei flessori": "",
-    "Dito medio destro": "",
-    "Dita in alto (tocca per dita in basso)": "",
-    "Dita in basso (tocca per dita in alto)": "",
-    "rima radiocarpica": "",
-    "livello della": "",
-    "Annulari A1–A5 e cruciformi C1–C3. A2 (sulla falange prossimale) e A4 (sulla intermedia) sono le più importanti contro il bowstringing; A1, A3 e A5 originano dalle placche volari.": "",
-    "Sezione del dito": "",
-    "Vista dalla punta del dito sul piano di taglio: flessori nella guaina sotto la puleggia, apparato estensore dorsale, fasci neurovascolari laterali. Sposta il cursore per percorrere il dito come in un’ecografia assiale.": "",
-    "Bendelle sagittali sulla MCF, bendella centrale alla base della falange intermedia, bendellette laterali unite dal legamento triangolare nel tendine terminale; retinacolari trasversi e obliqui.": "",
-    "Articolazione IFP": "",
-    "Collaterale proprio (alla base della falange intermedia) e accessorio (alla placca volare), placca volare, puleggia A3; dorsalmente bendella centrale e bendellette laterali.": "",
-    "Tunnel carpale": "",
-    "Vista da distale sul piano di taglio. Tetto: retinacolo dei flessori, dal tubercolo dello scafoide e dalla cresta del trapezio al pisiforme e all’uncino dell’uncinato. Contenuto: nervo mediano (superficiale, radiale), FDS, FDP e FPL; il FCR ha un tunnel proprio. Più superficiale e ulnare, il canale di Guyon.": "",
-    "Canale di Guyon": "",
-    "Tra pisiforme e uncino dell’uncinato; pavimento: retinacolo dei flessori e piso-uncinato; tetto: legamento carpale volare. Nervo ulnare con l’arteria sul lato radiale; distalmente il nervo si divide in ramo superficiale (sensitivo) e profondo (motorio, attorno all’uncino).": "",
-    "Tabacchiera anatomica": "",
-    "Limiti: volare APL ed EPB (I compartimento), dorsale EPL; pavimento: scafoide e trapezio. Contiene l’arteria radiale; superficialmente vena cefalica e rami del nervo radiale superficiale.": "",
-    "Compartimenti estensori": "",
-    "Da radiale a ulnare: I APL-EPB, II ECRL-ECRB, III EPL (ulnare al tubercolo di Lister), IV EDC-EIP, V EDM (sopra la radio-ulnare distale), VI ECU nel solco ulnare.": "",
-    "TFCC e RUD": "",
-    "Disco del TFCC tra testa ulnare e semilunare/piramidale, legamenti ulno-lunato e ulno-piramidale, collaterale ulnare e sottoguaina dell’ECU; più radialmente scafo-lunato e luno-piramidale.": "",
-    "IFP": ""
+    "Modello 3D del polso: trascina per ruotare, pizzica per ingrandire, tocca una struttura per il dettaglio": "3D model of the wrist: drag to rotate, pinch to zoom, tap a structure for details",
+    "Polso destro": "Right wrist",
+    "Volare": "Palmar",
+    "Dorsale": "Dorsal",
+    "Radiale": "Radial",
+    "Ulnare": "Ulnar",
+    "Dita in alto o in basso": "Fingers up or down",
+    "Dita in alto / in basso": "Fingers up / down",
+    "Legamenti e TFCC": "Ligaments and TFCC",
+    "Flessori": "Flexors",
+    "Estensori": "Extensors",
+    "Muscoli della mano": "Hand muscles",
+    "Guaine tendinee": "Tendon sheaths",
+    "Spazi anatomici": "Anatomical spaces",
+    "Legamenti e placche volari": "Ligaments and palmar plates",
+    "Pulegge": "Pulleys",
+    "Tendini flessori": "Flexor tendons",
+    "Apparato estensore": "Extensor apparatus",
+    "Muscoli intrinseci": "Intrinsic muscles",
+    "Guaina dei flessori": "Flexor sheath",
+    "Dito medio destro": "Right middle finger",
+    "Dita in alto (tocca per dita in basso)": "Fingers up (tap for fingers down)",
+    "Dita in basso (tocca per dita in alto)": "Fingers down (tap for fingers up)",
+    "rima radiocarpica": "radiocarpal joint line",
+    "livello della": "at the",
+    "Annulari A1–A5 e cruciformi C1–C3. A2 (sulla falange prossimale) e A4 (sulla intermedia) sono le più importanti contro il bowstringing; A1, A3 e A5 originano dalle placche volari.": "Annular A1–A5 and cruciate C1–C3. A2 (on the proximal phalanx) and A4 (on the middle phalanx) are the most important against bowstringing; A1, A3 and A5 arise from the palmar plates.",
+    "Sezione del dito": "Finger cross-section",
+    "Vista dalla punta del dito sul piano di taglio: flessori nella guaina sotto la puleggia, apparato estensore dorsale, fasci neurovascolari laterali. Sposta il cursore per percorrere il dito come in un’ecografia assiale.": "View of the cutting plane from the fingertip: flexors in the sheath under the pulley, dorsal extensor apparatus, lateral neurovascular bundles. Move the slider to travel along the finger as in an axial ultrasound scan.",
+    "Bendelle sagittali sulla MCF, bendella centrale alla base della falange intermedia, bendellette laterali unite dal legamento triangolare nel tendine terminale; retinacolari trasversi e obliqui.": "Sagittal bands over the MCP joint, central slip at the base of the middle phalanx, lateral bands joined by the triangular ligament into the terminal tendon; transverse and oblique retinacular ligaments.",
+    "Articolazione IFP": "PIP joint",
+    "Collaterale proprio (alla base della falange intermedia) e accessorio (alla placca volare), placca volare, puleggia A3; dorsalmente bendella centrale e bendellette laterali.": "Proper collateral ligament (to the base of the middle phalanx) and accessory collateral ligament (to the palmar plate), palmar plate, A3 pulley; dorsally the central slip and lateral bands.",
+    "Tunnel carpale": "Carpal tunnel",
+    "Vista da distale sul piano di taglio. Tetto: retinacolo dei flessori, dal tubercolo dello scafoide e dalla cresta del trapezio al pisiforme e all’uncino dell’uncinato. Contenuto: nervo mediano (superficiale, radiale), FDS, FDP e FPL; il FCR ha un tunnel proprio. Più superficiale e ulnare, il canale di Guyon.": "Distal view of the cutting plane. Roof: flexor retinaculum, from the scaphoid tubercle and the trapezium ridge to the pisiform and the hook of the hamate. Contents: median nerve (superficial, radial), FDS, FDP and FPL; the FCR has its own tunnel. More superficial and ulnar, the Guyon canal.",
+    "Canale di Guyon": "Guyon canal",
+    "Tra pisiforme e uncino dell’uncinato; pavimento: retinacolo dei flessori e piso-uncinato; tetto: legamento carpale volare. Nervo ulnare con l’arteria sul lato radiale; distalmente il nervo si divide in ramo superficiale (sensitivo) e profondo (motorio, attorno all’uncino).": "Between the pisiform and the hook of the hamate; floor: flexor retinaculum and pisohamate ligament; roof: palmar carpal ligament. Ulnar nerve with the artery on its radial side; distally the nerve divides into a superficial branch (sensory) and a deep branch (motor, around the hook).",
+    "Tabacchiera anatomica": "Anatomical snuffbox",
+    "Limiti: volare APL ed EPB (I compartimento), dorsale EPL; pavimento: scafoide e trapezio. Contiene l’arteria radiale; superficialmente vena cefalica e rami del nervo radiale superficiale.": "Boundaries: palmar, APL and EPB (1st compartment); dorsal, EPL; floor: scaphoid and trapezium. Contains the radial artery; superficially, the cephalic vein and branches of the superficial radial nerve.",
+    "Compartimenti estensori": "Extensor compartments",
+    "Da radiale a ulnare: I APL-EPB, II ECRL-ECRB, III EPL (ulnare al tubercolo di Lister), IV EDC-EIP, V EDM (sopra la radio-ulnare distale), VI ECU nel solco ulnare.": "From radial to ulnar: I APL-EPB, II ECRL-ECRB, III EPL (ulnar to Lister tubercle), IV EDC-EIP, V EDM (over the distal radioulnar joint), VI ECU in the ulnar groove.",
+    "TFCC e RUD": "TFCC and DRUJ",
+    "Disco del TFCC tra testa ulnare e semilunare/piramidale, legamenti ulno-lunato e ulno-piramidale, collaterale ulnare e sottoguaina dell’ECU; più radialmente scafo-lunato e luno-piramidale.": "TFCC disc between the ulnar head and the lunate/triquetrum, ulnolunate and ulnotriquetral ligaments, ulnar collateral ligament and ECU subsheath; more radially, the scapholunate and lunotriquetral ligaments.",
+    "IFP": "PIP joint",
+    "alla": "to the"
   },
   "ignora": [],
-  "dubbi": []
+  "dubbi": [
+    {
+      "termine": "Volare → palmar (placca volare → palmar plate)",
+      "nota": "TA2 usa palmar; in clinica USA «volar» (volar plate, volar tilt) è molto comune. Ho usato palmar ovunque, come già nella homepage («palmar view»). Se preferisci «volar» per placca e inclinazione, lo cambio in blocco."
+    },
+    {
+      "termine": "Inclinazione volare → palmar tilt",
+      "nota": "In radiologia USA si dice «volar tilt» o «palmar tilt»: coerente con la scelta sopra."
+    },
+    {
+      "termine": "Bendella centrale / bendellette laterali → central slip / lateral bands",
+      "nota": "Termini clinici inglesi standard. Per la bendelletta laterale dell’EDC prima della fusione con gli intrinseci ho usato «lateral slip»; dopo la fusione «lateral band»."
+    },
+    {
+      "termine": "Cappuccio degli estensori → extensor hood",
+      "nota": "Sinonimi: dorsal hood, dorsal aponeurosis (TA2 non lo nomina)."
+    },
+    {
+      "termine": "Flemmone a V → horseshoe abscess",
+      "nota": "Nome clinico americano dell’infezione che passa tra borsa ulnare e radiale."
+    },
+    {
+      "termine": "Rizoartrosi → thumb basal joint arthritis",
+      "nota": "In inglese «rhizarthrosis» è raro; si dice basal joint o CMC arthritis."
+    },
+    {
+      "termine": "Ramo cutaneo dorsale del nervo ulnare → dorsal cutaneous branch of ulnar nerve",
+      "nota": "TA2: dorsal branch of ulnar nerve; ho tenuto la forma clinica con «cutaneous», che chiarisce la funzione."
+    },
+    {
+      "termine": "Ramo motorio ricorrente del mediano → recurrent motor branch of median nerve",
+      "nota": "TA2: recurrent branch; «thenar motor branch» è un sinonimo diffuso."
+    },
+    {
+      "termine": "Legamento carpale volare → palmar carpal ligament",
+      "nota": "TA2: palmar carpal ligament; in letteratura anche «volar carpal ligament»."
+    },
+    {
+      "termine": "Uncinato (hamato) → Hamate",
+      "nota": "In inglese esiste un solo nome, quindi il sinonimo tra parentesi non serve."
+    },
+    {
+      "termine": "Zone di Gross → Gross zones",
+      "nota": "Più correttamente Gross e Gelberman (1985); ho tenuto il solo nome come in italiano."
+    },
+    {
+      "termine": "Eponimi senza genitivo (Lister tubercle, Guyon canal, Camper chiasm, Parona space, Kienböck disease)",
+      "nota": "Stile AMA, come in spalla e gomito. Eccezioni d’uso comune: boxer's fracture, boxer’s knuckle."
+    },
+    {
+      "termine": "Tabacchiera anatomica → anatomical snuffbox",
+      "nota": "Nel testo abbreviato in «snuffbox»."
+    },
+    {
+      "termine": "Varianza ulnare positiva → impingement ulno-carpale → ulnocarpal impaction",
+      "nota": "In inglese «ulnar impaction» (varianza positiva) è distinto da «ulnar impingement» (varianza negativa, ulna contro radio): ho usato impaction, che corrisponde al senso del testo."
+    },
+    {
+      "termine": "IFP (riferimento del taglio del dito) → PIP joint",
+      "nota": "Il cursore mostra «at the PIP joint» o «N mm proximal to the PIP joint»; nel polso «… the radiocarpal joint line»."
+    },
+    {
+      "termine": "Estensore comune delle dita → Extensor digitorum (EDC)",
+      "nota": "TA2: extensor digitorum; la sigla clinica EDC resta."
+    },
+    {
+      "termine": "Estensore proprio dell’indice → Extensor indicis (EIP)",
+      "nota": "TA2: extensor indicis; la sigla EIP («proprius») è quella clinica."
+    }
+  ]
 }
