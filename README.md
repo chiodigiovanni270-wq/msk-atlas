@@ -1,7 +1,7 @@
 # MSK Atlas — Atlante anatomico 3D
 
 Sito statico con modelli anatomici 3D interattivi, a scopo didattico
-(anatomia muscolo-scheletrica per radiologia). Interfaccia in italiano, tema scuro fisso.
+(anatomia muscolo-scheletrica per radiologia). Interfaccia in italiano, tema scuro fisso; versione inglese in `/en/`, generata dalla build.
 
 > Materiale didattico. Non destinato a uso clinico o diagnostico.
 
@@ -26,6 +26,9 @@ strumenti/lib-chrome.mjs   funzioni comuni ai due script (Chrome headless)
 strumenti/server.mjs       server locale (porta 8000) con le stesse intestazioni dei dati di Vercel
 strumenti/estrai-dati.mjs  sposta i dati base64 di un modello in assets/dati/<nome>/ (integrazione di un modello nuovo)
 GUIDA_MODELLI.md           guida tecnica ai modelli, non pubblicata sul sito
+build-en.mjs               versione inglese: usata da build-site.mjs, genera dist/en/ dalle pagine italiane e da traduzioni/
+traduzioni/<nome>.en.json  traduzioni inglesi (comune, home, 404 e un file per modello), con il testo italiano di riferimento
+strumenti/traduzioni.mjs   aggiunge le voci da tradurre e scrive il prospetto IT/EN di revisione (non pubblicato sul sito)
 .vercelignore              esclude dal deploy strumenti/, CLAUDE.md, README.md e GUIDA_MODELLI.md
 ```
 
@@ -90,14 +93,18 @@ Cosa controllare dopo una modifica:
    node strumenti/og.mjs <nome>-3d
    ```
    Salva `assets/og/<nome>-3d.jpg` (1200×630, JPEG) componendo l'anteprima su sfondo scuro con distretto e marchio; l'immagine
-   è quella indicata in `og:image` e `twitter:image`.
+   è quella indicata in `og:image` e `twitter:image`. Per la versione inglese aggiungi il distretto a `PAGINE_EN` e lancia
+   `node strumenti/og.mjs --lingua=en <nome>-3d` (salva `assets/og/en/<nome>-3d.jpg`, usata dalla build per la pagina `/en/`).
 4. **Card** — in `index.html` duplica un blocco `<!-- CARD MODELLO -->` e aggiorna distretto, immagine,
    testo alternativo, link e titolo, e imposta `data-strutture` sul `<li class="card">`. Il numero "Tav.",
    la riga "N strutture" e il conteggio dei modelli sono automatici. Il blocco `.sub` (link alle sezioni)
    è facoltativo.
 5. **Sitemap** — aggiungi `<url><loc>https://www.mskatlas.com/modelli/<nome>-3d.html</loc></url>` a `sitemap.xml`
    (le sezioni con ancora, come `#dito`, non hanno voce propria).
-6. **Verifica e pubblica** — controlla in locale (anche titolo, descrizione, canonical e immagine social di ogni pagina), poi:
+6. **Traduzione inglese** — `node strumenti/traduzioni.mjs <nome>-3d` crea `traduzioni/<nome>-3d.en.json` con le voci vuote;
+   compila i campi `en` (inglese USA, terminologia TA2), poi `node strumenti/traduzioni.mjs <nome>-3d --verifica` (deve dare 0 senza traduzione)
+   e `--prospetto` per il riepilogo IT/EN con i termini dubbi in cima. Finché il file manca o è incompleto la pagina inglese non va in produzione.
+7. **Verifica e pubblica** — controlla in locale (anche titolo, descrizione, canonical e immagine social di ogni pagina), poi:
    ```bash
    git add modelli/<nome>-3d.html assets/dati/<nome> assets/anteprime/<nome>-3d.webp assets/og/<nome>-3d.jpg sitemap.xml index.html
    git commit -m "Aggiunge modello <nome>"
@@ -120,6 +127,24 @@ con sfondo trasparente, e alla fine stampa il numero di fotogrammi. Se cambia, a
 `--prova` salva solo il primo fotogramma. Per usare un altro modello: stesso comando con il suo nome,
 poi aggiorna in `index.html` `data-src`, i due `<link rel="preload">` e l'immagine di riserva nel `<picture>`.
 Con "riduci movimento" o risparmio dati la pagina mostra solo il primo fotogramma.
+
+## Versione inglese
+
+Le pagine italiane restano l'unica fonte. `node build-site.mjs` (tramite `build-en.mjs`) crea `dist/en/` sostituendo i testi con quelli di
+`traduzioni/<nome>.en.json`: nomi e schede delle strutture (per id), interfaccia, `nav.js` e gli altri script comuni, meta e Open Graph,
+indice di ricerca, manifest e sitemap (con `xhtml:link` hreflang). Le pagine italiane pubblicate ricevono solo i `<link rel="alternate" hreflang>`
+e il selettore di lingua (pillola «EN» e link «English» in home, link «English» nella 404, riga «Lingua» nel pannello «i» dei modelli),
+che compare solo se la pagina inglese esiste. Le bozze sono escluse.
+
+La build stampa per ogni pagina le voci **senza traduzione**, **modificate** (il testo italiano non coincide più con quello di riferimento:
+resta l'inglese precedente) e **obsolete**; dettagli con `node build-site.mjs --traduzioni`, errore con `--rigoroso`.
+In produzione una pagina inglese è pubblicata solo se completa (e solo se lo sono anche `comune` e `home`); nelle Preview sempre.
+
+**Regola:** se cambia una nota `info`, `o`, `ins` o `fn` (o un nome), l'inglese va aggiornato nello stesso ramo prima del merge su `main`:
+aggiornare insieme `it` ed `en` della voce in `traduzioni/<nome>-3d.en.json`.
+
+Verifica in locale: `node build-site.mjs` e poi `node strumenti/server.mjs dist` (le pagine mancanti sotto `/en/` usano `en/404.html`).
+Su Vercel un indirizzo inesistente sotto `/en/` mostra la 404 italiana, che ha il link «English».
 
 ## Pubblicazione
 

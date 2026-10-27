@@ -83,6 +83,7 @@ caricati dalla pagina con fetch: la pagina HTML pesa 100–230 KB, i dati 1–7 
    link e titolo, e imposta `data-strutture` sul `<li class="card">` (numero di strutture con scheda del modello: righe dell'elenco "Strutture").
    Ordine delle card: prima tavola la spalla, poi il resto dell'arto superiore (gomito, polso, dito), infine l'inferiore (anca, ginocchio).
    La card non ha descrizione: solo titolo con freccia e riga "N strutture". Numero "Tav.", riga "N strutture", conteggio dei modelli e totale delle strutture sono automatici.
+5a. Traduzione: `node strumenti/traduzioni.mjs <nome>-3d`, compila `traduzioni/<nome>-3d.en.json`, poi `--verifica` (0 senza traduzione) e `--prospetto` da mandarmi.
 5. Aggiungi l'URL del modello a `sitemap.xml`. Verifica in locale, poi commit (`Aggiunge modello <nome>`, insieme a `assets/dati/<nome>/`) e push su `main`.
 
 ## Strumenti (`strumenti/`)
@@ -121,6 +122,17 @@ caricati dalla pagina con fetch: la pagina HTML pesa 100–230 KB, i dati 1–7 
 - Riusa `.go` e `#cIso`: seleziona e isola con le ossa senza ricaricare, preservando inquadratura e comportamento della scheda. Ripristina prima un isolamento precedente; esce dalle regioni con piano di taglio tramite `#bAll` se attive. Nessun file anatomico modificato.
 - Desktop ≥900 px e altezza >500 px: campo nella colonna destra, 12 px sopra il pannello Strutture, con margine e larghezza misurati dal pannello; segue le sue variazioni di altezza (ResizeObserver), senza sovrapporsi alla bussola. Desktop bassi: posizione originale in alto; mobile/tablet: sotto il titolo, a sinistra della bussola, espanso durante la ricerca. Risultati dimensionati con `visualViewport`; tastiera: frecce/Invio/Escape; nomi, categorie, accenti e alcuni sinonimi.
 - Verifica locale: `node strumenti/server.mjs`, aprire ciascuna tavola (anche `#dito`), cercare e selezionare due strutture successive, provare Ripristina vista, nessun risultato, tastiera e dimensioni 360/390/768/1200 px. Serve un browser con WebGL per la verifica completa.
+
+## Versione inglese (/en/)
+- La build (`build-site.mjs` → `build-en.mjs`, alla radice perché `strumenti/` non è pubblicata) genera `dist/en/` dai file italiani e da `traduzioni/<nome>.en.json`
+  (voci con testo `it` di riferimento ed `en`; `comune`, `home`, `404` e un file per modello). Inglese USA, terminologia TA2; credito e licenza tradotti alla lettera dall'italiano.
+- I file italiani non contengono traduzioni: unica aggiunta il selettore (link `data-lingua` nascosti in home e 404, che la build mostra solo se la pagina inglese è pubblicata;
+  riga «Lingua» nel pannello «i» di `nav.js`, solo se ci sono i `link hreflang`). La build aggiunge hreflang it/en/x-default alle pagine pubblicate e alla sitemap.
+- In produzione una pagina inglese va online solo se completa; la build segnala voci senza traduzione, modificate e obsolete (`--traduzioni` per i dettagli).
+- **Regola:** se cambia una nota `info`/`o`/`ins`/`fn` (o un nome), l'inglese va aggiornato nello stesso ramo prima del merge su `main`.
+- Immagini social inglesi: `node strumenti/og.mjs --lingua=en <nome>-3d` → `assets/og/en/<nome>-3d.jpg` (testi in `PAGINE_EN`); la build le usa per le pagine /en/ se esistono.
+- Strumento: `node strumenti/traduzioni.mjs <nome>-3d [--verifica] [--prospetto]` (aggiunge le voci vuote; il prospetto IT/EN inizia con i termini dubbi).
+- Segnalazioni dalle pagine inglesi: `api/segnalazioni.js` accetta i tipi inglesi (campo `lang`), li riporta in italiano e aggiunge "Lingua: inglese" all'email.
 
 ## Pubblicazione delle bozze
 Anca e Caviglia sono in lavorazione: leggere README.md. Il build pubblico le esclude fisicamente; solo Vercel Preview le include. Non disattivare la protezione delle Preview.

@@ -133,6 +133,7 @@ Riferimenti anatomici: [Imaging of the Hip, NCBI Bookshelf](https://www.ncbi.nlm
 - [ ] `meta description` entro 160 caratteri, `<link rel="canonical">` su `https://www.mskatlas.com/modelli/<nome>-3d.html`, Open Graph e Twitter card con `assets/og/<nome>-3d.jpg` (`strumenti/og.mjs`); URL aggiunto a `sitemap.xml`
 - [ ] Credito BodyParts3D presente e corretto
 - [ ] Note `info` anatomicamente corrette (verificate da me)
+- [ ] Traduzione inglese completa: `node strumenti/traduzioni.mjs <nome>-3d --verifica` senza voci mancanti né modificate. Se cambia una nota `info`/`o`/`ins`/`fn` o un nome, aggiornare `it` ed `en` in `traduzioni/<nome>-3d.en.json` nello stesso ramo, prima del merge su `main`
 
 Fasci neurovascolari del dito: `node strumenti/fasci-dito.mjs` (`verifica` per solo elencare le compenetrazioni) riparte dal decorso originale di `arterie` e `nervi` (revisione `ORIGINALE`, default f058cc0) e li spinge fuori da ossa, tendini, guaina, pulegge, placche, collaterali, intrinseci e apparato estensore, con levigatura a filo teso; arteria e nervo restano separati e la prima posizione (y 4,2) è fissa. Da rilanciare se cambiano pulegge, guaina o apparato estensore.
 
