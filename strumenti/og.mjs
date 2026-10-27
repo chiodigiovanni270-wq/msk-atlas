@@ -8,6 +8,8 @@
    Esempio:
      node strumenti/og.mjs ginocchio-3d
      → salva assets/og/ginocchio-3d.jpg
+     node strumenti/og.mjs --lingua=en ginocchio-3d
+     → salva assets/og/en/ginocchio-3d.jpg, con i testi inglesi di PAGINE_EN (la build la usa per la pagina /en/ se esiste)
 
    Come funziona: parte dall'anteprima già presente in assets/anteprime/ (non la rigenera), la compone su
    uno sfondo con la stessa palette scura della homepage e aggiunge marchio, distretto e sottotitolo con i font del sito
@@ -35,13 +37,23 @@ const PAGINE = {
   'caviglia-3d': { titolo: 'Caviglia', img: 'caviglia-3d' },
 };
 
-const richieste = process.argv.slice(2);
+/* versione inglese: stessi campi, testi tradotti */
+const PAGINE_EN = {
+  home: { riga: '3D anatomy atlas', nota: 'Musculoskeletal anatomy to explore in three dimensions.' },
+  'spalla-3d': { titolo: 'Shoulder' }, 'gomito-3d': { titolo: 'Elbow' }, 'polso-dito-3d': { titolo: 'Wrist and finger' },
+  'anca-3d': { titolo: 'Hip' }, 'ginocchio-3d': { titolo: 'Knee' }, 'caviglia-3d': { titolo: 'Ankle' },
+};
+const en = process.argv.includes('--lingua=en');
+const T = en ? { lang: 'en', modello: 'Interactive 3D model', atlante: '3D anatomy atlas', dir: join('og', 'en') } : { lang: 'it', modello: 'Modello 3D interattivo', atlante: 'Atlante anatomico 3D', dir: 'og' };
+if (en) for (const n of Object.keys(PAGINE)) PAGINE[n] = { ...PAGINE[n], ...PAGINE_EN[n] };
+
+const richieste = process.argv.slice(2).filter(a => !a.startsWith('--'));
 const nomi = richieste.length ? richieste : Object.keys(PAGINE);
 for (const n of nomi) if (!PAGINE[n]) { console.error(`Pagina sconosciuta: ${n}. Valide: ${Object.keys(PAGINE).join(', ')}`); process.exit(1); }
 try { await fetch(SERVER); } catch { console.error(`Server locale non raggiungibile su ${SERVER}.\nAvvialo dalla cartella del progetto: node strumenti/server.mjs`); process.exit(1); }
 
 const grad = `radial-gradient(circle at 72% 45%, ${SFONDO.map(([p, c]) => `${c} ${Math.round(p * 100)}%`).join(', ')})`;
-const pagina = p => `<!doctype html><html lang="it"><head><meta charset="utf-8">
+const pagina = p => `<!doctype html><html lang="${T.lang}"><head><meta charset="utf-8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600&family=Spectral:wght@500&display=swap">
 <style>
 *{box-sizing:border-box;margin:0}
@@ -63,13 +75,13 @@ h1 span{color:#72b4d0}
 <div class="testo">
   ${p.riga ? '' : `<div class="marchio"><img src="${SERVER}/assets/favicon.svg" alt="">MSK <b>Atlas</b></div>`}
   <h1>${p.titolo}</h1>
-  <p class="riga">${p.riga || 'Modello 3D interattivo'}</p>
+  <p class="riga">${p.riga || T.modello}</p>
   ${p.nota ? `<p class="nota">${p.nota}</p>` : ''}
 </div>
-<div class="foot">${p.riga ? 'mskatlas.com' : 'Atlante anatomico 3D · mskatlas.com'}</div>
+<div class="foot">${p.riga ? 'mskatlas.com' : T.atlante + ' · mskatlas.com'}</div>
 </body></html>`;
 
-mkdirSync(join(ROOT, 'assets', 'og'), { recursive: true });
+mkdirSync(join(ROOT, 'assets', T.dir), { recursive: true });
 const chrome = await avviaChrome();
 try {
   await chrome.cdp('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
@@ -85,7 +97,7 @@ try {
     })()`);
     const { result } = await chrome.cdp('Page.captureScreenshot', { format: 'jpeg', quality: 88, clip: { x: 0, y: 0, width: W, height: H, scale: 1 } });
     const buf = Buffer.from(result.data, 'base64');
-    const out = join(ROOT, 'assets', 'og', `${n}.jpg`);
+    const out = join(ROOT, 'assets', T.dir, `${n}.jpg`);
     writeFileSync(out, buf);
     console.log(`Salvata ${relative(process.cwd(), out)} (${W}×${H}, ${Math.round(buf.length / 1024)} KB)`);
   }
