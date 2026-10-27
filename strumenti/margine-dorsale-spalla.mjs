@@ -1,4 +1,4 @@
-/* Gran dorsale e vicini della spalla (modelli/spalla-3d.html): tendine ricostruito pulito e separato dal coracobrachiale.
+/* Gran dorsale e vicini della spalla (modelli/spalla-3d.html): tendine ricostruito pulito, dietro al coracobrachiale.
 
    Problema. Nella mesh di BodyParts3D il tendine del gran dorsale (`lat`, x < ~1 cm, vicino all'omero) è un groviglio di lamelle che si attraversano
    (nelle sezioni il contorno è una linea a zig-zag con autointersezioni): margine a dente di sega e compenetrazione col coracobrachiale (fino a ~5 mm,
@@ -8,13 +8,15 @@
      node strumenti/margine-dorsale-spalla.mjs              → scrive nel file del modello
      PROVA=1 node strumenti/margine-dorsale-spalla.mjs      → stampa i controlli senza scrivere
      MODELLO=/tmp/copia.html node strumenti/margine-dorsale-spalla.mjs   → lavora su una copia
-   Va lanciato in fondo alla catena della spalla (dopo `nervi-muscoli-spalla.mjs`), una volta sola: parte dalle mesh di `lat` e `coracobr` che trova nel file e
-   le ricostruisce (non è stato provato sul proprio risultato; per rifare si riparte dalla revisione git precedente del modello).
+   Va lanciato in fondo alla catena della spalla (dopo `nervi-muscoli-spalla.mjs`), una volta sola, sulle mesh della revisione git 396f561 del modello
+   (prima di questo script): ricostruisce `lat` da quella che trova nel file, quindi non va rilanciato sul proprio risultato.
 
    Metodo.
    1. Ricostruzione di `lat`. Solido voxelizzato (griglia `H_LAT`, riempimento per parità ∪ superficie); campo con segno = distanza esatta dai triangoli nel ventre (levigata di `SFOCA_V`
       passate, ispessita di `DILATA`: la superficie segue la mesh senza gradinatura) e chiusura morfologica di raggio `R_TENDINE` nella zona del tendine
-      (x < `X_TENDINE`, raccordo fino a `X_RACCORDO`: richiude le lamelle che si attraversano, levigata di `SFOCA` passate); più scavo dei tubi vasculo-nervosi (distanza ≥ `GIOCO_TUBO`: il nervo passa in una finestra senza toccare).
+      (x < `X_TENDINE`, raccordo fino a `X_RACCORDO`: richiude le lamelle che si attraversano, levigata di `SFOCA` passate); più scavo dei tubi vasculo-nervosi (distanza ≥ `GIOCO_TUBO`: il nervo passa in una finestra senza toccare)
+      e dei muscoli in `DAVANTI` (coracobrachiale, capo breve del bicipite) con tutto ciò che sta davanti alla loro faccia posteriore (+z = anteriore),
+      a distanza `GIOCO_DAVANTI` e con bordo arrotondato (`SFOCA_OMBRA`): il tendine passa dietro di loro, che restano come sono.
       Superficie con surface nets e Taubin; tag (muscolo/tendine) e direzione delle fibre dal vertice originale più vicino; il piano di taglio y = −14
       resta piano. Normali non scritte (le calcola la pagina).
    2. Separazione. Per i vicini (`PARTNER`) i vertici entro `GIOCO` da `lat` si spingono fuori lungo il gradiente della distanza da `lat` (griglia 0,3 mm),
@@ -28,12 +30,12 @@ const G = await import('./lib-modello.mjs');
 const { REAL, setPos, setMesh, attrs, repack, saveFile, log, sstep, setGriglia, griglia, campo, solid, edt, chiuso, sfoca, nets, semplifica, taubin, sdf, sample, grad, unione } = G;
 
 const PROVA = !!process.env.PROVA;
-const PARTNER = (process.env.PARTNER ?? 'bic_breve,tri_lungo').split(',').filter(Boolean);
+const PARTNER = (process.env.PARTNER ?? 'tri_lungo').split(',').filter(Boolean);
 const TUBI = ['a_asc', 'v_asc', 'n_mediano', 'n_ulnare', 'n_radiale', 'n_muscolocutaneo', 'plesso', 'n_ascellare', 'n_soprascapolare', 'a_succ', 'v_succ'];
 const DURI = ['scapola', 'clavicola', 'omero', 'costa1', 'costa2', 'costa3', 'costa4', 'costa5', 'manubrio', 'corpo_sterno', 'cc1', 'cc2', 'cc3', 'cc4', 'cc5', 'cart_omero', 'cart_glen', 'labbro', 'caps'];
 const H_LAT = +(process.env.H_LAT ?? 0.035), R_CHIUSURA = +(process.env.R_CHIUSURA ?? 0.05), R_TENDINE = +(process.env.R_TENDINE ?? 0.14), X_TENDINE = +(process.env.X_TENDINE ?? 0.8), X_RACCORDO = +(process.env.X_RACCORDO ?? 2.0);
 const TRI_OBIETTIVO = +(process.env.TRI_OBIETTIVO ?? 90000), ERR_MAX = +(process.env.ERR_MAX ?? 1e-5);
-const CORA = process.env.CORA !== '0', GIOCO_CORA = +(process.env.GIOCO_CORA ?? 0.01), GIOCO_CANALE = +(process.env.GIOCO_CANALE ?? 0.03), TRI_CORA = +(process.env.TRI_CORA ?? 32000);
+const DAVANTI = (process.env.DAVANTI ?? 'coracobr,bic_breve').split(',').filter(Boolean), GIOCO_DAVANTI = +(process.env.GIOCO_DAVANTI ?? 0.02), SFOCA_OMBRA = +(process.env.SFOCA_OMBRA ?? 3);
 const SFOCA_V = +(process.env.SFOCA_V ?? 1), LISCIA_FIN = +(process.env.LISCIA_FIN ?? 16), DILATA = +(process.env.DILATA ?? 0.015), ESATTO = process.env.ESATTO !== '0';
 const SFOCA = +(process.env.SFOCA ?? 3), GIOCO_TUBO = +(process.env.GIOCO_TUBO ?? 0.04);
 const GIOCO = +(process.env.GIOCO ?? 0.02), GIRI = +(process.env.GIRI ?? 6), DIFFUSIONE = +(process.env.DIFFUSIONE ?? 12), GIOCO_OST = 0.03;
@@ -60,24 +62,25 @@ function origine(nome) { const L0 = REAL(nome), at = attrs(nome), P0 = L0.pos, c
 // campo → surface nets → semplificazione → tag e fibre dal vertice originale → mesh del modello
 function costruisci(nome, F, o, obiettivo, ylim) {
   const m0 = nets(F, () => [0, 1, 0]); log(nome + ': surface nets', m0.pos.length / 3, 'vertici', m0.idx.length / 3, 'triangoli');
-  const m = semplifica(m0.pos, m0.idx, ERR_MAX, obiettivo), nv = m.pos.length / 3; if (LISCIA_FIN > 0) m.pos = taubin(m.pos, m.idx, LISCIA_FIN);   // toglie la dentellatura dei vertici lungo le pieghe log(nome + ': semplificata a', nv, 'vertici', m.idx.length / 3, 'triangoli (prima', o.nv0, '/', o.nt0, ')');
+  const m = semplifica(m0.pos, m0.idx, ERR_MAX, obiettivo), nv = m.pos.length / 3; if (LISCIA_FIN > 0) m.pos = taubin(m.pos, m.idx, LISCIA_FIN);   // toglie la dentellatura dei vertici lungo le pieghe
+  log(nome + ': semplificata a', nv, 'vertici', m.idx.length / 3, 'triangoli (prima', o.nv0, '/', o.nt0, ')');
   const tag = o.at.tag ? new Uint8Array(nv) : null, fdir = o.at.fdir ? new Int8Array(nv * 3) : null;
   for (let i = 0; i < nv; i++) { const p = pt(m.pos, i); if (ylim !== undefined && p[1] < ylim + 0.03) m.pos[3 * i + 1] = ylim; const j = o.vicino(p); if (tag) tag[i] = o.at.tag[j]; if (fdir) for (let k = 0; k < 3; k++) fdir[3 * i + k] = o.at.fdir[3 * j + k]; }   // piano di taglio piano
   setMesh(nome, { pos: m.pos, idx: m.idx, tag, fdir }); }
 
-const OL = origine('lat'), OC = origine('coracobr');
+const OL = origine('lat');
 { const b = bbox('lat'), g = griglia(b.lo, b.hi, H_LAT, 0.25); log('lat: griglia', g.nx, g.ny, g.nz, 'h', H_LAT);
   const M = solid('lat'), Do = edt(M), F2 = chiuso(Do, R_TENDINE), F1 = ESATTO ? campo(['lat']).F : chiuso(Do, R_CHIUSURA); log('lat: campi fatti');
   sfoca(F1, ESATTO ? SFOCA_V : 1); sfoca(F2, SFOCA); for (let i = 0; i < G.N; i++) F1[i] -= DILATA;   // DILATA: ispessisce un poco le lamine più sottili di un voxel (altrimenti la superficie si buca)   // F1: distanza esatta dai triangoli (ventre: segue la mesh senza gradinatura), F2 (zona del tendine) chiusura molto levigata
   const F = new Float32Array(G.N); for (let k = 0; k < G.NZ; k++) for (let j = 0; j < G.NY; j++) for (let i = 0; i < G.NX; i++) { const id = i + G.NX * j + G.NXY * k, x = G.O[0] + (i + 0.5) * G.H, w = 1 - sstep(X_TENDINE, X_RACCORDO, x); F[id] = (1 - w) * F1[id] + w * F2[id]; }
   const Dt = edt(unione(TUBI)); for (let i = 0; i < G.N; i++) F[i] = Math.max(F[i], GIOCO_TUBO - Dt[i]);   // il nervo passa in una finestra senza toccare
-  if (CORA) { const FC = sdf(solid('coracobr')).F; for (let i = 0; i < G.N; i++) F[i] = Math.max(F[i], F[i] - FC[i] + GIOCO_CORA); }   // dove si sovrappongono, lat tiene la parte in cui è più profondo del coracobrachiale (a metà dell'interferenza)
+  // muscoli che stanno davanti al gran dorsale (coracobrachiale, capo breve del bicipite): lat esce dal muscolo e da tutto ciò che sta davanti
+  // alla sua faccia posteriore (+z = anteriore), cioè passa dietro; l'ombra si arrotonda (SFOCA_OMBRA) perché il bordo del taglio sia liscio
+  if (DAVANTI.length) { const O = unione(DAVANTI), Om = new Uint8Array(G.N);
+    for (let j = 0; j < G.NY; j++) for (let i = 0; i < G.NX; i++) { let dietro = false; for (let k = 0; k < G.NZ; k++) { const id = i + G.NX * j + G.NXY * k; if (O[id]) dietro = true; if (dietro) Om[id] = 1; } }
+    const FO = sdf(Om).F; sfoca(FO, SFOCA_OMBRA); for (let i = 0; i < G.N; i++) F[i] = Math.max(F[i], GIOCO_DAVANTI - FO[i]); }
   log('lat: campo pronto'); costruisci('lat', F, OL, TRI_OBIETTIVO, b.lo[1]); }
-if (CORA) { const b = bbox('coracobr'), g = griglia(b.lo, b.hi, H_LAT, 0.25); log('coracobr: griglia', g.nx, g.ny, g.nz);
-  const M = solid('coracobr'), Do = edt(M), F = chiuso(Do, R_CHIUSURA); sfoca(F, 1);
-  const FL = sdf(solid('lat')).F; for (let i = 0; i < G.N; i++) F[i] = Math.max(F[i], GIOCO_CORA - FL[i]);   // via quel che resta dentro il nuovo lat (+ gioco)
-  const Dt = edt(unione(TUBI)); for (let i = 0; i < G.N; i++) F[i] = Math.max(F[i], GIOCO_CANALE - Dt[i]);
-  costruisci('coracobr', F, OC, TRI_CORA, undefined); }
+
 
 /* ---- 2. separazione dei vicini ---- */
 const P = {}, NB = {}, D0 = {};
@@ -104,6 +107,6 @@ for (let giro = 0; giro < GIRI; giro++) {
 }
 
 /* ---- 3. controllo ---- */
-for (const m of PARTNER) log('lat ∩', m, comune2('lat', m).toFixed(1), 'mm³');
+for (const m of [...DAVANTI, ...PARTNER]) log('lat ∩', m, comune2('lat', m).toFixed(1), 'mm³');
 for (const n of ['lat', ...PARTNER]) { const out = {}; for (const t of TUBI) { const v = comune2(n, t); if (v >= 0.05) out[t] = +v.toFixed(1); } log('controllo', n, 'tubi', JSON.stringify(out)); }
 if (!PROVA) saveFile(repack());
