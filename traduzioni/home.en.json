@@ -84,9 +84,7 @@
     "Anatomia muscolo-scheletrica da esplorare in tre dimensioni, con note di interesse radiologico.": "Musculoskeletal anatomy to explore in three dimensions, with notes of radiological interest.",
     "Medico specialista in Radiodiagnostica<br>Ideatore e autore di MSK Atlas": "Specialist in Diagnostic Radiology<br>Creator and author of MSK Atlas",
     "Crediti e fonti": "Credits and sources",
-    "Modelli derivati da <strong>BodyParts3D</strong>, © The Database Center for Life Science (DBCLS), modificati e integrati per MSK Atlas. Modelli modificati distribuiti con licenza <a href=\"https://creativecommons.org/licenses/by-sa/2.1/jp/\" target=\"_blank\" rel=\"noopener\">CC BY-SA 2.1 JP</a>.": "",
     "Attribuzioni e licenze complete": "Full attributions and licenses",
-    "<cite>Mitsuhashi N et al. BodyParts3D: 3D structure database for anatomical concepts.</cite><br>Nucleic Acids Research, 2009.": "<cite>Mitsuhashi N et al. BodyParts3D: 3D structure database for anatomical concepts.</cite><br>Nucleic Acids Research, 2009.",
     "Collegamenti di fine pagina": "Footer links",
     "Torna in alto ↑": "Back to top ↑",
     "Installa MSK Atlas come app": "Install MSK Atlas as an app",
@@ -95,7 +93,9 @@
     "Per usarlo come app, tocca l’icona Condividi": "To use it as an app, tap the Share icon",
     "e scegli “Aggiungi alla schermata Home”.": "and choose “Add to Home Screen”.",
     "Aggiungilo alla schermata Home: si apre a schermo intero, come un’app.": "Add it to your Home screen: it opens full screen, like an app.",
-    "Installa": "Install"
+    "Installa": "Install",
+    "Modelli derivati da <strong>BodyParts3D</strong>, © The Database Center for Life Science (DBCLS), CC BY 4.0, modificati e integrati per MSK Atlas. Modelli modificati distribuiti con licenza <a href=\"https://creativecommons.org/licenses/by-sa/2.1/jp/\" target=\"_blank\" rel=\"noopener\">CC BY-SA 2.1 JP</a>.": "Models derived from <strong>BodyParts3D</strong>, © The Database Center for Life Science (DBCLS), CC BY 4.0, modified and supplemented for MSK Atlas. Modified models distributed under the <a href=\"https://creativecommons.org/licenses/by-sa/2.1/jp/deed.en\" target=\"_blank\" rel=\"noopener\">CC BY-SA 2.1 JP</a> license.",
+    "<cite>Mitsuhashi N et al. BodyParts3D: 3D structure database for anatomical concepts.</cite><br>Nucleic Acids Res. 2009;37(Database issue):D782–D785.": "<cite>Mitsuhashi N et al. BodyParts3D: 3D structure database for anatomical concepts.</cite><br>Nucleic Acids Res. 2009;37(Database issue):D782–D785."
   },
   "codice": [
     {
