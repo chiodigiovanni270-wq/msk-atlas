@@ -333,3 +333,62 @@ ripetibilità. La genicolare discendente (`adisc`) sotto il vasto mediale non
 fa parte di questa correzione: il controllo segnala un rapporto preesistente
 da rivedere separatamente. Confronto prima–dopo approvato dall’utente
 per la pubblicazione il 25 ottobre 2026.
+
+### Caviglia — proposta sperimentale NON VALIDATA (27 ottobre 2026)
+
+**Non applicare alla tavola pubblicata:** i controlli estesi rilevano ancora
+intersezioni; la proposta non soddisfa i requisiti anatomici.
+`node strumenti/rifinitura-caviglia.mjs` sperimenta una rifinitura dopo la catena
+originale. Riparte dalle geometrie di `35719a0`, preservando il testo della
+pagina corrente; `MODELLO` seleziona l'output, `BASE` può indicare una copia
+esatta della tavola di quella revisione. Non rilanciare il generatore dopo
+questa rifinitura senza riapplicarla. Nessuna dipendenza aggiuntiva.
+
+I percorsi vascolo-nervosi sono ricavati dalle sezioni delle mesh originali,
+regolarizzati e adattati ai muscoli e alle ossa, con direzioni preferenziali
+per i compartimenti anteriore, posteriore e plantare. Limite di spostamento
+centrale 8 mm, 11,5 mm per il tibiale rispetto al soleo; raccordo delle origini
+dei rami ai tronchi e controllo finale sulle superfici tubolari. Sono
+parametri della ricostruzione didattica, non misure anatomiche individuali.
+I nastri legamentosi sono levigati longitudinalmente mantenendo gli estremi;
+le fibre seguono la geometria risultante. Il talofibulare anteriore è diviso
+in due fasci chiusi, conservando una sola scheda selezionabile.
+
+`node strumenti/verifica-rapporti-caviglia.mjs` riporta le penetrazioni
+muscolari campionate oltre 0,3 mm. È una diagnostica basata su prossimità e
+pseudonormali: non certifica l'assenza di intersezioni fra tutti i triangoli,
+né la correttezza delle varianti individuali. Usare insieme alla verifica
+ossea `verifica-caviglia.mjs --contatti` e alla revisione visiva per strati.
+
+Riferimenti consultati: *Anatomy of the ankle ligaments: a pictorial essay*,
+https://pmc.ncbi.nlm.nih.gov/articles/PMC2855022/ ; *The bifurcation and
+topography of the posterior tibial artery within the tarsal tunnel*,
+https://pmc.ncbi.nlm.nih.gov/articles/PMC10130123/ ; anatomia del tunnel
+tarsale https://radiologica.org/knowledge-base/tarsal-tunnel/ .
+
+`contatti-vene-caviglia.mjs` completa il passaggio sulle superfici dei fasci
+vascolo-nervosi: ricerca del punto libero fra 26 direzioni entro 1,2 mm.
+Non modifica ossa o muscoli. Il nome deriva dal primo contatto corretto
+sulle vene fibulari; la funzione è applicata anche agli altri fasci.
+La diagnostica accetta `--strict` per fallire in presenza di campioni
+muscolari penetranti oltre 0,3 mm.
+
+`node strumenti/intersezioni-caviglia.mjs` controlla attraversamenti
+trasversali fra triangoli di tutte le strutture con BVH, anche nascoste.
+Ignora facce di taglio coincidenti e intersezioni coplanari; si ferma a
+40 riscontri per coppia, riporta coordinate in cm. I riscontri non sono
+un conteggio di errori anatomici: le inserzioni richiedono classificazione.
+La proposta sperimentale ha ancora riscontri su tibia–talo, tendini–nervi
+e tendini–retinacoli. Non pubblicata; tavola precedente conservata.
+
+### Caviglia — rifinitura dei legamenti per anteprima (27 ottobre 2026)
+
+`node strumenti/legamenti-caviglia.mjs` applica esclusivamente la rifinitura
+longitudinale dei nastri e la separazione del talofibulare anteriore in due
+fasci. Riparte da `35719a0`, mantiene le estremità, rigenera le fibre e
+preserva tutte le altre mesh e il codice della pagina. `MODELLO` permette
+una copia; eseguire dopo il generatore completo. Rilanciabile.
+Questa è la sola correzione geometrica inclusa nell'anteprima aggiornata:
+la proposta vascolo-nervosa sperimentale resta esclusa. Le intersezioni
+preesistenti del modello non sono tutte risolte; non dichiarare il modello
+privo di compenetrazioni o validato dal punto di vista specialistico.
