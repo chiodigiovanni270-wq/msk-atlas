@@ -2,1304 +2,1373 @@
   "meta": {
     "title": {
       "it": "Gomito 3D interattivo: legamenti e nervi | MSK Atlas",
-      "en": ""
+      "en": "Interactive 3D elbow: ligaments and nerves | MSK Atlas"
     },
     "strutture-bp3d": {
       "it": "Ossa, bicipite, tricipite, brachioradiale, estensori radiali del carpo, estensore delle dita, ECU, FCR, palmare lungo, FDS, FDP, supinatore e membrana interossea. Le forme dei muscoli reali sono state completate con tendini e inserzioni e compattate nelle logge.",
-      "en": ""
+      "en": "Bones, biceps, triceps, brachioradialis, extensor carpi radialis muscles, extensor digitorum, ECU, FCR, palmaris longus, FDS, FDP, supinator and interosseous membrane. The shapes of the real muscles were completed with tendons and attachments and compacted within the compartments."
     },
     "strutture-modellate": {
       "it": "Brachiale, pronatore rotondo, FCU, anconeo, FPL, estensore del mignolo, APL, EPL, setti intermuscolari, setto tra i due capi del bicipite, linfonodi, cartilagini, capsula, cuscinetti adiposi, borse, legamenti, lacerto fibroso, vasi, nervi e cute: ricostruiti sulle ossa e sui muscoli reali, posizione e forma sono indicative.",
-      "en": ""
+      "en": "Brachialis, pronator teres, FCU, anconeus, FPL, extensor digiti minimi, APL, EPL, intermuscular septa, septum between the two heads of biceps, lymph nodes, cartilage, capsule, fat pads, bursae, ligaments, bicipital aponeurosis, vessels, nerves and skin: reconstructed on the real bones and muscles; position and shape are approximate."
     },
     "strutture-escluse": {
       "it": "EPB, EIP, pronatore quadrato, coracobrachiale, deltoide, corda obliqua, fascia brachiale e antibrachiale (fuori dalla finestra di ±12 cm o troppo variabili).",
-      "en": ""
+      "en": "EPB, EIP, pronator quadratus, coracobrachialis, deltoid, oblique cord, brachial and antebrachial fascia (outside the ±12 cm window or too variable)."
     },
     "description": {
       "it": "Gomito 3D interattivo: ossa, legamenti collaterali, tendini, muscoli, vasi e nervi, con tunnel cubitale, fossa cubitale e piano di taglio. Materiale didattico.",
-      "en": ""
+      "en": "Interactive 3D elbow: bones, collateral ligaments, tendons, muscles, vessels and nerves, with cubital tunnel, cubital fossa and cut plane. Educational material."
     },
     "image_alt": {
       "it": "Modello 3D del gomito destro — MSK Atlas",
-      "en": ""
+      "en": "3D model of the right elbow — MSK Atlas"
     }
   },
   "strutture": {
     "omero": {
       "name": {
         "it": "Omero (estremità distale)",
-        "en": ""
+        "en": "Humerus (distal end)"
       },
       "info": {
         "it": "Paletta omerale con troclea (mediale, per l’incisura trocleare dell’ulna) e capitello (laterale, per la testa radiale). Anteriormente le fossette coronoidea e radiale, posteriormente la fossetta olecranica, sedi dei cuscinetti adiposi. Epicondilo mediale: origine dei flessori-pronatori e del legamento collaterale ulnare; epicondilo laterale: estensori-supinatori e complesso collaterale laterale. Il capitello è la sede tipica dell’osteocondrite dissecante nel giovane lanciatore (malattia di Panner sotto i 10 anni).",
-        "en": ""
+        "en": "Distal humeral paddle with the trochlea (medial, for the trochlear notch of the ulna) and the capitulum (lateral, for the radial head). Anteriorly the coronoid and radial fossae, posteriorly the olecranon fossa, which house the fat pads. Medial epicondyle: origin of the flexor-pronators and of the ulnar collateral ligament; lateral epicondyle: extensor-supinators and lateral collateral complex. The capitulum is the typical site of osteochondritis dissecans in young throwers (Panner disease under age 10)."
       }
     },
     "ulna": {
       "name": {
         "it": "Ulna (estremità prossimale)",
-        "en": ""
+        "en": "Ulna (proximal end)"
       },
       "info": {
         "it": "Olecrano e processo coronoideo delimitano l’incisura trocleare; lateralmente l’incisura radiale accoglie la testa del radio. Sul versante mediale del coronoide il tubercolo sublime (inserzione del fascio anteriore del collaterale ulnare); lateralmente, distale all’incisura radiale, la cresta del supinatore (inserzione del LUCL). Anteriormente, sotto il coronoide, la tuberosità ulnare per il brachiale.",
-        "en": ""
+        "en": "The olecranon and the coronoid process bound the trochlear notch; laterally the radial notch receives the radial head. On the medial side of the coronoid lies the sublime tubercle (insertion of the anterior bundle of the ulnar collateral ligament); laterally, distal to the radial notch, the supinator crest (insertion of the LUCL). Anteriorly, below the coronoid, the ulnar tuberosity for the brachialis."
       }
     },
     "radio": {
       "name": {
         "it": "Radio (estremità prossimale)",
-        "en": ""
+        "en": "Radius (proximal end)"
       },
       "info": {
         "it": "Testa discoidale con fovea (per il capitello) e circonferenza articolare (per l’incisura radiale dell’ulna), avvolta dal legamento anulare; poi collo e tuberosità radiale, inserzione del bicipite. Le fratture della testa si classificano secondo Mason; nel bambino la sublussazione della testa sotto il legamento anulare è la pronazione dolorosa.",
-        "en": ""
+        "en": "Disc-shaped head with a fovea (for the capitulum) and an articular circumference (for the radial notch of the ulna), encircled by the annular ligament; then the neck and the radial tuberosity, insertion of the biceps. Radial head fractures are graded with the Mason classification; in children, subluxation of the head under the annular ligament is nursemaid's elbow."
       }
     },
     "cart_omero": {
       "name": {
         "it": "Cartilagine di troclea e capitello",
-        "en": ""
+        "en": "Cartilage of the trochlea and capitulum"
       },
       "info": {
         "it": "Riveste troclea e capitello. Al passaggio tra capitello ed epicondilo laterale, posteriormente, il bordo irregolare della cartilagine può simulare una lesione osteocondrale (pseudodifetto del capitello).",
-        "en": ""
+        "en": "Covers the trochlea and the capitulum. Posteriorly, at the junction between the capitulum and the lateral epicondyle, the irregular cartilage margin can mimic an osteochondral lesion (pseudodefect of the capitulum)."
       }
     },
     "cart_ulna": {
       "name": {
         "it": "Cartilagine delle incisure trocleare e radiale",
-        "en": ""
+        "en": "Cartilage of the trochlear and radial notches"
       },
       "info": {
         "it": "L’incisura trocleare presenta spesso una zona nuda trasversale tra porzione olecranica e coronoidea (pseudodifetto), da non confondere con una lesione osteocondrale.",
-        "en": ""
+        "en": "The trochlear notch often has a transverse bare area between its olecranon and coronoid portions (pseudodefect), not to be mistaken for an osteochondral lesion."
       }
     },
     "cart_radio": {
       "name": {
         "it": "Cartilagine della testa radiale",
-        "en": ""
+        "en": "Cartilage of the radial head"
       },
       "info": {
         "it": "Riveste la fovea (articolazione omero-radiale) e la circonferenza articolare (radio-ulnare prossimale).",
-        "en": ""
+        "en": "Covers the fovea (humeroradial joint) and the articular circumference (proximal radioulnar joint)."
       }
     },
     "ucl_ant": {
       "name": {
         "it": "Collaterale ulnare – fascio anteriore",
-        "en": ""
+        "en": "Ulnar collateral ligament – anterior bundle"
       },
       "info": {
         "it": "Il fascio più robusto. Lesione tipica dei lanciatori, da sovraccarico ripetuto in valgo. In ecografia è una banda fibrillare profonda al tendine comune dei flessori, da valutare anche sotto stress in valgo; in artro-RM il distacco parziale profondo dal tubercolo sublime dà il segno della T.",
-        "en": ""
+        "en": "The strongest bundle. Typically injured in throwers by repetitive valgus overload. On ultrasound it is a fibrillar band deep to the common flexor tendon, also to be assessed under valgus stress; on MR arthrography, partial undersurface detachment from the sublime tubercle produces the T sign."
       },
       "o": {
         "it": "Faccia antero-inferiore dell’epicondilo mediale.",
-        "en": ""
+        "en": "Anteroinferior surface of the medial epicondyle."
       },
       "ins": {
         "it": "Tubercolo sublime del processo coronoideo.",
-        "en": ""
+        "en": "Sublime tubercle of the coronoid process."
       },
       "fn": {
         "it": "Principale stabilizzatore contro il valgo tra circa 30° e 120° di flessione.",
-        "en": ""
+        "en": "Primary restraint to valgus between about 30° and 120° of flexion."
       }
     },
     "ucl_post": {
       "name": {
         "it": "Collaterale ulnare – fascio posteriore",
-        "en": ""
+        "en": "Ulnar collateral ligament – posterior bundle"
       },
       "info": {
         "it": "Ispessimento capsulare a ventaglio; forma il pavimento del tunnel cubitale.",
-        "en": ""
+        "en": "Fan-shaped capsular thickening; forms the floor of the cubital tunnel."
       },
       "o": {
         "it": "Faccia postero-inferiore dell’epicondilo mediale.",
-        "en": ""
+        "en": "Posteroinferior surface of the medial epicondyle."
       },
       "ins": {
         "it": "Margine mediale dell’olecrano.",
-        "en": ""
+        "en": "Medial margin of the olecranon."
       },
       "fn": {
         "it": "Stabilizzatore secondario contro il valgo, soprattutto in flessione avanzata, quando è teso.",
-        "en": ""
+        "en": "Secondary restraint to valgus, especially in deep flexion, when it is taut."
       }
     },
     "ucl_trasv": {
       "name": {
         "it": "Collaterale ulnare – fascio trasverso (di Cooper)",
-        "en": ""
+        "en": "Ulnar collateral ligament – transverse bundle (Cooper ligament)"
       },
       "info": {
         "it": "Non attraversa l’articolazione: contributo minimo alla stabilità.",
-        "en": ""
+        "en": "Does not cross the joint: minimal contribution to stability."
       },
       "o": {
         "it": "Margine mediale dell’olecrano.",
-        "en": ""
+        "en": "Medial margin of the olecranon."
       },
       "ins": {
         "it": "Margine mediale del processo coronoideo.",
-        "en": ""
+        "en": "Medial margin of the coronoid process."
       },
       "fn": {
         "it": "Unisce le inserzioni ulnari dei fasci anteriore e posteriore; amplia l’incisura trocleare.",
-        "en": ""
+        "en": "Joins the ulnar insertions of the anterior and posterior bundles; deepens the trochlear notch."
       }
     },
     "rcl": {
       "name": {
         "it": "Collaterale radiale",
-        "en": ""
+        "en": "Radial collateral ligament"
       },
       "info": {
         "it": "Subito in profondità al tendine comune degli estensori; nelle epicondiliti laterali croniche può essere coinvolto insieme all’ECRB.",
-        "en": ""
+        "en": "Directly deep to the common extensor tendon; in chronic lateral epicondylitis it may be involved together with the ECRB."
       },
       "o": {
         "it": "Epicondilo laterale.",
-        "en": ""
+        "en": "Lateral epicondyle."
       },
       "ins": {
         "it": "Legamento anulare, con cui si fonde.",
-        "en": ""
+        "en": "Annular ligament, with which it blends."
       },
       "fn": {
         "it": "Stabilizza contro il varo e mantiene la testa radiale a contatto con il capitello.",
-        "en": ""
+        "en": "Resists varus and keeps the radial head in contact with the capitulum."
       }
     },
     "anulare": {
       "name": {
         "it": "Legamento anulare",
-        "en": ""
+        "en": "Annular ligament"
       },
       "info": {
         "it": "Forma circa i quattro quinti dell’anello osteofibroso attorno alla testa radiale, più stretto in basso. Nel bambino la testa può scivolare parzialmente sotto il legamento (pronazione dolorosa).",
-        "en": ""
+        "en": "Forms about four fifths of the osteofibrous ring around the radial head, narrower distally. In children the head can slip partly under the ligament (nursemaid's elbow)."
       },
       "o": {
         "it": "Margine anteriore dell’incisura radiale dell’ulna.",
-        "en": ""
+        "en": "Anterior margin of the radial notch of the ulna."
       },
       "ins": {
         "it": "Margine posteriore dell’incisura radiale dell’ulna.",
-        "en": ""
+        "en": "Posterior margin of the radial notch of the ulna."
       },
       "fn": {
         "it": "Mantiene la testa radiale contro l’incisura radiale e ne permette la rotazione nella prono-supinazione.",
-        "en": ""
+        "en": "Holds the radial head against the radial notch and allows it to rotate during pronation and supination."
       }
     },
     "lucl": {
       "name": {
         "it": "Collaterale ulnare laterale (LUCL)",
-        "en": ""
+        "en": "Lateral ulnar collateral ligament (LUCL)"
       },
       "info": {
         "it": "Passa dietro la testa radiale. Si lesiona per primo nella lussazione di gomito; il pivot-shift test ne valuta l’insufficienza.",
-        "en": ""
+        "en": "Runs behind the radial head. It is the first structure injured in elbow dislocation; the pivot-shift test assesses its insufficiency."
       },
       "o": {
         "it": "Epicondilo laterale.",
-        "en": ""
+        "en": "Lateral epicondyle."
       },
       "ins": {
         "it": "Cresta del supinatore dell’ulna, fondendosi con il margine posteriore del legamento anulare.",
-        "en": ""
+        "en": "Supinator crest of the ulna, blending with the posterior margin of the annular ligament."
       },
       "fn": {
         "it": "Principale stabilizzatore contro l’instabilità rotatoria postero-laterale; stabilizzatore contro il varo.",
-        "en": ""
+        "en": "Primary restraint to posterolateral rotatory instability; restraint to varus."
       }
     },
     "mio": {
       "name": {
         "it": "Membrana interossea (porzione prossimale)",
-        "en": ""
+        "en": "Interosseous membrane (proximal portion)"
       },
       "info": {
         "it": "Prossimalmente lascia uno spazio per i vasi interossei posteriori. La sua rottura con frattura della testa radiale e lesione della radio-ulnare distale è la lesione di Essex-Lopresti.",
-        "en": ""
+        "en": "Proximally it leaves a gap for the posterior interosseous vessels. Its rupture together with a radial head fracture and a distal radioulnar joint injury is the Essex-Lopresti lesion."
       },
       "o": {
         "it": "Margine interosseo del radio.",
-        "en": ""
+        "en": "Interosseous border of the radius."
       },
       "ins": {
         "it": "Margine interosseo dell’ulna (fibre prevalentemente oblique in senso distale e mediale).",
-        "en": ""
+        "en": "Interosseous border of the ulna (fibers mostly oblique, running distally and medially)."
       },
       "fn": {
         "it": "Trasferisce il carico dal radio all’ulna; separa le logge anteriore e posteriore e dà origine ai muscoli profondi.",
-        "en": ""
+        "en": "Transfers load from the radius to the ulna; separates the anterior and posterior compartments and gives origin to the deep muscles."
       }
     },
     "osborne": {
       "name": {
         "it": "Legamento di Osborne (retinacolo del tunnel cubitale)",
-        "en": ""
+        "en": "Osborne ligament (cubital tunnel retinaculum)"
       },
       "info": {
         "it": "Distalmente continua nell’aponeurosi tra i due capi del FCU. Ispessimento, assenza o lassità (con sublussazione del nervo in flessione) sono cause di neuropatia ulnare; la sua sezione è il gesto della decompressione in situ.",
-        "en": ""
+        "en": "Distally it continues into the aponeurosis between the two heads of the FCU. Thickening, absence or laxity (with subluxation of the nerve in flexion) cause ulnar neuropathy; dividing it is the key step of in situ decompression."
       },
       "o": {
         "it": "Epicondilo mediale.",
-        "en": ""
+        "en": "Medial epicondyle."
       },
       "ins": {
         "it": "Margine mediale dell’olecrano.",
-        "en": ""
+        "en": "Medial margin of the olecranon."
       },
       "fn": {
         "it": "Tetto del tunnel cubitale: trattiene il nervo ulnare dietro l’epicondilo; si tende in flessione, riducendo lo spazio del tunnel.",
-        "en": ""
+        "en": "Roof of the cubital tunnel: holds the ulnar nerve behind the epicondyle; it tightens in flexion, narrowing the tunnel."
       }
     },
     "lacerto": {
       "name": {
         "it": "Lacerto fibroso (aponeurosi bicipitale)",
-        "en": ""
+        "en": "Bicipital aponeurosis (lacertus fibrosus)"
       },
       "info": {
         "it": "Sopra arteria brachiale e nervo mediano, sotto la vena mediana del gomito. Se integro può limitare la retrazione in una rottura del tendine distale del bicipite, che quindi può sfuggire all’esame clinico.",
-        "en": ""
+        "en": "Superficial to the brachial artery and median nerve, deep to the median cubital vein. If intact, it can limit retraction in a distal biceps tendon rupture, which may therefore be missed on clinical examination."
       },
       "o": {
         "it": "Margine mediale del tendine distale del bicipite.",
-        "en": ""
+        "en": "Medial margin of the distal biceps tendon."
       },
       "ins": {
         "it": "Fascia antibrachiale sopra i flessori-pronatori e, tramite questa, margine posteriore dell’ulna.",
-        "en": ""
+        "en": "Antebrachial fascia over the flexor-pronators and, through it, posterior border of the ulna."
       },
       "fn": {
         "it": "Trasmette parte della forza del bicipite alla fascia dell’avambraccio; protegge i vasi e il nervo sottostanti.",
-        "en": ""
+        "en": "Transmits part of the biceps force to the forearm fascia; protects the underlying vessels and nerve."
       }
     },
     "caps": {
       "name": {
         "it": "Capsula articolare",
-        "en": ""
+        "en": "Joint capsule"
       },
       "info": {
         "it": "Un’unica capsula per le articolazioni omero-ulnare, omero-radiale e radio-ulnare prossimale. Prossimalmente si inserisce sopra le fossette coronoidea, radiale e olecranica (intracapsulari); distalmente sul legamento anulare e sul collo del radio. In ecografia il versamento si cerca nel recesso posteriore (fossetta olecranica) a gomito flesso.",
-        "en": ""
+        "en": "A single capsule for the humeroulnar, humeroradial and proximal radioulnar joints. Proximally it attaches above the coronoid, radial and olecranon fossae (which are intracapsular); distally on the annular ligament and the radial neck. On ultrasound, effusion is sought in the posterior recess (olecranon fossa) with the elbow flexed."
       }
     },
     "fat_ant": {
       "name": {
         "it": "Cuscinetto adiposo anteriore",
-        "en": ""
+        "en": "Anterior fat pad"
       },
       "info": {
         "it": "Nelle fossette coronoidea e radiale, intracapsulare ma extrasinoviale. Nella radiografia laterale a 90° è normalmente visibile come sottile banda radiotrasparente; se sollevato (segno della vela) indica versamento.",
-        "en": ""
+        "en": "In the coronoid and radial fossae, intracapsular but extrasynovial. On a lateral radiograph at 90° it is normally visible as a thin radiolucent band; when elevated (sail sign) it indicates effusion."
       }
     },
     "fat_post": {
       "name": {
         "it": "Cuscinetto adiposo posteriore",
-        "en": ""
+        "en": "Posterior fat pad"
       },
       "info": {
         "it": "Nella fossetta olecranica; normalmente non visibile nella radiografia laterale a 90°. Se visibile indica versamento e, nel trauma, una frattura spesso occulta (sovracondiloidea nel bambino, della testa radiale nell’adulto).",
-        "en": ""
+        "en": "In the olecranon fossa; normally not visible on a lateral radiograph at 90°. When visible it indicates effusion and, after trauma, an often occult fracture (supracondylar in children, radial head in adults)."
       }
     },
     "bor_olecr": {
       "name": {
         "it": "Borsa olecranica",
-        "en": ""
+        "en": "Olecranon bursa"
       },
       "info": {
         "it": "Sottocutanea sopra l’olecrano, normalmente virtuale. Borsite traumatica, microcristallina, reumatoide o settica: in ecografia raccolta anecogena o complessa, con eventuale iperemia della parete.",
-        "en": ""
+        "en": "Subcutaneous, over the olecranon, normally collapsed. Traumatic, crystal, rheumatoid or septic bursitis: on ultrasound an anechoic or complex collection, sometimes with wall hyperemia."
       }
     },
     "bor_bicrad": {
       "name": {
         "it": "Borsa bicipito-radiale",
-        "en": ""
+        "en": "Bicipitoradial bursa"
       },
       "info": {
         "it": "Tra tendine distale del bicipite e tuberosità radiale; riduce l’attrito in pronazione. La borsite può simulare una massa della fossa cubitale e, raramente, comprimere il nervo interosseo posteriore.",
-        "en": ""
+        "en": "Between the distal biceps tendon and the radial tuberosity; reduces friction in pronation. Bursitis can mimic a cubital fossa mass and, rarely, compress the posterior interosseous nerve."
       }
     },
     "bic_lungo": {
       "name": {
         "it": "Bicipite – capo lungo",
-        "en": ""
+        "en": "Biceps, long head"
       },
       "info": {
         "it": "Nel braccio è il ventre laterale; sopra il gomito si fonde con il capo breve nel tendine distale comune, che ruota di circa 90° prima di inserirsi. La rottura distale avviene tipicamente nell’uomo adulto in contrazione eccentrica; in ecografia si valuta con approccio anteriore, mediale e laterale, e in posizione \"cobra\". Il setto tra i due ventri è ricostruito: posizione indicativa.",
-        "en": ""
+        "en": "In the arm it is the lateral belly; above the elbow it merges with the short head into the common distal tendon, which rotates about 90° before inserting. Distal rupture typically occurs in adult men during eccentric contraction; on ultrasound it is assessed with anterior, medial and lateral approaches and in the \"cobra\" position. The septum between the two bellies is reconstructed: position is approximate."
       },
       "o": {
         "it": "Tubercolo sovraglenoideo della scapola e labbro glenoideo superiore; il tendine prossimale attraversa la spalla e scorre nel solco bicipitale.",
-        "en": ""
+        "en": "Supraglenoid tubercle of the scapula and superior glenoid labrum; the proximal tendon crosses the shoulder and runs in the intertubercular groove."
       },
       "ins": {
         "it": "Tuberosità radiale, con il tendine distale comune (parte prossimale dell’impronta, più lontana dall’asse di rotazione).",
-        "en": ""
+        "en": "Radial tuberosity, through the common distal tendon (proximal part of the footprint, farther from the axis of rotation)."
       },
       "fn": {
         "it": "Supina l’avambraccio (principale supinatore a gomito flesso) e flette il gomito; coadiuva la flessione della spalla.",
-        "en": ""
+        "en": "Supinates the forearm (main supinator with the elbow flexed) and flexes the elbow; assists shoulder flexion."
       }
     },
     "bic_breve": {
       "name": {
         "it": "Bicipite – capo breve",
-        "en": ""
+        "en": "Biceps, short head"
       },
       "info": {
         "it": "Nel braccio è il ventre mediale; sopra il gomito si fonde con il capo lungo nel tendine distale comune, da cui il lacerto fibroso si porta medialmente. Il setto tra i due ventri è ricostruito: posizione indicativa.",
-        "en": ""
+        "en": "In the arm it is the medial belly; above the elbow it merges with the long head into the common distal tendon, from which the bicipital aponeurosis runs medially. The septum between the two bellies is reconstructed: position is approximate."
       },
       "o": {
         "it": "Apice del processo coracoideo, con tendine comune al coracobrachiale.",
-        "en": ""
+        "en": "Tip of the coracoid process, with a tendon shared with the coracobrachialis."
       },
       "ins": {
         "it": "Tuberosità radiale, con il tendine distale comune (parte distale dell’impronta); lacerto fibroso verso la fascia antibrachiale.",
-        "en": ""
+        "en": "Radial tuberosity, through the common distal tendon (distal part of the footprint); bicipital aponeurosis to the antebrachial fascia."
       },
       "fn": {
         "it": "Flette il gomito e supina l’avambraccio; coadiuva flessione e adduzione della spalla.",
-        "en": ""
+        "en": "Flexes the elbow and supinates the forearm; assists shoulder flexion and adduction."
       }
     },
     "brach": {
       "name": {
         "it": "Brachiale",
-        "en": ""
+        "en": "Brachialis"
       },
       "info": {
         "it": "In profondità al bicipite: forma il pavimento della fossa cubitale e copre la capsula anteriore. Innervato dal muscolocutaneo, con un contributo del radiale alla porzione laterale. Dopo traumi del gomito è una sede tipica di miosite ossificante.",
-        "en": ""
+        "en": "Deep to the biceps: forms the floor of the cubital fossa and covers the anterior capsule. Innervated by the musculocutaneous nerve, with a radial nerve contribution to the lateral portion. After elbow trauma it is a typical site of myositis ossificans."
       },
       "o": {
         "it": "Metà distale della faccia anteriore dell’omero e setti intermuscolari, soprattutto il mediale.",
-        "en": ""
+        "en": "Distal half of the anterior surface of the humerus and intermuscular septa, mainly the medial one."
       },
       "ins": {
         "it": "Tuberosità ulnare e faccia anteriore del processo coronoideo.",
-        "en": ""
+        "en": "Ulnar tuberosity and anterior surface of the coronoid process."
       },
       "fn": {
         "it": "Principale flessore del gomito in ogni posizione dell’avambraccio; inserito sull’ulna, non agisce sulla prono-supinazione.",
-        "en": ""
+        "en": "Main elbow flexor in every forearm position; inserting on the ulna, it has no role in pronation and supination."
       }
     },
     "tri_lungo": {
       "name": {
         "it": "Tricipite – capo lungo",
-        "en": ""
+        "en": "Triceps, long head"
       },
       "info": {
         "it": "Con gli altri capi forma il tendine distale sull’olecrano. La rottura del tendine distale è rara e spesso si associa a un piccolo frammento osseo avulso (flake sign).",
-        "en": ""
+        "en": "With the other heads it forms the distal tendon on the olecranon. Distal tendon rupture is rare and is often associated with a small avulsed bone fragment (flake sign)."
       },
       "o": {
         "it": "Tubercolo sottoglenoideo della scapola.",
-        "en": ""
+        "en": "Infraglenoid tubercle of the scapula."
       },
       "ins": {
         "it": "Olecrano (faccia superiore e posteriore), con il tendine comune; espansione alla fascia antibrachiale.",
-        "en": ""
+        "en": "Olecranon (superior and posterior surfaces), through the common tendon; expansion to the antebrachial fascia."
       },
       "fn": {
         "it": "Estende il gomito; estende e adduce la spalla (biarticolare).",
-        "en": ""
+        "en": "Extends the elbow; extends and adducts the shoulder (biarticular)."
       }
     },
     "tri_lat": {
       "name": {
         "it": "Tricipite – capo laterale",
-        "en": ""
+        "en": "Triceps, lateral head"
       },
       "info": {
         "it": "Superficiale, converge nel tendine olecranico; copre il nervo radiale e l’arteria profonda del braccio nel solco radiale.",
-        "en": ""
+        "en": "Superficial, converges into the olecranon tendon; covers the radial nerve and the deep artery of arm in the radial groove."
       },
       "o": {
         "it": "Faccia posteriore dell’omero, sopra il solco del nervo radiale.",
-        "en": ""
+        "en": "Posterior surface of the humerus, above the radial groove."
       },
       "ins": {
         "it": "Olecrano, con il tendine comune; espansione laterale alla fascia antibrachiale.",
-        "en": ""
+        "en": "Olecranon, through the common tendon; lateral expansion to the antebrachial fascia."
       },
       "fn": {
         "it": "Estende il gomito, soprattutto contro resistenza.",
-        "en": ""
+        "en": "Extends the elbow, especially against resistance."
       }
     },
     "tri_med": {
       "name": {
         "it": "Tricipite – capo mediale",
-        "en": ""
+        "en": "Triceps, medial head"
       },
       "info": {
         "it": "Profondo, coperto dai capi lungo e laterale. Le fibre più profonde si inseriscono sulla capsula posteriore e la sollevano in estensione. Lo scatto del suo margine sopra l’epicondilo mediale (snapping triceps) può accompagnare la lussazione del nervo ulnare.",
-        "en": ""
+        "en": "Deep, covered by the long and lateral heads. Its deepest fibers insert on the posterior capsule and pull it up during extension. Snapping of its margin over the medial epicondyle (snapping triceps) can accompany ulnar nerve dislocation."
       },
       "o": {
         "it": "Faccia posteriore dell’omero sotto il solco del nervo radiale e setti intermuscolari mediale e laterale.",
-        "en": ""
+        "en": "Posterior surface of the humerus below the radial groove, and medial and lateral intermuscular septa."
       },
       "ins": {
         "it": "Olecrano, con il tendine comune; capsula posteriore.",
-        "en": ""
+        "en": "Olecranon, through the common tendon; posterior capsule."
       },
       "fn": {
         "it": "Estende il gomito: è il capo attivo in ogni estensione, anche senza resistenza.",
-        "en": ""
+        "en": "Extends the elbow: it is the head active in every extension, even without resistance."
       }
     },
     "pt": {
       "name": {
         "it": "Pronatore rotondo",
-        "en": ""
+        "en": "Pronator teres"
       },
       "info": {
         "it": "Margine mediale della fossa cubitale. Il nervo mediano passa tra i due capi (sindrome del pronatore); l’arteria ulnare passa in profondità al capo ulnare.",
-        "en": ""
+        "en": "Medial border of the cubital fossa. The median nerve passes between its two heads (pronator syndrome); the ulnar artery passes deep to the ulnar head."
       },
       "o": {
         "it": "Capo omerale: epicondilo mediale (origine tendinea comune) e cresta sopracondiloidea mediale. Capo ulnare: margine mediale del processo coronoideo.",
-        "en": ""
+        "en": "Humeral head: medial epicondyle (common flexor origin) and medial supracondylar ridge. Ulnar head: medial margin of the coronoid process."
       },
       "ins": {
         "it": "Faccia laterale del radio a metà diafisi (tuberosità del pronatore).",
-        "en": ""
+        "en": "Lateral surface of the radius at mid-shaft (pronator tuberosity)."
       },
       "fn": {
         "it": "Prona l’avambraccio; coadiuva la flessione del gomito.",
-        "en": ""
+        "en": "Pronates the forearm; assists elbow flexion."
       }
     },
     "fcr": {
       "name": {
         "it": "Flessore radiale del carpo (FCR)",
-        "en": ""
+        "en": "Flexor carpi radialis (FCR)"
       },
       "info": {
         "it": "Tra pronatore rotondo (lateralmente) e palmare lungo. L’origine tendinea comune è la sede dell’epicondilite mediale, meno frequente della laterale; il fascio anteriore del collaterale ulnare decorre subito in profondità. Al polso scorre nel proprio tunnel accanto al trapezio.",
-        "en": ""
+        "en": "Between the pronator teres (laterally) and the palmaris longus. The common flexor origin is the site of medial epicondylitis, less frequent than lateral; the anterior bundle of the ulnar collateral ligament runs directly deep to it. At the wrist it runs in its own tunnel next to the trapezium."
       },
       "o": {
         "it": "Epicondilo mediale dell’omero (tendine comune dei flessori).",
-        "en": ""
+        "en": "Medial epicondyle of the humerus (common flexor tendon)."
       },
       "ins": {
         "it": "Base del II metacarpo (faccia volare).",
-        "en": ""
+        "en": "Base of the 2nd metacarpal (palmar surface)."
       },
       "fn": {
         "it": "Flette il polso e lo abduce (deviazione radiale).",
-        "en": ""
+        "en": "Flexes and abducts the wrist (radial deviation)."
       }
     },
     "pl": {
       "name": {
         "it": "Palmare lungo",
-        "en": ""
+        "en": "Palmaris longus"
       },
       "info": {
         "it": "Ventre breve e tendine lungo verso l’aponeurosi palmare. Assente in circa il 15% dei soggetti; usato come innesto tendineo, per esempio nella ricostruzione del collaterale ulnare dei lanciatori.",
-        "en": ""
+        "en": "Short belly and long tendon to the palmar aponeurosis. Absent in about 15% of people; used as a tendon graft, for example in ulnar collateral ligament reconstruction in throwers."
       },
       "o": {
         "it": "Epicondilo mediale dell’omero (tendine comune dei flessori).",
-        "en": ""
+        "en": "Medial epicondyle of the humerus (common flexor tendon)."
       },
       "ins": {
         "it": "Faccia superficiale del retinacolo dei flessori e aponeurosi palmare.",
-        "en": ""
+        "en": "Superficial surface of the flexor retinaculum and palmar aponeurosis."
       },
       "fn": {
         "it": "Flette il polso e tende l’aponeurosi palmare.",
-        "en": ""
+        "en": "Flexes the wrist and tenses the palmar aponeurosis."
       }
     },
     "fds": {
       "name": {
         "it": "Flessore superficiale delle dita (FDS)",
-        "en": ""
+        "en": "Flexor digitorum superficialis (FDS)"
       },
       "info": {
         "it": "I due capi sono uniti da un’arcata fibrosa sotto cui passano nervo mediano e arteria ulnare: possibile sede di compressione del mediano, che poi scende aderente alla faccia profonda del muscolo.",
-        "en": ""
+        "en": "Its two heads are joined by a fibrous arch under which the median nerve and the ulnar artery pass: a possible site of median nerve compression; the nerve then descends adherent to the deep surface of the muscle."
       },
       "o": {
         "it": "Capo omero-ulnare: epicondilo mediale (tendine comune), collaterale ulnare e processo coronoideo. Capo radiale: linea obliqua e margine anteriore del radio.",
-        "en": ""
+        "en": "Humeroulnar head: medial epicondyle (common tendon), ulnar collateral ligament and coronoid process. Radial head: oblique line and anterior border of the radius."
       },
       "ins": {
         "it": "Ai lati della falange intermedia del II–V dito (chiasma di Camper).",
-        "en": ""
+        "en": "Sides of the middle phalanx of the 2nd–5th fingers (Camper chiasm)."
       },
       "fn": {
         "it": "Flette le IFP e, secondariamente, MCF e polso.",
-        "en": ""
+        "en": "Flexes the PIP joints and, secondarily, the MCP joints and the wrist."
       }
     },
     "fdp": {
       "name": {
         "it": "Flessore profondo delle dita (FDP)",
-        "en": ""
+        "en": "Flexor digitorum profundus (FDP)"
       },
       "info": {
         "it": "Strato profondo, sotto il FDS. Doppia innervazione: porzione mediale (IV–V dito) dall’ulnare, laterale (II–III) dall’interosseo anteriore (mediano).",
-        "en": ""
+        "en": "Deep layer, under the FDS. Dual innervation: medial portion (4th–5th fingers) from the ulnar nerve, lateral portion (2nd–3rd) from the anterior interosseous nerve (median)."
       },
       "o": {
         "it": "Faccia anteriore e mediale dei tre quarti prossimali dell’ulna, faccia mediale del coronoide e membrana interossea.",
-        "en": ""
+        "en": "Anterior and medial surfaces of the proximal three quarters of the ulna, medial surface of the coronoid and interosseous membrane."
       },
       "ins": {
         "it": "Base volare della falange distale del II–V dito.",
-        "en": ""
+        "en": "Palmar base of the distal phalanx of the 2nd–5th fingers."
       },
       "fn": {
         "it": "Flette le IFD e, secondariamente, IFP, MCF e polso.",
-        "en": ""
+        "en": "Flexes the DIP joints and, secondarily, the PIP and MCP joints and the wrist."
       }
     },
     "fcu": {
       "name": {
         "it": "Flessore ulnare del carpo (FCU)",
-        "en": ""
+        "en": "Flexor carpi ulnaris (FCU)"
       },
       "info": {
         "it": "Il più mediale dei flessori superficiali. I due capi sono uniti dall’aponeurosi di Osborne: il nervo ulnare entra nell’avambraccio passando tra di essi e resta profondo, sopra il FDP. Il ventre segue il lato mediale e postero-mediale dell’ulna, all’altezza del bordo posteriore sottocutaneo (non dietro l’olecrano).",
-        "en": ""
+        "en": "The most medial of the superficial flexors. Its two heads are joined by the Osborne aponeurosis: the ulnar nerve enters the forearm passing between them and stays deep, on the FDP. The belly follows the medial and posteromedial side of the ulna, at the level of the subcutaneous posterior border (not behind the olecranon)."
       },
       "o": {
         "it": "Capo omerale: epicondilo mediale (tendine comune). Capo ulnare: margine mediale dell’olecrano e, con un’aponeurosi, due terzi prossimali del margine posteriore dell’ulna.",
-        "en": ""
+        "en": "Humeral head: medial epicondyle (common tendon). Ulnar head: medial margin of the olecranon and, through an aponeurosis, proximal two thirds of the posterior border of the ulna."
       },
       "ins": {
         "it": "Pisiforme e, tramite i legamenti piso-uncinato e piso-metacarpale, uncinato e base del V metacarpo.",
-        "en": ""
+        "en": "Pisiform and, through the pisohamate and pisometacarpal ligaments, hamate and base of the 5th metacarpal."
       },
       "fn": {
         "it": "Flette il polso e lo adduce (deviazione ulnare).",
-        "en": ""
+        "en": "Flexes and adducts the wrist (ulnar deviation)."
       }
     },
     "br": {
       "name": {
         "it": "Brachioradiale",
-        "en": ""
+        "en": "Brachioradialis"
       },
       "info": {
         "it": "Margine laterale della fossa cubitale. Il nervo radiale decorre nel solco tra brachioradiale e brachiale; il ramo superficiale scende sotto il suo ventre. Flessore del gomito pur essendo innervato dal radiale; con ECRL ed ECRB forma la \"mobile wad\" (massa mobile di Henry).",
-        "en": ""
+        "en": "Lateral border of the cubital fossa. The radial nerve runs in the groove between the brachioradialis and the brachialis; the superficial branch descends under its belly. An elbow flexor even though it is innervated by the radial nerve; with the ECRL and ECRB it forms the mobile wad (of Henry)."
       },
       "o": {
         "it": "Due terzi prossimali della cresta sopracondiloidea laterale dell’omero e setto intermuscolare laterale.",
-        "en": ""
+        "en": "Proximal two thirds of the lateral supracondylar ridge of the humerus and lateral intermuscular septum."
       },
       "ins": {
         "it": "Base dello stiloide radiale.",
-        "en": ""
+        "en": "Base of the radial styloid process."
       },
       "fn": {
         "it": "Flette il gomito, soprattutto in semipronazione; riporta l’avambraccio in posizione intermedia.",
-        "en": ""
+        "en": "Flexes the elbow, especially in midpronation; brings the forearm back to the neutral position."
       }
     },
     "ecrl": {
       "name": {
         "it": "Estensore radiale lungo del carpo (ECRL)",
-        "en": ""
+        "en": "Extensor carpi radialis longus (ECRL)"
       },
       "info": {
         "it": "Subito sotto il brachioradiale. Al polso scorre nel II compartimento.",
-        "en": ""
+        "en": "Directly under the brachioradialis. At the wrist it runs in the 2nd compartment."
       },
       "o": {
         "it": "Terzo distale della cresta sopracondiloidea laterale dell’omero e setto intermuscolare laterale.",
-        "en": ""
+        "en": "Distal third of the lateral supracondylar ridge of the humerus and lateral intermuscular septum."
       },
       "ins": {
         "it": "Base del II metacarpo (faccia dorsale).",
-        "en": ""
+        "en": "Base of the 2nd metacarpal (dorsal surface)."
       },
       "fn": {
         "it": "Estende il polso e lo abduce (deviazione radiale); coadiuva la flessione del gomito.",
-        "en": ""
+        "en": "Extends and abducts the wrist (radial deviation); assists elbow flexion."
       }
     },
     "ecrb": {
       "name": {
         "it": "Estensore radiale breve del carpo (ECRB)",
-        "en": ""
+        "en": "Extensor carpi radialis brevis (ECRB)"
       },
       "info": {
         "it": "La sua origine profonda è la sede principale dell’epicondilite laterale: in ecografia tendine ispessito e ipoecogeno, con eventuali calcificazioni, iperemia al Doppler e rotture parziali. Il suo margine tendineo prossimale può comprimere il nervo interosseo posteriore.",
-        "en": ""
+        "en": "Its deep origin is the main site of lateral epicondylitis: on ultrasound a thickened, hypoechoic tendon, sometimes with calcifications, Doppler hyperemia and partial tears. Its proximal tendinous margin can compress the posterior interosseous nerve."
       },
       "o": {
         "it": "Epicondilo laterale dell’omero (tendine comune degli estensori) e collaterale radiale.",
-        "en": ""
+        "en": "Lateral epicondyle of the humerus (common extensor tendon) and radial collateral ligament."
       },
       "ins": {
         "it": "Base del III metacarpo (faccia dorsale).",
-        "en": ""
+        "en": "Base of the 3rd metacarpal (dorsal surface)."
       },
       "fn": {
         "it": "Estende il polso.",
-        "en": ""
+        "en": "Extends the wrist."
       }
     },
     "edc": {
       "name": {
         "it": "Estensore delle dita (EDC)",
-        "en": ""
+        "en": "Extensor digitorum (EDC)"
       },
       "info": {
         "it": "Superficiale al supinatore e al nervo interosseo posteriore. Al polso scorre nel IV compartimento con l’EIP.",
-        "en": ""
+        "en": "Superficial to the supinator and the posterior interosseous nerve. At the wrist it runs in the 4th compartment with the EIP."
       },
       "o": {
         "it": "Epicondilo laterale dell’omero (tendine comune degli estensori).",
-        "en": ""
+        "en": "Lateral epicondyle of the humerus (common extensor tendon)."
       },
       "ins": {
         "it": "Apparato estensore del II–V dito (falangi intermedia e distale).",
-        "en": ""
+        "en": "Extensor apparatus of the 2nd–5th fingers (middle and distal phalanges)."
       },
       "fn": {
         "it": "Estende le dita e il polso.",
-        "en": ""
+        "en": "Extends the fingers and the wrist."
       }
     },
     "ecu": {
       "name": {
         "it": "Estensore ulnare del carpo (ECU)",
-        "en": ""
+        "en": "Extensor carpi ulnaris (ECU)"
       },
       "info": {
         "it": "Il più mediale degli estensori superficiali. Al polso scorre nel VI compartimento, nel solco dell’ulna.",
-        "en": ""
+        "en": "The most medial of the superficial extensors. At the wrist it runs in the 6th compartment, in the groove of the ulna."
       },
       "o": {
         "it": "Capo omerale: epicondilo laterale (tendine comune degli estensori). Capo ulnare: margine posteriore dell’ulna, con un’aponeurosi comune a FCU e FDP.",
-        "en": ""
+        "en": "Humeral head: lateral epicondyle (common extensor tendon). Ulnar head: posterior border of the ulna, through an aponeurosis shared with the FCU and FDP."
       },
       "ins": {
         "it": "Base del V metacarpo (lato ulnare).",
-        "en": ""
+        "en": "Base of the 5th metacarpal (ulnar side)."
       },
       "fn": {
         "it": "Estende il polso e lo adduce (deviazione ulnare).",
-        "en": ""
+        "en": "Extends and adducts the wrist (ulnar deviation)."
       }
     },
     "sup": {
       "name": {
         "it": "Supinatore",
-        "en": ""
+        "en": "Supinator"
       },
       "info": {
         "it": "Due strati avvolgono il collo del radio: il nervo interosseo posteriore passa tra i due. Il margine prossimale dello strato superficiale forma l’arcata di Frohse, sede principale della sindrome del NIP e del tunnel radiale.",
-        "en": ""
+        "en": "Two layers wrap around the radial neck, with the posterior interosseous nerve passing between them. The proximal margin of the superficial layer forms the arcade of Frohse, the main site of PIN syndrome and radial tunnel syndrome."
       },
       "o": {
         "it": "Epicondilo laterale, collaterale radiale, legamento anulare, cresta e fossa del supinatore dell’ulna.",
-        "en": ""
+        "en": "Lateral epicondyle, radial collateral ligament, annular ligament, supinator crest and fossa of the ulna."
       },
       "ins": {
         "it": "Facce laterale, anteriore e posteriore del terzo prossimale del radio, tra tuberosità radiale e inserzione del pronatore rotondo.",
-        "en": ""
+        "en": "Lateral, anterior and posterior surfaces of the proximal third of the radius, between the radial tuberosity and the pronator teres insertion."
       },
       "fn": {
         "it": "Supina l’avambraccio: da solo nei movimenti lenti e a gomito esteso, con il bicipite contro resistenza.",
-        "en": ""
+        "en": "Supinates the forearm: alone in slow movements and with the elbow extended, with the biceps against resistance."
       }
     },
     "anc": {
       "name": {
         "it": "Anconeo",
-        "en": ""
+        "en": "Anconeus"
       },
       "info": {
         "it": "Copre la capsula postero-laterale e il legamento anulare. Repere della via d’accesso laterale di Kocher (tra anconeo ed ECU). Da non confondere con l’anconeo epitrocleare, muscolo accessorio mediale che può comprimere il nervo ulnare nel tunnel cubitale.",
-        "en": ""
+        "en": "Covers the posterolateral capsule and the annular ligament. Landmark of the Kocher lateral approach (between the anconeus and the ECU). Not to be confused with the anconeus epitrochlearis, a medial accessory muscle that can compress the ulnar nerve in the cubital tunnel."
       },
       "o": {
         "it": "Faccia posteriore dell’epicondilo laterale, con un breve tendine.",
-        "en": ""
+        "en": "Posterior surface of the lateral epicondyle, through a short tendon."
       },
       "ins": {
         "it": "Faccia laterale dell’olecrano e quarto prossimale della faccia posteriore dell’ulna.",
-        "en": ""
+        "en": "Lateral surface of the olecranon and proximal quarter of the posterior surface of the ulna."
       },
       "fn": {
         "it": "Coadiuva il tricipite nell’estensione; tende la capsula e stabilizza dinamicamente il versante postero-laterale.",
-        "en": ""
+        "en": "Assists the triceps in extension; tenses the capsule and dynamically stabilizes the posterolateral side."
       }
     },
     "a_brachiale": {
       "name": {
         "it": "Arteria brachiale",
-        "en": ""
+        "en": "Brachial artery"
       },
       "info": {
         "it": "Nel solco bicipitale mediale, lateralmente al nervo mediano; al gomito medialmente al tendine del bicipite, sotto il lacerto fibroso. Si divide in radiale e ulnare poco sotto la piega del gomito, a livello del collo del radio. Calibro circa 4 mm. A rischio nelle fratture sovracondiloidee in estensione del bambino.",
-        "en": ""
+        "en": "In the medial bicipital groove, lateral to the median nerve; at the elbow, medial to the biceps tendon, under the bicipital aponeurosis. It divides into the radial and ulnar arteries just below the elbow crease, at the level of the radial neck. Caliber about 4 mm. At risk in extension-type supracondylar fractures in children."
       }
     },
     "a_radiale": {
       "name": {
         "it": "Arteria radiale",
-        "en": ""
+        "en": "Radial artery"
       },
       "info": {
         "it": "Ramo laterale della biforcazione: scende obliqua davanti al tendine del bicipite, al supinatore e al pronatore rotondo, sotto il margine mediale del brachioradiale. Calibro circa 2,5–3 mm; poco sotto l’origine dà la ricorrente radiale.",
-        "en": ""
+        "en": "Lateral branch of the bifurcation: descends obliquely in front of the biceps tendon, the supinator and the pronator teres, under the medial margin of the brachioradialis. Caliber about 2.5–3 mm; just below its origin it gives off the radial recurrent artery."
       }
     },
     "a_ulnare": {
       "name": {
         "it": "Arteria ulnare",
-        "en": ""
+        "en": "Ulnar artery"
       },
       "info": {
         "it": "Passa in profondità al capo ulnare del pronatore rotondo e sotto l’arcata del FDS; distalmente si affianca al nervo ulnare sotto il FCU. È il ramo più voluminoso della biforcazione (circa 3 mm) e dà origine all’arteria interossea comune e alle ricorrenti ulnari.",
-        "en": ""
+        "en": "Passes deep to the ulnar head of the pronator teres and under the FDS arch; distally it joins the ulnar nerve under the FCU. It is the larger branch of the bifurcation (about 3 mm) and gives rise to the common interosseous artery and the ulnar recurrent arteries."
       }
     },
     "v_cefalica": {
       "name": {
         "it": "Vena cefalica",
-        "en": ""
+        "en": "Cephalic vein"
       },
       "info": {
         "it": "Superficiale: sul margine laterale dell’avambraccio e, sopra il gomito, nel solco bicipitale laterale; sale lungo il braccio fino alla vena ascellare. Sotto la piega del gomito riceve la mediana cefalica e cede una quota alla mediana del gomito. Il nervo cutaneo laterale dell’avambraccio le corre accanto, medialmente e nello stesso piano (a contatto fino a circa 7 cm sotto la piega): a rischio nelle venipunture laterali.",
-        "en": ""
+        "en": "Superficial: along the lateral border of the forearm and, above the elbow, in the lateral bicipital groove; it ascends the arm to the axillary vein. Below the elbow crease it receives the median cephalic vein and sends a share of its flow into the median cubital vein. The lateral cutaneous nerve of forearm runs beside it, medially and in the same plane (in contact for up to about 7 cm below the crease): at risk during lateral venipuncture."
       }
     },
     "v_basilica": {
       "name": {
         "it": "Vena basilica",
-        "en": ""
+        "en": "Basilic vein"
       },
       "info": {
         "it": "Superficiale sul versante mediale: sale davanti all’epicondilo mediale con i rami del nervo cutaneo mediale dell’avambraccio, riceve la mediana basilica e la mediana del gomito, e a circa metà braccio perfora la fascia profonda per proseguire medialmente all’arteria brachiale. Di norma è la più voluminosa delle vene superficiali del gomito.",
-        "en": ""
+        "en": "Superficial, on the medial side: it ascends in front of the medial epicondyle with the branches of the medial cutaneous nerve of forearm, receives the median basilic and median cubital veins, and at about mid-arm pierces the deep fascia to continue medial to the brachial artery. It is usually the largest superficial vein of the elbow."
       }
     },
     "v_mediana_cub": {
       "name": {
         "it": "Vena mediana del gomito",
-        "en": ""
+        "en": "Median cubital vein"
       },
       "info": {
         "it": "Anastomosi obliqua tra cefalica e basilica davanti alla fossa cubitale, superficiale al lacerto fibroso che la separa da arteria brachiale e nervo mediano: sede abituale del prelievo venoso. Disposizione e calibro delle vie di collegamento (mediana del gomito, mediana cefalica, mediana basilica) variano molto da soggetto a soggetto; nel modello sono rappresentate insieme.",
-        "en": ""
+        "en": "Oblique anastomosis between the cephalic and basilic veins in front of the cubital fossa, superficial to the bicipital aponeurosis, which separates it from the brachial artery and median nerve: the usual site for venous blood sampling. The arrangement and caliber of the connecting veins (median cubital, median cephalic, median basilic) vary greatly between individuals; in the model they are shown together."
       }
     },
     "v_mediana_cefalica": {
       "name": {
         "it": "Vena mediana cefalica",
-        "en": ""
+        "en": "Median cephalic vein"
       },
       "info": {
         "it": "Ramo laterale della biforcazione della vena mediana dell’avambraccio (pattern a M): sale obliquamente verso il lato laterale, superficiale ai muscoli epicondiloidei laterali, e sfocia nella cefalica sotto la piega del gomito. Scavalca il nervo cutaneo laterale dell’avambraccio, che le passa sotto.",
-        "en": ""
+        "en": "Lateral branch of the bifurcation of the median antebrachial vein (M pattern): it ascends obliquely toward the lateral side, superficial to the lateral epicondylar muscles, and drains into the cephalic vein below the elbow crease. It crosses over the lateral cutaneous nerve of forearm, which passes beneath it."
       }
     },
     "v_mediana_basilica": {
       "name": {
         "it": "Vena mediana basilica",
-        "en": ""
+        "en": "Median basilic vein"
       },
       "info": {
         "it": "Ramo mediale della biforcazione della vena mediana dell’avambraccio (pattern a M): sale obliquamente sopra il lacerto fibroso, che la separa dall’arteria brachiale, e sfocia nella basilica. Accanto passano i rami del nervo cutaneo mediale dell’avambraccio, a rischio nelle venipunture mediali.",
-        "en": ""
+        "en": "Medial branch of the bifurcation of the median antebrachial vein (M pattern): it ascends obliquely over the bicipital aponeurosis, which separates it from the brachial artery, and drains into the basilic vein. The branches of the medial cutaneous nerve of forearm run alongside it and are at risk during medial venipuncture."
       }
     },
     "n_ulnare": {
       "name": {
         "it": "Nervo ulnare",
-        "en": ""
+        "en": "Ulnar nerve"
       },
       "info": {
         "it": "Nervo misto. Dietro il setto intermuscolare mediale, poi nel tunnel cubitale dietro l’epicondilo mediale, sotto il legamento di Osborne, e tra i capi del FCU. Nel braccio non dà rami; motorio per FCU, metà ulnare del FDP e gran parte degli intrinseci della mano; sensitivo per il margine ulnare della mano, il mignolo e metà dell’anulare. Il tunnel cubitale è la seconda sede di neuropatia compressiva dell’arto superiore: in ecografia si misura l’area di sezione all’epicondilo (oltre circa 10 mm² in genere patologica, con cut-off variabili tra gli studi) e si valuta la stabilità in flessione.",
-        "en": ""
+        "en": "Mixed nerve. Behind the medial intermuscular septum, then in the cubital tunnel behind the medial epicondyle, under the Osborne ligament, and between the heads of the FCU. It gives no branches in the arm; motor to the FCU, the ulnar half of the FDP and most intrinsic hand muscles; sensory to the ulnar border of the hand, the little finger and half of the ring finger. The cubital tunnel is the second most common site of compressive neuropathy in the upper limb: on ultrasound the cross-sectional area is measured at the epicondyle (above about 10 mm² is generally abnormal, with cutoffs varying between studies) and stability is assessed in flexion."
       }
     },
     "n_mediano": {
       "name": {
         "it": "Nervo mediano",
-        "en": ""
+        "en": "Median nerve"
       },
       "info": {
         "it": "Nervo misto. Medialmente all’arteria brachiale; al gomito sotto il lacerto fibroso, poi tra i capi del pronatore rotondo e sotto l’arcata del FDS. Nel braccio non dà rami; motorio per flessori e pronatori dell’avambraccio (esclusi FCU e metà ulnare del FDP), in parte tramite il NIA, per i tenari superficiali e i lombricali I–II; sensitivo per la faccia palmare di pollice, indice, medio e metà radiale dell’anulare. Siti di compressione: legamento di Struthers (se c’è un processo sovracondiloideo), lacerto fibroso, pronatore rotondo, arcata del FDS.",
-        "en": ""
+        "en": "Mixed nerve. Medial to the brachial artery; at the elbow, under the bicipital aponeurosis, then between the heads of the pronator teres and under the FDS arch. It gives no branches in the arm; motor to the forearm flexors and pronators (except the FCU and the ulnar half of the FDP), partly through the AIN, and to the superficial thenar muscles and the 1st–2nd lumbricals; sensory to the palmar surface of the thumb, index, middle and radial half of the ring finger. Compression sites: ligament of Struthers (when a supracondylar process is present), bicipital aponeurosis, pronator teres, FDS arch."
       }
     },
     "n_radiale": {
       "name": {
         "it": "Nervo radiale",
-        "en": ""
+        "en": "Radial nerve"
       },
       "info": {
         "it": "Nervo misto. Perfora il setto intermuscolare laterale e scende tra brachiale e brachioradiale, davanti all’epicondilo laterale; prima della divisione innerva tricipite e anconeo (nel braccio), brachioradiale ed ECRL. Circa a livello della rima omero-radiale si divide in ramo superficiale (sensitivo) e nervo interosseo posteriore (motorio).",
-        "en": ""
+        "en": "Mixed nerve. It pierces the lateral intermuscular septum and descends between the brachialis and the brachioradialis, in front of the lateral epicondyle; before dividing it supplies the triceps and anconeus (in the arm), the brachioradialis and the ECRL. At about the level of the humeroradial joint line it divides into the superficial branch (sensory) and the posterior interosseous nerve (motor)."
       }
     },
     "n_rad_sup": {
       "name": {
         "it": "Ramo superficiale del nervo radiale",
-        "en": ""
+        "en": "Superficial branch of radial nerve"
       },
       "info": {
         "it": "Sensitivo: dorso radiale della mano, del pollice e della parte prossimale di indice e medio. Scende sotto il brachioradiale, lateralmente all’arteria radiale, ed emerge nel terzo distale dell’avambraccio (sindrome di Wartenberg).",
-        "en": ""
+        "en": "Sensory: radial dorsum of the hand, the thumb and the proximal part of the index and middle fingers. It descends under the brachioradialis, lateral to the radial artery, and emerges in the distal third of the forearm (Wartenberg syndrome)."
       }
     },
     "n_pin": {
       "name": {
         "it": "Nervo interosseo posteriore (NIP)",
-        "en": ""
+        "en": "Posterior interosseous nerve (PIN)"
       },
       "info": {
         "it": "Motorio per supinatore ed estensori della loggia posteriore (EDC, EDM, ECU, APL, EPL, EPB, EIP; spesso anche ECRB); nessun territorio cutaneo. Entra nel supinatore sotto l’arcata di Frohse, avvolge lateralmente il collo del radio e riemerge dorsalmente tra gli estensori. Sindrome del NIP: deficit di estensione delle dita senza deficit sensitivo, con polso esteso in deviazione radiale (ECRL risparmiato); sindrome del tunnel radiale: dolore laterale senza deficit motorio.",
-        "en": ""
+        "en": "Motor to the supinator and the extensors of the posterior compartment (EDC, EDM, ECU, APL, EPL, EPB, EIP; often also the ECRB); no cutaneous territory. It enters the supinator under the arcade of Frohse, winds laterally around the radial neck and re-emerges dorsally among the extensors. PIN syndrome: weak finger extension without sensory loss, with the wrist extending in radial deviation (ECRL spared); radial tunnel syndrome: lateral pain without motor weakness."
       }
     },
     "n_cut_lat": {
       "name": {
         "it": "Nervo muscolocutaneo e cutaneo laterale dell’avambraccio (rami anteriore e posteriore)",
-        "en": ""
+        "en": "Musculocutaneous nerve and lateral cutaneous nerve of forearm (anterior and posterior branches)"
       },
       "info": {
         "it": "Il muscolocutaneo (misto) scende tra bicipite e brachiale, che innerva, ed emerge lateralmente al tendine del bicipite come nervo cutaneo laterale dell’avambraccio, sensitivo per la faccia laterale dell’avambraccio. Nel sottocute passa sotto la vena mediana del gomito e corre mediale alla cefalica, a contatto con lei nel primo tratto dell’avambraccio. Si divide in ramo anteriore (volare), verso l’arteria radiale, e ramo posteriore (dorsale), che passa sotto la cefalica; la quota della biforcazione varia molto. A rischio nella reinserzione chirurgica del bicipite e nelle venipunture laterali.",
-        "en": ""
+        "en": "The musculocutaneous nerve (mixed) descends between the biceps and the brachialis, which it supplies, and emerges lateral to the biceps tendon as the lateral cutaneous nerve of forearm, sensory to the lateral surface of the forearm. In the subcutaneous tissue it passes under the median cubital vein and runs medial to the cephalic vein, in contact with it in the first part of the forearm. It divides into an anterior (palmar) branch, toward the radial artery, and a posterior (dorsal) branch, which passes under the cephalic vein; the level of the bifurcation varies widely. At risk during surgical reattachment of the biceps and during lateral venipuncture."
       }
     },
     "quadrato": {
       "name": {
         "it": "Legamento quadrato (di Denucé)",
-        "en": ""
+        "en": "Quadrate ligament (Denucé ligament)"
       },
       "info": {
         "it": "Sottile banda fibrosa subito sotto il legamento anulare. Ricostruzione approssimata; in imaging è raramente distinguibile.",
-        "en": ""
+        "en": "Thin fibrous band just below the annular ligament. Approximate reconstruction; rarely distinguishable on imaging."
       },
       "o": {
         "it": "Margine inferiore dell’incisura radiale dell’ulna.",
-        "en": ""
+        "en": "Inferior margin of the radial notch of the ulna."
       },
       "ins": {
         "it": "Faccia mediale del collo del radio.",
-        "en": ""
+        "en": "Medial surface of the radial neck."
       },
       "fn": {
         "it": "Sostiene la capsula e limita l’eccessiva rotazione del radio.",
-        "en": ""
+        "en": "Supports the capsule and limits excessive rotation of the radius."
       }
     },
     "setto_med": {
       "name": {
         "it": "Setto intermuscolare mediale",
-        "en": ""
+        "en": "Medial intermuscular septum"
       },
       "info": {
         "it": "Dalla cresta sopracondiloidea mediale alla fascia profonda: separa il compartimento anteriore (flessori) dal posteriore (tricipite). Il nervo ulnare lo perfora a metà braccio e prosegue dietro di esso (arcata di Struthers, circa 8 cm prossimale all’epicondilo mediale: possibile sito di compressione) fino al tunnel cubitale. In ecografia è un utile repere per ritrovare il nervo. Nascosto di default: attivalo dall’elenco.",
-        "en": ""
+        "en": "From the medial supracondylar ridge to the deep fascia: separates the anterior (flexor) compartment from the posterior (triceps) compartment. The ulnar nerve pierces it at mid-arm and continues behind it (arcade of Struthers, about 8 cm proximal to the medial epicondyle: a possible compression site) down to the cubital tunnel. On ultrasound it is a useful landmark for finding the nerve. Hidden by default: turn it on from the list."
       }
     },
     "setto_lat": {
       "name": {
         "it": "Setto intermuscolare laterale",
-        "en": ""
+        "en": "Lateral intermuscular septum"
       },
       "info": {
         "it": "Dalla cresta sopracondiloidea laterale alla fascia profonda; dà origine a brachioradiale, ECRL, brachiale e tricipite. Il nervo radiale lo perfora nel terzo distale del braccio passando dal compartimento posteriore all’anteriore: qui il nervo è fisso e vulnerabile nelle fratture di diafisi omerale distale (tipo Holstein-Lewis). Nascosto di default.",
-        "en": ""
+        "en": "From the lateral supracondylar ridge to the deep fascia; gives origin to the brachioradialis, ECRL, brachialis and triceps. The radial nerve pierces it in the distal third of the arm, passing from the posterior to the anterior compartment: here the nerve is fixed and vulnerable in distal humeral shaft fractures (Holstein-Lewis type). Hidden by default."
       }
     },
     "linfonodi": {
       "name": {
         "it": "Linfonodi epitrocleari (sovratrocleari)",
-        "en": ""
+        "en": "Epitrochlear (supratrochlear) lymph nodes"
       },
       "info": {
         "it": "Uno o due linfonodi sul versante mediale del braccio, alcuni centimetri sopra l’epicondilo mediale, vicino alla vena basilica; drenano mano e avambraccio ulnare. Si ingrandiscono in infezioni della mano e dell’avambraccio, linfomi e melanoma. Numero e posizione sono variabili: nel modello sono solo indicativi.",
-        "en": ""
+        "en": "One or two lymph nodes on the medial side of the arm, a few centimeters above the medial epicondyle, near the basilic vein; they drain the hand and the ulnar forearm. They enlarge in hand and forearm infections, lymphoma and melanoma. Number and position vary: in the model they are only approximate."
       }
     },
     "fpl": {
       "name": {
         "it": "Flessore lungo del pollice (FPL)",
-        "en": ""
+        "en": "Flexor pollicis longus (FPL)"
       },
       "info": {
         "it": "Strato profondo, lateralmente al FDP: tra i due scende il nervo interosseo anteriore. Un capo accessorio (muscolo di Gantzer), da coronoide o epicondilo mediale, può comprimere il nervo interosseo anteriore. Nella finestra del modello è visibile solo il ventre prossimale (ricostruito sulle ossa reali, forma approssimata); il tendine prosegue nel tunnel carpale.",
-        "en": ""
+        "en": "Deep layer, lateral to the FDP: the anterior interosseous nerve descends between the two. An accessory head (Gantzer muscle), from the coronoid or the medial epicondyle, can compress the anterior interosseous nerve. Within the model window only the proximal belly is visible (reconstructed on the real bones, approximate shape); the tendon continues into the carpal tunnel."
       },
       "o": {
         "it": "Faccia anteriore del radio, da sotto la tuberosità e la linea obliqua fino al pronatore quadrato, e membrana interossea adiacente.",
-        "en": ""
+        "en": "Anterior surface of the radius, from below the tuberosity and the oblique line down to the pronator quadratus, and adjacent interosseous membrane."
       },
       "ins": {
         "it": "Base volare della falange distale del pollice.",
-        "en": ""
+        "en": "Palmar base of the distal phalanx of the thumb."
       },
       "fn": {
         "it": "Flette la IF del pollice e, secondariamente, la MCF.",
-        "en": ""
+        "en": "Flexes the IP joint of the thumb and, secondarily, the MCP joint."
       }
     },
     "edm": {
       "name": {
         "it": "Estensore proprio del mignolo (EDM)",
-        "en": ""
+        "en": "Extensor digiti minimi (EDM)"
       },
       "info": {
         "it": "Ventre sottile e fusato dello strato superficiale, tra EDC (lateralmente) ed ECU (medialmente), spesso unito all’EDC. Innervato dal nervo interosseo posteriore; al polso scorre nel V compartimento.",
-        "en": ""
+        "en": "Thin, fusiform belly of the superficial layer, between the EDC (laterally) and the ECU (medially), often fused with the EDC. Innervated by the posterior interosseous nerve; at the wrist it runs in the 5th compartment."
       },
       "o": {
         "it": "Epicondilo laterale dell’omero (tendine comune degli estensori), con l’EDC.",
-        "en": ""
+        "en": "Lateral epicondyle of the humerus (common extensor tendon), with the EDC."
       },
       "ins": {
         "it": "Apparato estensore del mignolo.",
-        "en": ""
+        "en": "Extensor apparatus of the little finger."
       },
       "fn": {
         "it": "Estende il mignolo.",
-        "en": ""
+        "en": "Extends the little finger."
       }
     },
     "apl": {
       "name": {
         "it": "Abduttore lungo del pollice (APL)",
-        "en": ""
+        "en": "Abductor pollicis longus (APL)"
       },
       "info": {
         "it": "Strato profondo, coperto da EDC ed EDM, con il nervo interosseo posteriore sulla sua superficie. Più in basso emerge tra ECRB ed EDC e incrocia gli estensori radiali (sindrome da intersezione); al polso, con l’estensore breve del pollice, forma il I compartimento (tenosinovite di De Quervain). Nella finestra del modello è presente solo la parte prossimale.",
-        "en": ""
+        "en": "Deep layer, covered by the EDC and EDM, with the posterior interosseous nerve on its surface. Further down it emerges between the ECRB and the EDC and crosses the radial wrist extensors (intersection syndrome); at the wrist, with the extensor pollicis brevis, it forms the 1st compartment (De Quervain tenosynovitis). Only the proximal part is included in the model window."
       },
       "o": {
         "it": "Parte laterale della faccia posteriore dell’ulna sotto l’anconeo, membrana interossea e terzo medio della faccia posteriore del radio, sotto il supinatore.",
-        "en": ""
+        "en": "Lateral part of the posterior surface of the ulna below the anconeus, interosseous membrane and middle third of the posterior surface of the radius, below the supinator."
       },
       "ins": {
         "it": "Base del I metacarpo (lato radiale).",
-        "en": ""
+        "en": "Base of the 1st metacarpal (radial side)."
       },
       "fn": {
         "it": "Abduce ed estende il pollice alla trapezio-metacarpale.",
-        "en": ""
+        "en": "Abducts and extends the thumb at the trapeziometacarpal joint."
       }
     },
     "epl": {
       "name": {
         "it": "Estensore lungo del pollice (EPL)",
-        "en": ""
+        "en": "Extensor pollicis longus (EPL)"
       },
       "info": {
         "it": "Strato profondo, medialmente all’APL. Al polso, nel III compartimento, cambia direzione attorno al tubercolo di Lister: sede tipica di rottura tardiva dopo frattura del radio distale. Nella finestra solo il ventre prossimale.",
-        "en": ""
+        "en": "Deep layer, medial to the APL. At the wrist, in the 3rd compartment, it changes direction around Lister tubercle: a typical site of delayed rupture after distal radius fracture. Only the proximal belly is in the window."
       },
       "o": {
         "it": "Terzo medio della faccia posteriore dell’ulna (parte laterale), sotto l’APL, e membrana interossea.",
-        "en": ""
+        "en": "Middle third of the posterior surface of the ulna (lateral part), below the APL, and interosseous membrane."
       },
       "ins": {
         "it": "Base dorsale della falange distale del pollice.",
-        "en": ""
+        "en": "Dorsal base of the distal phalanx of the thumb."
       },
       "fn": {
         "it": "Estende la IF del pollice; lo adduce e lo retropone.",
-        "en": ""
+        "en": "Extends the IP joint of the thumb; adducts and retropulses it."
       }
     },
     "a_collat_ulnare_sup": {
       "name": {
         "it": "Arteria collaterale ulnare superiore",
-        "en": ""
+        "en": "Superior ulnar collateral artery"
       },
       "info": {
         "it": "Dalla brachiale a metà braccio; accompagna il nervo ulnare dietro il setto intermuscolare mediale fino al tunnel cubitale e si anastomizza con la ricorrente ulnare posteriore (rete articolare del gomito; nel modello le due si incontrano in un punto). Calibro circa 1,5 mm.",
-        "en": ""
+        "en": "Arises from the brachial artery at mid-arm; it accompanies the ulnar nerve behind the medial intermuscular septum down to the cubital tunnel and anastomoses with the posterior ulnar recurrent artery (elbow articular network; in the model the two meet at a point). Caliber about 1.5 mm."
       }
     },
     "a_collat_ulnare_inf": {
       "name": {
         "it": "Arteria collaterale ulnare inferiore",
-        "en": ""
+        "en": "Inferior ulnar collateral artery"
       },
       "info": {
         "it": "Origina dalla brachiale alcuni centimetri sopra l’epicondilo mediale, decorre davanti ad esso e si anastomizza con la ricorrente ulnare anteriore (nel modello si incontrano in un punto). Calibro circa 1,5 mm.",
-        "en": ""
+        "en": "Arises from the brachial artery a few centimeters above the medial epicondyle, runs in front of it and anastomoses with the anterior ulnar recurrent artery (in the model they meet at a point). Caliber about 1.5 mm."
       }
     },
     "a_collat_radiale": {
       "name": {
         "it": "Arteria collaterale radiale",
-        "en": ""
+        "en": "Radial collateral artery"
       },
       "info": {
         "it": "Ramo dell’arteria profonda del braccio: accompagna il nervo radiale nel solco, poi davanti all’epicondilo laterale, e si anastomizza con la ricorrente radiale (nel modello si incontrano in un punto). Calibro circa 1,5–2 mm.",
-        "en": ""
+        "en": "Branch of the deep artery of arm: it accompanies the radial nerve in the groove, then runs in front of the lateral epicondyle and anastomoses with the radial recurrent artery (in the model they meet at a point). Caliber about 1.5–2 mm."
       }
     },
     "a_ricorrente_radiale": {
       "name": {
         "it": "Arteria ricorrente radiale",
-        "en": ""
+        "en": "Radial recurrent artery"
       },
       "info": {
         "it": "Dall’arteria radiale subito dopo l’origine; risale lateralmente tra brachioradiale e brachiale, vicino al nervo radiale, verso l’epicondilo laterale, dove si anastomizza con la collaterale radiale. Calibro circa 1,5–2 mm.",
-        "en": ""
+        "en": "Arises from the radial artery just after its origin; it ascends laterally between the brachioradialis and the brachialis, near the radial nerve, toward the lateral epicondyle, where it anastomoses with the radial collateral artery. Caliber about 1.5–2 mm."
       }
     },
     "a_ricorrente_ulnare_ant": {
       "name": {
         "it": "Arteria ricorrente ulnare – ramo anteriore",
-        "en": ""
+        "en": "Ulnar recurrent artery – anterior branch"
       },
       "info": {
         "it": "Dall’ulnare; risale tra brachiale e pronatore rotondo davanti all’epicondilo mediale, dove si anastomizza con la collaterale ulnare inferiore. Calibro circa 1,2 mm.",
-        "en": ""
+        "en": "Arises from the ulnar artery; it ascends between the brachialis and the pronator teres in front of the medial epicondyle, where it anastomoses with the inferior ulnar collateral artery. Caliber about 1.2 mm."
       }
     },
     "a_ricorrente_ulnare_post": {
       "name": {
         "it": "Arteria ricorrente ulnare – ramo posteriore",
-        "en": ""
+        "en": "Ulnar recurrent artery – posterior branch"
       },
       "info": {
         "it": "Dall’ulnare; passa tra FDS e FDP, poi tra i capi del FCU e risale dietro l’epicondilo mediale con il nervo ulnare e si anastomizza con la collaterale ulnare superiore. Calibro circa 1,5 mm.",
-        "en": ""
+        "en": "Arises from the ulnar artery; it passes between the FDS and FDP, then between the heads of the FCU, ascends behind the medial epicondyle with the ulnar nerve and anastomoses with the superior ulnar collateral artery. Caliber about 1.5 mm."
       }
     },
     "a_interossea_comune": {
       "name": {
         "it": "Arteria interossea comune",
-        "en": ""
+        "en": "Common interosseous artery"
       },
       "info": {
         "it": "Breve tronco dall’arteria ulnare, 1–2 cm sotto l’origine; si divide in interossea anteriore e posteriore al margine prossimale della membrana interossea. Calibro circa 2 mm.",
-        "en": ""
+        "en": "Short trunk from the ulnar artery, 1–2 cm below its origin; it divides into the anterior and posterior interosseous arteries at the proximal margin of the interosseous membrane. Caliber about 2 mm."
       }
     },
     "a_interossea_ant": {
       "name": {
         "it": "Arteria interossea anteriore",
-        "en": ""
+        "en": "Anterior interosseous artery"
       },
       "info": {
         "it": "Scende sulla faccia anteriore della membrana interossea, tra FDP e FPL, con il nervo interosseo anteriore. Calibro circa 1–1,5 mm.",
-        "en": ""
+        "en": "Descends on the anterior surface of the interosseous membrane, between the FDP and FPL, with the anterior interosseous nerve. Caliber about 1–1.5 mm."
       }
     },
     "a_interossea_post": {
       "name": {
         "it": "Arteria interossea posteriore",
-        "en": ""
+        "en": "Posterior interosseous artery"
       },
       "info": {
         "it": "Passa sopra il margine prossimale della membrana interossea nella loggia dorsale e accompagna il nervo interosseo posteriore tra gli strati degli estensori. Calibro circa 1–1,5 mm.",
-        "en": ""
+        "en": "Passes over the proximal margin of the interosseous membrane into the dorsal compartment and accompanies the posterior interosseous nerve between the extensor layers. Caliber about 1–1.5 mm."
       }
     },
     "v_comitante_med": {
       "name": {
         "it": "Vena brachiale mediale (comitante)",
-        "en": ""
+        "en": "Medial brachial vein (vena comitans)"
       },
       "info": {
         "it": "Una delle due vene profonde che accompagnano l’arteria brachiale, unite da anastomosi trasversali; nasce dalla confluenza delle vene comitanti dell’ulnare e prosegue fino alla vena ascellare. In eco-Doppler si vedono ai lati dell’arteria.",
-        "en": ""
+        "en": "One of the two deep veins accompanying the brachial artery, joined by transverse anastomoses; it arises from the confluence of the ulnar venae comitantes and continues up to the axillary vein. On Doppler ultrasound they are seen on either side of the artery."
       }
     },
     "v_comitante_lat": {
       "name": {
         "it": "Vena brachiale laterale (comitante)",
-        "en": ""
+        "en": "Lateral brachial vein (vena comitans)"
       },
       "info": {
         "it": "Seconda vena profonda accanto all’arteria brachiale; nasce dalla confluenza delle vene comitanti della radiale e riceve la vena perforante del gomito.",
-        "en": ""
+        "en": "The second deep vein beside the brachial artery; it arises from the confluence of the radial venae comitantes and receives the perforating vein of the elbow."
       }
     },
     "v_perforante": {
       "name": {
         "it": "Vena perforante del gomito",
-        "en": ""
+        "en": "Perforating vein of the elbow"
       },
       "info": {
         "it": "Mette in comunicazione la vena mediana del gomito con le vene profonde, perforando la fascia accanto al lacerto fibroso; presenza e calibro variabili. È il motivo per cui nel prelievo non bisogna inserire l’ago troppo in profondità (sotto: brachiale e mediano).",
-        "en": ""
+        "en": "Connects the median cubital vein with the deep veins, piercing the fascia next to the bicipital aponeurosis; presence and caliber vary. This is why the needle must not be inserted too deep during venipuncture (underneath lie the brachial artery and the median nerve)."
       }
     },
     "v_mediana_avambraccio": {
       "name": {
         "it": "Vena mediana dell’avambraccio",
-        "en": ""
+        "en": "Median antebrachial vein"
       },
       "info": {
         "it": "Sulla faccia anteriore dell’avambraccio, raccoglie la rete venosa volare; verso la piega del gomito si divide in mediana cefalica e mediana basilica (pattern a M) oppure sfocia nella mediana del gomito (pattern a Y). Anatomia molto variabile.",
-        "en": ""
+        "en": "On the anterior surface of the forearm, it drains the palmar venous network; toward the elbow crease it divides into the median cephalic and median basilic veins (M pattern) or drains into the median cubital vein (Y pattern). Highly variable anatomy."
       }
     },
     "v_comitanti_rad": {
       "name": {
         "it": "Vene comitanti dell’arteria radiale",
-        "en": ""
+        "en": "Radial venae comitantes"
       },
       "info": {
         "it": "Due vene profonde, ai lati dell’arteria radiale e unite da anastomosi trasversali, che accompagnano l’arteria nell’avambraccio; alla biforcazione della brachiale confluiscono nelle vene brachiali (comitanti della brachiale).",
-        "en": ""
+        "en": "Two deep veins on either side of the radial artery, joined by transverse anastomoses, that accompany the artery in the forearm; at the brachial bifurcation they join the brachial veins (venae comitantes of the brachial artery)."
       }
     },
     "v_comitanti_uln": {
       "name": {
         "it": "Vene comitanti dell’arteria ulnare",
-        "en": ""
+        "en": "Ulnar venae comitantes"
       },
       "info": {
         "it": "Due vene profonde ai lati dell’arteria ulnare, sotto il pronatore rotondo e l’arcata del FDS; confluiscono nelle vene brachiali alla biforcazione dell’arteria brachiale.",
-        "en": ""
+        "en": "Two deep veins on either side of the ulnar artery, under the pronator teres and the FDS arch; they join the brachial veins at the bifurcation of the brachial artery."
       }
     },
     "n_interosseo_ant": {
       "name": {
         "it": "Nervo interosseo anteriore (NIA)",
-        "en": ""
+        "en": "Anterior interosseous nerve (AIN)"
       },
       "info": {
         "it": "Ramo motorio del mediano, origina sotto l’arcata del FDS (circa 5 cm sotto la piega del gomito) e scende sulla membrana interossea con l’arteria omonima; innerva FPL, metà laterale del FDP e pronatore quadrato. Sindrome di Kiloh-Nevin: deficit di flessione delle falangi distali di pollice e indice (segno dell’OK) senza deficit sensitivo.",
-        "en": ""
+        "en": "Motor branch of the median nerve; it arises under the FDS arch (about 5 cm below the elbow crease) and descends on the interosseous membrane with the artery of the same name; it supplies the FPL, the lateral half of the FDP and the pronator quadratus. Kiloh-Nevin syndrome: weak flexion of the distal phalanges of the thumb and index finger (OK sign) without sensory loss."
       }
     },
     "n_cut_med_avambraccio": {
       "name": {
         "it": "Nervo cutaneo mediale dell’avambraccio",
-        "en": ""
+        "en": "Medial cutaneous nerve of forearm"
       },
       "info": {
         "it": "Sensitivo per la cute della faccia mediale dell’avambraccio. Dal fascio mediale del plesso brachiale; perfora la fascia a metà braccio e accompagna la vena basilica con rami anteriore e posteriore. A rischio nelle venipunture mediali e in chirurgia del gomito (neuroma).",
-        "en": ""
+        "en": "Sensory to the skin of the medial surface of the forearm. From the medial cord of the brachial plexus; it pierces the fascia at mid-arm and accompanies the basilic vein with anterior and posterior branches. At risk during medial venipuncture and elbow surgery (neuroma)."
       }
     },
     "n_cut_med_braccio": {
       "name": {
         "it": "Nervo cutaneo mediale del braccio",
-        "en": ""
+        "en": "Medial cutaneous nerve of arm"
       },
       "info": {
         "it": "Dal fascio mediale (T1); sensitivo per la cute mediale del braccio, decorre vicino alla vena basilica.",
-        "en": ""
+        "en": "From the medial cord (T1); sensory to the medial skin of the arm, it runs near the basilic vein."
       }
     },
     "n_cut_post_avambraccio": {
       "name": {
         "it": "Nervo cutaneo posteriore dell’avambraccio",
-        "en": ""
+        "en": "Posterior cutaneous nerve of forearm"
       },
       "info": {
         "it": "Sensitivo per la cute della faccia posteriore dell’avambraccio. Ramo del nervo radiale, nasce nel solco radiale e perfora il capo laterale del tricipite. Percorso schematico.",
-        "en": ""
+        "en": "Sensory to the skin of the posterior surface of the forearm. A branch of the radial nerve, it arises in the radial groove and pierces the lateral head of the triceps. Schematic course."
       }
     },
     "n_rami_mediano": {
       "name": {
         "it": "Rami muscolari del nervo mediano",
-        "en": ""
+        "en": "Muscular branches of median nerve"
       },
       "info": {
         "it": "Rami motori che nascono dal lato mediale del tronco al gomito e subito sotto: pronatore rotondo (il più prossimale, di solito sopra la rima articolare), FCR, palmare lungo e FDS. Il pronatore rotondo e l’arcata del FDS sono sedi possibili di compressione del mediano. Origine e calibro schematici.",
-        "en": ""
+        "en": "Motor branches arising from the medial side of the trunk at and just below the elbow: pronator teres (the most proximal, usually above the joint line), FCR, palmaris longus and FDS. The pronator teres and the FDS arch are possible sites of median nerve compression. Origin and caliber are schematic."
       }
     },
     "n_rami_ulnare": {
       "name": {
         "it": "Rami muscolari del nervo ulnare",
-        "en": ""
+        "en": "Muscular branches of ulnar nerve"
       },
       "info": {
         "it": "Rami motori per il FCU, che nascono subito distalmente all’epicondilo mediale ed entrano nel muscolo tra i due capi, e per la metà ulnare del FDP, più in basso. Origine e calibro schematici.",
-        "en": ""
+        "en": "Motor branches to the FCU, which arise just distal to the medial epicondyle and enter the muscle between its two heads, and to the ulnar half of the FDP, further down. Origin and caliber are schematic."
       }
     },
     "n_rami_radiale": {
       "name": {
         "it": "Rami muscolari del nervo radiale e del NIP",
-        "en": ""
+        "en": "Muscular branches of radial nerve and PIN"
       },
       "info": {
         "it": "Dal tronco del radiale, sopra l’epicondilo laterale, rami per brachioradiale ed ECRL; ECRB e supinatore ricevono rami dai rami di divisione (origine variabile, anche prima dell’arcata di Frohse). Percorso schematico.",
-        "en": ""
+        "en": "From the radial nerve trunk, above the lateral epicondyle, branches to the brachioradialis and ECRL; the ECRB and the supinator receive branches from the terminal divisions (variable origin, possibly before the arcade of Frohse). Schematic course."
       }
     },
     "n_rami_muscolocutaneo": {
       "name": {
         "it": "Rami muscolari del nervo muscolocutaneo",
-        "en": ""
+        "en": "Muscular branches of musculocutaneous nerve"
       },
       "info": {
         "it": "Rami motori per bicipite e brachiale, nel piano tra i due muscoli (il brachiale riceve anche un contributo dal radiale). Il nervo prosegue come cutaneo laterale dell’avambraccio. Percorso schematico.",
-        "en": ""
+        "en": "Motor branches to the biceps and brachialis, in the plane between the two muscles (the brachialis also receives a contribution from the radial nerve). The nerve continues as the lateral cutaneous nerve of forearm. Schematic course."
       }
     },
     "cute": {
       "name": {
         "it": "Cute",
-        "en": ""
+        "en": "Skin"
       },
       "info": {
         "it": "Contorno cutaneo semi-trasparente, utile come riferimento per i reperi superficiali.",
-        "en": ""
+        "en": "Semi-transparent skin outline, useful as a reference for surface landmarks."
       }
     }
   },
   "testi": {
-    "Modello 3D del gomito: trascina per ruotare, pizzica per ingrandire, tocca una struttura per il dettaglio": "",
-    "Gomito destro": "",
-    "Braccio in alto o in basso": "",
-    "Braccio in alto (tocca per avambraccio in alto)": "",
-    "Retinacolo": "",
-    "Aponeurosi": "",
-    "Cuscinetti adiposi": "",
-    "Flessori-pronatori": "",
-    "Estensori-supinatori": "",
-    "Setti intermuscolari": "",
-    "Linfonodi": "",
-    "Avambraccio in alto (tocca per braccio in alto)": "",
-    "Tunnel cubitale": "",
-    "Vista da distale sul piano di taglio. Tetto: legamento di Osborne; pavimento: fascio posteriore e trasverso del collaterale ulnare e capsula; pareti: epicondilo mediale e olecrano. In flessione il tunnel si appiattisce e la pressione sul nervo aumenta. In ecografia misura l’area del nervo all’epicondilo e verifica la stabilità in flessione.": "",
-    "Fossa cubitale": "",
-    "Limiti: in alto la linea tra gli epicondili, lateralmente il brachioradiale, medialmente il pronatore rotondo; pavimento: brachiale e supinatore. Contenuto da laterale a mediale: nervo radiale (profondo, tra brachioradiale e brachiale), tendine del bicipite, arteria brachiale, nervo mediano. Il lacerto fibroso copre arteria e nervo.": "",
-    "Collaterale mediale": "",
-    "Fascio anteriore (epicondilo mediale → tubercolo sublime), principale stabilizzatore in valgo; fascio posteriore a ventaglio verso l’olecrano, pavimento del tunnel cubitale; fascio trasverso tra olecrano e coronoide. Superficialmente l’origine tendinea comune dei flessori-pronatori (parte dei muscoli).": "",
-    "Collaterale laterale": "",
-    "Collaterale radiale (epicondilo → legamento anulare), legamento anulare attorno alla testa radiale e LUCL (epicondilo → cresta del supinatore, dietro la testa radiale), stabilizzatore contro l’instabilità rotatoria postero-laterale. Superficialmente l’origine tendinea comune degli estensori (parte dei muscoli) con l’ECRB profondo.": "",
-    "Nervo radiale e supinatore": "",
-    "Vista da distale. Il nervo radiale si divide davanti alla rima omero-radiale; il nervo interosseo posteriore entra nel supinatore sotto l’arcata di Frohse, gira attorno al collo del radio tra i due strati del muscolo e riemerge dorsalmente. Sposta il cursore per seguirlo come in un’ecografia assiale.": "",
-    "Loggia interossea": "",
-    "Vista da distale. Sulla membrana interossea l’arteria e il nervo interosseo anteriore scendono tra FDP e FPL; l’arteria interossea posteriore passa sopra il margine prossimale della membrana e raggiunge la loggia dorsale con il nervo interosseo posteriore. Strutture ricostruite in modo approssimato.": "",
-    "Sezione sagittale vista dal lato laterale, come in una radiografia laterale. Cuscinetto anteriore nelle fossette coronoidea e radiale, posteriore nella fossetta olecranica, entrambi intracapsulari ed extrasinoviali: il versamento li solleva (segno della vela anteriore, cuscinetto posteriore visibile).": ""
+    "Modello 3D del gomito: trascina per ruotare, pizzica per ingrandire, tocca una struttura per il dettaglio": "3D model of the elbow: drag to rotate, pinch to zoom, tap a structure for details",
+    "Gomito destro": "Right elbow",
+    "Braccio in alto o in basso": "Arm up or down",
+    "Braccio in alto (tocca per avambraccio in alto)": "Arm up (tap for forearm up)",
+    "Retinacolo": "Retinaculum",
+    "Aponeurosi": "Aponeurosis",
+    "Cuscinetti adiposi": "Fat pads",
+    "Flessori-pronatori": "Flexor-pronators",
+    "Estensori-supinatori": "Extensor-supinators",
+    "Setti intermuscolari": "Intermuscular septa",
+    "Linfonodi": "Lymph nodes",
+    "Avambraccio in alto (tocca per braccio in alto)": "Forearm up (tap for arm up)",
+    "Tunnel cubitale": "Cubital tunnel",
+    "Vista da distale sul piano di taglio. Tetto: legamento di Osborne; pavimento: fascio posteriore e trasverso del collaterale ulnare e capsula; pareti: epicondilo mediale e olecrano. In flessione il tunnel si appiattisce e la pressione sul nervo aumenta. In ecografia misura l’area del nervo all’epicondilo e verifica la stabilità in flessione.": "Distal view of the cutting plane. Roof: Osborne ligament; floor: posterior and transverse bundles of the ulnar collateral ligament and capsule; walls: medial epicondyle and olecranon. In flexion the tunnel flattens and pressure on the nerve rises. On ultrasound, measure the nerve area at the epicondyle and check its stability in flexion.",
+    "Fossa cubitale": "Cubital fossa",
+    "Limiti: in alto la linea tra gli epicondili, lateralmente il brachioradiale, medialmente il pronatore rotondo; pavimento: brachiale e supinatore. Contenuto da laterale a mediale: nervo radiale (profondo, tra brachioradiale e brachiale), tendine del bicipite, arteria brachiale, nervo mediano. Il lacerto fibroso copre arteria e nervo.": "Boundaries: superiorly the line between the epicondyles, laterally the brachioradialis, medially the pronator teres; floor: brachialis and supinator. Contents from lateral to medial: radial nerve (deep, between the brachioradialis and the brachialis), biceps tendon, brachial artery, median nerve. The bicipital aponeurosis covers the artery and the nerve.",
+    "Collaterale mediale": "Medial collateral ligament",
+    "Fascio anteriore (epicondilo mediale → tubercolo sublime), principale stabilizzatore in valgo; fascio posteriore a ventaglio verso l’olecrano, pavimento del tunnel cubitale; fascio trasverso tra olecrano e coronoide. Superficialmente l’origine tendinea comune dei flessori-pronatori (parte dei muscoli).": "Anterior bundle (medial epicondyle → sublime tubercle), primary restraint to valgus; fan-shaped posterior bundle toward the olecranon, floor of the cubital tunnel; transverse bundle between the olecranon and the coronoid. Superficially, the common tendinous origin of the flexor-pronators (part of the muscles).",
+    "Collaterale laterale": "Lateral collateral ligament",
+    "Collaterale radiale (epicondilo → legamento anulare), legamento anulare attorno alla testa radiale e LUCL (epicondilo → cresta del supinatore, dietro la testa radiale), stabilizzatore contro l’instabilità rotatoria postero-laterale. Superficialmente l’origine tendinea comune degli estensori (parte dei muscoli) con l’ECRB profondo.": "Radial collateral ligament (epicondyle → annular ligament), annular ligament around the radial head and LUCL (epicondyle → supinator crest, behind the radial head), restraint to posterolateral rotatory instability. Superficially, the common tendinous origin of the extensors (part of the muscles), with the ECRB deep.",
+    "Nervo radiale e supinatore": "Radial nerve and supinator",
+    "Vista da distale. Il nervo radiale si divide davanti alla rima omero-radiale; il nervo interosseo posteriore entra nel supinatore sotto l’arcata di Frohse, gira attorno al collo del radio tra i due strati del muscolo e riemerge dorsalmente. Sposta il cursore per seguirlo come in un’ecografia assiale.": "Distal view. The radial nerve divides in front of the humeroradial joint line; the posterior interosseous nerve enters the supinator under the arcade of Frohse, winds around the radial neck between the two layers of the muscle and re-emerges dorsally. Move the slider to follow it as in an axial ultrasound scan.",
+    "Loggia interossea": "Interosseous compartment",
+    "Vista da distale. Sulla membrana interossea l’arteria e il nervo interosseo anteriore scendono tra FDP e FPL; l’arteria interossea posteriore passa sopra il margine prossimale della membrana e raggiunge la loggia dorsale con il nervo interosseo posteriore. Strutture ricostruite in modo approssimato.": "Distal view. On the interosseous membrane, the anterior interosseous artery and nerve descend between the FDP and FPL; the posterior interosseous artery passes over the proximal margin of the membrane and reaches the dorsal compartment with the posterior interosseous nerve. Structures reconstructed approximately.",
+    "Sezione sagittale vista dal lato laterale, come in una radiografia laterale. Cuscinetto anteriore nelle fossette coronoidea e radiale, posteriore nella fossetta olecranica, entrambi intracapsulari ed extrasinoviali: il versamento li solleva (segno della vela anteriore, cuscinetto posteriore visibile).": "Sagittal section seen from the lateral side, as on a lateral radiograph. Anterior fat pad in the coronoid and radial fossae, posterior fat pad in the olecranon fossa, both intracapsular and extrasynovial: effusion lifts them (anterior sail sign, visible posterior fat pad)."
   },
   "ignora": [],
-  "dubbi": []
+  "dubbi": [
+    {
+      "termine": "Collaterale ulnare / Collaterale mediale → Ulnar collateral ligament / Medial collateral ligament",
+      "nota": "TA2 usa ulnar collateral ligament (UCL); nei lanciatori USA si dice UCL, ma «medial collateral ligament» resta diffuso. Nelle schede ho usato UCL, nel titolo della regione «Medial collateral ligament» per rispecchiare l’italiano."
+    },
+    {
+      "termine": "Fascio anteriore/posteriore/trasverso → anterior/posterior/transverse bundle",
+      "nota": "TA2 parla di «part» (pars anterior…); in letteratura clinica inglese prevale «bundle». Ho usato bundle."
+    },
+    {
+      "termine": "Fascio trasverso (di Cooper) → transverse bundle (Cooper ligament)",
+      "nota": "Eponimo poco usato in inglese; in letteratura USA più spesso solo «transverse bundle/ligament». Tenuto per fedeltà all’italiano."
+    },
+    {
+      "termine": "Eponimi senza genitivo sassone (Osborne ligament, Kocher approach, Camper chiasm, Lister tubercle, Panner disease)",
+      "nota": "Stile AMA, come nella spalla. Eccezione: «nursemaid's elbow», che è un nome comune e non un eponimo."
+    },
+    {
+      "termine": "Legamento di Osborne → Osborne ligament (cubital tunnel retinaculum)",
+      "nota": "TA2 non lo elenca; «cubital tunnel retinaculum» (O’Driscoll) è il termine anatomico corrente, Osborne ligament quello clinico."
+    },
+    {
+      "termine": "Lacerto fibroso → Bicipital aponeurosis (lacertus fibrosus)",
+      "nota": "TA2: aponeurosis bicipitalis / bicipital aponeurosis. Nel nome ho messo prima il termine TA2; nelle note uso bicipital aponeurosis."
+    },
+    {
+      "termine": "Legamento quadrato (di Denucé) → Quadrate ligament (Denucé ligament)",
+      "nota": "TA2: quadrate ligament."
+    },
+    {
+      "termine": "Linfonodi epitrocleari (sovratrocleari) → Epitrochlear (supratrochlear) lymph nodes",
+      "nota": "TA2 usa supratrochlear/cubital nodes; in clinica e radiologia USA si dice epitrochlear. Messo il termine clinico per primo, come in italiano."
+    },
+    {
+      "termine": "Pronazione dolorosa → nursemaid's elbow",
+      "nota": "Equivalente clinico americano (anche «pulled elbow»), non traduzione letterale."
+    },
+    {
+      "termine": "Segno della vela → sail sign; segno della T → T sign; segno dell’OK → OK sign",
+      "nota": "Nomi radiologici/clinici inglesi standard. Per il segno dell’OK esistono anche «pinch sign» e «teardrop sign»: ho tenuto OK sign."
+    },
+    {
+      "termine": "Massa mobile di Henry → mobile wad (of Henry)",
+      "nota": "Termine inglese originale."
+    },
+    {
+      "termine": "Arcata di Struthers / legamento di Struthers → arcade of Struthers / ligament of Struthers",
+      "nota": "Due strutture distinte, come nell’italiano: l’arcata riguarda l’ulnare, il legamento il mediano."
+    },
+    {
+      "termine": "IFP, IFD, MCF, IF → PIP, DIP, MCP, IP; NIP/NIA → PIN/AIN",
+      "nota": "Sigle inglesi standard; anche le sigle dei muscoli (FCR, ECRB…) erano già inglesi."
+    },
+    {
+      "termine": "Vena mediana dell’avambraccio → median antebrachial vein",
+      "nota": "TA2 (vena mediana antebrachii); in clinica anche «median vein of forearm»."
+    },
+    {
+      "termine": "Vene comitanti / vena brachiale (comitante) → venae comitantes / brachial vein (vena comitans)",
+      "nota": "Termine latino in uso anche in inglese."
+    },
+    {
+      "termine": "Retropone (EPL) → retropulses",
+      "nota": "Retropulsione del pollice: termine poco comune in inglese ma usato nella letteratura della mano."
+    },
+    {
+      "termine": "Flessori-pronatori / Estensori-supinatori (categorie) → Flexor-pronators / Extensor-supinators",
+      "nota": "In inglese clinico si dice «flexor-pronator mass/group»; come etichetta breve ho tenuto la forma al plurale."
+    }
+  ]
 }
