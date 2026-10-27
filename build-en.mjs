@@ -315,9 +315,12 @@ export function creaContesto(nome, tabelle) {
   return { traduci, stato, tabelle };
 }
 
+/* testi che build-site.mjs aggiunge alla home solo in produzione (schede delle bozze): nelle preview e in strumenti/traduzioni.mjs non compaiono */
+const SOLO_PRODUZIONE = ['testi.In lavorazione · Prossimamente', 'testi.{n} disponibili · {n} in arrivo'];
+
 /* voci che nessuna pagina ha usato */
 export function obsolete(T) {
-  const u = T.__usate || new Set(), o = [];
+  const u = new Set([...(T.__usate || []), ...SOLO_PRODUZIONE]), o = [];
   for (const [k, v] of Object.entries(T.meta || {})) if (!u.has('meta.' + k)) o.push('meta.' + k);
   for (const [id, p] of Object.entries(T.strutture || {})) for (const k of Object.keys(p)) if (!u.has(`strutture.${id}.${k}`)) o.push(`strutture.${id}.${k}`);
   for (const k of Object.keys(T.testi || {})) if (!u.has('testi.' + k)) o.push('testi.' + k);
