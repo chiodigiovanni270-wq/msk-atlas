@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "title": {
+      "it": "Pagina non trovata | MSK Atlas",
+      "en": ""
+    },
+    "description": {
+      "it": "La pagina cercata non esiste. Torna a MSK Atlas, atlante anatomico 3D.",
+      "en": ""
+    }
+  },
+  "testi": {
+    "Errore 404": "",
+    "Pagina <span>non trovata.</span>": "",
+    "L’indirizzo non esiste o è stato spostato. Puoi tornare all’indice dell’atlante o aprire direttamente una tavola.": "",
+    "Modelli 3D": "",
+    "Torna a MSK Atlas": "",
+    "Materiale didattico. Non destinato a uso clinico o diagnostico.": ""
+  }
+}

@@ -1,5 +1,6 @@
 // Pubblicazione statica: le bozze esistono soltanto nelle Preview protette.
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { costruisciInglese } from './build-en.mjs';
 const preview = process.env.VERCEL_ENV === 'preview' || (!process.env.VERCEL && process.argv.includes('--preview'));
 const drafts = new Set(['modelli/anca-3d.html', 'modelli/caviglia-3d.html']);
 await rm('dist', { recursive: true, force: true });
@@ -35,4 +36,5 @@ if (!preview) {
 } else {
   await writeFile('dist/robots.txt', 'User-agent: *\nDisallow: /\n');
 }
+await costruisciInglese({ preview, drafts, dettagli: process.argv.includes('--traduzioni'), rigoroso: process.argv.includes('--rigoroso') });
 console.log(`Build ${preview ? 'preview privata' : 'pubblica'} completata in dist/`);

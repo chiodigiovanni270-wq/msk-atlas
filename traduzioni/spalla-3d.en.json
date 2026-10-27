@@ -1,0 +1,1137 @@
+{
+  "meta": {
+    "title": {
+      "it": "Spalla 3D interattiva: cuffia e legamenti | MSK Atlas",
+      "en": ""
+    },
+    "strutture-bp3d": {
+      "it": "Ossa (scapola, clavicola, omero, coste I–V, sterno), cartilagini costali, cuffia dei rotatori, deltoide, grande rotondo, muscoli del torace e del dorso, muscoli del braccio e vasi succlavi.",
+      "en": ""
+    },
+    "strutture-modellate": {
+      "it": "Cartilagine della testa omerale e della glenoide, labbro glenoideo, capsula articolare e legamenti (coracoclavicolari, coracoacromiale, acromioclavicolare, sternoclavicolare, coraco-omerale, gleno-omerali, trasverso dell’omero), borsa subacromion-deltoidea e tratto intra-articolare del tendine del capo lungo del bicipite: ricostruiti sulle ossa reali, con inserzioni e decorso verificati rispetto alle altre strutture.",
+      "en": ""
+    },
+    "description": {
+      "it": "Spalla 3D interattiva: ossa, cuffia dei rotatori, legamenti, vasi e nervi selezionabili, con note clinico-radiologiche. Materiale didattico.",
+      "en": ""
+    },
+    "image_alt": {
+      "it": "Modello 3D della spalla destra — MSK Atlas",
+      "en": ""
+    }
+  },
+  "strutture": {
+    "scapola": {
+      "name": {
+        "it": "Scapola",
+        "en": ""
+      },
+      "info": {
+        "it": "Osso piatto triangolare con spina, acromion e processo coracoideo. La cavità glenoidea, piccola e poco profonda, accoglie la testa omerale; il tubercolo sopraglenoideo e il sottoglenoideo danno origine al capo lungo di bicipite e tricipite. L’incisura soprascapolare, chiusa dal legamento trasverso superiore, lascia passare il nervo soprascapolare. In radiografia la proiezione \"Y\" e la outlet view mostrano la forma dell’acromion (tipi di Bigliani: piatto, curvo, uncinato).",
+        "en": ""
+      }
+    },
+    "clavicola": {
+      "name": {
+        "it": "Clavicola",
+        "en": ""
+      },
+      "info": {
+        "it": "Osso a S che collega lo scheletro assile alla scapola (articolazioni sternoclavicolare e acromioclavicolare). Il terzo medio è la sede più frequente di frattura; il tubercolo conoide e la linea trapezoide, sul terzo laterale, danno inserzione ai legamenti coracoclavicolari.",
+        "en": ""
+      }
+    },
+    "omero": {
+      "name": {
+        "it": "Omero (estremità prossimale)",
+        "en": ""
+      },
+      "info": {
+        "it": "Testa emisferica rivolta in alto, medialmente e indietro (retroversione di circa 30°), separata dai tubercoli dal collo anatomico. Tubercolo maggiore (inserzioni di sovraspinato, sottospinato e piccolo rotondo) e minore (sottoscapolare) delimitano il solco intertubercolare del capo lungo del bicipite. Il collo chirurgico, sotto i tubercoli, è la sede tipica delle fratture; il nervo ascellare vi passa a contatto.",
+        "en": ""
+      }
+    },
+    "coste": {
+      "name": {
+        "it": "Coste I–V",
+        "en": ""
+      },
+      "info": {
+        "it": "Parte alta della gabbia toracica, sulla quale scorre la scapola. La prima costa, corta e piatta, è attraversata dai solchi dell’arteria e della vena succlavie; tra i due solchi si inserisce lo scaleno anteriore, e il plesso brachiale passa dietro l’arteria. I muscoli dentato anteriore e piccolo pettorale si inseriscono sulle coste.",
+        "en": ""
+      }
+    },
+    "sterno": {
+      "name": {
+        "it": "Sterno (manubrio e corpo)",
+        "en": ""
+      },
+      "info": {
+        "it": "Il manubrio, con l’incisura giugulare e le incisure claveari, articola con le clavicole (articolazione sternoclavicolare) e con la prima cartilagine costale; l’angolo sternale lo separa dal corpo, a livello della seconda cartilagine costale.",
+        "en": ""
+      }
+    },
+    "cart_cost": {
+      "name": {
+        "it": "Cartilagini costali I–V",
+        "en": ""
+      },
+      "info": {
+        "it": "Prolungano le coste verso lo sterno. La prima si unisce direttamente al manubrio (sincondrosi); le altre formano articolazioni sternocostali sinoviali (dalla seconda alla settima).",
+        "en": ""
+      }
+    },
+    "cart_omero": {
+      "name": {
+        "it": "Cartilagine della testa omerale",
+        "en": ""
+      },
+      "info": {
+        "it": "Riveste la testa, più spessa al centro che ai margini, e termina al collo anatomico. In artro-RM si valutano spessore e continuità. Dopo una lussazione anteriore può associarsi la lesione di Hill-Sachs, impronta ossea (con cartilagine) della parte posterosuperiore della testa contro il margine anteriore della glenoide.",
+        "en": ""
+      }
+    },
+    "cart_glen": {
+      "name": {
+        "it": "Cartilagine glenoidea",
+        "en": ""
+      },
+      "info": {
+        "it": "Riveste la cavità glenoidea; al contrario della testa è più sottile al centro e più spessa in periferia. Il labbro la circonda. Nell’instabilità anteriore ripetuta la glenoide può perdere osso (Bankart osseo) e assumere la forma di una pera rovesciata.",
+        "en": ""
+      }
+    },
+    "labbro": {
+      "name": {
+        "it": "Labbro glenoideo",
+        "en": ""
+      },
+      "info": {
+        "it": "Anello di fibrocartilagine a sezione triangolare che circonda il margine della glenoide e ne aumenta profondità e superficie. In alto si continua con il tendine del capo lungo del bicipite, in basso e in avanti con il legamento gleno-omerale inferiore. In artro-RM si cercano lesioni di Bankart (antero-inferiore, dopo lussazione anteriore), SLAP (superiore) e lesioni ossee associate.",
+        "en": ""
+      },
+      "o": {
+        "it": "Margine della cavità glenoidea (si fonde con la cartilagine e con il periostio del collo della scapola).",
+        "en": ""
+      },
+      "ins": {
+        "it": "Anello chiuso sul margine glenoideo; in alto accoglie il tendine del capo lungo del bicipite, in basso il legamento gleno-omerale inferiore.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Approfondisce la cavità glenoidea (stabilità concavità-compressione) e fa da ancoraggio ai legamenti gleno-omerali.",
+        "en": ""
+      }
+    },
+    "caps": {
+      "name": {
+        "it": "Capsula articolare",
+        "en": ""
+      },
+      "info": {
+        "it": "Manicotto sottile e lasso che dalla glenoide e dal labbro raggiunge il collo anatomico dell’omero; inferiormente forma il recesso ascellare, che si distende in abduzione. È rinforzata dai legamenti gleno-omerali e dal tendine della cuffia, che vi aderisce. In artro-RM la distensione con mezzo di contrasto o le pieghe del recesso ascellare ispessite sono segno di capsulite adesiva.",
+        "en": ""
+      },
+      "o": {
+        "it": "Margine della glenoide e labbro glenoideo (e base del processo coracoideo per il capo lungo del bicipite).",
+        "en": ""
+      },
+      "ins": {
+        "it": "Collo anatomico dell’omero; inferiormente scende fino al collo chirurgico (recesso ascellare).",
+        "en": ""
+      },
+      "fn": {
+        "it": "Contiene la sinovia e il liquido articolare, limita le escursioni estreme (in rotazione esterna si tende anteriormente) e collabora alla stabilità statica.",
+        "en": ""
+      }
+    },
+    "borsa_sad": {
+      "name": {
+        "it": "Borsa subacromion-deltoidea",
+        "en": ""
+      },
+      "info": {
+        "it": "Borsa sinoviale tra la cuffia dei rotatori (sovraspinato e infraspinato) sotto e acromion, legamento coracoacromiale e deltoide sopra; normalmente virtuale, con pareti sottili (meno di 2 mm). Permette lo scorrimento della cuffia sotto l’arco coracoacromiale. In ecografia e RM la distensione liquida (borsite) accompagna l’impingement subacromiale; liquido nella borsa con lesione a tutto spessore del sovraspinato indica la comunicazione con l’articolazione.",
+        "en": ""
+      }
+    },
+    "cc_conoide": {
+      "name": {
+        "it": "Legamento conoide",
+        "en": ""
+      },
+      "info": {
+        "it": "Componente mediale e posteriore del legamento coracoclavicolare, a forma di cono con apice sul coracoide. Si rompe nelle lussazioni acromioclavicolari di grado III–V (classificazione di Rockwood): l’aumento della distanza coracoclavicolare in radiografia da carico indica la lesione.",
+        "en": ""
+      },
+      "o": {
+        "it": "Ginocchio (parte posteromediale) della base del processo coracoideo.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Tubercolo conoide della clavicola, sulla faccia inferiore del terzo laterale.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Sospende la scapola alla clavicola; limita la traslazione anteriore e superiore della clavicola (stabilizzatore verticale).",
+        "en": ""
+      }
+    },
+    "cc_trapezoide": {
+      "name": {
+        "it": "Legamento trapezoide",
+        "en": ""
+      },
+      "info": {
+        "it": "Componente laterale e anteriore del legamento coracoclavicolare, lamina quadrangolare quasi orizzontale. Lavora con il conoide: insieme sono gli stabilizzatori verticali dell’articolazione acromioclavicolare.",
+        "en": ""
+      },
+      "o": {
+        "it": "Faccia superiore del processo coracoideo.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Linea trapezoide, sulla faccia inferiore del terzo laterale della clavicola.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Limita la compressione dell’articolazione acromioclavicolare e la traslazione verticale della clavicola.",
+        "en": ""
+      }
+    },
+    "cal": {
+      "name": {
+        "it": "Legamento coracoacromiale",
+        "en": ""
+      },
+      "info": {
+        "it": "Banda triangolare che chiude l’arco coracoacromiale, il “tetto” dello spazio sottoacromiale sopra la cuffia dei rotatori. Nel conflitto subacromiale si ispessisce e può essere sezionato nella decompressione.",
+        "en": ""
+      },
+      "o": {
+        "it": "Margine laterale del processo coracoideo.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Apice e margine anteriore dell’acromion.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Protegge la testa omerale dall’alto e limita la sua migrazione superiore.",
+        "en": ""
+      }
+    },
+    "ac_leg": {
+      "name": {
+        "it": "Legamento acromioclavicolare",
+        "en": ""
+      },
+      "info": {
+        "it": "Ispessimento della capsula dell’articolazione acromioclavicolare, più robusto in alto, dove si fonde con le fibre di trapezio e deltoide. Stabilizza il piano orizzontale della clavicola; in caso di lesione di grado I–II i coracoclavicolari restano integri.",
+        "en": ""
+      },
+      "o": {
+        "it": "Estremo laterale della clavicola.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Margine mediale dell’acromion.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Stabilizzatore orizzontale (antero-posteriore) dell’articolazione acromioclavicolare.",
+        "en": ""
+      }
+    },
+    "sc_leg": {
+      "name": {
+        "it": "Legamento sternoclavicolare anteriore",
+        "en": ""
+      },
+      "info": {
+        "it": "Rinforza la capsula dell’articolazione sternoclavicolare, unico vero punto di appoggio del cingolo scapolare sullo scheletro assile. La lussazione posteriore, più rara, può comprimere trachea e vasi del mediastino.",
+        "en": ""
+      },
+      "o": {
+        "it": "Estremo mediale della clavicola (faccia anteriore).",
+        "en": ""
+      },
+      "ins": {
+        "it": "Faccia anteriore del manubrio dello sterno.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Impedisce la traslazione anteriore dell’estremo mediale della clavicola e ne limita l’elevazione.",
+        "en": ""
+      }
+    },
+    "coraco_om": {
+      "name": {
+        "it": "Legamento coraco-omerale",
+        "en": ""
+      },
+      "info": {
+        "it": "Banda fibrosa sopra la testa omerale, tra tubercolo minore e maggiore, che copre l’intervallo dei rotatori con il gleno-omerale superiore. Il suo ispessimento è tipico della capsulite adesiva (segno in artro-RM nell’intervallo dei rotatori).",
+        "en": ""
+      },
+      "o": {
+        "it": "Base laterale del processo coracoideo.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Tubercoli minore e maggiore dell’omero, sopra il solco intertubercolare.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Sostiene la testa omerale contro la gravità e limita la rotazione esterna con il braccio addotto.",
+        "en": ""
+      }
+    },
+    "sghl": {
+      "name": {
+        "it": "Legamento gleno-omerale superiore",
+        "en": ""
+      },
+      "info": {
+        "it": "Sottile, nell’intervallo dei rotatori, davanti al tendine del capo lungo del bicipite. Insieme al coraco-omerale limita la traslazione inferiore con il braccio addotto.",
+        "en": ""
+      },
+      "o": {
+        "it": "Labbro glenoideo antero-superiore (tubercolo sopraglenoideo, ore 1).",
+        "en": ""
+      },
+      "ins": {
+        "it": "Poco sopra il tubercolo minore dell’omero.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Stabilizzatore del braccio addotto: limita traslazione inferiore e rotazione esterna.",
+        "en": ""
+      }
+    },
+    "mghl": {
+      "name": {
+        "it": "Legamento gleno-omerale medio",
+        "en": ""
+      },
+      "info": {
+        "it": "Di spessore molto variabile (può mancare); sotto il tendine del sottoscapolare. Forma con il superiore e il coraco-omerale il “complesso capsulare anteriore”; il foro di Weitbrecht è l’apertura tra il medio e il superiore.",
+        "en": ""
+      },
+      "o": {
+        "it": "Labbro glenoideo anteriore (ore 3).",
+        "en": ""
+      },
+      "ins": {
+        "it": "Collo anatomico, medialmente al tubercolo minore.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Limita la rotazione esterna a 45° di abduzione e la traslazione anteriore.",
+        "en": ""
+      }
+    },
+    "ighl_a": {
+      "name": {
+        "it": "Legamento gleno-omerale inferiore – banda anteriore",
+        "en": ""
+      },
+      "info": {
+        "it": "Banda più importante del complesso gleno-omerale inferiore, a forma di amaca con la banda posteriore e il recesso ascellare. È la struttura lesionata nell’instabilità anteriore: distacco dal labbro (lesione di Bankart) o lesione dell’inserzione omerale (HAGL, lesione di Bankart omerale).",
+        "en": ""
+      },
+      "o": {
+        "it": "Labbro glenoideo antero-inferiore (ore 4–5).",
+        "en": ""
+      },
+      "ins": {
+        "it": "Collo anatomico dell’omero, antero-inferiormente.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Stabilizzatore principale contro la lussazione anteriore in abduzione e rotazione esterna (posizione di apprensione).",
+        "en": ""
+      }
+    },
+    "ighl_p": {
+      "name": {
+        "it": "Legamento gleno-omerale inferiore – banda posteriore",
+        "en": ""
+      },
+      "info": {
+        "it": "Banda posteriore dell’amaca inferiore; più sottile dell’anteriore. Nella contrattura in rotazione interna si ispessisce e limita la rotazione interna e la flessione-adduzione.",
+        "en": ""
+      },
+      "o": {
+        "it": "Labbro glenoideo postero-inferiore (ore 7–8).",
+        "en": ""
+      },
+      "ins": {
+        "it": "Collo anatomico dell’omero, postero-inferiormente.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Limita la traslazione posteriore e la rotazione interna con il braccio in flessione e abduzione.",
+        "en": ""
+      }
+    },
+    "trasv_om": {
+      "name": {
+        "it": "Legamento trasverso dell’omero",
+        "en": ""
+      },
+      "info": {
+        "it": "Lamina sottile che chiude in alto il solco intertubercolare e tiene il tendine del capo lungo del bicipite nel solco. Gli studi anatomici recenti la descrivono come fibre superficiali del sottoscapolare, con contributi del sovraspinato e del coraco-omerale, più che come legamento autonomo (Gleason 2006; MacDonald 2007). La lesione di questo tetto, spesso con lesione del sottoscapolare, permette la sublussazione mediale del tendine, visibile in ecografia dinamica e RM.",
+        "en": ""
+      },
+      "o": {
+        "it": "Tubercolo minore dell’omero (labbro mediale del solco), in continuità con le fibre del sottoscapolare.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Tubercolo maggiore dell’omero (labbro laterale del solco).",
+        "en": ""
+      },
+      "fn": {
+        "it": "Mantiene il tendine del capo lungo del bicipite nel solco intertubercolare e ne impedisce la sublussazione mediale.",
+        "en": ""
+      }
+    },
+    "supra": {
+      "name": {
+        "it": "Sovraspinato",
+        "en": ""
+      },
+      "info": {
+        "it": "Passa sotto l’arco coracoacromiale e l’articolazione acromioclavicolare, nello spazio sottoacromiale: è la sede più frequente di tendinopatia, conflitto e rottura della cuffia, soprattutto nella zona critica a circa 1 cm dall’inserzione. Nervo soprascapolare (C5–C6).",
+        "en": ""
+      },
+      "o": {
+        "it": "Fossa sopraspinata della scapola (due terzi mediali) e fascia sopraspinata.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Faccetta superiore del tubercolo maggiore dell’omero, con fibre che si fondono con la capsula.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Abduzione del braccio (primi 15°); centra e stabilizza la testa omerale nella glenoide.",
+        "en": ""
+      }
+    },
+    "infra": {
+      "name": {
+        "it": "Sottospinato",
+        "en": ""
+      },
+      "info": {
+        "it": "Copre in parte la capsula posteriore. Nervo soprascapolare (C5–C6), che passa nell’incisura spinoglenoidea: una cisti paralabrale può comprimerlo e causare atrofia isolata del sottospinato.",
+        "en": ""
+      },
+      "o": {
+        "it": "Fossa sottospinata (due terzi mediali) e fascia sottospinata.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Faccetta media del tubercolo maggiore dell’omero.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Rotazione esterna del braccio; stabilizzatore posteriore dell’articolazione.",
+        "en": ""
+      }
+    },
+    "tmin": {
+      "name": {
+        "it": "Piccolo rotondo",
+        "en": ""
+      },
+      "info": {
+        "it": "Delimita in alto lo spazio quadrangolare. Nervo ascellare (C5–C6), che emerge dallo spazio quadrangolare e gira attorno al collo chirurgico dell’omero con l’arteria circonflessa posteriore. L’atrofia isolata si osserva nella sindrome dello spazio quadrangolare.",
+        "en": ""
+      },
+      "o": {
+        "it": "Due terzi superiori del margine laterale della scapola (faccia dorsale).",
+        "en": ""
+      },
+      "ins": {
+        "it": "Faccetta inferiore del tubercolo maggiore dell’omero e capsula articolare.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Rotazione esterna; debole adduzione.",
+        "en": ""
+      }
+    },
+    "subs": {
+      "name": {
+        "it": "Sottoscapolare",
+        "en": ""
+      },
+      "info": {
+        "it": "Il più voluminoso della cuffia. Il tendine passa sotto il processo coracoideo e davanti alla capsula; la borsa sottoscapolare comunica con l’articolazione. La lesione è tipica della lussazione anteriore e si associa all’instabilità del capo lungo del bicipite. Nervi sottoscapolari superiore e inferiore (C5–C7).",
+        "en": ""
+      },
+      "o": {
+        "it": "Fossa sottoscapolare (faccia costale della scapola).",
+        "en": ""
+      },
+      "ins": {
+        "it": "Tubercolo minore dell’omero e capsula anteriore.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Rotazione interna; stabilizzatore anteriore dell’articolazione.",
+        "en": ""
+      }
+    },
+    "delt_cl": {
+      "name": {
+        "it": "Deltoide, parte clavicolare",
+        "en": ""
+      },
+      "info": {
+        "it": "Fascio anteriore del deltoide. Nervo ascellare (C5–C6), che emerge dallo spazio quadrangolare e gira attorno al collo chirurgico dell’omero con l’arteria circonflessa posteriore. Il solco deltoideo-pettorale, con la vena cefalica, lo separa dal grande pettorale.",
+        "en": ""
+      },
+      "o": {
+        "it": "Terzo laterale del margine anteriore e della faccia superiore della clavicola.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Tuberosità deltoidea dell’omero (tendine comune alle tre parti).",
+        "en": ""
+      },
+      "fn": {
+        "it": "Flessione, abduzione e rotazione interna del braccio.",
+        "en": ""
+      }
+    },
+    "delt_ac": {
+      "name": {
+        "it": "Deltoide, parte acromiale",
+        "en": ""
+      },
+      "info": {
+        "it": "Fascio medio, multipennato. Sotto di esso la borsa subacromiale-subdeltoidea e la cuffia dei rotatori. Nervo ascellare (C5–C6), che emerge dallo spazio quadrangolare e gira attorno al collo chirurgico dell’omero con l’arteria circonflessa posteriore.",
+        "en": ""
+      },
+      "o": {
+        "it": "Margine laterale e faccia superiore dell’acromion.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Tuberosità deltoidea dell’omero.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Abduzione del braccio, soprattutto oltre i primi 15°.",
+        "en": ""
+      }
+    },
+    "delt_sp": {
+      "name": {
+        "it": "Deltoide, parte spinale",
+        "en": ""
+      },
+      "info": {
+        "it": "Fascio posteriore, adiacente al piccolo rotondo. Nervo ascellare (C5–C6), che emerge dallo spazio quadrangolare e gira attorno al collo chirurgico dell’omero con l’arteria circonflessa posteriore.",
+        "en": ""
+      },
+      "o": {
+        "it": "Margine inferiore della spina della scapola.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Tuberosità deltoidea dell’omero.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Estensione, abduzione e rotazione esterna del braccio.",
+        "en": ""
+      }
+    },
+    "tmaj": {
+      "name": {
+        "it": "Grande rotondo",
+        "en": ""
+      },
+      "info": {
+        "it": "Delimita lo spazio quadrangolare (in alto il piccolo rotondo, lateralmente il collo chirurgico, medialmente il capo lungo del tricipite) e lo spazio triangolare. Nervo sottoscapolare inferiore (C5–C6).",
+        "en": ""
+      },
+      "o": {
+        "it": "Angolo inferiore e terzo inferiore del margine laterale della scapola (faccia dorsale).",
+        "en": ""
+      },
+      "ins": {
+        "it": "Labbro mediale del solco intertubercolare dell’omero.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Adduzione, estensione e rotazione interna del braccio.",
+        "en": ""
+      }
+    },
+    "pec_cl": {
+      "name": {
+        "it": "Grande pettorale, parte clavicolare",
+        "en": ""
+      },
+      "info": {
+        "it": "Le tre parti convergono in un tendine a U che si inserisce con torsione: le fibre inferiori si portano più in alto. Nervi pettorali laterale e mediale (C5–T1).",
+        "en": ""
+      },
+      "o": {
+        "it": "Metà mediale della clavicola.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Labbro laterale del solco intertubercolare dell’omero.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Flessione, adduzione e rotazione interna del braccio.",
+        "en": ""
+      }
+    },
+    "pec_st": {
+      "name": {
+        "it": "Grande pettorale, parte sternocostale",
+        "en": ""
+      },
+      "info": {
+        "it": "La rottura, tipica nel sollevamento pesi, interessa il tendine all’inserzione omerale; l’assenza congenita fa parte della sindrome di Poland. Nervi pettorali laterale e mediale (C5–T1).",
+        "en": ""
+      },
+      "o": {
+        "it": "Faccia anteriore dello sterno e prime sei cartilagini costali.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Labbro laterale del solco intertubercolare dell’omero.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Adduzione e rotazione interna del braccio; abbassa il braccio sollevato.",
+        "en": ""
+      }
+    },
+    "pec_ab": {
+      "name": {
+        "it": "Grande pettorale, parte addominale",
+        "en": ""
+      },
+      "info": {
+        "it": "Parte inferiore del grande pettorale; forma il pilastro anteriore dell’ascella. Nervi pettorali laterale e mediale (C5–T1).",
+        "en": ""
+      },
+      "o": {
+        "it": "Guaina del muscolo retto dell’addome.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Labbro laterale del solco intertubercolare dell’omero.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Adduzione e rotazione interna; abbassa il braccio sollevato.",
+        "en": ""
+      }
+    },
+    "pmin": {
+      "name": {
+        "it": "Piccolo pettorale",
+        "en": ""
+      },
+      "info": {
+        "it": "Il fascio vascolonervoso ascellare gli passa sotto: la compressione sotto il suo tendine è una causa di sindrome dello stretto toracico. Nervo pettorale mediale (C8–T1).",
+        "en": ""
+      },
+      "o": {
+        "it": "Facce esterne delle coste III–V, vicino alle cartilagini.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Processo coracoideo (margine mediale e faccia superiore).",
+        "en": ""
+      },
+      "fn": {
+        "it": "Abbassa e protrae la scapola, inclinandola in avanti.",
+        "en": ""
+      }
+    },
+    "succl": {
+      "name": {
+        "it": "Succlavio",
+        "en": ""
+      },
+      "info": {
+        "it": "Piccolo muscolo tra clavicola e prima costa, davanti al fascio neurovascolare. Nervo del succlavio (C5–C6).",
+        "en": ""
+      },
+      "o": {
+        "it": "Faccia superiore della prima costa, alla giunzione con la cartilagine.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Solco del succlavio, sulla faccia inferiore del terzo medio della clavicola.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Abbassa e stabilizza la clavicola nell’articolazione sternoclavicolare.",
+        "en": ""
+      }
+    },
+    "trap_d": {
+      "name": {
+        "it": "Trapezio, parte discendente",
+        "en": ""
+      },
+      "info": {
+        "it": "Fibre superiori del trapezio, quelle che formano il profilo del collo. Nervo accessorio (XI) e rami cervicali C3–C4; la lesione dell’accessorio (per esempio nelle dissezioni del collo) causa abbassamento della spalla.",
+        "en": ""
+      },
+      "o": {
+        "it": "Linea nucale superiore, protuberanza occipitale esterna e legamento nucale.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Terzo laterale della clavicola.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Eleva la scapola e ne ruota in alto l’angolo laterale.",
+        "en": ""
+      }
+    },
+    "trap_t": {
+      "name": {
+        "it": "Trapezio, parte trasversa",
+        "en": ""
+      },
+      "info": {
+        "it": "Fibre medie del trapezio, orizzontali. Nervo accessorio (XI) e rami cervicali C3–C4.",
+        "en": ""
+      },
+      "o": {
+        "it": "Processi spinosi da C7 a T3.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Margine mediale dell’acromion e labbro superiore della spina della scapola.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Adduce (retrae) la scapola.",
+        "en": ""
+      }
+    },
+    "trap_a": {
+      "name": {
+        "it": "Trapezio, parte ascendente",
+        "en": ""
+      },
+      "info": {
+        "it": "Fibre inferiori del trapezio; il tendine di inserzione scorre su un triangolo liscio alla radice della spina. Nervo accessorio (XI) e rami cervicali C3–C4. Nel modello si vede solo il tratto superiore.",
+        "en": ""
+      },
+      "o": {
+        "it": "Processi spinosi da T4 a T12.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Tubercolo alla radice della spina della scapola.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Abbassa la scapola e ne ruota in alto l’angolo laterale.",
+        "en": ""
+      }
+    },
+    "lat": {
+      "name": {
+        "it": "Gran dorsale",
+        "en": ""
+      },
+      "info": {
+        "it": "Il tendine si porta davanti al grande rotondo con una torsione e forma con esso il pilastro posteriore dell’ascella. Nervo toracodorsale (C6–C8). Nella finestra del modello si vede solo la parte superiore.",
+        "en": ""
+      },
+      "o": {
+        "it": "Processi spinosi da T7 a L5, fascia toracolombare, cresta iliaca, ultime 3–4 coste e angolo inferiore della scapola.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Fondo del solco intertubercolare dell’omero.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Estensione, adduzione e rotazione interna del braccio.",
+        "en": ""
+      }
+    },
+    "romb_mag": {
+      "name": {
+        "it": "Romboide maggiore",
+        "en": ""
+      },
+      "info": {
+        "it": "Sotto il trapezio, parallelo al romboide minore. Nervo dorsale della scapola (C4–C5).",
+        "en": ""
+      },
+      "o": {
+        "it": "Processi spinosi da T2 a T5.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Margine mediale della scapola, sotto la spina.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Adduce la scapola e ne ruota in basso l’angolo laterale.",
+        "en": ""
+      }
+    },
+    "romb_min": {
+      "name": {
+        "it": "Romboide minore",
+        "en": ""
+      },
+      "info": {
+        "it": "Sottile, al di sopra del romboide maggiore. Nervo dorsale della scapola (C4–C5).",
+        "en": ""
+      },
+      "o": {
+        "it": "Legamento nucale e processi spinosi di C7 e T1.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Margine mediale della scapola, alla radice della spina.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Adduce la scapola e ne ruota in basso l’angolo laterale.",
+        "en": ""
+      }
+    },
+    "elev": {
+      "name": {
+        "it": "Elevatore della scapola",
+        "en": ""
+      },
+      "info": {
+        "it": "Segue il collo, sotto lo sternocleidomastoideo e il trapezio. Nervo dorsale della scapola e rami cervicali C3–C4.",
+        "en": ""
+      },
+      "o": {
+        "it": "Tubercoli posteriori dei processi trasversi di C1–C4.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Angolo superiore e margine mediale della scapola, sopra la spina.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Eleva la scapola e ne ruota in basso l’angolo laterale.",
+        "en": ""
+      }
+    },
+    "dent": {
+      "name": {
+        "it": "Dentato anteriore",
+        "en": ""
+      },
+      "info": {
+        "it": "Tiene la scapola contro il torace: la paralisi del nervo toracico lungo (C5–C7), per esempio dopo uno svuotamento ascellare, causa la scapola alata. Nel modello si vede solo la parte superiore.",
+        "en": ""
+      },
+      "o": {
+        "it": "Facce esterne delle prime otto o nove coste, con digitazioni.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Margine mediale della scapola (faccia costale), con la porzione più robusta all’angolo inferiore.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Protrae la scapola e ne ruota in alto l’angolo laterale; la fissa alla parete toracica.",
+        "en": ""
+      }
+    },
+    "omoi": {
+      "name": {
+        "it": "Omoioideo (ventre inferiore)",
+        "en": ""
+      },
+      "info": {
+        "it": "Nasce dalla scapola e, con un tendine intermedio sotto lo sternocleidomastoideo, raggiunge l’osso ioide. Delimita in basso il triangolo posteriore del collo (triangolo sopraclaveare). Ansa cervicale.",
+        "en": ""
+      },
+      "o": {
+        "it": "Margine superiore della scapola, vicino all’incisura soprascapolare.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Osso ioide (tramite tendine intermedio e ventre superiore).",
+        "en": ""
+      },
+      "fn": {
+        "it": "Abbassa e stabilizza l’osso ioide; tende la fascia cervicale media.",
+        "en": ""
+      }
+    },
+    "bic_lungo": {
+      "name": {
+        "it": "Bicipite, capo lungo",
+        "en": ""
+      },
+      "info": {
+        "it": "Il tendine è intra-articolare ma extrasinoviale: passa sopra la testa omerale, esce nel solco intertubercolare sotto il legamento trasverso dell’omero. Tenosinovite, sublussazione e rottura (segno di Popeye) sono frequenti; la lesione del labbro superiore (SLAP) coinvolge l’ancora. Nervo muscolocutaneo (C5–C6).",
+        "en": ""
+      },
+      "o": {
+        "it": "Tubercolo sopraglenoideo della scapola e labbro glenoideo superiore.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Tuberosità del radio (tendine comune con il capo breve).",
+        "en": ""
+      },
+      "fn": {
+        "it": "Flessione del gomito e supinazione dell’avambraccio; debole flessione della spalla; stabilizza la testa omerale.",
+        "en": ""
+      }
+    },
+    "bic_breve": {
+      "name": {
+        "it": "Bicipite, capo breve",
+        "en": ""
+      },
+      "info": {
+        "it": "Con il coracobrachiale forma il tendine congiunto, che si inserisce sull’apice del processo coracoideo. Nervo muscolocutaneo (C5–C6).",
+        "en": ""
+      },
+      "o": {
+        "it": "Apice del processo coracoideo (tendine comune con il coracobrachiale).",
+        "en": ""
+      },
+      "ins": {
+        "it": "Tuberosità del radio e, tramite il lacerto fibroso, fascia antibrachiale.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Flessione del gomito e supinazione; flette e adduce la spalla.",
+        "en": ""
+      }
+    },
+    "coracobr": {
+      "name": {
+        "it": "Coracobrachiale",
+        "en": ""
+      },
+      "info": {
+        "it": "Il nervo muscolocutaneo lo attraversa e ne è un repere. L’arteria ascellare gli decorre medialmente. Nervo muscolocutaneo (C5–C7).",
+        "en": ""
+      },
+      "o": {
+        "it": "Apice del processo coracoideo (tendine comune con il capo breve del bicipite).",
+        "en": ""
+      },
+      "ins": {
+        "it": "Terzo medio della faccia mediale dell’omero.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Flessione e adduzione del braccio.",
+        "en": ""
+      }
+    },
+    "tri_lungo": {
+      "name": {
+        "it": "Tricipite, capo lungo",
+        "en": ""
+      },
+      "info": {
+        "it": "Passa tra piccolo e grande rotondo, dividendo lo spazio quadrangolare (lateralmente) da quello triangolare (medialmente). Nervo radiale (C6–C8).",
+        "en": ""
+      },
+      "o": {
+        "it": "Tubercolo sottoglenoideo della scapola.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Olecrano, con il tendine comune dei tre capi.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Estende il gomito; estende e adduce il braccio.",
+        "en": ""
+      }
+    },
+    "tri_lat": {
+      "name": {
+        "it": "Tricipite, capo laterale",
+        "en": ""
+      },
+      "info": {
+        "it": "Si origina sopra il solco del nervo radiale, che lo separa dal capo mediale. Nervo radiale (C6–C8).",
+        "en": ""
+      },
+      "o": {
+        "it": "Faccia posteriore dell’omero sopra il solco del nervo radiale e setto intermuscolare laterale.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Olecrano, con il tendine comune.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Estende il gomito.",
+        "en": ""
+      }
+    },
+    "tri_med": {
+      "name": {
+        "it": "Tricipite, capo mediale",
+        "en": ""
+      },
+      "info": {
+        "it": "Profondo, sotto il solco del nervo radiale. Nervo radiale (C6–C8).",
+        "en": ""
+      },
+      "o": {
+        "it": "Faccia posteriore dell’omero sotto il solco del nervo radiale e setti intermuscolari.",
+        "en": ""
+      },
+      "ins": {
+        "it": "Olecrano, con il tendine comune.",
+        "en": ""
+      },
+      "fn": {
+        "it": "Estende il gomito.",
+        "en": ""
+      }
+    },
+    "a_succ": {
+      "name": {
+        "it": "Arteria succlavia",
+        "en": ""
+      },
+      "info": {
+        "it": "A destra nasce dal tronco brachiocefalico; passa tra scaleno anteriore e medio, sopra la prima costa, e diventa ascellare al margine laterale della prima costa. Il plesso brachiale le passa dietro e in alto.",
+        "en": ""
+      }
+    },
+    "v_succ": {
+      "name": {
+        "it": "Vena succlavia",
+        "en": ""
+      },
+      "info": {
+        "it": "Davanti allo scaleno anteriore e all’arteria, sopra la prima costa; si unisce alla giugulare interna formando la vena brachiocefalica. Sede di accesso venoso centrale; trombosi da sforzo (sindrome di Paget-Schroetter).",
+        "en": ""
+      }
+    },
+    "a_asc": {
+      "name": {
+        "it": "Arteria ascellare e brachiale",
+        "en": ""
+      },
+      "info": {
+        "it": "Continua la succlavia dal margine laterale della prima costa e diventa brachiale al margine inferiore del grande rotondo. Passa dietro il piccolo pettorale (che la divide in tre porzioni) e davanti al sottoscapolare; il plesso brachiale la circonda con i suoi fasci. Dà toracoacromiale, toracica laterale, sottoscapolare e le circonflesse omerali (la posteriore accompagna il nervo ascellare). Nelle fratture del collo chirurgico può lesionarsi la circonflessa; in angio-TC o angio-RM si studia il calibro e il decorso.",
+        "en": ""
+      }
+    },
+    "v_asc": {
+      "name": {
+        "it": "Vena ascellare e brachiale",
+        "en": ""
+      },
+      "info": {
+        "it": "Medialmente e davanti all’arteria; riceve le vene brachiali e la basilica, la cefalica la raggiunge sotto la clavicola e si continua nella succlavia al margine laterale della prima costa. Trombosi da catetere o da sforzo causano gonfiore dell’arto; in ecografia si comprime con la sonda (la mancata comprimibilità indica trombosi).",
+        "en": ""
+      }
+    },
+    "plesso": {
+      "name": {
+        "it": "Plesso brachiale (tronchi e fasci)",
+        "en": ""
+      },
+      "info": {
+        "it": "Nasce dai rami anteriori di C5–T1: tre tronchi (superiore, medio, inferiore) tra scaleno anteriore e medio, sopra la prima costa; sotto la clavicola ognuno si divide in una porzione anteriore e una posteriore, che formano i fasci laterale, posteriore e mediale (così chiamati dalla relazione con l’arteria ascellare). In RM si studia sul piano coronale obliquo e sagittale; si comprime nello stretto toracico (sindrome dello stretto toracico superiore) e nei tumori dell’apice polmonare (sindrome di Pancoast).",
+        "en": ""
+      }
+    },
+    "n_soprascapolare": {
+      "name": {
+        "it": "Nervo soprascapolare",
+        "en": ""
+      },
+      "info": {
+        "it": "Nervo misto (C5–C6) dal tronco superiore. Passa nell’incisura soprascapolare sotto il legamento trasverso superiore (l’arteria resta sopra), innerva il sovraspinato, poi aggira il margine laterale della spina nell’incisura spinoglenoidea per innervare il sottospinato e dare rami articolari alla spalla. Una cisti paralabrale può comprimerlo e causare atrofia selettiva di sovraspinato o sottospinato, visibile in RM come edema o atrofia muscolare.",
+        "en": ""
+      }
+    },
+    "n_ascellare": {
+      "name": {
+        "it": "Nervo ascellare",
+        "en": ""
+      },
+      "info": {
+        "it": "Nervo misto (C5–C6) dal fascio posteriore. Esce dallo spazio quadrangolare (sottospinato e piccolo rotondo sopra, grande rotondo sotto, capo lungo del tricipite medialmente, collo chirurgico lateralmente), con l’arteria circonflessa posteriore; innerva deltoide e piccolo rotondo e dà il nervo cutaneo laterale superiore del braccio (sensibilità del moncone della spalla). Lo spazio quadrangolare è sede di sindrome da compressione; è a rischio nelle lussazioni anteriori e nelle fratture del collo chirurgico.",
+        "en": ""
+      }
+    },
+    "n_muscolocutaneo": {
+      "name": {
+        "it": "Nervo muscolocutaneo",
+        "en": ""
+      },
+      "info": {
+        "it": "Nervo misto (C5–C7) dal fascio laterale. Perfora il coracobrachiale, che innerva, e scende tra bicipite e brachiale (anch’essi innervati); continua come nervo cutaneo laterale dell’avambraccio (sensitivo per il lato radiale dell’avambraccio). Un decorso alto del nervo è un rischio nelle vie d’accesso anteriori della spalla.",
+        "en": ""
+      }
+    },
+    "n_radiale": {
+      "name": {
+        "it": "Nervo radiale",
+        "en": ""
+      },
+      "info": {
+        "it": "Nervo misto (C5–T1) dal fascio posteriore. Passa sotto il grande rotondo con l’arteria profonda del braccio, aggira l’omero nel solco del nervo radiale (tra capo lungo e mediale del tricipite) e a metà braccio perfora il setto intermuscolare laterale. Innerva il tricipite e, più in basso, i muscoli estensori; sensitivo per il dorso del braccio, dell’avambraccio e della mano radiale. La frattura della diafisi dell’omero lo lesiona tipicamente (mano cadente).",
+        "en": ""
+      }
+    },
+    "n_mediano": {
+      "name": {
+        "it": "Nervo mediano",
+        "en": ""
+      },
+      "info": {
+        "it": "Nervo misto (C6–T1) dai fasci laterale e mediale, che si uniscono davanti all’arteria ascellare. Nel braccio scende con l’arteria brachiale (prima lateralmente, poi medialmente) e non dà rami; motorio per i flessori dell’avambraccio e i muscoli tenari, sensitivo per la mano palmare radiale. Siti di compressione: al polso (tunnel carpale) e sotto il pronatore rotondo.",
+        "en": ""
+      }
+    },
+    "n_ulnare": {
+      "name": {
+        "it": "Nervo ulnare",
+        "en": ""
+      },
+      "info": {
+        "it": "Nervo misto (C8–T1) dal fascio mediale. Scende medialmente all’arteria; a metà braccio perfora il setto intermuscolare mediale e passa dietro l’epicondilo mediale. Nel braccio non dà rami; motorio per il flessore ulnare del carpo, parte del flessore profondo delle dita e i muscoli intrinseci della mano, sensitivo per il bordo ulnare della mano. Sede di compressione al gomito (tunnel cubitale).",
+        "en": ""
+      }
+    }
+  },
+  "testi": {
+    "Modello 3D della spalla: trascina per ruotare, pizzica per ingrandire, tocca una struttura per il dettaglio": "",
+    "Spalla destra": "",
+    "Cuffia dei rotatori": "",
+    "Muscoli della spalla": "",
+    "Muscoli del torace e del dorso": ""
+  },
+  "ignora": [],
+  "dubbi": []
+}

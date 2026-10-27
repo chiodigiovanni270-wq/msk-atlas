@@ -7,7 +7,7 @@
      node strumenti/server.mjs dist       → serve la build (node build-site.mjs, anche --preview) invece della cartella del progetto
      PORT=8080 node strumenti/server.mjs
 
-   Le pagine mancanti rispondono con 404.html. Nessuna cache (Cache-Control: no-store). Requisiti: Node 22+, nessuna dipendenza. */
+   Le pagine mancanti rispondono con 404.html (sotto /en/ con en/404.html, se c'è: versione inglese della build). Nessuna cache (Cache-Control: no-store). Requisiti: Node 22+, nessuna dipendenza. */
 import { createServer } from 'node:http';
 import { createReadStream, statSync } from 'node:fs';
 import { dirname, resolve, extname, relative, isAbsolute, sep } from 'node:path';
@@ -24,7 +24,7 @@ createServer((req, res) => {
   const p = resolve(ROOT, '.' + percorso), r = relative(ROOT, p);
   if (r.startsWith('..') || isAbsolute(r)) { res.writeHead(403).end(); return; }
   let f = file(p), stato = 200;
-  if (!f) { f = resolve(ROOT, '404.html'); stato = 404; }
+  if (!f) { f = resolve(ROOT, percorso.startsWith('/en/') && file(resolve(ROOT, 'en/404.html')) ? 'en/404.html' : '404.html'); stato = 404; }
   const h = { 'Cache-Control': 'no-store' };
   if (f.endsWith('.br') && relative(ROOT, f).split(sep).slice(0, 2).join('/') === 'assets/dati') { h['Content-Type'] = 'application/octet-stream'; h['Content-Encoding'] = 'br'; }
   else h['Content-Type'] = TIPI[extname(f).toLowerCase()] || 'application/octet-stream';
