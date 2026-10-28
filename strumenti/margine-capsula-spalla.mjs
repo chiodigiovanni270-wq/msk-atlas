@@ -32,7 +32,7 @@ const B = await import('./lib-bp3d.mjs');
 
 const PARTENZA = '9f9af0c', FILE_REPO = 'modelli/spalla-3d.html';
 const CHIUDI = 1.0,  GIRI = 80, LAMBDA = 0.5, MU = -0.53, SPOSTA_MAX = 0.2;    // cm
-const ANELLI = 7, LEVIGA = 6, GIOCO_OSSO = 0.015;
+const MEMBRANA = 150, ANELLI = 7, LEVIGA = 6, GIOCO_OSSO = 0.015;
 const OSSA = ['omero', 'cart_omero', 'scapola'], VICINE = ['supra', 'infra', 'subs', 'bic_lungo', 'trasv_om', 'coraco_om', 'sghl', 'mghl'];
 
 const c0 = realDaRevisione(PARTENZA, 'caps', FILE_REPO);
@@ -130,6 +130,60 @@ for (const i of spost) {
 }
 log('vertici spostati', spost.length, '(di cui riportati fuori da osso/vicini', spinti + ')');
 
+/* ---- 5. fori: lembo di capsula sul foro di ogni anello rimasto ----
+   Triangolazione di area minima dell'anello (programmazione dinamica, Liepa 2003), raffinata con baricentri e scambi di diagonali fino alla lunghezza dei
+   lati del bordo, poi membrana: i vertici nuovi si mediano con i vicini (`MEMBRANA` passate), si tengono fuori dall'osso (`GIOCO_OSSO`) e fuori dalle strutture accanto. */
+const Pf = Array.from(P1), idxF = Array.from(idx);
+const pv = i => [Pf[3 * i], Pf[3 * i + 1], Pf[3 * i + 2]], dd = (a, b) => len(sub(pv(a), pv(b)));
+const area = (a, b, c) => { const u = sub(pv(b), pv(a)), v = sub(pv(c), pv(a)); return len([u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]]) / 2; };
+const nuoviV = new Set(); let patchTri = 0, riempiti = 0;
+if (!process.env.SENZA_LEMBO) for (const L0 of loops) {
+  const K = L0.length; if (K < 4) continue;
+  const dirSet = new Set(); for (let t = 0; t < idxF.length; t += 3) for (let q = 0; q < 3; q++) dirSet.add(idxF[t + q] * 4294967296 + idxF[t + (q + 1) % 3]);
+  const R = dirSet.has(L0[0] * 4294967296 + L0[1]) ? L0.slice().reverse() : L0.slice();
+  const w = Array.from({ length: K }, () => new Float64Array(K)), ch = Array.from({ length: K }, () => new Int32Array(K).fill(-1));
+  for (let m = 2; m < K; m++) for (let i = 0; i + m < K; i++) { const j = i + m; let b = 1e18, bk = -1;
+    for (let k = i + 1; k < j; k++) { const c = w[i][k] + w[k][j] + area(R[i], R[k], R[j]); if (c < b) { b = c; bk = k; } } w[i][j] = b; ch[i][j] = bk; }
+  let tri = []; const pila = [[0, K - 1]];
+  while (pila.length) { const [i, j] = pila.pop(); if (j - i < 2) continue; const k = ch[i][j]; tri.push([R[i], R[k], R[j]]); pila.push([i, k], [k, j]); }
+  const bordoE = new Set(); for (let i = 0; i < K; i++) bordoE.add(chiave(R[i], R[(i + 1) % K]));
+  const sig = new Map(); for (let i = 0; i < K; i++) sig.set(R[i], (dd(R[i], R[(i + 1) % K]) + dd(R[i], R[(i + K - 1) % K])) / 2);
+  const nvIn = () => Pf.length / 3;
+  const flip = () => { let n = 0;
+    for (let pass = 0; pass < 20; pass++) { let f = 0; const em = new Map();
+      tri.forEach((T, ti) => { for (let q = 0; q < 3; q++) { const a = T[q], b = T[(q + 1) % 3], k = chiave(a, b); if (bordoE.has(k)) continue; (em.get(k) || em.set(k, []).get(k)).push([ti, q]); } });
+      const eSet = new Set(); for (const T of tri) for (let q = 0; q < 3; q++) eSet.add(chiave(T[q], T[(q + 1) % 3]));
+      const toccati = new Set();
+      for (const [k, L] of em) { if (L.length !== 2) continue; const [[t1, q1], [t2, q2]] = L; if (toccati.has(t1) || toccati.has(t2)) continue;
+        const T1 = tri[t1], T2 = tri[t2], a = T1[q1], b = T1[(q1 + 1) % 3], c = T1[(q1 + 2) % 3], d = T2[(q2 + 2) % 3];
+        if (dd(c, d) >= dd(a, b) * 0.999 || eSet.has(chiave(c, d)) || bordoE.has(chiave(c, d))) continue;
+        if (area(c, d, b) < 1e-6 || area(d, c, a) < 1e-6) continue;
+        tri[t1] = [c, a, d]; tri[t2] = [d, b, c]; toccati.add(t1); toccati.add(t2); f++; n++; }
+      if (!f) break; }
+    return n; };
+  flip();
+  for (let giro = 0; giro < 40; giro++) { let sp = 0; const nt = [];
+    for (const T of tri) { const [a, b, c] = T, cen = [0, 1, 2].map(k => (pv(a)[k] + pv(b)[k] + pv(c)[k]) / 3), sc = (sig.get(a) + sig.get(b) + sig.get(c)) / 3;
+      const ok = [a, b, c].every(v => Math.SQRT2 * len(sub(cen, pv(v))) > sc && Math.SQRT2 * len(sub(cen, pv(v))) > sig.get(v));
+      if (!ok) { nt.push(T); continue; }
+      const id = nvIn(); Pf.push(...cen); sig.set(id, sc); nuoviV.add(id); nt.push([a, b, id], [b, c, id], [c, a, id]); sp++; }
+    tri = nt; if (!sp) break; flip(); }
+  // membrana: i vertici nuovi sono la media dei vicini (bordo fisso)
+  const nbp = new Map(); for (const T of tri) for (let q = 0; q < 3; q++) { const a = T[q], b = T[(q + 1) % 3]; (nbp.get(a) || nbp.set(a, new Set()).get(a)).add(b); (nbp.get(b) || nbp.set(b, new Set()).get(b)).add(a); }
+  const inn = [...nbp.keys()].filter(v => nuoviV.has(v));
+  for (let g = 0; g < MEMBRANA; g++) for (const v of inn) { const Ls = [...nbp.get(v)]; for (let k = 0; k < 3; k++) Pf[3 * v + k] += 0.5 * (Ls.reduce((s, x) => s + Pf[3 * x + k], 0) / Ls.length - Pf[3 * v + k]); }
+  for (const T of tri) idxF.push(...T); patchTri += tri.length; riempiti++;
+}
+{ // fuori dall'osso e dalle strutture accanto (i vertici nuovi): niente compenetrazioni
+  let spN = 0;
+  for (let giro = 0; giro < 8; giro++) for (const v of nuoviV) for (const [F, minimo] of [[FO, GIOCO_OSSO * 2], [FV, 0.01]]) {
+    const p = pv(v), d = G.sample(F, ...p); if (d >= minimo) continue;
+    const g = G.grad(F, p), l = len(g) || 1, passo = Math.min((minimo - d) * 2 * G.H * 0.75 / l, 0.05); for (let k = 0; k < 3; k++) Pf[3 * v + k] += g[k] / l * passo; spN++; }
+  log('lembi:', riempiti, 'fori riempiti,', patchTri, 'triangoli,', nuoviV.size, 'vertici nuovi (', spN, 'correzioni da osso/vicini)');
+  const cs = F => { let n = 0, m = 1e9; for (const v of nuoviV) { const d = G.sample(F, ...pv(v)); if (d < 0) n++; m = Math.min(m, d); } return n + ' dentro, minima ' + (m * 10).toFixed(2) + ' mm'; };
+  if (nuoviV.size) log('lembo: distanza dall\'osso:', cs(FO), '| dalle strutture accanto:', cs(FV)); }
+const Pfin = Float64Array.from(Pf);
+
 /* ---- controlli ---- */
 { const cs = (P, F) => { let n = 0, m = 1e9; for (let i = 0; i < nv; i++) { if (anello[i] < 0) continue; const d = G.sample(F, ...P3(P, i)); if (d < 0) n++; m = Math.min(m, d); } return [n, (m * 10).toFixed(2)]; };
   log('vertici spostati dentro l\'osso (prima→dopo):', cs(P0, FO)[0], '→', cs(P1, FO)[0], '| distanza minima dall\'osso mm:', cs(P0, FO)[1], '→', cs(P1, FO)[1]);
@@ -140,7 +194,7 @@ log('vertici spostati', spost.length, '(di cui riportati fuori da osso/vicini', 
   log('qualità dei triangoli (minima; sotto 0,02) prima:', m0.toFixed(3), n0, '→ dopo:', minQ.toFixed(3), nq); }
 log('dopo (lunghezza, scarto medio/massimo dal bordo levigato):', riga(P1));
 
-const compatto = B.compatta(P1, Uint32Array.from(idx));
+const compatto = B.compatta(Pfin, Uint32Array.from(idxF));
 const nuova = { pos: Float32Array.from(compatto.pos), idx: compatto.idx, tag: null, fdir: null };
 log('capsula:', nuova.idx.length / 3, 'triangoli,', nuova.pos.length / 3, 'vertici (prima', c0.idx.length / 3, 'triangoli)');
 if (process.env.PROVA) { log('PROVA: nessuna scrittura'); if (process.env.PROVA !== '1') writeFileSync(process.env.PROVA, JSON.stringify({ pos: Array.from(nuova.pos, v => +v.toFixed(4)), idx: Array.from(nuova.idx) })); }
