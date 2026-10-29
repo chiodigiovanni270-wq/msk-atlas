@@ -1,10 +1,10 @@
 const $=id=>document.getElementById(id);
 const panel=document.createElement('section');panel.id='ax-panel';panel.hidden=true;panel.setAttribute('aria-label','Sezioni assiali della spalla');
 panel.innerHTML=`<header class="ax-heading"><div><span class="ax-kicker">SPALLA DESTRA</span><h2>Sezione assiale</h2></div><button id="ax-close" aria-label="Chiudi sezioni">×</button></header>
-<div class="ax-stage"><canvas id="slice" tabindex="0" aria-label="Sezione assiale, frecce su e giù per scorrere"></canvas><span class="ax-dir ax-ant">A</span><span class="ax-dir ax-post">P</span><span class="ax-dir ax-right">R</span><span class="ax-dir ax-left">L</span><p id="status" role="status">Preparazione delle sezioni…</p><div class="ax-zoom"><button id="zoomOut" aria-label="Riduci zoom">−</button><button id="zoomIn" aria-label="Aumenta zoom">+</button><button id="reset">Adatta</button></div></div>
+<div class="ax-stage"><canvas id="slice" tabindex="0" aria-label="Sezione assiale: trascina per spostare, clic o tocco per selezionare; frecce su e giù per scorrere i livelli, Maiusc e frecce per spostare" title="Trascina per spostare · clic o tocco per selezionare"></canvas><span class="ax-dir ax-ant">A</span><span class="ax-dir ax-post">P</span><span class="ax-dir ax-right">R</span><span class="ax-dir ax-left">L</span><p id="status" role="status">Preparazione delle sezioni…</p><div class="ax-zoom"><button id="zoomOut" aria-label="Riduci zoom">−</button><button id="zoomIn" aria-label="Aumenta zoom">+</button><button id="reset" aria-label="Adatta e ricentra la sezione">Adatta</button></div></div>
 <div id="hover" aria-live="polite">Seleziona una struttura nella sezione o nel modello.</div>
 <div class="ax-controls"><div><label for="level">Livello <output id="value">—</output></label><label for="step">Passo <select id="step"><option value="1">1 mm</option><option value="2">2 mm</option><option value="5">5 mm</option></select></label></div><div><button id="up" disabled aria-label="Livello superiore">↑</button><input id="level" type="range" disabled aria-label="Livello assiale"><button id="down" disabled aria-label="Livello inferiore">↓</button></div></div>
-<details class="ax-help"><summary>Orientamento e colori</summary><p>Vista dai piedi: A anteriore, P posteriore, R destra, L sinistra. Colori anatomici; selezione e visibilità condivise con il modello 3D.</p><p>Livello rispetto alla testa omerale. Ossa piene, spazi non modellati vuoti; contorni aperti tratteggiati. Sezioni del modello, non immagini TAC.</p></details>`;
+<details class="ax-help"><summary>Uso, orientamento e colori</summary><p>Trascina la sezione con il mouse o con un dito per spostarla. Clic o tocco breve per selezionare una struttura. Adatta ripristina zoom e posizione. Da tastiera: Maiusc + frecce per spostare.</p><p>Vista dai piedi: A anteriore, P posteriore, R destra, L sinistra. Colori anatomici; selezione e visibilità condivise con il modello 3D.</p><p>Livello rispetto alla testa omerale. Ossa piene, spazi non modellati vuoti; contorni aperti tratteggiati. Sezioni del modello, non immagini TAC.</p></details>`;
 document.body.append(panel);
 const divider=document.createElement('div');divider.id='ax-divider';divider.tabIndex=0;divider.setAttribute('role','separator');divider.setAttribute('aria-label','Dimensione delle viste');divider.setAttribute('aria-orientation','vertical');divider.setAttribute('aria-valuemin','32');divider.setAttribute('aria-valuemax','65');divider.setAttribute('aria-valuenow','40');divider.hidden=true;document.body.append(divider);
 const toggle=$('ax-toggle'),expand=document.createElement('button');expand.id='ax-expand';expand.textContent='Espandi 3D';expand.hidden=true;document.body.append(expand);
@@ -62,7 +62,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&opened&&!['INPUT','
 setInterval(()=>{if(!opened||!d)return;const state=d.selected()+'|'+d.S.map(s=>+s.visible).join('');if(state!==lastState){lastState=state;syncDock();if(!$('ax-results').hidden)catalog();draw();}},160);
 window.addEventListener('resize',layout);
 const colors={caps:'#b9cfe0',bor:'#9fb8ec',ossa:'#dbca9c',cart:'#9cc0d0',leg:'#e5ded1',ten:'#e5ded1',ret:'#e5ded1',cuf:'#b55b51',cin:'#b55b51',tor:'#b55b51',brac:'#b55b51',art:'#c93b38',ven:'#5473b8',ner:'#e4c65b',adi:'#d8b44a'};
-let worker,plane,outline,bounds,sections=[],paths=[],zoom=1,seq=0,busy=false,pending=null,ready=false,scale=1,ox=0,oz=0;
+let worker,plane,outline,bounds,sections=[],paths=[],zoom=1,panX=0,panY=0,seq=0,busy=false,pending=null,ready=false,scale=1,ox=0,oz=0;
 function fail(message){$('status').textContent=message;$('status').hidden=false;}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function init(){
@@ -111,7 +111,7 @@ function draw(){
   if(!bounds||!opened)return;
   const rect=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio,2);const width=Math.round(rect.width*dpr),height=Math.round(rect.height*dpr);if(canvas.width!==width)canvas.width=width;if(canvas.height!==height)canvas.height=height;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,rect.width,rect.height);
   scale=Math.min((rect.width-80)/(bounds.maxX-bounds.minX),(rect.height-60)/(bounds.maxZ-bounds.minZ))*zoom;
-  ox=rect.width/2-(bounds.minX+bounds.maxX)/2*scale;oz=rect.height/2+(bounds.minZ+bounds.maxZ)/2*scale;
+  ox=rect.width/2+ (panX-(bounds.minX+bounds.maxX)/2)*scale;oz=rect.height/2+(panY+(bounds.minZ+bounds.maxZ)/2)*scale;
   paths=[];
   const order=s=>({ossa:4,art:6,ven:6,ner:7,cart:5,leg:3,ten:3,ret:3}[s.cat]||1);
   for(const s of [...sections].filter(s=>d.S.find(m=>m.id===s.id)?.visible).sort((a,b)=>order(a)-order(b))){
@@ -134,9 +134,36 @@ canvas.addEventListener('wheel',e=>{e.preventDefault();if(!e.deltaY)return;
   wheelDistance+=delta;const steps=Math.trunc(wheelDistance/32);
   if(steps){wheelDistance-=steps*32;shift(-steps);}
 },{passive:false});
-canvas.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();shift(e.key==='ArrowUp'?1:-1);}});
-canvas.addEventListener('click',e=>{const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;ctx.save();ctx.setTransform(1,0,0,1,0,0);const hit=[...paths].reverse().find(p=>ctx.isPointInPath(p.path,x,y,'evenodd'));ctx.restore();$('hover').textContent=hit?.name||'Nessuna struttura in questo punto.';d.select(hit?.id||null);draw();});
-$('zoomIn').onclick=()=>{zoom=Math.min(4,zoom*1.25);draw();};$('zoomOut').onclick=()=>{zoom=Math.max(.5,zoom/1.25);draw();};$('reset').onclick=()=>{zoom=1;draw();};
+// Il trascinamento sposta solo l'inquadratura 2D; un tocco breve resta una selezione.
+let drag=null,suppressClick=false,panFrame=0;
+function drawPan(){if(!panFrame)panFrame=requestAnimationFrame(()=>{panFrame=0;draw();});}
+canvas.addEventListener('pointerdown',e=>{
+  if(!ready||!e.isPrimary||e.button!==0||drag)return;
+  suppressClick=false;drag={id:e.pointerId,x:e.clientX,y:e.clientY,panX,panY,moved:false};
+  canvas.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!drag||e.pointerId!==drag.id)return;
+  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  if(!drag.moved&&Math.hypot(dx,dy)<5)return;
+  drag.moved=true;suppressClick=true;canvas.classList.add('is-panning');
+  panX=drag.panX+dx/scale;panY=drag.panY+dy/scale;drawPan();
+});
+function endPan(e){
+  if(!drag||e.pointerId!==drag.id)return;
+  suppressClick=drag.moved||e.type!=='pointerup';drag=null;canvas.classList.remove('is-panning');
+  if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);
+}
+canvas.addEventListener('pointerup',endPan);
+canvas.addEventListener('pointercancel',endPan);
+canvas.addEventListener('lostpointercapture',endPan);
+canvas.addEventListener('keydown',e=>{
+  const direction={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
+  if(e.shiftKey&&direction){e.preventDefault();if(!ready)return;panX+=direction[0]*40/scale;panY+=direction[1]*40/scale;drawPan();}
+  else if(['ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();shift(e.key==='ArrowUp'?1:-1);}
+});
+canvas.addEventListener('click',e=>{if(suppressClick){suppressClick=false;return;}if(!ready)return;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;ctx.save();ctx.setTransform(1,0,0,1,0,0);const hit=[...paths].reverse().find(p=>ctx.isPointInPath(p.path,x,y,'evenodd'));ctx.restore();$('hover').textContent=hit?.name||'Nessuna struttura in questo punto.';d.select(hit?.id||null);draw();});
+$('zoomIn').onclick=()=>{zoom=Math.min(4,zoom*1.25);draw();};$('zoomOut').onclick=()=>{zoom=Math.max(.5,zoom/1.25);draw();};$('reset').onclick=()=>{zoom=1;panX=panY=0;draw();};
 new ResizeObserver(draw).observe(canvas);
 
 window.addEventListener('pagehide',e=>{if(!e.persisted)worker?.terminate();});
