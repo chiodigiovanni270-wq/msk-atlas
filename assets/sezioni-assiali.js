@@ -28,15 +28,27 @@ function catalog(){if(!d)return;
  const heading=document.createElement('p');heading.className='ax-list-heading';heading.textContent=q?'Risultati della ricerca · categorie applicate per intero':'Singole strutture';results.append(heading);
  const items=all.filter(s=>s.name.toLocaleLowerCase('it').includes(q));
  if(!items.length){const p=document.createElement('p');p.textContent='Nessuna struttura trovata.';results.append(p);}
- for(const s of items){const row=document.createElement('div');row.className='ax-result';const check=document.createElement('input');check.type='checkbox';check.checked=s.visible;check.dataset.key='vis-'+s.id;check.setAttribute('aria-label','Mostra '+s.name);check.onchange=()=>apply([s],check.checked);const button=document.createElement('button');button.textContent=s.name;button.dataset.key='select-'+s.id;button.onclick=()=>{if(!s.visible){d.setVis(s,true);d.sync();}d.select(s.id);$('ax-results').hidden=true;$('ax-list-toggle').setAttribute('aria-expanded','false');syncDock();draw();};row.append(check,button);results.append(row);}
+ const categories=d.categories||[];
+ for(const cat of categories){const members=items.filter(s=>s.cat===cat.id);if(!members.length)continue;
+  const group=document.createElement('section');group.className='ax-list-section';const title=document.createElement('h3');title.id='ax-group-'+cat.id;title.textContent=cat.name+' · '+members.length;group.setAttribute('aria-labelledby',title.id);group.append(title);results.append(group);
+ for(const s of members){const row=document.createElement('div');row.className='ax-result';const check=document.createElement('input');check.type='checkbox';check.checked=s.visible;check.dataset.key='vis-'+s.id;check.setAttribute('aria-label','Mostra '+s.name);check.onchange=()=>apply([s],check.checked);const button=document.createElement('button');button.textContent=s.name;button.dataset.key='select-'+s.id;button.onclick=()=>{if(!s.visible){d.setVis(s,true);d.sync();}d.select(s.id);setCatalog(false);syncDock();draw();};row.append(check,button);group.append(row);}
+ }
  results.scrollTop=scroll;
  if(focused)Array.from(results.querySelectorAll('[data-key]')).find(e=>e.dataset.key===focused)?.focus({preventScroll:true});
 }
 let previousSelection=null;
-function syncDock(){if(!opened||!d)return;const id=d.selected(),selected=!!id;if(id!==previousSelection){previousSelection=id;if(id){$('ax-results').hidden=true;$('ax-list-toggle').setAttribute('aria-expanded','false');$('card').querySelector('.info').scrollTop=0;}}document.body.classList.toggle('ax-has-selection',selected);$('ax-empty').hidden=selected;layout();}
-$('ax-find').oninput=()=>{$('ax-results').hidden=false;$('ax-list-toggle').setAttribute('aria-expanded','true');catalog();};
-$('ax-list-toggle').onclick=()=>{const results=$('ax-results');results.hidden=!results.hidden;$('ax-list-toggle').setAttribute('aria-expanded',String(!results.hidden));if(!results.hidden)catalog();layout();};
-$('ax-find').onkeydown=e=>{if(e.key==='Escape'){$('ax-results').hidden=true;$('ax-list-toggle').setAttribute('aria-expanded','false');}if(e.key==='Enter')$('ax-results').querySelector('.ax-result button')?.click();};
+function setCatalog(value){
+ if(value){d?.select(null);previousSelection=null;document.body.classList.remove('ax-has-selection');}
+ $('ax-results').hidden=!value;$('ax-card-slot').hidden=value;
+ $('ax-list-toggle').setAttribute('aria-expanded',String(value));
+ document.body.classList.toggle('ax-browsing',value);
+ $('ax-empty').hidden=value||!!d?.selected();
+ if(value)catalog();layout();
+}
+function syncDock(){if(!opened||!d)return;const id=d.selected(),selected=!!id;if(id!==previousSelection){previousSelection=id;if(id){setCatalog(false);$('card').querySelector('.info').scrollTop=0;}}document.body.classList.toggle('ax-has-selection',selected);$('ax-empty').hidden=selected||!$('ax-results').hidden;layout();}
+$('ax-find').oninput=()=>setCatalog(true);
+$('ax-list-toggle').onclick=()=>setCatalog($('ax-results').hidden);
+$('ax-find').onkeydown=e=>{if(e.key==='Escape'){setCatalog(false);}if(e.key==='Enter')$('ax-results').querySelector('.ax-result button')?.click();};
 function layout(){d?.resize();draw();}
 function open(value){d=window.__dbg;opened=value;dock.hidden=!value;const card=$('card');if(value&&!cardHome){cardHome={parent:card.parentNode,next:card.nextSibling};$('ax-card-slot').append(card);}else if(!value&&cardHome){cardHome.parent.insertBefore(card,cardHome.next);cardHome=null;}document.body.classList.toggle('ax-has-selection',value&&!!d?.selected());panel.hidden=divider.hidden=expand.hidden=!value;document.body.classList.toggle('ax-open',value);toggle.setAttribute('aria-expanded',String(value));toggle.classList.toggle('active',value);if(plane)plane.visible=outline.visible=value;layout();
  if(value&&!started){started=true;init().catch(e=>fail(e.message));}if(!value)toggle.focus();}
@@ -45,7 +57,7 @@ expand.onclick=()=>{const on=document.body.classList.toggle('ax-expanded');expan
 function split(percent){const n=Math.max(32,Math.min(65,percent));document.body.style.setProperty('--ax-split',n+'%');divider.setAttribute('aria-valuenow',String(Math.round(n)));layout();}
 divider.onpointerdown=e=>{divider.setPointerCapture(e.pointerId);};divider.onpointermove=e=>{if(divider.hasPointerCapture(e.pointerId))split(e.clientX/innerWidth*100);};divider.onpointerup=e=>divider.releasePointerCapture(e.pointerId);
 divider.onkeydown=e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();split(+divider.getAttribute('aria-valuenow')+(e.key==='ArrowLeft'?-2:2));}};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&opened&&!['INPUT','SELECT'].includes(document.activeElement.tagName))open(false);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&opened&&!['INPUT','SELECT'].includes(document.activeElement.tagName)){if(!$('ax-results').hidden){setCatalog(false);$('ax-list-toggle').focus();}else open(false);}});
 // Observe state without altering the model's selection or visibility handlers.
 setInterval(()=>{if(!opened||!d)return;const state=d.selected()+'|'+d.S.map(s=>+s.visible).join('');if(state!==lastState){lastState=state;syncDock();if(!$('ax-results').hidden)catalog();draw();}},160);
 window.addEventListener('resize',layout);
