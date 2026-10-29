@@ -90,19 +90,26 @@ async function init(){
   worker.onmessage=({data})=>{
     if(data.type==='ready'){ready=true;['level','up','down'].forEach(id=>$(id).disabled=false);requestSlice();return;}
     busy=false;
-    if(data.seq===seq){sections=data.sections;draw();$('status').hidden=sections.length>0;$('status').textContent='Nessuna struttura a questo livello.';}
+    // Mostra ogni risultato completato: scartare tutti quelli intermedi
+    // bloccava visivamente la sezione finché l'utente non smetteva di scorrere.
+    sections=data.sections;plane.position.y=outline.position.y=data.y;
+    const mm=Math.round(data.y*10);$('value').textContent=`${mm>0?'+':''}${mm} mm`;
+    draw();$('status').hidden=sections.length>0;$('status').textContent='Nessuna struttura a questo livello.';
     if(pending!==null){const y=pending;pending=null;send(y);}
   };
   worker.postMessage({type:'init',meshes:data},data.flatMap(m=>[m.pos.buffer,m.idx.buffer,...(m.tw?[m.tw.buffer]:[])]));
 }
 function send(y){busy=true;worker.postMessage({type:'slice',seq,y});}
-function requestSlice(){if(!ready)return;const mm=+$('level').value,y=mm/10;seq++;$('value').textContent=`${mm>0?'+':''}${mm} mm`;plane.position.y=y;outline.position.y=y;
-  if(busy)pending=y;else send(y);
+let requestFrame=0;
+function requestSlice(){if(!ready||requestFrame)return;
+  requestFrame=requestAnimationFrame(()=>{requestFrame=0;const y=+$('level').value/10;seq++;
+    if(busy)pending=y;else send(y);
+  });
 }
 function shift(dir){if(!ready)return;const r=$('level');r.value=Math.max(+r.min,Math.min(+r.max,+r.value+dir*+$('step').value));requestSlice();}
 function draw(){
   if(!bounds||!opened)return;
-  const rect=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio,2);canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,rect.width,rect.height);
+  const rect=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio,2);const width=Math.round(rect.width*dpr),height=Math.round(rect.height*dpr);if(canvas.width!==width)canvas.width=width;if(canvas.height!==height)canvas.height=height;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,rect.width,rect.height);
   scale=Math.min((rect.width-80)/(bounds.maxX-bounds.minX),(rect.height-60)/(bounds.maxZ-bounds.minZ))*zoom;
   ox=rect.width/2-(bounds.minX+bounds.maxX)/2*scale;oz=rect.height/2+(bounds.minZ+bounds.maxZ)/2*scale;
   paths=[];
@@ -120,7 +127,13 @@ function draw(){
   const length=2*scale;ctx.strokeStyle='#afc7d8';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(24,rect.height-24);ctx.lineTo(24+length,rect.height-24);ctx.stroke();ctx.fillStyle='#afc7d8';ctx.font='11px system-ui';ctx.fillText('20 mm',24,rect.height-31);
 }
 $('level').oninput=requestSlice;$('up').onclick=()=>shift(1);$('down').onclick=()=>shift(-1);
-canvas.addEventListener('wheel',e=>{e.preventDefault();shift(e.deltaY>0?-1:1);},{passive:false});
+let wheelDistance=0;
+canvas.addEventListener('wheel',e=>{e.preventDefault();if(!e.deltaY)return;
+  const delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?canvas.clientHeight:1);
+  if(Math.sign(delta)!==Math.sign(wheelDistance))wheelDistance=0;
+  wheelDistance+=delta;const steps=Math.trunc(wheelDistance/32);
+  if(steps){wheelDistance-=steps*32;shift(-steps);}
+},{passive:false});
 canvas.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();shift(e.key==='ArrowUp'?1:-1);}});
 canvas.addEventListener('click',e=>{const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;ctx.save();ctx.setTransform(1,0,0,1,0,0);const hit=[...paths].reverse().find(p=>ctx.isPointInPath(p.path,x,y,'evenodd'));ctx.restore();$('hover').textContent=hit?.name||'Nessuna struttura in questo punto.';d.select(hit?.id||null);draw();});
 $('zoomIn').onclick=()=>{zoom=Math.min(4,zoom*1.25);draw();};$('zoomOut').onclick=()=>{zoom=Math.max(.5,zoom/1.25);draw();};$('reset').onclick=()=>{zoom=1;draw();};

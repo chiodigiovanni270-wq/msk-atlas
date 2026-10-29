@@ -16,3 +16,7 @@ function cilindroAperto(n){const p=[],t=[];for(let i=0;i<n;i++){const a=i*2*Math
 const micro=sezione(cilindroAperto(1024),0);assert.equal(micro.open.length,0);assert.equal(micro.loops.length,1);assert.ok(micro.repairedGapMM<.15);
 const largo=sezione(cilindroAperto(32),0);assert.ok(largo.open.length>0);assert.equal(largo.loops.length,0);
 console.log('Microfessure ricucite entro soglia; aperture reali preservate.');
+// L'indice di accelerazione non cambia i contorni, anche ai limiti delle bande.
+const {indicizza}=await import('../assets/sezioni-assiali-worker.js');
+const cube={pos,idx};const levels=[-.999,-.1,0,.1,.999,1,2];const plain=levels.map(y=>sezione(cube,y));indicizza(cube);assert.deepEqual(levels.map(y=>sezione(cube,y)),plain);
+console.log('Indice spaziale: risultati identici, inclusi i limiti di banda.');

@@ -8,7 +8,10 @@ function interseca(mesh, y) {
     for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)for(const k of buckets.get(`${x+dx},${z+dz}`)||[]){const q=nodes.get(k).p;if(Math.hypot(q[0]-p[0],q[1]-p[1])<=eps)return k;}
     const k=serial++;nodes.set(k,{p,edges:[]});const bucket=`${x},${z}`;if(!buckets.has(bucket))buckets.set(bucket,[]);buckets.get(bucket).push(k);return k;};
 
-  for(let t=0;t<idx.length;t+=3){
+  const candidates=mesh.sliceBins?(mesh.sliceBins.get(Math.floor(y*10))||[]):null;
+  const count=candidates?candidates.length:idx.length/3;
+  for(let ti=0;ti<count;ti++){
+    const t=candidates?candidates[ti]:ti*3;
     const ids=[idx[t],idx[t+1],idx[t+2]], hits=[];
     for(let e=0;e<3;e++){
       const a=ids[e],b=ids[(e+1)%3],ya=pos[a*3+1],yb=pos[b*3+1];
@@ -58,8 +61,23 @@ export function sezione(mesh,y){
   return base;
 }
 
+// Indice a bande di 1 mm: ogni livello considera solo triangoli vicini al piano.
+export function indicizza(mesh){
+  const bins=new Map(),{pos,idx}=mesh;
+  for(let t=0;t<idx.length;t+=3){const a=pos[idx[t]*3+1],b=pos[idx[t+1]*3+1],c=pos[idx[t+2]*3+1];
+    const lo=Math.floor(Math.min(a,b,c)*10),hi=Math.floor(Math.max(a,b,c)*10);
+    for(let bin=lo;bin<=hi;bin++){if(!bins.has(bin))bins.set(bin,[]);bins.get(bin).push(t);}
+  }
+  mesh.sliceBins=new Map([...bins].map(([k,v])=>[k,Uint32Array.from(v)]));return mesh;
+}
 let meshes=[];
+const cache=new Map();
+function calcola(y){
+  if(cache.has(y)){const result=cache.get(y);cache.delete(y);cache.set(y,result);return result;}
+  const result=meshes.map(m=>sezione(m,y)).filter(s=>s.loops.length||s.open.length);
+  cache.set(y,result);if(cache.size>24)cache.delete(cache.keys().next().value);return result;
+}
 if(typeof self!=='undefined')self.onmessage=({data})=>{
-  if(data.type==='init'){meshes=data.meshes;self.postMessage({type:'ready'});return;}
-  if(data.type==='slice')self.postMessage({type:'slice',seq:data.seq,y:data.y,sections:meshes.map(m=>sezione(m,data.y)).filter(s=>s.loops.length||s.open.length)});
+  if(data.type==='init'){meshes=data.meshes.map(indicizza);cache.clear();self.postMessage({type:'ready'});return;}
+  if(data.type==='slice')self.postMessage({type:'slice',seq:data.seq,y:data.y,sections:calcola(data.y)});
 };
