@@ -1,0 +1,9 @@
+/* Stesso selettore nelle due visualizzazioni. Link, non tab: ogni vista ha un URL. */
+.an-display{display:inline-flex;align-items:center;gap:3px;padding:4px;border:1px solid #405263;border-radius:12px;background:rgba(23,33,43,.94);box-shadow:0 4px 18px #0003;pointer-events:auto;font:500 13px/1.2 system-ui,sans-serif;white-space:nowrap}
+.an-display a{display:flex;align-items:center;justify-content:center;min-height:36px;padding:8px 14px;border-radius:8px;color:#b6c8d7;text-decoration:none}
+.an-display a[aria-current="page"]{background:#355569;color:#f0f8fc}
+.an-display a:hover{color:#fff;background:#294454}
+.an-display a:focus-visible{outline:2px solid #a1ddf4;outline-offset:2px}
+.top .an-display{margin-top:10px}
+@media(max-width:899px){body:has(.top .an-display) .ms-search{top:calc(env(safe-area-inset-top,0px) + 118px + var(--ms-offset,0px))}.top .an-display{margin-top:8px;margin-left:-48px}.an-display a{min-height:40px;padding:8px 12px}}
+@media(max-width:750px){body>header{flex-wrap:wrap;gap:12px}body>header .an-display{width:100%;box-shadow:none}body>header .an-display a{flex:1;min-width:0;font-size:13px}body>header .eyebrow{min-width:0}}

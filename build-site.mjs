@@ -38,13 +38,13 @@ if (!preview) {
   await writeFile('dist/robots.txt', 'User-agent: *\nDisallow: /\n');
 }
 await costruisciInglese({ preview, drafts, dettagli: process.argv.includes('--traduzioni'), rigoroso: process.argv.includes('--rigoroso') });
-// Accesso alla prova solo nelle Preview: il dominio pubblico non riceve il banner.
+// Selettore integrato nella tavola, abilitato solo nella Preview della prova.
 if (preview) {
-  const banner = `<aside aria-label="Funzione in prova" style="position:fixed;top:85px;left:50%;transform:translateX(-50%);z-index:1000;width:max-content;max-width:calc(100% - 24px);padding:12px 18px;border:1px solid #72b4d0;border-radius:12px;background:#182630;color:#e5eaef;box-shadow:0 8px 30px #0008;font:14px system-ui;text-align:center"><span style="display:block;font-size:10px;letter-spacing:.12em;margin-bottom:5px;color:#a5c6d5">PREVIEW · FUNZIONE IN PROVA</span><a href="/modelli/spalla-assiale-prova.html" style="color:#c4edff;font-weight:600;text-decoration:underline">Apri Spalla · Sezioni assiali →</a></aside>`;
-  for (const file of ['index.html', 'modelli/spalla-3d.html']) {
-    const path = `dist/${file}`;
-    const html = await readFile(path, 'utf8');
-    await writeFile(path, html.replace(/<body([^>]*)>/, match => match + banner));
-  }
+  const path = 'dist/modelli/spalla-3d.html';
+  let html = await readFile(path, 'utf8');
+  const nav = `<nav class="an-display" aria-label="Visualizzazione della spalla"><a href="spalla-3d.html" aria-current="page">3D</a><a href="spalla-assiale-prova.html">Sezioni assiali</a></nav>`;
+  html = html.replace('</head>', '<link rel="stylesheet" href="../assets/visualizzazioni-spalla.css"></head>')
+    .replace('<h1>Spalla destra</h1>', '<h1>Spalla destra</h1>' + nav);
+  await writeFile(path, html);
 }
 console.log(`Build ${preview ? 'preview privata' : 'pubblica'} completata in dist/`);
