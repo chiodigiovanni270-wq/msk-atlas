@@ -9,6 +9,7 @@ for (const file of ['assets', 'favicon.ico', 'manifest.webmanifest', 'robots.txt
   await cp(file, `dist/${file}`, { recursive: true });
 }
 for (const file of await readdir('modelli')) {
+  if (file === 'spalla-assiale-prova.html' && !preview) continue;
   if (file.endsWith('.html') && (preview || !drafts.has(`modelli/${file}`))) await cp(`modelli/${file}`, `dist/modelli/${file}`);
 }
 if (!preview) {
