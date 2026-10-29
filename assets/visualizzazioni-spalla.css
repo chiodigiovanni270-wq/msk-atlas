@@ -18,3 +18,8 @@ body.ax-open{--ax-split:40%;--ax-dock:292px}#ax-anatomy[hidden]{display:none!imp
 .ax-list-section{margin-top:12px}.ax-list-section h3{margin:0;padding:10px 8px;border-bottom:1px solid #526b7d;background:#253c4d;color:#bde1f1;font:600 12px/1.4 system-ui;letter-spacing:.02em;border-radius:6px 6px 0 0}.ax-list-section .ax-result:last-child{border-bottom:0}
 @media(max-width:899px){body.ax-open.ax-browsing{--ax-dock:min(45dvh,380px)}.ax-open #ax-results{position:static;max-height:none;height:auto;bottom:auto;top:auto}.ax-open.ax-browsing #ax-card-slot{display:none}}
 @media(max-width:899px) and (max-height:650px){body.ax-open.ax-browsing{--ax-dock:230px}}
+/* Accesso alle sezioni nella barra dei comandi, accanto alle informazioni. */
+.top #ax-toggle{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:62px;left:auto;margin:0!important;height:44px;min-height:44px;padding:8px 14px;font-size:13px;z-index:20;box-shadow:0 4px 18px #0003}
+.ax-open .top #ax-toggle{right:calc(100% - var(--ax-split,40%) + 62px)}
+@media(max-width:899px){.top{padding-top:calc(env(safe-area-inset-top,0px) + 66px)!important;padding-left:14px!important}.top #ax-toggle,.ax-open .top #ax-toggle{right:62px;font-size:12px;min-height:44px;padding:8px 11px}.ax-open .top #ax-toggle svg{width:18px}.top .title h1{font-size:19px}}
+.ax-open .an-home{width:44px!important;min-width:44px;justify-content:center!important;padding:0!important}.ax-open .an-home img,.ax-open .an-home .an-name{display:none!important}
