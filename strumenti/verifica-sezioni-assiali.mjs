@@ -11,3 +11,8 @@ for(const y of [-.999,0,.5,.999]){
 for(const y of [-2,2])assert.equal(sezione({pos,idx},y).loops.length,0);
 const open=sezione({pos,idx:idx.slice(6)},0);assert.equal(open.loops.length,0);assert.ok(open.open.length>0,'Superficie aperta segnalata, non riempita');
 console.log('Sezioni assiali: aree, livelli esterni e contorni aperti verificati.');
+// Una microfessura numerica viene ricucita; un'apertura ampia resta segnalata.
+function cilindroAperto(n){const p=[],t=[];for(let i=0;i<n;i++){const a=i*2*Math.PI/n;for(const y of [-1,1])p.push(Math.cos(a),y,Math.sin(a));}for(let i=1;i<n;i++){const a=i*2,b=((i+1)%n)*2;t.push(a,b,a+1,b,b+1,a+1);}return {pos:Float32Array.from(p),idx:Uint32Array.from(t)};}
+const micro=sezione(cilindroAperto(1024),0);assert.equal(micro.open.length,0);assert.equal(micro.loops.length,1);assert.ok(micro.repairedGapMM<.15);
+const largo=sezione(cilindroAperto(32),0);assert.ok(largo.open.length>0);assert.equal(largo.loops.length,0);
+console.log('Microfessure ricucite entro soglia; aperture reali preservate.');

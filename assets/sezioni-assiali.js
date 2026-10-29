@@ -6,11 +6,24 @@ panel.innerHTML=`<header class="ax-heading"><div><span class="ax-kicker">SPALLA 
 <div class="ax-controls"><div><label for="level">Livello <output id="value">—</output></label><label for="step">Passo <select id="step"><option value="1">1 mm</option><option value="2">2 mm</option><option value="5">5 mm</option></select></label></div><div><button id="up" disabled aria-label="Livello superiore">↑</button><input id="level" type="range" disabled aria-label="Livello assiale"><button id="down" disabled aria-label="Livello inferiore">↓</button></div></div>
 <details class="ax-help"><summary>Orientamento e colori</summary><p>Vista dai piedi: A anteriore, P posteriore, R destra, L sinistra. Colori anatomici; selezione e visibilità condivise con il modello 3D.</p><p>Livello rispetto alla testa omerale. Ossa piene, spazi non modellati vuoti; contorni aperti tratteggiati. Sezioni del modello, non immagini TAC.</p></details>`;
 document.body.append(panel);
-const divider=document.createElement('div');divider.id='ax-divider';divider.tabIndex=0;divider.setAttribute('role','separator');divider.setAttribute('aria-label','Dimensione delle viste');divider.setAttribute('aria-orientation','vertical');divider.setAttribute('aria-valuemin','32');divider.setAttribute('aria-valuemax','65');divider.setAttribute('aria-valuenow','46');divider.hidden=true;document.body.append(divider);
+const divider=document.createElement('div');divider.id='ax-divider';divider.tabIndex=0;divider.setAttribute('role','separator');divider.setAttribute('aria-label','Dimensione delle viste');divider.setAttribute('aria-orientation','vertical');divider.setAttribute('aria-valuemin','32');divider.setAttribute('aria-valuemax','65');divider.setAttribute('aria-valuenow','40');divider.hidden=true;document.body.append(divider);
 const toggle=$('ax-toggle'),expand=document.createElement('button');expand.id='ax-expand';expand.textContent='Espandi 3D';expand.hidden=true;document.body.append(expand);
 const canvas=$('slice'),ctx=canvas.getContext('2d');let d,opened=false,started=false,lastState='';
+const dock=document.createElement('aside');dock.id='ax-anatomy';dock.hidden=true;dock.setAttribute('aria-label','Esplora anatomia');
+dock.innerHTML=`<div class="ax-anatomy-tools"><label class="ax-find"><span aria-hidden="true">⌕</span><input id="ax-find" type="search" placeholder="Cerca una struttura…" aria-label="Cerca una struttura anatomica" autocomplete="off"></label><button id="ax-list-toggle" aria-expanded="false" aria-controls="ax-results">Strutture</button></div><div id="ax-results" hidden></div><div id="ax-card-slot"></div><p id="ax-empty">Seleziona nel modello o nella sezione per esplorare l’anatomia.</p>`;
+document.body.append(dock);
+let cardHome=null;
+function catalog(){if(!d)return;const q=$('ax-find').value.trim().toLocaleLowerCase('it');const results=$('ax-results');results.replaceChildren();
+ const items=d.S.filter(s=>s.group&&s.name.toLocaleLowerCase('it').includes(q));
+ if(!items.length){results.textContent='Nessuna struttura trovata.';return;}
+ for(const s of items){const row=document.createElement('div');row.className='ax-result';const check=document.createElement('input');check.type='checkbox';check.checked=s.visible;check.setAttribute('aria-label','Mostra '+s.name);check.onchange=()=>{d.setVis(s,check.checked);d.sync();draw();};const button=document.createElement('button');button.textContent=s.name;button.onclick=()=>{if(!s.visible){d.setVis(s,true);d.sync();}d.select(s.id);$('ax-results').hidden=true;$('ax-list-toggle').setAttribute('aria-expanded','false');syncDock();draw();};row.append(check,button);results.append(row);}
+}
+function syncDock(){if(!opened||!d)return;const selected=!!d.selected();document.body.classList.toggle('ax-has-selection',selected);$('ax-empty').hidden=selected;layout();}
+$('ax-find').oninput=()=>{$('ax-results').hidden=false;$('ax-list-toggle').setAttribute('aria-expanded','true');catalog();};
+$('ax-list-toggle').onclick=()=>{const results=$('ax-results');results.hidden=!results.hidden;$('ax-list-toggle').setAttribute('aria-expanded',String(!results.hidden));if(!results.hidden)catalog();};
+$('ax-find').onkeydown=e=>{if(e.key==='Escape'){$('ax-results').hidden=true;$('ax-list-toggle').setAttribute('aria-expanded','false');}if(e.key==='Enter')$('ax-results').querySelector('button')?.click();};
 function layout(){d?.resize();draw();}
-function open(value){d=window.__dbg;opened=value;panel.hidden=divider.hidden=expand.hidden=!value;document.body.classList.toggle('ax-open',value);toggle.setAttribute('aria-expanded',String(value));toggle.classList.toggle('active',value);if(plane)plane.visible=outline.visible=value;layout();
+function open(value){d=window.__dbg;opened=value;dock.hidden=!value;const card=$('card');if(value&&!cardHome){cardHome={parent:card.parentNode,next:card.nextSibling};$('ax-card-slot').append(card);}else if(!value&&cardHome){cardHome.parent.insertBefore(card,cardHome.next);cardHome=null;}document.body.classList.toggle('ax-has-selection',value&&!!d?.selected());panel.hidden=divider.hidden=expand.hidden=!value;document.body.classList.toggle('ax-open',value);toggle.setAttribute('aria-expanded',String(value));toggle.classList.toggle('active',value);if(plane)plane.visible=outline.visible=value;layout();
  if(value&&!started){started=true;init().catch(e=>fail(e.message));}if(!value)toggle.focus();}
 toggle.onclick=()=>open(!opened);$('ax-close').onclick=()=>open(false);
 expand.onclick=()=>{const on=document.body.classList.toggle('ax-expanded');expand.textContent=on?'Riduci 3D':'Espandi 3D';expand.setAttribute('aria-pressed',String(on));layout();};
@@ -19,7 +32,7 @@ divider.onpointerdown=e=>{divider.setPointerCapture(e.pointerId);};divider.onpoi
 divider.onkeydown=e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();split(+divider.getAttribute('aria-valuenow')+(e.key==='ArrowLeft'?-2:2));}};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&opened&&!['INPUT','SELECT'].includes(document.activeElement.tagName))open(false);});
 // Observe state without altering the model's selection or visibility handlers.
-setInterval(()=>{if(!opened||!d)return;const state=d.selected()+'|'+d.S.map(s=>+s.visible).join('');if(state!==lastState){lastState=state;draw();}},160);
+setInterval(()=>{if(!opened||!d)return;const state=d.selected()+'|'+d.S.map(s=>+s.visible).join('');if(state!==lastState){lastState=state;syncDock();if(!$('ax-results').hidden)catalog();draw();}},160);
 window.addEventListener('resize',layout);
 const colors={ossa:'#dbca9c',cart:'#9cc0d0',leg:'#e5ded1',ten:'#e5ded1',ret:'#e5ded1',cuf:'#b55b51',cin:'#b55b51',tor:'#b55b51',brac:'#b55b51',art:'#c93b38',ven:'#5473b8',ner:'#e4c65b',adi:'#d8b44a'};
 let worker,plane,outline,bounds,sections=[],paths=[],zoom=1,seq=0,busy=false,pending=null,ready=false,scale=1,ox=0,oz=0;
