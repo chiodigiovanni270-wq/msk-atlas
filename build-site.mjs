@@ -38,13 +38,16 @@ if (!preview) {
   await writeFile('dist/robots.txt', 'User-agent: *\nDisallow: /\n');
 }
 await costruisciInglese({ preview, drafts, dettagli: process.argv.includes('--traduzioni'), rigoroso: process.argv.includes('--rigoroso') });
-// Selettore integrato nella tavola, abilitato solo nella Preview della prova.
+// Strumento assiale nella stessa pagina, solo Preview finché non approvato.
 if (preview) {
   const path = 'dist/modelli/spalla-3d.html';
   let html = await readFile(path, 'utf8');
-  const nav = `<nav class="an-display" aria-label="Visualizzazione della spalla"><a href="spalla-3d.html" aria-current="page">3D</a><a href="spalla-assiale-prova.html">Sezioni assiali</a></nav>`;
   html = html.replace('</head>', '<link rel="stylesheet" href="../assets/visualizzazioni-spalla.css"></head>')
-    .replace('<h1>Spalla destra</h1>', '<h1>Spalla destra</h1>' + nav);
+    .replace('<h1>Spalla destra</h1>', '<h1>Spalla destra</h1><button id="ax-toggle" aria-expanded="false" aria-controls="ax-panel"><span aria-hidden="true">▱</span> Sezioni</button>')
+    .replace('const w=innerWidth,h=innerHeight;renderer.setSize', 'const rect=canvas.getBoundingClientRect(),w=rect.width,h=rect.height;renderer.setSize')
+    .replace('ray.setFromCamera(new THREE.Vector2((x/innerWidth)*2-1,-(y/innerHeight)*2+1),camera);', 'const rect=canvas.getBoundingClientRect();ray.setFromCamera(new THREE.Vector2(((x-rect.left)/rect.width)*2-1,-((y-rect.top)/rect.height)*2+1),camera);')
+    .replace('window.__dbg={S,setVis,sync,cam,', 'window.__dbg={S,setVis,sync,cam,resize,select,selected:()=>selected?.id||null,')
+    .replace('</body>', '<script type="module" src="../assets/sezioni-assiali.js"></script></body>');
   await writeFile(path, html);
 }
 console.log(`Build ${preview ? 'preview privata' : 'pubblica'} completata in dist/`);
