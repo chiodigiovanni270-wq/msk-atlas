@@ -10,7 +10,7 @@
      PROVA=1 node strumenti/propaggine-deltoide-spalla.mjs        → stampa i controlli senza scrivere
      MODELLO=/tmp/copia.html node strumenti/propaggine-deltoide-spalla.mjs   → lavora su una copia
      DEBUG=1 …                                                     → stampa anche i pezzi tolti, gli anelli e dove restano pieghe
-     LIVELLI=0.3 …, ZONA=1.0 …                                     → livello di taglio e zona delle lamelle diversi (prove)
+     LIVELLI=0.3 …, ZONA=1.0 …, L_SOTTO=0.3 …                      → livello di taglio, zona delle lamelle, raggio «sotto un tendine» diversi (prove)
    Va lanciato in fondo alla catena della spalla (dopo `margine-capsula-spalla.mjs`). Riparte sempre dalla mesh di `delt_cl` (posizioni, triangoli,
    tag, fibre, normali) della revisione `PARTENZA`, con le altre strutture del file come ostacoli, quindi si può rilanciare con lo stesso risultato.
    Se si rilanciano `deltoide-spalla.mjs` o gli script successivi che toccano `delt_cl` (`nervi-muscoli-spalla.mjs`), aggiornare `PARTENZA`.
@@ -21,7 +21,8 @@
       il muscolo dentro O; il muscolo «dietro o sotto» O, cioè i voxel da cui un raggio verso fuori (dal centro della testa omerale `CENTRO`),
       verso l'alto o in avanti incontra O entro `L_OMBRA`; le lamelle più sottili di 2 × `R_APRI` di quello che resta (apertura morfologica) entro
       `ZONA` dal coracoide. Non si tocca la faccia esterna: un voxel da cui il raggio verso fuori esce dal muscolo senza rientrarvi entro `L_PELLE`
-      resta (dove il deltoide copre il coraco-acromiale con uno strato sottile non si apre un buco). Pezzi più piccoli di `PEZZO_MIN` mm³ restano.
+      resta (dove il deltoide copre il coraco-acromiale con uno strato sottile non si apre un buco), salvo che abbia un ostacolo subito sopra (entro
+      `L_SOTTO`): è la linguetta sottile che passa sotto il capo breve del bicipite. Pezzi più piccoli di `PEZZO_MIN` mm³ restano.
       Campo dei «corpi» = distanza con segno da Q ∪ O.
    2. Il muscolo si raffina vicino alla linea di livello T (primo valore di `LIVELLI`) e si taglia lungo quella linea: resta la parte a più di T.
    3. Toppa: livello zero del massimo raccordato (raggio `RACCORDO`) di d_muscolo e `GIOCO` − d_corpi (il muscolo senza Q, a `GIOCO` dagli
@@ -46,7 +47,7 @@ const PROVA = !!process.env.PROVA, DEBUG = !!process.env.DEBUG;
 const PARTENZA = '9f9af0c', FILE = 'modelli/spalla-3d.html', MU = 'delt_cl';
 const COR = { x: 2.4, y: 0.3, z: 0.3 };                                           // cm: coracoide = scapola oltre questi piani
 const SOTTO = ['bic_breve', 'coracobr', 'pmin', 'cal'], Y_SOTTO = -0.8;            // strutture che il deltoide copre (con il coracoide), sopra y = Y_SOTTO (cm)
-const CENTRO = [-0.2, 0, 0.1], L_OMBRA = 1.2, L_PELLE = 1.5;                                     // cm: centro della testa omerale (circa), lunghezza dei raggi
+const CENTRO = [-0.2, 0, 0.1], L_OMBRA = 1.2, L_PELLE = 1.5, L_SOTTO = +(process.env.L_SOTTO ?? 0.4);                                     // cm: centro della testa omerale (circa), lunghezza dei raggi
 const ZONA_OST = 1.6, R_APRI = 0.1, ZONA = +(process.env.ZONA ?? 1.4), PEZZO_MIN = 0.5;                 // cm (ostacoli e lamelle entro queste distanze dal coracoide), mm³
 const VICINI = ['scapola', 'clavicola', 'pmin', 'coracobr', 'bic_breve', 'coraco_om', 'cal', 'cc_trapezoide', 'cc_conoide', 'pec_cl', 'subs', 'caps'];
 const H = 0.02, GIOCO = 0.03, LIVELLI = process.env.LIVELLI ? process.env.LIVELLI.split(",").map(Number) : [0.25, 0.3, 0.2, 0.35], LATO = 0.04, SNAP = [0.15, 0.28], DENSITA = 1.5, NORM_DIFF = 3, LEVIGA = 40, RACCORDO = 0.06, SUP = 0.04, REGIONE = 0.15, FORO = 0.3;   // cm
@@ -89,7 +90,9 @@ function daTogliere() {
   // pelle: un voxel da cui il raggio verso fuori (dal centro della testa) esce dal muscolo e non vi rientra entro L_PELLE è sulla faccia esterna
   // del deltoide e resta (niente buchi dove il muscolo copre il coraco-acromiale o il coracoide con uno strato sottile)
   let nPelle = 0;
-  for (let i = 0; i < G.N; i++) { if (!Q[i] || O[i]) continue; const p = G.voxel(i), d = sub(p, CENTRO), dir = mul(d, 1 / len(d)); let fuori = false, rientra = false;
+  for (let i = 0; i < G.N; i++) { if (!Q[i] || O[i]) continue; const p = G.voxel(i), d = sub(p, CENTRO), dir = mul(d, 1 / len(d)); let fuori = false, rientra = false, sotto = false;
+    for (let s = G.H; s < L_SOTTO; s += G.H) { const q = id(add(p, [0, 1, 0], s)); if (q < 0) break; if (O[q]) { sotto = true; break; } }
+    if (sotto) continue;   // subito sotto un tendine: è la linguetta che passa sotto il capo breve, non la faccia esterna
     for (let s = G.H; s < L_PELLE; s += G.H) { const q = id(add(p, dir, s)); if (q < 0) break; if (!M0[q]) fuori = true; else if (fuori) { rientra = true; break; } }
     if (!rientra) { Q[i] = 0; nPelle++; } }
   // pezzi più piccoli di PEZZO_MIN lasciati com'erano (granelli della superficie)
