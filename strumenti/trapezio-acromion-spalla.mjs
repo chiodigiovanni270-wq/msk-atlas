@@ -20,6 +20,10 @@
       solo il pezzo più grande; chiusura di raggio `R_ADER` con le ossa d'inserzione, limitata ai punti entro `VICINO_M` dal muscolo ed entro
       `VICINO_O` dalle ossa: la lamina scende sull'acromion e sul legamento e vi resta appoggiata. Campo levigato (`LEVIGA` passate) e fuso con quello
       di BASE col peso della zona; fuori da ossa (`GAP_OSSO`) e dalle strutture vicine (`GAP_MOLLI`, `MOLLI`).
+   2b. Lamina d'inserzione uniforme: impronta del muscolo sull'osso levigata (apertura e chiusura `R_CONT`, niente impronta entro `VIA_LEG` dal
+      legamento AC), muscolo tagliato al contorno nello strato `STRATO` e lamina di spessore `T_INS` con margine arrotondato; niente muscolo sotto il
+      ponte sulla rima AC (`SOTTO_PONTE`); apertura `R_PILASTRO` vicino all'osso e al legamento (`ZONA_PILASTRO`, `VICINO_LEG`) per il pilastro sottile
+      dietro il legamento, con la lamina rimessa com'era.
    3. Superficie (surface nets) tagliata a `ZCUT` dalle ossa d'inserzione; pezzi staccati tolti (meno di `PEZZO_MIN` triangoli), riduzione a quadriche
       fino a `TRI` volte la densità di BASE nella stessa zona, bordo fermo. BASE tagliata allo stesso livello; i due bordi sono cuciti con una
       striscia di triangoli (un'unica mesh chiusa, senza fessura).
@@ -32,7 +36,7 @@ import { execFileSync } from 'node:child_process';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
 const G = await import('./lib-modello.mjs');
 const B = await import('./lib-bp3d.mjs');
-const { REAL, realDaRevisione, saveFile, repack, log, griglia, solid, edt, sdf, unione, chiuso, esatta, sfoca, nets, sample, sstep } = G;
+const { REAL, realDaRevisione, saveFile, repack, log, griglia, solid, edt, sdf, unione, chiuso, esatta, sfoca, nets, sample, sstep, grad } = G;
 
 const BASE = 'b0115aa', FILE = 'modelli/spalla-3d.html', NOME = 'trap_t';
 const OSSA = ['scapola', 'clavicola', 'omero'], LEG = ['ac_leg'];
@@ -42,6 +46,8 @@ const PASSO = 0.03, Y_INS = 2.0, X_INS = 2.6, X_CLAV = 3.2;                     
 const ZONA0 = 0.9, ZONA1 = 1.7, ZCUT = 1.9, BANDA = 0.3;                                               // cm
 const APRI = 0.06, R_ADER = 0.4, VICINO_M = 0.3, VICINO_O = 0.4, LEVIGA = 3, GAP_OSSO = 0.03, GAP_MOLLI = 0.04;
 const PEZZO_MIN = 300, TRI = 1.3;
+// lamina d'inserzione uniforme (passo 2b): spessore, banda sull'osso, raggio di levigatura del contorno, rampa verso il ventre (cm)
+const T_INS = 0.12, STRATO = [0.3, 0.5], R_CONT = 0.35, R_APPOGGIO = 0.3, VIA_LEG = 0.15, SOTTO_PONTE = 0.03, R_PILASTRO = 0.1, ZONA_PILASTRO = 0.8, VICINO_LEG = 0.9;   // SOTTO_PONTE: sotto la superficie d'appoggio (fessura AC) né lamina né muscolo oltre questa profondità; VIA_LEG: niente inserzione entro questa distanza dal legamento AC
 
 /* ---- mesh di partenza (BASE), messa al posto di quella del file: voxelizzazione e controlli partono sempre da BASE ---- */
 const P0 = realDaRevisione(BASE, NOME, FILE); P0.nv = P0.pos.length / 3;
@@ -80,6 +86,43 @@ const Cc = chiuso(T, R_ADER), Mf = new Uint8Array(N);
 for (let i = 0; i < N; i++) Mf[i] = Mo[i] || (Cc[i] <= 0 && !Mins[i] && Dm[i] <= VICINO_M && Dins[i] <= VICINO_O) ? 1 : 0;
 const Fn = sdf(Mf).F; sfoca(Fn, LEVIGA);
 log('forma nuova');
+/* 2b. lamina d'inserzione uniforme: impronta del muscolo sulle ossa d'inserzione (dove c'è muscolo da 0,5 a 2,5 mm sopra l'osso) levigata con
+   apertura e chiusura di raggio R_CONT (via uncini, tacche e rilievi del margine); nello strato vicino all'osso (fino a STRATO[0], raccordo fino a
+   STRATO[1]) il muscolo è tagliato al contorno levigato e sotto di esso c'è una lamina di spessore T_INS con margine arrotondato. Sopra lo strato il
+   ventre non cambia. */
+const Dc = sfoca(chiuso(Dins, R_APPOGGIO), 2);                                                        // superficie d'appoggio (ponte sulla rima AC)
+const banda = new Uint8Array(N), coperto = new Uint8Array(N), piede = new Float32Array(N * 3), Dleg = edt(unione(LEG));   // sul legamento AC il trapezio non si inserisce: lo copre passando sopra
+for (let i = 0; i < N; i++) { if (W[i] <= 0 || Dc[i] > STRATO[1] + 0.1) continue; const p = vox(i), n = grad(Dc, p), l = Math.hypot(...n) || 1, f = [0, 1, 2].map(k => p[k] - n[k] / l * Dc[i]);
+  piede[3 * i] = f[0]; piede[3 * i + 1] = f[1]; piede[3 * i + 2] = f[2];
+  if (Dc[i] < 0.06 && Dc[i] > -0.06 && !Mins[i]) { banda[i] = 1; if (Dleg[i] < VIA_LEG) continue; for (const h of [0.05, 0.1, 0.15, 0.2, 0.25]) { const q = [0, 1, 2].map(k => f[k] + n[k] / l * h); if (dentro(q) && sample(Fn, ...q) < 0) { coperto[i] = 1; break; } } } }
+// apertura e chiusura dell'impronta nella banda (distanze misurate solo tra voxel della banda)
+const dist = Mk => edt(Mk), soglia = (D, r) => { const o = new Uint8Array(N); for (let i = 0; i < N; i++) o[i] = banda[i] && D[i] <= r ? 1 : 0; return o; };
+const fuori = M => { const o = new Uint8Array(N); for (let i = 0; i < N; i++) o[i] = banda[i] && !M[i] ? 1 : 0; return o; };
+let imp = coperto;
+{ const Do = dist(fuori(imp)); const er = new Uint8Array(N); for (let i = 0; i < N; i++) er[i] = imp[i] && Do[i] > R_CONT ? 1 : 0; imp = soglia(dist(er), R_CONT); }   // apertura
+{ const Di = dist(imp); const di = soglia(Di, R_CONT), Do2 = dist(fuori(di)); const o = new Uint8Array(N); for (let i = 0; i < N; i++) o[i] = di[i] && Do2[i] > R_CONT ? 1 : 0; imp = o; }   // chiusura
+// distanza con segno dal contorno dell'impronta (positiva dentro), levigata nella banda
+const SDc = new Float32Array(N); { const Din = dist(imp), Dout = dist(fuori(imp)); for (let i = 0; i < N; i++) SDc[i] = banda[i] ? (imp[i] ? Dout[i] : -Din[i]) : 0; }
+for (let it = 0; it < 4; it++) { const T = Float32Array.from(SDc); for (let i = 0; i < N; i++) { if (!banda[i]) continue; let s = T[i] * 2, w = 2; for (const d of [1, -1, G.NX, -G.NX, G.NXY, -G.NXY]) { const j = i + d; if (j >= 0 && j < N && banda[j]) { s += T[j]; w++; } } SDc[i] = s / w; } }
+// estende la distanza dal contorno ai voxel sopra la banda tramite il loro piede sulla superficie d'appoggio
+const SDb = Float32Array.from(SDc, (v, i) => banda[i] ? v : -1);
+const lato = i => { const f = [piede[3 * i], piede[3 * i + 1], piede[3 * i + 2]]; if (!dentro(f)) return -1; const fi = Math.floor((f[0] - G.O[0]) / G.H), fj = Math.floor((f[1] - G.O[1]) / G.H), fk = Math.floor((f[2] - G.O[2]) / G.H);
+  let s = 0, w = 0; for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let c = -1; c <= 1; c++) { const j = (fi + a) + G.NX * (fj + b) + G.NXY * (fk + c); if (j >= 0 && j < N && banda[j]) { s += SDb[j]; w++; } } return w ? s / w : -1; };
+let lamina = 0, tagliati = 0; const Lam = new Float32Array(N).fill(1e3);
+for (let i = 0; i < N; i++) { if (W[i] <= 0 || Dc[i] > STRATO[1] || Mins[i]) continue; const sd = lato(i);
+  const t = T_INS * (0.55 + 0.45 * sstep(0, 0.12, sd)), L = Math.max(Dc[i] - t, -sd);                  // lamina, con margine arrotondato
+  const taglio = Math.max(Fn[i], -sd), nuovo = Math.max(Math.min(L, taglio), -Dc[i] - SOTTO_PONTE), w = W[i] * sstep(STRATO[1], STRATO[0], Dc[i]);
+  if (Fn[i] < 0 && taglio >= 0 && w > 0.5) tagliati++; if (L < 0) lamina++;
+  Fn[i] = w * nuovo + (1 - w) * Fn[i]; if (w > 0.5) Lam[i] = L; }
+log('lamina d\'inserzione: voxel', lamina, ', voxel di muscolo tagliati al contorno', tagliati);
+{ // apertura di raggio R_PILASTRO del muscolo vicino all'osso e al legamento AC (entro VICINO_LEG: via il pilastro sottile dietro il legamento), poi la lamina è rimessa com'era
+  const A = new Uint8Array(N); for (let i = 0; i < N; i++) A[i] = Fn[i] < 0 ? 1 : 0;
+  const E = edt(A, true), Er = new Uint8Array(N); for (let i = 0; i < N; i++) Er[i] = E[i] >= R_PILASTRO ? 1 : 0;
+  const D2 = edt(Er), Mo2 = new Uint8Array(N); for (let i = 0; i < N; i++) Mo2[i] = A[i] && D2[i] <= R_PILASTRO ? 1 : 0;
+  const F2 = sdf(Mo2).F; sfoca(F2, 2); let tolti = 0;
+  for (let i = 0; i < N; i++) { if (W[i] <= 0 || Dc[i] > ZONA_PILASTRO || Dleg[i] > VICINO_LEG) continue; const w = sstep(ZONA_PILASTRO, ZONA_PILASTRO - 0.2, Dc[i]) * sstep(VICINO_LEG, VICINO_LEG - 0.15, Dleg[i]), v = Math.min(w * F2[i] + (1 - w) * Fn[i], Lam[i]);
+    if (Fn[i] < 0 && v >= 0) tolti++; Fn[i] = v; }
+  log('apertura vicino all\'osso: voxel tolti', tolti); }
 const Sb = esatta(sdf(unione(OSSA)).F, OSSA, 0.08), Sm = sdf(unione(MOLLI)).F;
 const V = new Float32Array(N);
 for (let i = 0; i < N; i++) { const w = W[i]; V[i] = w <= 0 ? S[i] : Math.max(w * Fn[i] + (1 - w) * S[i], GAP_OSSO - Sb[i], GAP_MOLLI - Sm[i]); }
