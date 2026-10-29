@@ -10,8 +10,8 @@
      MODELLO=/tmp/copia.html node strumenti/capsulari-ac-sc-spalla.mjs   → lavora su una copia
    Va lanciato in fondo alla catena della spalla (dopo `cartilagine-testa-spalla.mjs`). Usa solo le ossa e, come ostacoli, le strutture vicine del file;
    non legge le mesh precedenti dei due legamenti, quindi si può rilanciare con lo stesso risultato. Se si rilancia `legamenti-spalla.mjs` (e la catena),
-   rilanciare anche questo. Le strutture costruite prima attorno ai blocchi vecchi (trapezio, deltoide, borsa) restano dove sono: la lamina nuova sta
-   sotto il loro profilo.
+   rilanciare anche questo. Dopo questo script si rilancia `trapezio-acromion-spalla.mjs`, che fa scendere l'inserzione del trapezio sulla lamina
+   nuova; deltoide e borsa, costruiti attorno ai blocchi vecchi, restano dove sono (la lamina sta sotto il loro profilo).
 
    Metodo (per ciascuna articolazione, su una griglia di `PASSO` attorno alla rima).
    1. Rima: coppie di punti più vicini tra le due ossa (`OSSI`, `filtri`); asse delle fibre f = direzione media dall'osso 1 all'osso 2 senza la

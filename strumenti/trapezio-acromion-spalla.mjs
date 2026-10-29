@@ -10,7 +10,7 @@
      node strumenti/trapezio-acromion-spalla.mjs                → riscrive `trap_t` nel file del modello (topologia nuova solo vicino all'acromion)
      PROVA=1 node strumenti/trapezio-acromion-spalla.mjs        → stampa i controlli senza scrivere
      MODELLO=/tmp/copia.html node strumenti/trapezio-acromion-spalla.mjs   → lavora su una copia
-   Dopo `deltoide-spalla.mjs` (il deltoide è un ostacolo). Riparte da `trap_t` della revisione `BASE` (mesh, tag, direzioni delle fibre e normali),
+   Dopo `deltoide-spalla.mjs` (il deltoide è un ostacolo) e di nuovo in fondo alla catena, dopo `capsulari-ac-sc-spalla.mjs` (legamento AC nuovo). Riparte da `trap_t` della revisione `BASE` (mesh, tag, direzioni delle fibre e normali),
    con le altre strutture del file come ostacoli, quindi si può rilanciare con lo stesso risultato.
 
    Metodo (griglia di passo `PASSO` attorno all'acromion; campi di distanza con segno, negativi dentro).
