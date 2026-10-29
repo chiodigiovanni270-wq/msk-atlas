@@ -12,6 +12,10 @@
    Il gran dorsale non è nell'elenco: la sua mesh vicino al tendine è frammentata e il canale non si cuce; il fascio si sposta fuori dal muscolo con
    `fascio-dorsale-spalla.mjs`, da lanciare PRIMA di questo script.
 
+   Dentato anteriore, succlavio, omoioideo e trapezio discendente (`FIANCO`) stanno tutti da un lato del fascio: ripartono sempre dalle mesh
+   di `PARTENZA_FIANCO` e il fascio passa in un solco aperto invece che in un canale (vedi `incroci` e `ombra`); rilanciando si ottiene lo
+   stesso risultato.
+
    Uso (dalla cartella del progetto):
      node strumenti/nervi-muscoli-spalla.mjs                → riscrive i muscoli nel file del modello
      PROVA=1 node strumenti/nervi-muscoli-spalla.mjs        → stampa i controlli senza scrivere
@@ -53,14 +57,23 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
 const G = await import('./lib-modello.mjs');
-const { REAL, attrs, man, buf0, setMesh, repack, saveFile, log, sstep, setGriglia, griglia, campo, solid, edt, nets } = G;
+const { REAL, attrs, man, buf0, setMesh, repack, saveFile, log, sstep, setGriglia, griglia, campo, solid, edt, nets, realDaRevisione, nrmDaRevisione } = G;
 const { riduci, compatta } = await import('./lib-bp3d.mjs');
 
 const PROVA = !!process.env.PROVA, SOLO = process.env.SOLO ? process.env.SOLO.split(',') : null;
 const CORPI = ['plesso', 'n_soprascapolare', 'n_ascellare', 'n_muscolocutaneo', 'n_radiale', 'n_mediano', 'n_ulnare', 'a_succ', 'v_succ', 'a_asc', 'v_asc'];
 const MUSCOLI = ['supra', 'infra', 'tmin', 'subs', 'delt_cl', 'delt_ac', 'delt_sp', 'tmaj', 'pec_cl', 'pec_st', 'pec_ab', 'pmin', 'succl', 'trap_d', 'trap_t', 'trap_a', 'romb_mag', 'romb_min', 'elev', 'dent', 'omoi', 'bic_lungo', 'bic_breve', 'coracobr', 'tri_lungo', 'tri_lat', 'tri_med'];
+// muscoli che il fascio vascolo-nervoso incrocia senza attraversarli: niente canale (lembi di muscolo sopra e sotto il nervo, bordi frastagliati
+// dove entra ed esce), il muscolo resta tutto da un lato del fascio e il fascio passa in un solco aperto. Il lato si sceglie per ogni incrocio
+// (`ombra`): quello che toglie meno muscolo. Si riparte sempre dalle mesh di PARTENZA_FIANCO, prima di qualsiasi canale.
+const FIANCO = ['dent', 'succl', 'omoi', 'trap_d'], PARTENZA_FIANCO = '554a2f5~1';   // mesh di questi muscoli come uscivano da sezioni-spalla.mjs
+// la loro superficie vicino al fascio è irregolare (punte e lembi lasciati dai canali di vasi-nervi-spalla attorno al tracciato di allora): la
+// toppa è più larga (livelli LIVELLI_F, ritorno sulla superficie di prima oltre SNAP_F) e la distanza dal muscolo è levigata (LISCIA_F
+// passate di media 3×3×3 sul campo: spariscono punte e lembi più sottili di ~1 mm)
+const LIVELLI_F = [0.7, 0.8, 0.6, 0.9], SNAP_F = [0.45, 0.6], SUP_F = 0.2, PEZZO_F = 0.15, CUCI_F = 0.2, LISCIA_F = +(process.env.LISCIA ?? 15);
+const OMBRA = +(process.env.OMBRA ?? 1.0), INCROCIO = { cella: 0.3, raggio: 1.2, asse: 0.8, direzioni: 400, margine: 0.1, portata: 2.0 };   // cm
 const SOGLIA_MM3 = 0.05, H_CTRL = 0.02;               // controllo: volume comune minimo (mm³), passo della griglia (cm)
-const H = +(process.env.H ?? 0.02), GIOCO = 0.03, ZONA = 0.5, LIVELLI = process.env.LIVELLI ? process.env.LIVELLI.split(",").map(Number) : [0.35, 0.4, 0.3, 0.45], LATO = 0.04, SNAP = [0.15, 0.28], DENSITA = 1.5, NORM_DIFF = 3, LEVIGA = 40, RACCORDO = +(process.env.RACCORDO ?? 0.06), SUP = +(process.env.SUP ?? 0.04), REGIONE = +(process.env.REGIONE ?? 0.15), FORO = 0.3;   // cm
+const H = +(process.env.H ?? 0.02), GIOCO = 0.03, ZONA = 0.5, LIVELLI = process.env.LIVELLI ? process.env.LIVELLI.split(",").map(Number) : [0.35, 0.4, 0.3, 0.45], LATO = 0.04, SNAP0 = [0.15, 0.28], DENSITA = 1.5, NORM_DIFF = 3, LEVIGA = 40, RACCORDO = +(process.env.RACCORDO ?? 0.06), SUP0 = +(process.env.SUP ?? 0.04), REGIONE = +(process.env.REGIONE ?? 0.15), FORO = 0.3;   // cm
 
 const add = (a, b, k = 1) => [a[0] + k * b[0], a[1] + k * b[1], a[2] + k * b[2]], sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -71,7 +84,8 @@ const RQ = {}; const rq = n => RQ[n] ||= riquadro(REAL(n).pos);
 const vicini = (a, b, m = 0) => [0, 1, 2].every(k => a.lo[k] - m <= b.hi[k] && b.lo[k] - m <= a.hi[k]);
 const volume = (pos, idx) => { let v = 0; for (let t = 0; t < idx.length; t += 3) { const a = 3 * idx[t], b = 3 * idx[t + 1], c = 3 * idx[t + 2]; v += (pos[a] * (pos[b + 1] * pos[c + 2] - pos[b + 2] * pos[c + 1]) - pos[a + 1] * (pos[b] * pos[c + 2] - pos[b + 2] * pos[c]) + pos[a + 2] * (pos[b] * pos[c + 1] - pos[b + 1] * pos[c])) / 6; } return v; };
 const chiaveP = (P, i) => Math.round(P[3 * i] * 2e4) + ',' + Math.round(P[3 * i + 1] * 2e4) + ',' + Math.round(P[3 * i + 2] * 2e4);
-const nmDi = n => { const m = man.meshes.findLast(x => x.n === n); return m.nm !== undefined ? new Int8Array(buf0.buffer, buf0.byteOffset + m.nm, m.nv * 3).slice() : null; };
+const NM_PARTENZA = {}, NRM_ULTIMO = {}, topoNrm = n => NRM_ULTIMO[n] || null;
+const nmDi = n => { if (n in NM_PARTENZA) return NM_PARTENZA[n] ? NM_PARTENZA[n].slice() : null; const m = man.meshes.findLast(x => x.n === n); return m.nm !== undefined ? new Int8Array(buf0.buffer, buf0.byteOffset + m.nm, m.nv * 3).slice() : null; };
 
 /* ---- 1. controllo: volume comune e profondità per coppia ---- */
 function controllo(nomiM) {
@@ -253,17 +267,68 @@ function scavaDoccia(FK, doc) {
     let d = 1e9; for (const [a, b] of doc) d = Math.min(d, dSeg(p, a, b)); if (d - DOCCIA.raggio < FK[i]) FK[i] = d - DOCCIA.raggio; }
 }
 
+/* ---- muscoli da un lato del fascio (FIANCO) ---- */
+// incroci: voxel comuni a muscolo e corpo raggruppati (celle di INCROCIO.cella vicine); per ogni gruppo l'asse del corpo (componente
+// principale dei vertici entro INCROCIO.asse dal centro) e il suo raggio (90° percentile). Il lato d di un incrocio è perpendicolare all'asse;
+// muscolo tolto = voxel del muscolo entro INCROCIO.raggio, dietro al corpo rispetto a d (fino a OMBRA) e a meno di raggio + margine dall'asse
+// spostato lungo d. Il muscolo resta dal lato d
+function incroci(mu, corpi) {
+  const Mm = solid(mu), out = [], NX = G.NX, NXY = G.NX * G.NY, h = G.H;
+  for (const c of corpi) { const Mc = solid(c), celle = new Map(), kc = p => p.map(x => Math.floor(x / INCROCIO.cella)).join(',');
+    for (let i = 0; i < G.N; i++) if (Mm[i] && Mc[i]) { const p = G.voxel(i), k = kc(p); let e = celle.get(k); if (!e) celle.set(k, e = { n: 0, s: [0, 0, 0] }); e.n++; for (let q = 0; q < 3; q++) e.s[q] += p[q]; }
+    const chiavi = [...celle.keys()], par = new Map(chiavi.map(k => [k, k])), f = k => { while (par.get(k) !== k) k = par.get(k); return k; };
+    for (const k of chiavi) { const [x, y, z] = k.split(',').map(Number); for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) { const k2 = [x + dx, y + dy, z + dz].join(','); if (celle.has(k2)) par.set(f(k), f(k2)); } }
+    const gruppi = new Map(); for (const k of chiavi) { const r = f(k), e = celle.get(k); let g = gruppi.get(r); if (!g) gruppi.set(r, g = { n: 0, s: [0, 0, 0] }); g.n += e.n; for (let q = 0; q < 3; q++) g.s[q] += e.s[q]; }
+    const B = REAL(c);
+    for (const g of gruppi.values()) { if (g.n * h ** 3 * 1000 < SOGLIA_MM3) continue; const c0 = mul(g.s, 1 / g.n);
+      // asse e raggio del corpo vicino all'incrocio
+      const P = []; for (let i = 0; i < B.nv; i++) { const p = pt(B.pos, i); if (len(sub(p, c0)) < INCROCIO.asse) P.push(p); }
+      const m = [0, 1, 2].map(k => P.reduce((s, p) => s + p[k], 0) / P.length), C = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+      for (const p of P) for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) C[i][j] += (p[i] - m[i]) * (p[j] - m[j]);
+      let ax = [1, 0.3, 0.2]; for (let it = 0; it < 60; it++) { ax = [0, 1, 2].map(i => dot(C[i], ax)); ax = mul(ax, 1 / len(ax)); }
+      const rad = P.map(p => { const r = sub(p, m); return len(sub(r, mul(ax, dot(r, ax)))); }).sort((x, y) => x - y)[Math.floor(P.length * 0.9)] || 0.2;
+      let e1 = cross(ax, Math.abs(ax[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0]); e1 = mul(e1, 1 / len(e1)); const e2 = cross(ax, e1);
+      // voxel del muscolo vicini
+      const Q = [], r = Math.ceil(INCROCIO.raggio / h), ii = [0, 1, 2].map(k => Math.floor((m[k] - G.O[k]) / h));
+      for (let dz = -r; dz <= r; dz++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const x = ii[0] + dx, y = ii[1] + dy, z = ii[2] + dz;
+        if (x < 0 || y < 0 || z < 0 || x >= G.NX || y >= G.NY || z >= G.NZ || dx * dx + dy * dy + dz * dz > r * r) continue; const id = x + NX * y + NXY * z; if (Mm[id]) Q.push(sub(G.voxel(id), m)); }
+      out.push({ corpo: c, c: m, ax, rad, Q, voxel: g.n }); } }
+  // muscolo tolto con il lato d (perpendicolare all'asse del corpo) in un incrocio
+  const tolti = (x, d) => { let n = 0; for (const q of x.Q) { const t = dot(q, d); if (t > 0 || t < -OMBRA) continue; if (len(sub(q, add(mul(x.ax, dot(q, x.ax)), mul(d, t)))) < x.rad + INCROCIO.margine) n++; } return n; };
+  const lato = (x, g) => { const d = sub(g, mul(x.ax, dot(g, x.ax))), l = len(d); return l > 0.2 ? mul(d, 1 / l) : null; };
+  // un solo lato g per tutto il muscolo (in ogni incrocio la sua componente perpendicolare all'asse del corpo): il muscolo non passa sopra un
+  // vaso e sotto quello accanto. Direzioni g su una sfera (spirale di Fibonacci), si sceglie quella che toglie meno muscolo in tutto
+  let best = null;
+  for (let a = 0; a < INCROCIO.direzioni; a++) { const z = 1 - 2 * (a + 0.5) / INCROCIO.direzioni, r = Math.sqrt(1 - z * z), th = a * Math.PI * (3 - Math.sqrt(5)), g = [r * Math.cos(th), r * Math.sin(th), z];
+    let n = 0; for (const x of out) { const d = lato(x, g); n += d ? tolti(x, d) : 1e6; } if (!best || n < best.n) best = { n, g }; }
+  return { g: best.g, X: out.map(x => { const d = lato(x, best.g); return { corpo: x.corpo, c: x.c, s: d, tolti_mm3: +(tolti(x, d) * h ** 3 * 1000).toFixed(1), raggio_mm: +(x.rad * 10).toFixed(1), voxel: x.voxel }; }) };
+}
+// ombra dei corpi: FK(p) ← min su t ∈ [0, OMBRA] di FK(p + t·s), con s il lato del muscolo dell'incrocio più vicino (entro INCROCIO.portata).
+// Un punto è nell'ombra se andando verso il lato del muscolo incontra un nervo o un vaso: il muscolo che copre il corpo dal lato opposto viene
+// tolto dalla toppa, e resta un solco aperto invece di un canale
+function ombra(FK, X) {
+  const NX = G.NX, NY = G.NY, NZ = G.NZ, NXY = NX * NY, h = G.H, passi = Math.ceil(OMBRA / h), out = FK.slice();
+  for (let k = 0; k < NZ; k++) for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) { const id = i + NX * j + NXY * k;
+    if (FK[id] > OMBRA + 0.6) continue; const p = G.voxel(id); let d = null, bd = INCROCIO.portata; for (const x of X) { const e = len(sub(p, x.c)); if (e < bd) { bd = e; d = x.s; } }
+    if (!d) continue; let m = FK[id];
+    for (let q = 1; q <= passi; q++) { const x = Math.round(i + d[0] * q), y = Math.round(j + d[1] * q), z = Math.round(k + d[2] * q);
+      if (x < 0 || y < 0 || z < 0 || x >= NX || y >= NY || z >= NZ) break; const v = FK[x + NX * y + NXY * z]; if (v < m) m = v; if (m < -0.1) break; }
+    out[id] = m; }
+  FK.set(out);
+}
+
 /* ---- 2–4. toppa ---- */
 // (DEBUG) triangoli girati rispetto alla somma delle normali dei vertici
 const girati = (P, I, f) => { const vn = new Float64Array(P.length), fn = []; for (let t = 0; t < I.length; t += 3) { const p = [0, 1, 2].map(e => pt(P, I[t + e])), n = cross(sub(p[1], p[0]), sub(p[2], p[0])); fn.push(n); for (let e = 0; e < 3; e++) for (let k = 0; k < 3; k++) vn[3 * I[t + e] + k] += n[k]; }
   let c = 0; fn.forEach((n, q) => { if (!len(n)) return; const m = [0, 1, 2].map(k => [0, 1, 2].reduce((s, e) => s + vn[3 * I[3 * q + e] + k], 0)), cen = mul(add(add(pt(P, I[3 * q]), pt(P, I[3 * q + 1])), pt(P, I[3 * q + 2])), 1 / 3); if (dot(n, m) < -0.2 * len(n) * len(m) && (!f || f(cen))) c++; }); return c; };
 function rattoppa(mu, corpi, T) {
+  const fianco = FIANCO.includes(mu), SNAP = fianco ? SNAP_F : SNAP0, SUP = fianco ? SUP_F : SUP0;
   const R0 = REAL(mu), at = attrs(mu), nv0 = R0.nv, pos0 = R0.pos.subarray(0, nv0 * 3), idx0 = R0.idx, A = rq(mu), nm0 = nmDi(mu);
   // campo dei corpi vicino al muscolo (con la doccia del radiale nel capo mediale: `docciaRadiale`)
   const doc = mu === 'tri_med' && corpi.includes('n_radiale') ? docciaRadiale() : [];
-  const Bc = corpi.map(rq), zlo = [0, 1, 2].map(k => Math.max(A.lo[k], Math.min(...Bc.map(b => b.lo[k]))) - ZONA), zhi = [0, 1, 2].map(k => Math.min(A.hi[k], Math.max(...Bc.map(b => b.hi[k]))) + ZONA);
+  const Z = ZONA + (FIANCO.includes(mu) ? OMBRA : 0), Bc = corpi.map(rq), zlo = [0, 1, 2].map(k => Math.max(A.lo[k], Math.min(...Bc.map(b => b.lo[k])) - (Z - ZONA)) - ZONA), zhi = [0, 1, 2].map(k => Math.min(A.hi[k], Math.max(...Bc.map(b => b.hi[k])) + (Z - ZONA)) + ZONA);
   for (const [, b] of doc) for (let k = 0; k < 3; k++) { zlo[k] = Math.min(zlo[k], b[k] - ZONA); zhi[k] = Math.max(zhi[k], b[k] + ZONA); }
-  griglia(zlo, zhi, H, 0); const FK = campo(corpi).F; scavaDoccia(FK, doc); const gk = { O: G.O.slice(), NX: G.NX, NY: G.NY, NZ: G.NZ };
+  griglia(zlo, zhi, H, 0); const FK = campo(corpi).F; scavaDoccia(FK, doc); if (fianco) { const { g, X } = INCROCI_X[mu] ||= incroci(mu, corpi); ombra(FK, X); INCROCI[mu] = { lato: g.map(v => +v.toFixed(2)), incroci: X.map(x => ({ ...x, c: x.c.map(v => +v.toFixed(2)), s: x.s.map(v => +v.toFixed(2)) })) }; log(mu, 'incroci', JSON.stringify(INCROCI[mu])); } const gk = { O: G.O.slice(), NX: G.NX, NY: G.NY, NZ: G.NZ };
   const fk = p => { const x = (p[0] - gk.O[0]) / H - 0.5, y = (p[1] - gk.O[1]) / H - 0.5, z = (p[2] - gk.O[2]) / H - 0.5, i = Math.floor(x), j = Math.floor(y), k = Math.floor(z);
     if (i < 0 || j < 0 || k < 0 || i >= gk.NX - 1 || j >= gk.NY - 1 || k >= gk.NZ - 1) return 1; const u = x - i, v = y - j, w = z - k, b = i + gk.NX * (j + gk.NY * k), NX = gk.NX, NXY = gk.NX * gk.NY, l = (a, c, t) => a + (c - a) * t;
     return l(l(l(FK[b], FK[b + 1], u), l(FK[b + NX], FK[b + NX + 1], u), v), l(l(FK[b + NXY], FK[b + NXY + 1], u), l(FK[b + NXY + NX], FK[b + NXY + NX + 1], u), v), w); };
@@ -279,7 +344,7 @@ function rattoppa(mu, corpi, T) {
     for (const q of p) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], q[k]); hi[k] = Math.max(hi[k], q[k]); } }
   // (densità di riferimento: i triangoli tolti della mesh di prima, non quelli raffinati)
   let aO = 0, nO = 0; for (let t = 0; t < idx0.length; t += 3) { const p = [0, 1, 2].map(e => pt(pos0, idx0[t + e])); if (!p.some(q => fk(q) < T)) continue; aO += len(cross(sub(p[1], p[0]), sub(p[2], p[0]))) / 2; nO++; }
-  griglia(lo, hi, H, 0.15); const FMu = campo([mu]).F, V = new Float32Array(G.N); for (let i = 0; i < G.N; i++) { const a = FMu[i], b = GIOCO - fk(G.voxel(i)), h = Math.min(1, Math.max(0, 0.5 + 0.5 * (a - b) / RACCORDO)); V[i] = b + (a - b) * h + RACCORDO * h * (1 - h); }
+  griglia(lo, hi, H, 0.15); const FMu = campo([mu]).F; if (fianco) G.sfoca(FMu, LISCIA_F); const V = new Float32Array(G.N); for (let i = 0; i < G.N; i++) { const a = FMu[i], b = GIOCO - fk(G.voxel(i)), h = Math.min(1, Math.max(0, 0.5 + 0.5 * (a - b) / RACCORDO)); V[i] = b + (a - b) * h + RACCORDO * h * (1 - h); }
   const S = nets(V, () => [0, 1, 0]);
   // solo la parte vicina ai corpi (un vertice entro T + 0,05), ridotta alla densità di prima × DENSITA
   const fS = fv(S.pos), tri = []; for (let t = 0; t < S.idx.length; t += 3) if ([0, 1, 2].some(e => fS[S.idx[t + e]] < T + REGIONE)) tri.push(S.idx[t], S.idx[t + 1], S.idx[t + 2]);
@@ -327,6 +392,7 @@ function rattoppa(mu, corpi, T) {
   const bar = L => { const c = [0, 0, 0]; for (const v of L) for (let k = 0; k < 3; k++) c[k] += pos[3 * v + k] / L.length; return c; };
   const liberi = LB.map(L => L.map(v => v + nM)); let larg = 0;
   for (const La of LA) { const c = bar(La); liberi.sort((x, y) => len(sub(bar(x), c)) - len(sub(bar(y), c))); const Lb = liberi.shift(), r = cuci(pos, La, Lb); for (const t of r.T) idx.push(...t); larg = Math.max(larg, r.larg);
+    if (fianco && r.larg > CUCI_F) { log(mu, 'ATTENZIONE: anello cucito largo', (r.larg * 10).toFixed(2), 'mm (anelli non corrispondenti), lasciato com\'era'); return { errore: 'cucitura' }; }
     if (process.env.DEBUG) { const hd = (X, Y) => Math.max(...X.map(i => Math.min(...Y.map(j => len(sub(pt(pos, i), pt(pos, j))))))), lu = L => L.reduce((s, v, k) => s + len(sub(pt(pos, v), pt(pos, L[(k + 1) % L.length]))), 0);
       log('  anello', La.length, lu(La).toFixed(2), '/', Lb.length, lu(Lb).toFixed(2), 'distanza A→B', hd(La, Lb).toFixed(4), 'B→A', hd(Lb, La).toFixed(4), 'larghezza', r.larg.toFixed(4)); } }
   // attributi: muscolo (raffinato e tagliato: i punti del taglio prendono quelli del vertice più vicino del lato), toppa dal vertice di prima più vicino
@@ -364,16 +430,35 @@ function rattoppa(mu, corpi, T) {
   const conta = (I, P) => { const u = new Map(); for (let t = 0; t < I.length; t += 3) for (let e = 0; e < 3; e++) { const a = chiaveP(P, I[t + e]), b = chiaveP(P, I[t + (e + 1) % 3]), k = a < b ? a + '|' + b : b + '|' + a; u.set(k, (u.get(k) || 0) + 1); }
     let n1 = 0, n3 = 0; for (const n of u.values()) { if (n === 1) n1++; if (n > 2) n3++; } return n1 + '/' + n3; };
   const aperti = [conta(idx0, pos0), conta(I2, P2)], v0 = volume(pos0, idx0), v1 = volume(P2, I2);
-  setMesh(mu, { pos: P2, idx: I2, tag: T2, fdir: D2, nrm }); delete RQ[mu];
+  setMesh(mu, { pos: P2, idx: I2, tag: T2, fdir: D2, nrm }); delete RQ[mu]; NRM_ULTIMO[mu] = nrm;
   log(mu, 'toppa attorno a', corpi.join(','), '| anelli', LA.length, '| toppa', itp2.length / 3, 'triangoli (pezzetti staccati tolti', staccati + ') | cucitura larga al massimo', (larg * 10).toFixed(3), 'mm | volume', v0.toFixed(2), '→', v1.toFixed(2), 'cm³ | gioco minimo', (gmin * 10).toFixed(2), 'mm | lati aperti/non manifold', aperti.join(' → '));
   return { anelli: LA.length, triangoli: [idx0.length / 3, I2.length / 3], cucitura_mm: +(larg * 10).toFixed(3), volume_cm3: [+v0.toFixed(2), +v1.toFixed(2)], gioco_min_mm: +(gmin * 10).toFixed(2), lati_aperti_non_manifold: aperti };
 }
 
 /* ---- correzione ---- */
-const nomi = SOLO || MUSCOLI, PRIMA = controllo(nomi); log('prima', JSON.stringify(PRIMA));
+const nomi = SOLO || MUSCOLI;
+// muscoli da un lato del fascio: si riparte sempre dalle mesh di PARTENZA_FIANCO (senza canali)
+const INCROCI = {}, INCROCI_X = {};
+for (const mu of nomi.filter(n => FIANCO.includes(n))) { const m = realDaRevisione(PARTENZA_FIANCO, mu, 'modelli/spalla-3d.html'); setMesh(mu, { pos: m.pos, idx: m.idx, tag: m.tag, fdir: m.fdir }); delete RQ[mu];
+  NM_PARTENZA[mu] = nrmDaRevisione(PARTENZA_FIANCO, mu, 'modelli/spalla-3d.html'); }
+const PRIMA = controllo(nomi); log('prima', JSON.stringify(PRIMA));
 const daFare = {}; for (const k of Object.keys(PRIMA)) { const [mu, nv] = k.split('/'); (daFare[mu] ||= []).push(nv); }
 // se le linee di taglio del muscolo e della toppa non danno gli stessi anelli (superficie che sfiora il livello), si riprova con un altro livello
-const ESITO = {}; for (const [mu, corpi] of Object.entries(daFare)) for (const T of LIVELLI) { ESITO[mu] = rattoppa(mu, corpi, T); if (!ESITO[mu].errore) break; }
+const ESITO = {}; for (const [mu, corpi] of Object.entries(daFare)) for (const T of FIANCO.includes(mu) ? LIVELLI_F : LIVELLI) { ESITO[mu] = rattoppa(mu, corpi, T); if (!ESITO[mu].errore) break; }
+// muscoli da un lato del fascio: un pezzo rimasto staccato (meno di PEZZO_F dei vertici: dove il fascio tocca l'osso non resta spazio per il
+// muscolo e il suo capo oltre il fascio si stacca) si toglie
+const STACCATI = {};
+for (const mu of Object.keys(ESITO).filter(m => FIANCO.includes(m) && !ESITO[m].errore)) { const R = REAL(mu), at = attrs(mu), nm = topoNrm(mu), nv = R.nv;
+  const K = new Map(), v = new Int32Array(nv); for (let i = 0; i < nv; i++) { const k = chiaveP(R.pos, i); if (!K.has(k)) K.set(k, K.size); v[i] = K.get(k); }
+  const par = Int32Array.from({ length: K.size }, (_, i) => i), f = x => { while (par[x] !== x) x = par[x] = par[par[x]]; return x; };
+  for (let t = 0; t < R.idx.length; t += 3) { par[f(v[R.idx[t]])] = f(v[R.idx[t + 1]]); par[f(v[R.idx[t + 1]])] = f(v[R.idx[t + 2]]); }
+  const n = new Map(); for (let i = 0; i < nv; i++) { const r = f(v[i]); n.set(r, (n.get(r) || 0) + 1); }
+  const tieni = new Set([...n].filter(([, c]) => c >= PEZZO_F * nv).map(([r]) => r)); if (tieni.size === n.size) continue;
+  const I = []; for (let t = 0; t < R.idx.length; t += 3) if (tieni.has(f(v[R.idx[t]]))) I.push(R.idx[t], R.idx[t + 1], R.idx[t + 2]);
+  const extra = [at.tag, at.fdir, nm].filter(Boolean), c = compatta(Float64Array.from(R.pos.subarray(0, nv * 3)), Uint32Array.from(I), extra); let q = 0;
+  const mesh = { pos: Float32Array.from(c.pos), idx: c.idx, tag: at.tag ? c.extra[q++] : null, fdir: at.fdir ? c.extra[q++] : null, nrm: nm ? c.extra[q++] : null };
+  STACCATI[mu] = [...n.values()].filter(x => x < PEZZO_F * nv); setMesh(mu, mesh); delete RQ[mu];
+  log(mu, 'tolti i pezzi staccati di', STACCATI[mu].join(', '), 'vertici'); }
 const DOPO = controllo(Object.keys(daFare)); log('dopo', JSON.stringify(DOPO));
-log('esito', JSON.stringify(ESITO));
-if (!PROVA && Object.keys(daFare).length) saveFile(repack());
+log('esito', JSON.stringify(ESITO)); if (Object.keys(STACCATI).length) log('pezzi staccati tolti', JSON.stringify(STACCATI));
+if (!PROVA && (Object.keys(daFare).length || nomi.some(n => FIANCO.includes(n)))) saveFile(repack());
