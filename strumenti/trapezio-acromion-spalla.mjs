@@ -24,6 +24,8 @@
       legamento AC (`VIA_LEG=0`)), muscolo tagliato al contorno nello strato `STRATO` e lamina di spessore `T_INS` con margine arrotondato; niente muscolo sotto il
       ponte sulla rima AC (`SOTTO_PONTE`); apertura `R_PILASTRO` vicino all'osso e al legamento (`ZONA_PILASTRO`, `VICINO_LEG`) per il pilastro sottile
       dietro il legamento, con la lamina rimessa com'era.
+   2c. Rifinitura locale: chiusura di 5,5 mm dell’incavo inferiore e levigatura del raccordo AC,
+      su unione con la superficie d’appoggio, pesi radiali continui entro 11,5 mm e vincoli riapplicati.
    3. Superficie (surface nets) tagliata a `ZCUT` dalle ossa d'inserzione; pezzi staccati tolti (meno di `PEZZO_MIN` triangoli), riduzione a quadriche
       fino a `TRI` volte la densità di BASE nella stessa zona, bordo fermo. BASE tagliata allo stesso livello; i due bordi sono cuciti con una
       striscia di triangoli (un'unica mesh chiusa, senza fessura).
@@ -129,6 +131,46 @@ const Sl = esatta(sdf(unione(LEG)).F, LEG, 0.08);
 const Sb = esatta(sdf(unione(OSSA)).F, OSSA, 0.08), Sm = sdf(unione(MOLLI)).F;
 const V = new Float32Array(N);
 for (let i = 0; i < N; i++) { const w = W[i]; V[i] = w <= 0 ? S[i] : Math.max(w * Fn[i] + (1 - w) * S[i], GAP_OSSO - Sb[i], GAP_MOLLI - Sm[i], GAP_LEG - Sl[i]); }
+// Rifinitura locale dei due margini segnalati: coordinate in cm sul modello.
+// La superficie d'appoggio è inclusa durante la levigatura per non erodere
+// completamente la lamina sottile; subito dopo si riapplicano tutti i vincoli.
+{
+  const zone = [
+    { nome: 'incavo inferiore', centro: [3.35, 2.45, -5.0], interno: 0.55, esterno: 1.15 },
+    { nome: 'raccordo AC', centro: [1.55, 3.55, -2.4], interno: 0.55, esterno: 1.15 },
+  ];
+  const appoggio = Float32Array.from(V, (v,i) => Math.min(v, Sb[i], Sl[i]));
+  const chiusura = chiuso(appoggio, 0.55);
+  sfoca(chiusura, 12);
+  const raccordo = sfoca(Float32Array.from(appoggio), 60);
+  let cambiati = 0;
+  for (let i=0; i<N; i++) {
+    const p=vox(i); let valore=V[i], peso=0;
+    for (let j=0;j<zone.length;j++) {
+      const z=zone[j], d=Math.hypot(...p.map((v,k)=>v-z.centro[k]));
+      const w=1-sstep(z.interno,z.esterno,d); if (!w) continue;
+      const campo=j===0?Math.min(V[i],chiusura[i]):raccordo[i];
+      valore=(1-w)*valore+w*campo; peso=Math.max(peso,w);
+    }
+    if (!peso) continue;
+    const nuovo=Math.max(valore,GAP_OSSO-Sb[i],GAP_MOLLI-Sm[i],GAP_LEG-Sl[i]);
+    if ((nuovo<0)!==(V[i]<0)) cambiati++;
+    V[i]=nuovo;
+  }
+  // Elimina le pellicole submillimetriche create tangenzialmente all'appoggio:
+  // apertura solo nelle due zone, conservando il resto del campo.
+  const pieno=Uint8Array.from(V,v=>v<0?1:0), interno=edt(pieno,true);
+  const nucleo=Uint8Array.from(interno,v=>v>=0.045?1:0), distanza=edt(nucleo);
+  const aperto=Uint8Array.from(pieno,(v,i)=>v&&distanza[i]<=0.045?1:0);
+  const pulito=sfoca(sdf(aperto).F,2);
+  for(let i=0;i<N;i++) {
+    const p=vox(i);let w=0;
+    for(const z of zone)w=Math.max(w,1-sstep(z.interno,z.esterno,Math.hypot(...p.map((v,k)=>v-z.centro[k]))));
+    if(!w)continue;
+    V[i]=Math.max((1-w)*V[i]+w*pulito[i],GAP_OSSO-Sb[i],GAP_MOLLI-Sm[i],GAP_LEG-Sl[i]);
+  }
+  log('rifinitura locale dei due margini:',cambiati,'voxel');
+}
 log('campo pronto');
 
 /* ---- 3. superficie nuova, tagliata a ZCUT, e BASE tagliata allo stesso livello ---- */
