@@ -13,15 +13,30 @@ const dock=document.createElement('aside');dock.id='ax-anatomy';dock.hidden=true
 dock.innerHTML=`<div class="ax-anatomy-tools"><label class="ax-find"><span aria-hidden="true">⌕</span><input id="ax-find" type="search" placeholder="Cerca una struttura…" aria-label="Cerca una struttura anatomica" autocomplete="off"></label><button id="ax-list-toggle" aria-expanded="false" aria-controls="ax-results">Strutture</button></div><div id="ax-results" hidden></div><div id="ax-card-slot"></div><p id="ax-empty">Seleziona nel modello o nella sezione per esplorare l’anatomia.</p>`;
 document.body.append(dock);
 let cardHome=null;
-function catalog(){if(!d)return;const q=$('ax-find').value.trim().toLocaleLowerCase('it');const results=$('ax-results');results.replaceChildren();
- const items=d.S.filter(s=>s.group&&s.name.toLocaleLowerCase('it').includes(q));
- if(!items.length){results.textContent='Nessuna struttura trovata.';return;}
- for(const s of items){const row=document.createElement('div');row.className='ax-result';const check=document.createElement('input');check.type='checkbox';check.checked=s.visible;check.setAttribute('aria-label','Mostra '+s.name);check.onchange=()=>{d.setVis(s,check.checked);d.sync();draw();};const button=document.createElement('button');button.textContent=s.name;button.onclick=()=>{if(!s.visible){d.setVis(s,true);d.sync();}d.select(s.id);$('ax-results').hidden=true;$('ax-list-toggle').setAttribute('aria-expanded','false');syncDock();draw();};row.append(check,button);results.append(row);}
+function catalog(){if(!d)return;
+ const q=$('ax-find').value.trim().toLocaleLowerCase('it'),results=$('ax-results'),scroll=results.scrollTop;
+ const focused=results.contains(document.activeElement)?document.activeElement.dataset.key:null;
+ results.replaceChildren();
+ const all=d.S.filter(s=>s.group), bulk=document.createElement('div');bulk.className='ax-bulk';
+ const apply=(items,value)=>{items.forEach(s=>d.setVis(s,value));d.sync();draw();catalog();};
+ for(const [label,value] of [['Mostra tutto',true],['Nascondi tutto',false]]){const button=document.createElement('button');button.textContent=label;button.dataset.key='all-'+value;button.onclick=()=>apply(all,value);bulk.append(button);}results.append(bulk);
+ const groups=document.createElement('div');groups.className='ax-groups';groups.setAttribute('aria-label','Visibilità delle categorie anatomiche');
+ for(const cat of d.categories||[]){const items=all.filter(s=>s.cat===cat.id);if(!items.length)continue;
+  const label=document.createElement('label'),check=document.createElement('input'),name=document.createElement('span');check.type='checkbox';check.dataset.key='cat-'+cat.id;
+  const visible=items.filter(s=>s.visible).length;check.checked=visible===items.length;check.indeterminate=visible>0&&visible<items.length;check.setAttribute('aria-label','Mostra categoria '+cat.name);check.onchange=()=>apply(items,check.checked);name.textContent=cat.name;const count=document.createElement('small');count.textContent=visible+'/'+items.length;label.append(check,name,count);groups.append(label);
+ }results.append(groups);
+ const heading=document.createElement('p');heading.className='ax-list-heading';heading.textContent=q?'Risultati della ricerca · categorie applicate per intero':'Singole strutture';results.append(heading);
+ const items=all.filter(s=>s.name.toLocaleLowerCase('it').includes(q));
+ if(!items.length){const p=document.createElement('p');p.textContent='Nessuna struttura trovata.';results.append(p);}
+ for(const s of items){const row=document.createElement('div');row.className='ax-result';const check=document.createElement('input');check.type='checkbox';check.checked=s.visible;check.dataset.key='vis-'+s.id;check.setAttribute('aria-label','Mostra '+s.name);check.onchange=()=>apply([s],check.checked);const button=document.createElement('button');button.textContent=s.name;button.dataset.key='select-'+s.id;button.onclick=()=>{if(!s.visible){d.setVis(s,true);d.sync();}d.select(s.id);$('ax-results').hidden=true;$('ax-list-toggle').setAttribute('aria-expanded','false');syncDock();draw();};row.append(check,button);results.append(row);}
+ results.scrollTop=scroll;
+ if(focused)Array.from(results.querySelectorAll('[data-key]')).find(e=>e.dataset.key===focused)?.focus({preventScroll:true});
 }
-function syncDock(){if(!opened||!d)return;const selected=!!d.selected();document.body.classList.toggle('ax-has-selection',selected);$('ax-empty').hidden=selected;layout();}
+let previousSelection=null;
+function syncDock(){if(!opened||!d)return;const id=d.selected(),selected=!!id;if(id!==previousSelection){previousSelection=id;if(id){$('ax-results').hidden=true;$('ax-list-toggle').setAttribute('aria-expanded','false');$('card').querySelector('.info').scrollTop=0;}}document.body.classList.toggle('ax-has-selection',selected);$('ax-empty').hidden=selected;layout();}
 $('ax-find').oninput=()=>{$('ax-results').hidden=false;$('ax-list-toggle').setAttribute('aria-expanded','true');catalog();};
-$('ax-list-toggle').onclick=()=>{const results=$('ax-results');results.hidden=!results.hidden;$('ax-list-toggle').setAttribute('aria-expanded',String(!results.hidden));if(!results.hidden)catalog();};
-$('ax-find').onkeydown=e=>{if(e.key==='Escape'){$('ax-results').hidden=true;$('ax-list-toggle').setAttribute('aria-expanded','false');}if(e.key==='Enter')$('ax-results').querySelector('button')?.click();};
+$('ax-list-toggle').onclick=()=>{const results=$('ax-results');results.hidden=!results.hidden;$('ax-list-toggle').setAttribute('aria-expanded',String(!results.hidden));if(!results.hidden)catalog();layout();};
+$('ax-find').onkeydown=e=>{if(e.key==='Escape'){$('ax-results').hidden=true;$('ax-list-toggle').setAttribute('aria-expanded','false');}if(e.key==='Enter')$('ax-results').querySelector('.ax-result button')?.click();};
 function layout(){d?.resize();draw();}
 function open(value){d=window.__dbg;opened=value;dock.hidden=!value;const card=$('card');if(value&&!cardHome){cardHome={parent:card.parentNode,next:card.nextSibling};$('ax-card-slot').append(card);}else if(!value&&cardHome){cardHome.parent.insertBefore(card,cardHome.next);cardHome=null;}document.body.classList.toggle('ax-has-selection',value&&!!d?.selected());panel.hidden=divider.hidden=expand.hidden=!value;document.body.classList.toggle('ax-open',value);toggle.setAttribute('aria-expanded',String(value));toggle.classList.toggle('active',value);if(plane)plane.visible=outline.visible=value;layout();
  if(value&&!started){started=true;init().catch(e=>fail(e.message));}if(!value)toggle.focus();}
@@ -34,7 +49,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&opened&&!['INPUT','
 // Observe state without altering the model's selection or visibility handlers.
 setInterval(()=>{if(!opened||!d)return;const state=d.selected()+'|'+d.S.map(s=>+s.visible).join('');if(state!==lastState){lastState=state;syncDock();if(!$('ax-results').hidden)catalog();draw();}},160);
 window.addEventListener('resize',layout);
-const colors={ossa:'#dbca9c',cart:'#9cc0d0',leg:'#e5ded1',ten:'#e5ded1',ret:'#e5ded1',cuf:'#b55b51',cin:'#b55b51',tor:'#b55b51',brac:'#b55b51',art:'#c93b38',ven:'#5473b8',ner:'#e4c65b',adi:'#d8b44a'};
+const colors={caps:'#b9cfe0',bor:'#9fb8ec',ossa:'#dbca9c',cart:'#9cc0d0',leg:'#e5ded1',ten:'#e5ded1',ret:'#e5ded1',cuf:'#b55b51',cin:'#b55b51',tor:'#b55b51',brac:'#b55b51',art:'#c93b38',ven:'#5473b8',ner:'#e4c65b',adi:'#d8b44a'};
 let worker,plane,outline,bounds,sections=[],paths=[],zoom=1,seq=0,busy=false,pending=null,ready=false,scale=1,ox=0,oz=0;
 function fail(message){$('status').textContent=message;$('status').hidden=false;}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -102,3 +117,4 @@ new ResizeObserver(draw).observe(canvas);
 window.addEventListener('pagehide',e=>{if(!e.persisted)worker?.terminate();});
 
 if(new URLSearchParams(location.search).get('sezioni')==='assiali')open(true);
+new ResizeObserver(()=>{if(opened)layout();}).observe(dock);

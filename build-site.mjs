@@ -46,7 +46,7 @@ if (preview) {
     .replace('<h1>Spalla destra</h1>', '<h1>Spalla destra</h1><button id="ax-toggle" aria-expanded="false" aria-controls="ax-panel"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m3 8 9-5 9 5-9 5-9-5Zm0 4 9 5 9-5M3 16l9 5 9-5"/></svg> Sezioni assiali</button>')
     .replace('const w=innerWidth,h=innerHeight;renderer.setSize', 'const rect=canvas.getBoundingClientRect(),w=rect.width,h=rect.height;renderer.setSize')
     .replace('ray.setFromCamera(new THREE.Vector2((x/innerWidth)*2-1,-(y/innerHeight)*2+1),camera);', 'const rect=canvas.getBoundingClientRect();ray.setFromCamera(new THREE.Vector2(((x-rect.left)/rect.width)*2-1,-((y-rect.top)/rect.height)*2+1),camera);')
-    .replace('window.__dbg={S,setVis,sync,cam,', 'window.__dbg={S,setVis,sync,cam,resize,select,selected:()=>selected?.id||null,')
+    .replace('window.__dbg={S,setVis,sync,cam,', 'window.__dbg={S,setVis,sync,cam,resize,select,categories:CATS,selected:()=>selected?.id||null,')
     .replace('</body>', '<script type="module" src="../assets/sezioni-assiali.js"></script></body>');
   await writeFile(path, html);
 }
