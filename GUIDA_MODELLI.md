@@ -338,3 +338,9 @@ ripetibilità. La genicolare discendente (`adisc`) sotto il vasto mediale non
 fa parte di questa correzione: il controllo segnala un rapporto preesistente
 da rivedere separatamente. Confronto prima–dopo approvato dall’utente
 per la pubblicazione il 25 ottobre 2026.
+
+### Spalla — raccordo trapezio e legamento AC (29 ottobre 2026)
+
+`trapezio-acromion-spalla.mjs`, sempre dopo `capsulari-ac-sc-spalla.mjs`, riparte da `BASE=b0115aa` e riscrive soltanto `trap_t`. L'impronta tendinea ora raggiunge anche la superficie del legamento AC (`VIA_LEG=0`, prima una fascia esclusa di 1,5 mm); il legamento resta una mesh distinta e funge da vincolo separato con gioco di 0,2 mm. Quattro passate sul campo raccordano i tagli del contorno. Dopo la cucitura, sedici coppie Taubin (0,45 / −0,47) levigano la superficie e la giunzione con il ventre, con peso nullo oltre `ZCUT+BANDA` e riproiezione fuori da ossa e tessuti vicini (direzione del gradiente normalizzata, passo massimo 0,3 mm). Il controllo di stabilità interrompe il salvataggio per spostamenti non finiti o oltre 5 mm; massimo misurato 2,08 mm. Fibre, tag e normali vengono ricalcolati dopo la levigatura. Si può rilanciare senza accumulare deformazioni.
+
+Controlli sulla revisione: sola mesh `trap_t` modificata; nessun incrocio con scapola, clavicola o legamento AC; nessun bordo aperto; spigoli con più di due facce ridotti da 66 a 13 (residui del modello, non una certificazione di manifold globale). Persistono intersezioni preesistenti con le altre porzioni del trapezio. Distanza minima della nuova superficie dalle ossa: 0,30 mm. Verifica visiva: `node strumenti/server.mjs`, tavola Spalla, isolare trapezio trasverso con ossa e attivare il legamento AC, osservando margini e raccordo da superiore e posteriore.
