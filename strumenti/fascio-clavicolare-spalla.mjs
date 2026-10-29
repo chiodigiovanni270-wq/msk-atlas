@@ -52,7 +52,7 @@ const LATO = { omoi: [-0.6, 0.78, -0.12], succl: [-0.05, 0.57, 0.82], trap_d: [0
 const RIPR = [0.35, 0.7], LEVIGA = 10, INTERI = ['succl', 'omoi', 'trap_d'];                         // cm, passate
 const HF = 0.05, PASSO_C = 0.7, MARGINE = 2.1, ITER = +(process.env.ITER ?? 500), PASSO_ADAM = 0.004;
 const GIOCO = 0.03, GIOCO_OSSO = 0.03, APPIATTI = 0.02, INSERZ = [0.05, 0.25], MAX = 0.3, OMBRA = 1.0;
-const PESO = { comp: 1, osso: 3, altri: 0.3, max: 20, ampiezza: 0.02, liscio: 0.3 };
+const PESO = { comp: 1, osso: 3, altri: 0.3, max: 20, ampiezza: 0.02, liscio: 0.3, liscio_tubi: 1.5 };
 
 const add = (a, b, k = 1) => [a[0] + k * b[0], a[1] + k * b[1], a[2] + k * b[2]], sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -177,11 +177,11 @@ function energia(grad) {
     pen(FO, p, Math.min(s.a, 0), PESO.altri, 'altri', [[grad[mu], S3, s.l]]);
     cap(dm, grad[mu], S3, PESO.max); });
   // ampiezza e levigatezza dei campi
-  for (const k of nomiC) { const c = campi[k], g = grad[k];
+  for (const k of nomiC) { const c = campi[k], g = grad[k], pl = k === 'tubi' ? PESO.liscio_tubi : PESO.liscio;
     for (let n = 0; n < NCT; n++) { if (!libero[n]) continue; for (let e = 0; e < 3; e++) { E.regol += PESO.ampiezza * c[3 * n + e] ** 2; g[3 * n + e] += 2 * PESO.ampiezza * c[3 * n + e]; } }
     for (let k2 = 0; k2 < NC[2]; k2++) for (let j = 0; j < NC[1]; j++) for (let i = 0; i < NC[0]; i++) { const n = i + NC[0] * (j + NC[1] * k2);
       for (const m of [i + 1 < NC[0] ? n + 1 : -1, j + 1 < NC[1] ? n + NC[0] : -1, k2 + 1 < NC[2] ? n + NC[0] * NC[1] : -1]) { if (m < 0) continue;
-        for (let e = 0; e < 3; e++) { const d = c[3 * n + e] - c[3 * m + e]; E.regol += PESO.liscio * d * d; g[3 * n + e] += 2 * PESO.liscio * d; g[3 * m + e] -= 2 * PESO.liscio * d; } } } }
+        for (let e = 0; e < 3; e++) { const d = c[3 * n + e] - c[3 * m + e]; E.regol += pl * d * d; g[3 * n + e] += 2 * pl * d; g[3 * m + e] -= 2 * pl * d; } } } }
   return E;
 }
 

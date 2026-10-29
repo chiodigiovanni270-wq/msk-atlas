@@ -10,7 +10,7 @@
      node strumenti/trapezio-acromion-spalla.mjs                → riscrive `trap_t` nel file del modello (topologia nuova solo vicino all'acromion)
      PROVA=1 node strumenti/trapezio-acromion-spalla.mjs        → stampa i controlli senza scrivere
      MODELLO=/tmp/copia.html node strumenti/trapezio-acromion-spalla.mjs   → lavora su una copia
-   Dopo `deltoide-spalla.mjs` (il deltoide è un ostacolo). Riparte da `trap_t` della revisione `BASE` (mesh, tag, direzioni delle fibre e normali),
+   Dopo `deltoide-spalla.mjs` (il deltoide è un ostacolo) e di nuovo in fondo alla catena, dopo `capsulari-ac-sc-spalla.mjs` (legamento AC nuovo). Riparte da `trap_t` della revisione `BASE` (mesh, tag, direzioni delle fibre e normali),
    con le altre strutture del file come ostacoli, quindi si può rilanciare con lo stesso risultato.
 
    Metodo (griglia di passo `PASSO` attorno all'acromion; campi di distanza con segno, negativi dentro).
@@ -20,9 +20,16 @@
       solo il pezzo più grande; chiusura di raggio `R_ADER` con le ossa d'inserzione, limitata ai punti entro `VICINO_M` dal muscolo ed entro
       `VICINO_O` dalle ossa: la lamina scende sull'acromion e sul legamento e vi resta appoggiata. Campo levigato (`LEVIGA` passate) e fuso con quello
       di BASE col peso della zona; fuori da ossa (`GAP_OSSO`) e dalle strutture vicine (`GAP_MOLLI`, `MOLLI`).
+   2b. Lamina d'inserzione uniforme: impronta del muscolo sull'osso levigata (apertura e chiusura `R_CONT`, impronta ammessa fino al
+      legamento AC (`VIA_LEG=0`)), muscolo tagliato al contorno nello strato `STRATO` e lamina di spessore `T_INS` con margine arrotondato; niente muscolo sotto il
+      ponte sulla rima AC (`SOTTO_PONTE`); apertura `R_PILASTRO` vicino all'osso e al legamento (`ZONA_PILASTRO`, `VICINO_LEG`) per il pilastro sottile
+      dietro il legamento, con la lamina rimessa com'era.
+   2c. Rifinitura locale: chiusura di 5,5 mm dell’incavo inferiore e levigatura del raccordo AC,
+      su unione con la superficie d’appoggio, pesi radiali continui entro 11,5 mm e vincoli riapplicati.
    3. Superficie (surface nets) tagliata a `ZCUT` dalle ossa d'inserzione; pezzi staccati tolti (meno di `PEZZO_MIN` triangoli), riduzione a quadriche
       fino a `TRI` volte la densità di BASE nella stessa zona, bordo fermo. BASE tagliata allo stesso livello; i due bordi sono cuciti con una
       striscia di triangoli (un'unica mesh chiusa, senza fessura).
+   3b. Sedici coppie Taubin (0,45 / −0,47) raccordano superficie e cucitura entro ZCUT+BANDA, con riproiezione fuori dagli ostacoli.
    4. Tag (muscolo/tendine) e direzioni delle fibre dal triangolo di BASE più vicino; normali ricalcolate nella parte nuova e sfumate su quelle di
       BASE entro `BANDA` oltre il taglio.
    Controlli stampati: triangoli che si incrociano con ossa e strutture vicine (BASE → nuovo), distanza della faccia inferiore dall'acromion. */
@@ -32,16 +39,18 @@ import { execFileSync } from 'node:child_process';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
 const G = await import('./lib-modello.mjs');
 const B = await import('./lib-bp3d.mjs');
-const { REAL, realDaRevisione, saveFile, repack, log, griglia, solid, edt, sdf, unione, chiuso, esatta, sfoca, nets, sample, sstep } = G;
+const { REAL, realDaRevisione, saveFile, repack, log, griglia, solid, edt, sdf, unione, chiuso, esatta, sfoca, nets, sample, sstep, grad } = G;
 
 const BASE = 'b0115aa', FILE = 'modelli/spalla-3d.html', NOME = 'trap_t';
 const OSSA = ['scapola', 'clavicola', 'omero'], LEG = ['ac_leg'];
-const MOLLI = ['ac_leg', 'cal', 'supra', 'delt_cl', 'delt_ac', 'delt_sp', 'trap_d', 'trap_a', 'borsa_sad', 'cc_trapezoide', 'cc_conoide'];
+const MOLLI = ['cal', 'supra', 'delt_cl', 'delt_ac', 'delt_sp', 'trap_d', 'trap_a', 'borsa_sad', 'cc_trapezoide', 'cc_conoide'];
 const BOX = [[-1.2, 1.4, -7.0], [6.0, 6.4, 1.0]];                                                     // cm: riquadro della griglia
 const PASSO = 0.03, Y_INS = 2.0, X_INS = 2.6, X_CLAV = 3.2;                                            // cm
 const ZONA0 = 0.9, ZONA1 = 1.7, ZCUT = 1.9, BANDA = 0.3;                                               // cm
-const APRI = 0.06, R_ADER = 0.4, VICINO_M = 0.3, VICINO_O = 0.4, LEVIGA = 3, GAP_OSSO = 0.03, GAP_MOLLI = 0.04;
+const APRI = 0.06, R_ADER = 0.4, VICINO_M = 0.3, VICINO_O = 0.4, LEVIGA = 3, GAP_OSSO = 0.03, GAP_MOLLI = 0.04, GAP_LEG = 0.02;
 const PEZZO_MIN = 300, TRI = 1.3;
+// lamina d'inserzione uniforme (passo 2b): spessore, banda sull'osso, raggio di levigatura del contorno, rampa verso il ventre (cm)
+const T_INS = 0.12, STRATO = [0.3, 0.5], R_CONT = 0.35, R_APPOGGIO = 0.3, VIA_LEG = 0, SOTTO_PONTE = 0.03, R_PILASTRO = 0.1, ZONA_PILASTRO = 0.8, VICINO_LEG = 0.9;   // SOTTO_PONTE: sotto la superficie d'appoggio (fessura AC) né lamina né muscolo oltre questa profondità; VIA_LEG: niente inserzione entro questa distanza dal legamento AC
 
 /* ---- mesh di partenza (BASE), messa al posto di quella del file: voxelizzazione e controlli partono sempre da BASE ---- */
 const P0 = realDaRevisione(BASE, NOME, FILE); P0.nv = P0.pos.length / 3;
@@ -80,9 +89,88 @@ const Cc = chiuso(T, R_ADER), Mf = new Uint8Array(N);
 for (let i = 0; i < N; i++) Mf[i] = Mo[i] || (Cc[i] <= 0 && !Mins[i] && Dm[i] <= VICINO_M && Dins[i] <= VICINO_O) ? 1 : 0;
 const Fn = sdf(Mf).F; sfoca(Fn, LEVIGA);
 log('forma nuova');
+/* 2b. lamina d'inserzione uniforme: impronta del muscolo sulle ossa d'inserzione (dove c'è muscolo da 0,5 a 2,5 mm sopra l'osso) levigata con
+   apertura e chiusura di raggio R_CONT (via uncini, tacche e rilievi del margine); nello strato vicino all'osso (fino a STRATO[0], raccordo fino a
+   STRATO[1]) il muscolo è tagliato al contorno levigato e sotto di esso c'è una lamina di spessore T_INS con margine arrotondato. Sopra lo strato il
+   ventre non cambia. */
+const Dc = sfoca(chiuso(Dins, R_APPOGGIO), 2);                                                        // superficie d'appoggio (ponte sulla rima AC)
+const banda = new Uint8Array(N), coperto = new Uint8Array(N), piede = new Float32Array(N * 3), Dleg = edt(unione(LEG));   // continuità con la capsula AC superiore: impronta ammessa anche sul legamento
+for (let i = 0; i < N; i++) { if (W[i] <= 0 || Dc[i] > STRATO[1] + 0.1) continue; const p = vox(i), n = grad(Dc, p), l = Math.hypot(...n) || 1, f = [0, 1, 2].map(k => p[k] - n[k] / l * Dc[i]);
+  piede[3 * i] = f[0]; piede[3 * i + 1] = f[1]; piede[3 * i + 2] = f[2];
+  if (Dc[i] < 0.06 && Dc[i] > -0.06 && !Mins[i]) { banda[i] = 1; if (Dleg[i] < VIA_LEG) continue; for (const h of [0.05, 0.1, 0.15, 0.2, 0.25]) { const q = [0, 1, 2].map(k => f[k] + n[k] / l * h); if (dentro(q) && sample(Fn, ...q) < 0) { coperto[i] = 1; break; } } } }
+// apertura e chiusura dell'impronta nella banda (distanze misurate solo tra voxel della banda)
+const dist = Mk => edt(Mk), soglia = (D, r) => { const o = new Uint8Array(N); for (let i = 0; i < N; i++) o[i] = banda[i] && D[i] <= r ? 1 : 0; return o; };
+const fuori = M => { const o = new Uint8Array(N); for (let i = 0; i < N; i++) o[i] = banda[i] && !M[i] ? 1 : 0; return o; };
+let imp = coperto;
+{ const Do = dist(fuori(imp)); const er = new Uint8Array(N); for (let i = 0; i < N; i++) er[i] = imp[i] && Do[i] > R_CONT ? 1 : 0; imp = soglia(dist(er), R_CONT); }   // apertura
+{ const Di = dist(imp); const di = soglia(Di, R_CONT), Do2 = dist(fuori(di)); const o = new Uint8Array(N); for (let i = 0; i < N; i++) o[i] = di[i] && Do2[i] > R_CONT ? 1 : 0; imp = o; }   // chiusura
+// distanza con segno dal contorno dell'impronta (positiva dentro), levigata nella banda
+const SDc = new Float32Array(N); { const Din = dist(imp), Dout = dist(fuori(imp)); for (let i = 0; i < N; i++) SDc[i] = banda[i] ? (imp[i] ? Dout[i] : -Din[i]) : 0; }
+for (let it = 0; it < 4; it++) { const T = Float32Array.from(SDc); for (let i = 0; i < N; i++) { if (!banda[i]) continue; let s = T[i] * 2, w = 2; for (const d of [1, -1, G.NX, -G.NX, G.NXY, -G.NXY]) { const j = i + d; if (j >= 0 && j < N && banda[j]) { s += T[j]; w++; } } SDc[i] = s / w; } }
+// estende la distanza dal contorno ai voxel sopra la banda tramite il loro piede sulla superficie d'appoggio
+const SDb = Float32Array.from(SDc, (v, i) => banda[i] ? v : -1);
+const lato = i => { const f = [piede[3 * i], piede[3 * i + 1], piede[3 * i + 2]]; if (!dentro(f)) return -1; const fi = Math.floor((f[0] - G.O[0]) / G.H), fj = Math.floor((f[1] - G.O[1]) / G.H), fk = Math.floor((f[2] - G.O[2]) / G.H);
+  let s = 0, w = 0; for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let c = -1; c <= 1; c++) { const j = (fi + a) + G.NX * (fj + b) + G.NXY * (fk + c); if (j >= 0 && j < N && banda[j]) { s += SDb[j]; w++; } } return w ? s / w : -1; };
+let lamina = 0, tagliati = 0; const Lam = new Float32Array(N).fill(1e3);
+for (let i = 0; i < N; i++) { if (W[i] <= 0 || Dc[i] > STRATO[1] || Mins[i]) continue; const sd = lato(i);
+  const t = T_INS * (0.55 + 0.45 * sstep(0, 0.12, sd)), L = Math.max(Dc[i] - t, -sd);                  // lamina, con margine arrotondato
+  const taglio = Math.max(Fn[i], -sd), nuovo = Math.max(Math.min(L, taglio), -Dc[i] - SOTTO_PONTE), w = W[i] * sstep(STRATO[1], STRATO[0], Dc[i]);
+  if (Fn[i] < 0 && taglio >= 0 && w > 0.5) tagliati++; if (L < 0) lamina++;
+  Fn[i] = w * nuovo + (1 - w) * Fn[i]; if (w > 0.5) Lam[i] = L; }
+log('lamina d\'inserzione: voxel', lamina, ', voxel di muscolo tagliati al contorno', tagliati);
+{ // apertura di raggio R_PILASTRO del muscolo vicino all'osso e al legamento AC (entro VICINO_LEG: via il pilastro sottile dietro il legamento), poi la lamina è rimessa com'era
+  const A = new Uint8Array(N); for (let i = 0; i < N; i++) A[i] = Fn[i] < 0 ? 1 : 0;
+  const E = edt(A, true), Er = new Uint8Array(N); for (let i = 0; i < N; i++) Er[i] = E[i] >= R_PILASTRO ? 1 : 0;
+  const D2 = edt(Er), Mo2 = new Uint8Array(N); for (let i = 0; i < N; i++) Mo2[i] = A[i] && D2[i] <= R_PILASTRO ? 1 : 0;
+  const F2 = sdf(Mo2).F; sfoca(F2, 2); let tolti = 0;
+  for (let i = 0; i < N; i++) { if (W[i] <= 0 || Dc[i] > ZONA_PILASTRO || Dleg[i] > VICINO_LEG) continue; const w = sstep(ZONA_PILASTRO, ZONA_PILASTRO - 0.2, Dc[i]) * sstep(VICINO_LEG, VICINO_LEG - 0.15, Dleg[i]), v = Math.min(w * F2[i] + (1 - w) * Fn[i], Lam[i]);
+    if (Fn[i] < 0 && v >= 0) tolti++; Fn[i] = v; }
+  log('apertura vicino all\'osso: voxel tolti', tolti); }
+sfoca(Fn, 4); // raccorda i tagli del contorno prima di applicare i vincoli di contatto
+const Sl = esatta(sdf(unione(LEG)).F, LEG, 0.08);
 const Sb = esatta(sdf(unione(OSSA)).F, OSSA, 0.08), Sm = sdf(unione(MOLLI)).F;
 const V = new Float32Array(N);
-for (let i = 0; i < N; i++) { const w = W[i]; V[i] = w <= 0 ? S[i] : Math.max(w * Fn[i] + (1 - w) * S[i], GAP_OSSO - Sb[i], GAP_MOLLI - Sm[i]); }
+for (let i = 0; i < N; i++) { const w = W[i]; V[i] = w <= 0 ? S[i] : Math.max(w * Fn[i] + (1 - w) * S[i], GAP_OSSO - Sb[i], GAP_MOLLI - Sm[i], GAP_LEG - Sl[i]); }
+// Rifinitura locale dei due margini segnalati: coordinate in cm sul modello.
+// La superficie d'appoggio è inclusa durante la levigatura per non erodere
+// completamente la lamina sottile; subito dopo si riapplicano tutti i vincoli.
+{
+  const zone = [
+    { nome: 'incavo inferiore', centro: [3.35, 2.45, -5.0], interno: 0.55, esterno: 1.15 },
+    { nome: 'raccordo AC', centro: [1.55, 3.55, -2.4], interno: 0.55, esterno: 1.15 },
+  ];
+  const appoggio = Float32Array.from(V, (v,i) => Math.min(v, Sb[i], Sl[i]));
+  const chiusura = chiuso(appoggio, 0.55);
+  sfoca(chiusura, 12);
+  const raccordo = sfoca(Float32Array.from(appoggio), 60);
+  let cambiati = 0;
+  for (let i=0; i<N; i++) {
+    const p=vox(i); let valore=V[i], peso=0;
+    for (let j=0;j<zone.length;j++) {
+      const z=zone[j], d=Math.hypot(...p.map((v,k)=>v-z.centro[k]));
+      const w=1-sstep(z.interno,z.esterno,d); if (!w) continue;
+      const campo=j===0?Math.min(V[i],chiusura[i]):raccordo[i];
+      valore=(1-w)*valore+w*campo; peso=Math.max(peso,w);
+    }
+    if (!peso) continue;
+    const nuovo=Math.max(valore,GAP_OSSO-Sb[i],GAP_MOLLI-Sm[i],GAP_LEG-Sl[i]);
+    if ((nuovo<0)!==(V[i]<0)) cambiati++;
+    V[i]=nuovo;
+  }
+  // Elimina le pellicole submillimetriche create tangenzialmente all'appoggio:
+  // apertura solo nelle due zone, conservando il resto del campo.
+  const pieno=Uint8Array.from(V,v=>v<0?1:0), interno=edt(pieno,true);
+  const nucleo=Uint8Array.from(interno,v=>v>=0.045?1:0), distanza=edt(nucleo);
+  const aperto=Uint8Array.from(pieno,(v,i)=>v&&distanza[i]<=0.045?1:0);
+  const pulito=sfoca(sdf(aperto).F,2);
+  for(let i=0;i<N;i++) {
+    const p=vox(i);let w=0;
+    for(const z of zone)w=Math.max(w,1-sstep(z.interno,z.esterno,Math.hypot(...p.map((v,k)=>v-z.centro[k]))));
+    if(!w)continue;
+    V[i]=Math.max((1-w)*V[i]+w*pulito[i],GAP_OSSO-Sb[i],GAP_MOLLI-Sm[i],GAP_LEG-Sl[i]);
+  }
+  log('rifinitura locale dei due margini:',cambiati,'voxel');
+}
 log('campo pronto');
 
 /* ---- 3. superficie nuova, tagliata a ZCUT, e BASE tagliata allo stesso livello ---- */
@@ -128,6 +216,47 @@ for (const A of AB) {   // A: bordo di BASE nel verso dei suoi triangoli; Bn: bo
   cuciti++; }
 log('anelli cuciti', cuciti, ', distanza massima tra i due bordi', (scartoMax * 10).toFixed(2), 'mm');
 
+/* Levigatura della superficie e della cucitura, con peso continuo che si annulla fuori
+   dalla zona operata. Coppie Taubin limitano il ritiro della lamina; dopo ciascuna
+   coppia riproiettiamo fuori da ossa, legamento e tessuti vicini. */
+{
+  const prima = Float64Array.from(pos);
+  const nv = pos.length / 3, adj = Array.from({length: nv}, () => new Set());
+  for (let t = 0; t < idx.length; t += 3) for (let k = 0; k < 3; k++) {
+    const a = idx[t+k], b = idx[t+(k+1)%3]; adj[a].add(b); adj[b].add(a);
+  }
+  const weights = Float64Array.from({length:nv}, (_,i) => 1-sstep(ZCUT-0.2,ZCUT+BANDA,zonaV(pt(i))));
+  for (let pass = 0; pass < 16; pass++) {
+    for (const lambda of [0.45,-0.47]) {
+      const prev = Float64Array.from(pos);
+      for (let i = 0; i < nv; i++) {
+        if (!weights[i] || !adj[i].size) continue;
+        for (let k = 0; k < 3; k++) {
+          let sum = 0; for (const j of adj[i]) sum += prev[3*j+k];
+          pos[3*i+k] = prev[3*i+k] + lambda*weights[i]*(sum/adj[i].size-prev[3*i+k]);
+        }
+      }
+    }
+    for (let i = 0; i < nv; i++) {
+      if (!weights[i]) continue;
+      for (const [field,gap] of [[Sb,GAP_OSSO],[Sm,GAP_MOLLI],[Sl,GAP_LEG]]) {
+        const p = pt(i); if (!dentro(p)) continue;
+        const d = sample(field,...p); if (d >= gap) continue;
+        const n = grad(field,p), norm2 = n.reduce((s,v)=>s+v*v,0);
+        // grad() restituisce differenze finite, non derivate: usare la direzione unitaria.
+        if (norm2 > 1e-8) for (let k=0;k<3;k++) pos[3*i+k] += n[k]*Math.min(PASSO, gap-d)/Math.sqrt(norm2);
+      }
+    }
+  }
+  let spostamento = 0;
+  for (let i = 0; i < nv; i++) {
+    const d = Math.hypot(...[0,1,2].map(k => pos[3*i+k]-prima[3*i+k]));
+    if (!Number.isFinite(d) || d > 0.5) throw new Error('Levigatura instabile: vertice '+i+', spostamento '+d+' cm');
+    spostamento = Math.max(spostamento,d);
+  }
+  log('superficie e cucitura: 16 coppie Taubin, spostamento massimo', (10*spostamento).toFixed(2), 'mm');
+}
+
 /* ---- 4. attributi e normali ---- */
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dt = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const tri = (p, a, b, c) => { const ab = sub(b, a), ac = sub(c, a), ap = sub(p, a), d1 = dt(ab, ap), d2 = dt(ac, ap); if (d1 <= 0 && d2 <= 0) return [1, 0, 0];   // punto più vicino (Ericson), baricentriche
@@ -170,7 +299,7 @@ const incroci = (Pp, I, Q, J) => { const Cc = 0.3, hh = new Map(), TA = [];
       if (visti.has(u)) continue; visti.add(u); const Bt = TA[u]; for (let e = 0; e < 3 && !o; e++) o = raggio(A[e], sub(A[(e + 1) % 3], A[e]), Bt) || raggio(Bt[e], sub(Bt[(e + 1) % 3], Bt[e]), A); if (o) break; }
     if (o) n++; }
   return n; };
-log(NOME, ', triangoli che si incrociano (BASE → nuovo):', [...OSSA, ...MOLLI].map(o => { const Q = REAL(o); const a = incroci(P0.pos, P0.idx, Q.pos, Q.idx), b = incroci(R.pos, R.idx, Q.pos, Q.idx); return a || b ? `${o} ${a} → ${b}` : null; }).filter(Boolean).join(', ') || 'nessuno');
+log(NOME, ', triangoli che si incrociano (BASE → nuovo):', [...OSSA, ...LEG, ...MOLLI].map(o => { const Q = REAL(o); const a = incroci(P0.pos, P0.idx, Q.pos, Q.idx), b = incroci(R.pos, R.idx, Q.pos, Q.idx); return a || b ? `${o} ${a} → ${b}` : null; }).filter(Boolean).join(', ') || 'nessuno');
 { // spigoli: ogni spigolo in due triangoli (mesh chiusa)
   const ec = new Map(); for (let t = 0; t < R.idx.length; t += 3) for (let k = 0; k < 3; k++) { const a = R.idx[t + k], b = R.idx[t + (k + 1) % 3], q = a < b ? a + ',' + b : b + ',' + a; ec.set(q, (ec.get(q) || 0) + 1); }
   let aperti = 0, multipli = 0; for (const c of ec.values()) { if (c === 1) aperti++; else if (c > 2) multipli++; } log('spigoli di bordo', aperti, ', spigoli in più di due triangoli', multipli); }
