@@ -12,9 +12,9 @@
    Il gran dorsale non è nell'elenco: la sua mesh vicino al tendine è frammentata e il canale non si cuce; il fascio si sposta fuori dal muscolo con
    `fascio-dorsale-spalla.mjs`, da lanciare PRIMA di questo script.
 
-   Dentato anteriore, succlavio, omoioideo e trapezio discendente (`FIANCO`) stanno tutti da un lato del fascio: ripartono sempre dalle mesh
-   di `PARTENZA_FIANCO` e il fascio passa in un solco aperto invece che in un canale (vedi `incroci` e `ombra`); rilanciando si ottiene lo
-   stesso risultato.
+   Dentato anteriore, succlavio, omoioideo e trapezio discendente (`FIANCO`) stanno tutti da un lato del fascio: `fascio-clavicolare-spalla.mjs`,
+   da lanciare PRIMA di questo script, li riporta alla forma BodyParts3D vicino al fascio e li scosta insieme a nervi e vasi; qui il poco che resta
+   (1–2 mm) diventa un solco aperto invece di un canale (vedi `incroci` e `ombra`).
 
    Uso (dalla cartella del progetto):
      node strumenti/nervi-muscoli-spalla.mjs                → riscrive i muscoli nel file del modello
@@ -57,20 +57,21 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
 const G = await import('./lib-modello.mjs');
-const { REAL, attrs, man, buf0, setMesh, repack, saveFile, log, sstep, setGriglia, griglia, campo, solid, edt, nets, realDaRevisione, nrmDaRevisione } = G;
+const { REAL, attrs, man, buf0, setMesh, repack, saveFile, log, sstep, setGriglia, griglia, campo, solid, edt, nets } = G;
 const { riduci, compatta } = await import('./lib-bp3d.mjs');
 
 const PROVA = !!process.env.PROVA, SOLO = process.env.SOLO ? process.env.SOLO.split(',') : null;
 const CORPI = ['plesso', 'n_soprascapolare', 'n_ascellare', 'n_muscolocutaneo', 'n_radiale', 'n_mediano', 'n_ulnare', 'a_succ', 'v_succ', 'a_asc', 'v_asc'];
 const MUSCOLI = ['supra', 'infra', 'tmin', 'subs', 'delt_cl', 'delt_ac', 'delt_sp', 'tmaj', 'pec_cl', 'pec_st', 'pec_ab', 'pmin', 'succl', 'trap_d', 'trap_t', 'trap_a', 'romb_mag', 'romb_min', 'elev', 'dent', 'omoi', 'bic_lungo', 'bic_breve', 'coracobr', 'tri_lungo', 'tri_lat', 'tri_med'];
 // muscoli che il fascio vascolo-nervoso incrocia senza attraversarli: niente canale (lembi di muscolo sopra e sotto il nervo, bordi frastagliati
-// dove entra ed esce), il muscolo resta tutto da un lato del fascio e il fascio passa in un solco aperto. Il lato si sceglie per ogni incrocio
-// (`ombra`): quello che toglie meno muscolo. Si riparte sempre dalle mesh di PARTENZA_FIANCO, prima di qualsiasi canale.
-const FIANCO = ['dent', 'succl', 'omoi', 'trap_d'], PARTENZA_FIANCO = '554a2f5~1';   // mesh di questi muscoli come uscivano da sezioni-spalla.mjs
-// la loro superficie vicino al fascio è irregolare (punte e lembi lasciati dai canali di vasi-nervi-spalla attorno al tracciato di allora): la
-// toppa è più larga (livelli LIVELLI_F, ritorno sulla superficie di prima oltre SNAP_F) e la distanza dal muscolo è levigata (LISCIA_F
-// passate di media 3×3×3 sul campo: spariscono punte e lembi più sottili di ~1 mm)
-const LIVELLI_F = [0.7, 0.8, 0.6, 0.9], SNAP_F = [0.45, 0.6], SUP_F = 0.2, PEZZO_F = 0.15, CUCI_F = 0.2, LISCIA_F = +(process.env.LISCIA ?? 15);
+// dove entra ed esce), il muscolo resta tutto da un lato del fascio e il fascio passa in un solco aperto. Il lato è uno solo per muscolo
+// (`ombra`): quello anatomico in `LATO_F` (dal fascio verso il muscolo, gli stessi di `fascio-clavicolare-spalla.mjs`: omoioideo superficiale a plesso
+// e soprascapolare, succlavio sopra e davanti a vasi e plesso), altrimenti quello che toglie meno muscolo. Le mesh sono quelle del file, come
+// le lascia `fascio-clavicolare-spalla.mjs`.
+const FIANCO = ['dent', 'succl', 'omoi', 'trap_d'], LATO_F = { omoi: [-0.6, 0.78, -0.12], succl: [-0.05, 0.57, 0.82], trap_d: [0, 0.5, -0.87] };
+// toppa più larga (livelli LIVELLI_F, ritorno sulla superficie di prima oltre SNAP_F) e distanza dal muscolo levigata (LISCIA_F passate di media
+// 3×3×3 sul campo): il solco ha bordi dolci
+const LIVELLI_F = [0.7, 0.8, 0.6, 0.9, 0.5, 1.0, 0.65, 0.75], SNAP_F = [0.45, 0.6], SUP_F = 0.2, PEZZO_F = 0.15, CUCI_F = 0.2, LISCIA_F = +(process.env.LISCIA ?? 15);
 const OMBRA = +(process.env.OMBRA ?? 1.0), INCROCIO = { cella: 0.3, raggio: 1.2, asse: 0.8, direzioni: 400, margine: 0.1, portata: 2.0 };   // cm
 const SOGLIA_MM3 = 0.05, H_CTRL = 0.02;               // controllo: volume comune minimo (mm³), passo della griglia (cm)
 const H = +(process.env.H ?? 0.02), GIOCO = 0.03, ZONA = 0.5, LIVELLI = process.env.LIVELLI ? process.env.LIVELLI.split(",").map(Number) : [0.35, 0.4, 0.3, 0.45], LATO = 0.04, SNAP0 = [0.15, 0.28], DENSITA = 1.5, NORM_DIFF = 3, LEVIGA = 40, RACCORDO = +(process.env.RACCORDO ?? 0.06), SUP0 = +(process.env.SUP ?? 0.04), REGIONE = +(process.env.REGIONE ?? 0.15), FORO = 0.3;   // cm
@@ -84,8 +85,8 @@ const RQ = {}; const rq = n => RQ[n] ||= riquadro(REAL(n).pos);
 const vicini = (a, b, m = 0) => [0, 1, 2].every(k => a.lo[k] - m <= b.hi[k] && b.lo[k] - m <= a.hi[k]);
 const volume = (pos, idx) => { let v = 0; for (let t = 0; t < idx.length; t += 3) { const a = 3 * idx[t], b = 3 * idx[t + 1], c = 3 * idx[t + 2]; v += (pos[a] * (pos[b + 1] * pos[c + 2] - pos[b + 2] * pos[c + 1]) - pos[a + 1] * (pos[b] * pos[c + 2] - pos[b + 2] * pos[c]) + pos[a + 2] * (pos[b] * pos[c + 1] - pos[b + 1] * pos[c])) / 6; } return v; };
 const chiaveP = (P, i) => Math.round(P[3 * i] * 2e4) + ',' + Math.round(P[3 * i + 1] * 2e4) + ',' + Math.round(P[3 * i + 2] * 2e4);
-const NM_PARTENZA = {}, NRM_ULTIMO = {}, topoNrm = n => NRM_ULTIMO[n] || null;
-const nmDi = n => { if (n in NM_PARTENZA) return NM_PARTENZA[n] ? NM_PARTENZA[n].slice() : null; const m = man.meshes.findLast(x => x.n === n); return m.nm !== undefined ? new Int8Array(buf0.buffer, buf0.byteOffset + m.nm, m.nv * 3).slice() : null; };
+const NRM_ULTIMO = {}, topoNrm = n => NRM_ULTIMO[n] || null;
+const nmDi = n => { const m = man.meshes.findLast(x => x.n === n); return m.nm !== undefined ? new Int8Array(buf0.buffer, buf0.byteOffset + m.nm, m.nv * 3).slice() : null; };
 
 /* ---- 1. controllo: volume comune e profondità per coppia ---- */
 function controllo(nomiM) {
@@ -298,8 +299,8 @@ function incroci(mu, corpi) {
   const lato = (x, g) => { const d = sub(g, mul(x.ax, dot(g, x.ax))), l = len(d); return l > 0.2 ? mul(d, 1 / l) : null; };
   // un solo lato g per tutto il muscolo (in ogni incrocio la sua componente perpendicolare all'asse del corpo): il muscolo non passa sopra un
   // vaso e sotto quello accanto. Direzioni g su una sfera (spirale di Fibonacci), si sceglie quella che toglie meno muscolo in tutto
-  let best = null;
-  for (let a = 0; a < INCROCIO.direzioni; a++) { const z = 1 - 2 * (a + 0.5) / INCROCIO.direzioni, r = Math.sqrt(1 - z * z), th = a * Math.PI * (3 - Math.sqrt(5)), g = [r * Math.cos(th), r * Math.sin(th), z];
+  let best = LATO_F[mu] ? { g: mul(LATO_F[mu], 1 / len(LATO_F[mu])) } : null;
+  if (!best) for (let a = 0; a < INCROCIO.direzioni; a++) { const z = 1 - 2 * (a + 0.5) / INCROCIO.direzioni, r = Math.sqrt(1 - z * z), th = a * Math.PI * (3 - Math.sqrt(5)), g = [r * Math.cos(th), r * Math.sin(th), z];
     let n = 0; for (const x of out) { const d = lato(x, g); n += d ? tolti(x, d) : 1e6; } if (!best || n < best.n) best = { n, g }; }
   return { g: best.g, X: out.map(x => { const d = lato(x, best.g); return { corpo: x.corpo, c: x.c, s: d, tolti_mm3: +(tolti(x, d) * h ** 3 * 1000).toFixed(1), raggio_mm: +(x.rad * 10).toFixed(1), voxel: x.voxel }; }) };
 }
@@ -437,10 +438,7 @@ function rattoppa(mu, corpi, T) {
 
 /* ---- correzione ---- */
 const nomi = SOLO || MUSCOLI;
-// muscoli da un lato del fascio: si riparte sempre dalle mesh di PARTENZA_FIANCO (senza canali)
 const INCROCI = {}, INCROCI_X = {};
-for (const mu of nomi.filter(n => FIANCO.includes(n))) { const m = realDaRevisione(PARTENZA_FIANCO, mu, 'modelli/spalla-3d.html'); setMesh(mu, { pos: m.pos, idx: m.idx, tag: m.tag, fdir: m.fdir }); delete RQ[mu];
-  NM_PARTENZA[mu] = nrmDaRevisione(PARTENZA_FIANCO, mu, 'modelli/spalla-3d.html'); }
 const PRIMA = controllo(nomi); log('prima', JSON.stringify(PRIMA));
 const daFare = {}; for (const k of Object.keys(PRIMA)) { const [mu, nv] = k.split('/'); (daFare[mu] ||= []).push(nv); }
 // se le linee di taglio del muscolo e della toppa non danno gli stessi anelli (superficie che sfiora il livello), si riprova con un altro livello
@@ -461,4 +459,4 @@ for (const mu of Object.keys(ESITO).filter(m => FIANCO.includes(m) && !ESITO[m].
   log(mu, 'tolti i pezzi staccati di', STACCATI[mu].join(', '), 'vertici'); }
 const DOPO = controllo(Object.keys(daFare)); log('dopo', JSON.stringify(DOPO));
 log('esito', JSON.stringify(ESITO)); if (Object.keys(STACCATI).length) log('pezzi staccati tolti', JSON.stringify(STACCATI));
-if (!PROVA && (Object.keys(daFare).length || nomi.some(n => FIANCO.includes(n)))) saveFile(repack());
+if (!PROVA && Object.keys(daFare).length) saveFile(repack());
