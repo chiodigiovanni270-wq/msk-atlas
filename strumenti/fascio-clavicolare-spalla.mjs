@@ -49,7 +49,7 @@ const ALTRI = ['supra', 'infra', 'tmin', 'subs', 'delt_cl', 'delt_ac', 'delt_sp'
   'romb_mag', 'romb_min', 'elev', 'bic_lungo', 'bic_breve', 'coracobr', 'tri_lungo', 'tri_lat', 'tri_med'];
 // lato del muscolo rispetto al fascio (versore, dal fascio verso il muscolo): solo dove l'uscita più vicina non è quella anatomica
 const LATO = { omoi: [-0.6, 0.78, -0.12], succl: [-0.05, 0.57, 0.82], trap_d: [0, 0.5, -0.87] };
-const SOLCO = [0.1, 0.35], SOLCO_PASSI = 40, GIOCO_SOLCO = 0.035, RIPR = [0.35, 0.7], LEVIGA = 10, INTERI = ['succl', 'omoi', 'trap_d'];                         // cm, passate
+const RIPR = [0.35, 0.7], LEVIGA = 10, INTERI = ['succl', 'omoi', 'trap_d'];                         // cm, passate
 const HF = 0.05, PASSO_C = 0.7, MARGINE = 2.1, ITER = +(process.env.ITER ?? 500), PASSO_ADAM = 0.004;
 const GIOCO = 0.03, GIOCO_OSSO = 0.03, APPIATTI = 0.02, INSERZ = [0.05, 0.25], MAX = 0.3, OMBRA = 1.0;
 const PESO = { comp: 1, osso: 3, altri: 0.3, max: 20, ampiezza: 0.02, liscio: 0.3 };
@@ -250,31 +250,7 @@ for (const n of TUBI_V) { const R = REAL(n), at = attrs(n), { P, D } = muovi(R.p
   let nrm = ruotaNormali(R.pos, NRM[n], campi.tubi); if (mossi.some(x => x)) { const NL = normaliLisce(P, R.idx, null); nrm ||= NL; for (let i = 0; i < mossi.length; i++) if (mossi[i]) for (let k = 0; k < 3; k++) nrm[3 * i + k] = NL[3 * i + k]; }
   for (let i = 0; i < D.length; i++) D[i] = P[i] - R.pos[i];
   setMesh(n, { pos: P, idx: R.idx, tag: at.tag, fdir: at.fdir, nrm }); SPOST[n] = D; APPIATTITI[n] = mossi.reduce((s, x) => s + x, 0); }
-// solco: dove il fascio entra ancora nel muscolo (≤ 2–2,5 mm, meno del raggio del tubo) i vertici del muscolo vanno sulla superficie del tubo
-// + GIOCO_SOLCO, alternati a passate di Taubin pesate (solo entro SOLCO[1] dai tubi): un solco poco profondo, senza spigoli
-function solco(mu, P, idx) {
-  const nv = P.length / 3, K = new Map(), u = new Int32Array(nv); for (let i = 0; i < nv; i++) { const k = chiaveP(P, i); if (!K.has(k)) K.set(k, K.size); u[i] = K.get(k); }
-  const nu = K.size, Q = new Float64Array(nu * 3); for (let i = 0; i < nv; i++) for (let k = 0; k < 3; k++) Q[3 * u[i] + k] = P[3 * i + k];
-  const nb = Array.from({ length: nu }, () => new Set()); for (let t = 0; t < idx.length; t += 3) for (let e = 0; e < 3; e++) { const x = u[idx[t + e]], y = u[idx[t + (e + 1) % 3]]; if (x !== y) { nb[x].add(y); nb[y].add(x); } }
-  const NB = nb.map(x => [...x]);
-  // griglia fine attorno ai vertici vicini ai tubi
-  const vic = []; { griglia(RLO, RHI, HF, 0.3); const F0 = congela(campo(TUBI).F), o = [0, 0, 0, 0]; for (let j = 0; j < nu; j++) if (sg(F0, Q[3 * j], Q[3 * j + 1], Q[3 * j + 2], o)[0] < SOLCO[1] + 0.1) vic.push(j); }
-  if (!vic.length) return 0;
-  const lo = [0, 1, 2].map(k => Math.min(...vic.map(j => Q[3 * j + k]))), hi = [0, 1, 2].map(k => Math.max(...vic.map(j => Q[3 * j + k])));
-  griglia(lo, hi, 0.02, 0.3); const FT = congela(campo(TUBI).F), o = [0, 0, 0, 0]; let mossi = 0;
-  const w = new Float64Array(nu); for (const j of vic) w[j] = 1 - sstep(SOLCO[0], SOLCO[1], sg(FT, Q[3 * j], Q[3 * j + 1], Q[3 * j + 2], o)[0]);
-  for (let it = 0; it < SOLCO_PASSI; it++) {
-    for (const j of vic) { sg(FT, Q[3 * j], Q[3 * j + 1], Q[3 * j + 2], o); if (o[0] >= GIOCO_SOLCO) continue; const g = nz([o[1], o[2], o[3]]), r = GIOCO_SOLCO - o[0]; for (let k = 0; k < 3; k++) Q[3 * j + k] += r * g[k]; }
-    const lam = it % 2 ? -0.53 : 0.5, R = Q.slice();
-    for (const j of vic) { if (!w[j] || !NB[j].length) continue; for (let k = 0; k < 3; k++) { let m = 0; for (const q of NB[j]) m += Q[3 * q + k]; R[3 * j + k] += w[j] * lam * (m / NB[j].length - Q[3 * j + k]); } }
-    Q.set(R); }
-  for (const j of vic) { sg(FT, Q[3 * j], Q[3 * j + 1], Q[3 * j + 2], o); if (o[0] < GIOCO_SOLCO) { const g = nz([o[1], o[2], o[3]]), r = GIOCO_SOLCO - o[0]; for (let k = 0; k < 3; k++) Q[3 * j + k] += r * g[k]; } }
-  for (let i = 0; i < nv; i++) { const d = len(sub(pt(P, i), [Q[3 * u[i]], Q[3 * u[i] + 1], Q[3 * u[i] + 2]])); if (d > 1e-5) mossi++; for (let k = 0; k < 3; k++) P[3 * i + k] = Q[3 * u[i] + k]; }
-  return mossi;
-}
-const SOLCHI = {};
 for (const mu of MUSC) { const R = REAL(mu), B = BASE[mu], { P, D } = muovi(R.pos, campi[mu], true), nv = R.nv;
-  SOLCHI[mu] = solco(mu, P, R.idx); for (let i = 0; i < D.length; i++) D[i] = P[i] - R.pos[i];
   const NL = normaliLisce(P, R.idx, B.tag), N0 = NRM[mu], nrm = new Int8Array(nv * 3), P0 = N0 && realDaRevisione(PARTENZA_MUSC, mu, FILE_REPO).pos;
   for (let i = 0; i < nv; i++) { const mosso = !N0 || len(sub(pt(P, i), pt(P0, i))) > 0.001; for (let k = 0; k < 3; k++) nrm[3 * i + k] = mosso ? NL[3 * i + k] : N0[3 * i + k]; }
   setMesh(mu, { pos: P, idx: R.idx, tag: B.tag, fdir: B.fdir, nrm }); SPOST[mu] = D; }
@@ -285,6 +261,6 @@ const dmin = dminOssa();
 const stat = D => { const l = []; for (let i = 0; i < D.length / 3; i++) { const x = len(pt(D, i)); if (x > 1e-5) l.push(x); } return l.length ? [+(quantile(l, 0.99) * 10).toFixed(2), +(Math.max(...l) * 10).toFixed(2)] : [0, 0]; };
 log('spostamenti (mm, 99 % e massimo):', JSON.stringify(Object.fromEntries(Object.entries(SPOST).map(([n, D]) => [n, stat(D)]))));
 log('volume dei muscoli (cm³):', JSON.stringify(Object.fromEntries(MUSC.map(mu => [mu, [+VOL0[mu].toFixed(2), +volume(REAL(mu).pos, REAL(mu).idx).toFixed(2)]]))));
-log('muscoli: vertici spostati dal solco', JSON.stringify(SOLCHI)); log('tubi: vertici appiattiti contro l\'osso', JSON.stringify(APPIATTITI)); log('tubi: distanza minima dalle ossa', (DMIN0 * 10).toFixed(2), '→', (dmin * 10).toFixed(2), 'mm');
+log('tubi: vertici appiattiti contro l\'osso', JSON.stringify(APPIATTITI)); log('tubi: distanza minima dalle ossa', (DMIN0 * 10).toFixed(2), '→', (dmin * 10).toFixed(2), 'mm');
 log('compenetrazioni [mm³, mm] prima', JSON.stringify(PRIMA)); log('compenetrazioni [mm³, mm] dopo', JSON.stringify(DOPO));
 if (!PROVA) saveFile(repack());

@@ -68,7 +68,7 @@ const MUSCOLI = ['supra', 'infra', 'tmin', 'subs', 'delt_cl', 'delt_ac', 'delt_s
 // (`ombra`): quello anatomico in `LATO_F` (dal fascio verso il muscolo, gli stessi di `fascio-clavicolare-spalla.mjs`: omoioideo superficiale a plesso
 // e soprascapolare, succlavio sopra e davanti a vasi e plesso), altrimenti quello che toglie meno muscolo. Le mesh sono quelle del file, come
 // le lascia `fascio-clavicolare-spalla.mjs`.
-const FIANCO = ['dent', 'succl', 'omoi', 'trap_d'], LATO_F = { omoi: [-0.6, 0.78, -0.12], succl: [-0.05, 0.57, 0.82], trap_d: [0, 0.5, -0.87] };
+const FIANCO = ['succl', 'omoi'], LATO_F = { omoi: [-0.6, 0.78, -0.12], succl: [-0.05, 0.57, 0.82] };
 // toppa più larga (livelli LIVELLI_F, ritorno sulla superficie di prima oltre SNAP_F) e distanza dal muscolo levigata (LISCIA_F passate di media
 // 3×3×3 sul campo): il solco ha bordi dolci
 const LIVELLI_F = [0.7, 0.8, 0.6, 0.9, 0.5, 1.0, 0.65, 0.75], SNAP_F = [0.45, 0.6], SUP_F = 0.2, PEZZO_F = 0.15, CUCI_F = 0.2, LISCIA_F = +(process.env.LISCIA ?? 15);
