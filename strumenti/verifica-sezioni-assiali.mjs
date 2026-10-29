@@ -20,3 +20,10 @@ console.log('Microfessure ricucite entro soglia; aperture reali preservate.');
 const {indicizza}=await import('../assets/sezioni-assiali-worker.js');
 const cube={pos,idx};const levels=[-.999,-.1,0,.1,.999,1,2];const plain=levels.map(y=>sezione(cube,y));indicizza(cube);assert.deepEqual(levels.map(y=>sezione(cube,y)),plain);
 console.log('Indice spaziale: risultati identici, inclusi i limiti di banda.');
+// I difetti muscolari submillimetrici si chiudono senza generalizzare la soglia agli altri tessuti.
+const muscleGap=cilindroAperto(512);muscleGap.pos=Float32Array.from(muscleGap.pos,v=>v*2);
+assert.equal(sezione(muscleGap,0).open.length,1);
+const filledMuscle=sezione({...muscleGap,cat:'cin'},0);
+assert.equal(filledMuscle.open.length,0);assert.equal(filledMuscle.loops.length,1);assert.ok(filledMuscle.repairedGapMM>.15&&filledMuscle.repairedGapMM<.3);
+assert.ok(sezione({...cilindroAperto(32),cat:'cin'},0).open.length>0,'Anche nei muscoli le aperture ampie restano aperte');
+console.log('Piccoli difetti muscolari riempiti; soglie degli altri tessuti invariate.');

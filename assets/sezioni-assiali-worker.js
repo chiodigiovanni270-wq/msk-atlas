@@ -1,4 +1,4 @@
-// Intersezione triangoli/piano Y, in cm. Ricucitura limitata alle microfessure documentate.
+// Intersezione triangoli/piano Y, in cm. Ricucitura limitata ai piccoli difetti documentati.
 function interseca(mesh, y) {
   const {pos, idx, tw}=mesh, edges=[], nodes=new Map();
   // Cerca anche nei bucket adiacenti: arrotondare una coordinata da solo
@@ -46,11 +46,24 @@ function interseca(mesh, y) {
 export function sezione(mesh,y){
   const base=interseca(mesh,y);
   if(!base.open.length)return base;
-  // Ricuce soltanto una singola microfessura: <=0,15 mm e <=0,1%
-  // del perimetro. Non colma tagli anatomici o aperture estese.
+  // Un unico contorno quasi completo: al massimo 0,15 mm / 0,1% del perimetro.
+  // Per i muscoli sono ammessi difetti locali fino a 0,3 mm / 0,3%:
+  // alcune facce mancanti del deltoide lasciano fessure da 0,13–0,26 mm.
+  // Non unisce frammenti diversi né attraversa un altro tratto del contorno.
   if(base.open.length===1){const p=base.open[0];let length=0;for(let i=1;i<p.length;i++)length+=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);
-    const gap=Math.hypot(p[0][0]-p.at(-1)[0],p[0][1]-p.at(-1)[1]);
-    if(p.length>=8&&gap<=0.015&&gap<=length*0.001)return {...base,loops:[...base.loops,p],open:[],repairedGapMM:gap*10};
+    const a=p[0],b=p.at(-1),gap=Math.hypot(a[0]-b[0],a[1]-b[1]);
+    const muscle=['cuf','cin','tor','brac'].includes(mesh.cat);
+    if(p.length>=8&&gap<=(muscle?0.03:0.015)&&gap<=length*(muscle?0.003:0.001)){
+      const side=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+      const crosses=(c,d)=>side(a,b,c)*side(a,b,d)<0&&side(c,d,a)*side(c,d,b)<0;
+      const contours=[p,...base.loops];
+      const crossing=contours.some(q=>q.some((c,i)=>{
+        const d=q[(i+1)%q.length];
+        if(c===a||c===b||d===a||d===b)return false;
+        return crosses(c,d);
+      }));
+      if(!crossing)return {...base,loops:[...base.loops,p],open:[],repairedGapMM:gap*10};
+    }
   }
   // Un piano che coincide con vertici/spigoli può essere singolare.
   // Spostamento massimo 0,0001 mm; nessun collegamento fra margini distanti.
