@@ -4,35 +4,43 @@
    Problema. Con le forme BodyParts3D il fascio attraversa questi quattro muscoli (fino a ~8 mm il succlavio, ~5 mm l'omoioideo, 2–3 mm dentato e
    trapezio). Scavare solo i muscoli (canale o solco) li taglia a metà: l'omoioideo restava diviso in due dal soprascapolare, il succlavio perdeva il
    capo laterale. Qui nervi, vasi e muscoli si spostano insieme, con campi lisci e piccoli, verso il lato anatomico: l'omoioideo resta superficiale a
-   plesso e soprascapolare (che passano sotto il ventre inferiore verso l'incisura), il succlavio sopra e davanti a vasi e plesso, dentato e trapezio
-   dal lato più vicino. Il poco che resta (≤ 1–2 mm) lo toglie `nervi-muscoli-spalla.mjs` con un solco poco profondo.
+   plesso e soprascapolare (che passano sotto il ventre inferiore verso l'incisura), il succlavio sopra e davanti a vasi e plesso, il trapezio dietro
+   e sopra, il dentato dal lato più vicino. Il poco che resta (≤ 2–3 mm, dove il muscolo è fermo sull'osso) lo toglie `nervi-muscoli-spalla.mjs`
+   con un solco poco profondo.
 
    Uso (dalla cartella del progetto):
      node strumenti/fascio-clavicolare-spalla.mjs              → sposta tubi e muscoli nel file del modello
      PROVA=1 node strumenti/fascio-clavicolare-spalla.mjs      → stampa spostamenti e controlli senza scrivere
      MODELLO=/tmp/copia.html node strumenti/fascio-clavicolare-spalla.mjs   → lavora su una copia
-   Va lanciato dopo `fascio-dorsale-spalla.mjs` e PRIMA di `nervi-muscoli-spalla.mjs` (che poi rifà i canali degli altri muscoli attorno ai tubi
-   spostati e i solchi residui). Riparte sempre dalle stesse mesh, quindi si può rilanciare con lo stesso risultato: tubi della revisione
+   Va lanciato dopo `fascio-dorsale-spalla.mjs` e PRIMA di `nervi-muscoli-spalla.mjs` (`SOLO=dent,succl,omoi,trap_d` per i solchi residui; gli
+   altri muscoli non hanno compenetrazioni nuove con i tubi spostati, lo dice il controllo `altri`). Riparte sempre dalle stesse mesh, quindi si può rilanciare con lo stesso risultato: tubi della revisione
    `PARTENZA_TUBI` (uscita di `fascio-dorsale-spalla.mjs`; se si rilanciano `vasi-nervi-spalla.mjs` o `fascio-dorsale-spalla.mjs` va aggiornata al
    commit del loro risultato), muscoli della revisione `PARTENZA_MUSC` (uscita di `sezioni-spalla.mjs`, prima di qualsiasi canale di
    `nervi-muscoli-spalla.mjs`) riportati vicino al fascio alla forma BodyParts3D di `BP3D`.
 
    Metodo:
-     1. Forma dei muscoli. Le mesh di `PARTENZA_MUSC` hanno, vicino al fascio, le punte lasciate dai canali di `vasi-nervi-spalla.mjs` (vertici spinti
-        fuori dai tubi di allora); altrove le correzioni di `muscoli-spalla.mjs` (contro ossa e altri muscoli) da tenere. I vertici entro `RIPR`[0] dai
-        tubi vanno sul punto più vicino della superficie BodyParts3D (campo con segno di `BP3D`), con raccordo fino a `RIPR`[1]; poi `LEVIGA` passate di
-        Taubin nella stessa fascia.
+     1. Forma dei muscoli. Succlavio, omoioideo e trapezio discendente (`INTERI`) ripartono dalla mesh BodyParts3D intera di `BP3D`: in
+        `PARTENZA_MUSC` i canali di `vasi-nervi-spalla.mjs` li avevano schiacciati contro l'osso (il capo laterale del succlavio ridotto a una
+        lamina) e `muscoli-spalla.mjs` li aveva cambiati poco altrove. Il dentato tiene le correzioni di `muscoli-spalla.mjs` contro coste e altri
+        muscoli: solo i vertici entro `RIPR`[0] dai tubi vanno sul punto più vicino della superficie BodyParts3D (campo con segno di `BP3D`), con
+        raccordo fino a `RIPR`[1], poi `LEVIGA` passate di Taubin nella stessa fascia.
      2. Spostamenti: un campo per i tubi (lo stesso per tutti: giunzioni, calibri e raccordi restano identici nelle mesh che li condividono) e uno per
         ogni muscolo, B-spline cubiche su una griglia di controllo di passo `PASSO_C` nel riquadro dei contatti + `MARGINE` (nullo al bordo). Energia,
         minimizzata con Adam (`ITER` passi): compenetrazione tubo–muscolo, misurata sui vertici dei tubi (campo del muscolo nel punto spostato) e su
         quelli del muscolo (campo dei tubi), con `GIOCO`; tubi a ≥ `GIOCO_OSSO` da ossa, cartilagini, capsula e legamenti (o non più vicini di prima);
         tubi non più dentro gli altri muscoli di prima (peso basso: lì `nervi-muscoli-spalla.mjs` rifà il canale); muscoli non più dentro ossa e altri
-        muscoli di prima; inserzioni ferme (vertici entro `INSERZ` dall'osso); spostamento oltre `MAX` penalizzato forte; levigatezza e ampiezza dei
-        campi. Lato anatomico: per omoioideo e succlavio il campo del muscolo è prolungato di `OMBRA` cm dal lato `LATO` (dal fascio verso il muscolo)
-        vicino ai contatti, così il fascio può uscire solo dal lato opposto.
+        muscoli di prima; spostamento oltre `MAX` penalizzato forte; levigatezza (più forte per i tubi, `liscio_tubi`: il decorso dei nervi resta
+        liscio) e ampiezza dei campi. Inserzioni ferme: lo spostamento del muscolo è moltiplicato per un raccordo da 0 a 1 tra `INSERZ`[0] e
+        `INSERZ`[1] dall'osso (la faccia sull'osso resta, quella libera si scosta: dove il muscolo è sottile si assottiglia di poco). Lato anatomico:
+        per omoioideo, succlavio e trapezio il campo del muscolo è prolungato di `OMBRA` cm dal lato `LATO` (dal fascio verso il muscolo) vicino ai
+        contatti, così il fascio può uscire solo dal lato opposto.
+     2b. Vasi nello spazio costoclavicolare: già in `PARTENZA_TUBI` succlavia e vena entravano fino a 1,6 mm in clavicola e prima costa (spazio più
+        stretto del calibro). I vertici dei tubi vicini all'osso sono spinti fuori lungo la normale dell'osso, con spinta liscia
+        `APPIATTI`·ln(1 + e^((GIOCO_OSSO − d)/`APPIATTI`)) ripetuta: il vaso si appiattisce contro l'osso. Dipende solo dalla posizione, quindi è
+        uguale nelle mesh che si sovrappongono (succlavia/ascellare al margine della prima costa).
      3. Normali: dei tubi ruotate con il gradiente del campo; dei muscoli ricalcolate dove il vertice si è mosso, altrove quelle di prima.
-   Controlli stampati: volume comune tubo–muscolo prima e dopo (griglia di 0,2 mm), spostamento massimo e al 99 % di tubi e muscoli, distanza minima
-   dei tubi dalle ossa, volume dei muscoli prima e dopo. */
+   Controlli stampati: volume comune tubo–muscolo prima e dopo (griglia di 0,2 mm; anche tubi–altri muscoli), spostamento massimo e al 99 % di tubi
+   e muscoli, vertici appiattiti, distanza minima dei tubi dalle ossa prima e dopo, volume dei muscoli prima e dopo. */
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 process.env.MODELLO ||= resolve(dirname(fileURLToPath(import.meta.url)), '..', 'modelli', 'spalla-3d.html');
@@ -47,7 +55,7 @@ const OSSA = ['scapola', 'clavicola', 'omero', 'costa1', 'costa2', 'costa3', 'co
   'cart_omero', 'cart_glen', 'labbro', 'caps', 'cc_conoide', 'cc_trapezoide', 'cal', 'ac_leg', 'sc_leg', 'coraco_om', 'sghl', 'mghl', 'ighl_a', 'ighl_p'];
 const ALTRI = ['supra', 'infra', 'tmin', 'subs', 'delt_cl', 'delt_ac', 'delt_sp', 'tmaj', 'pec_cl', 'pec_st', 'pec_ab', 'pmin', 'trap_t', 'trap_a', 'lat',
   'romb_mag', 'romb_min', 'elev', 'bic_lungo', 'bic_breve', 'coracobr', 'tri_lungo', 'tri_lat', 'tri_med'];
-// lato del muscolo rispetto al fascio (versore, dal fascio verso il muscolo): solo dove l'uscita più vicina non è quella anatomica
+// lato del muscolo rispetto al fascio (versore, dal fascio verso il muscolo): dove l'uscita più vicina non è quella anatomica
 const LATO = { omoi: [-0.6, 0.78, -0.12], succl: [-0.05, 0.57, 0.82], trap_d: [0, 0.5, -0.87] };
 const RIPR = [0.35, 0.7], LEVIGA = 10, INTERI = ['succl', 'omoi', 'trap_d'];                         // cm, passate
 const HF = 0.05, PASSO_C = 0.7, MARGINE = 2.1, ITER = +(process.env.ITER ?? 500), PASSO_ADAM = 0.004;
@@ -125,7 +133,7 @@ for (const mu of MUSC) { const F = campo([mu]).F;
     const u = nz(LATO[mu]), M = new Uint8Array(G.N); for (const p of CONT[mu]) { const i = Math.floor((p[0] - G.O[0]) / G.H), j = Math.floor((p[1] - G.O[1]) / G.H), k = Math.floor((p[2] - G.O[2]) / G.H); M[G.vi(i, j, k)] = 1; }
     const D = edt(M), F0 = F.slice(); let n = 0;
     for (let id = 0; id < G.N; id++) { if (D[id] > 1.5) continue; const p = G.voxel(id); let m = F0[id];
-      for (let t = HF; t <= OMBRA + 1e-6; t += HF) m = Math.min(m, sample(F0, p[0] - t * u[0], p[1] - t * u[1], p[2] - t * u[2]) + 0.0 * t);
+      for (let t = HF; t <= OMBRA + 1e-6; t += HF) m = Math.min(m, sample(F0, p[0] - t * u[0], p[1] - t * u[1], p[2] - t * u[2]));
       if (m < F[id]) { F[id] = m; n++; } }
     log(mu, 'ombra dal lato', u.map(v => v.toFixed(2)).join(','), '| voxel', n); }
   FM[mu] = congela(F); }
