@@ -14,7 +14,7 @@ dock.innerHTML=`<div class="ax-anatomy-tools"><label class="ax-find"><span aria-
 document.body.append(dock);
 let cardHome=null;
 function catalog(){if(!d)return;
- const q=$('ax-find').value.trim().toLocaleLowerCase('it'),results=$('ax-results'),scroll=results.scrollTop;
+ const q=$('ax-find').value.trim().toLocaleLowerCase(document.documentElement.lang||'it'),results=$('ax-results'),scroll=results.scrollTop;
  const focused=results.contains(document.activeElement)?document.activeElement.dataset.key:null;
  results.replaceChildren();
  const all=d.S.filter(s=>s.group), bulk=document.createElement('div');bulk.className='ax-bulk';
@@ -26,7 +26,7 @@ function catalog(){if(!d)return;
   const visible=items.filter(s=>s.visible).length;check.checked=visible===items.length;check.indeterminate=visible>0&&visible<items.length;check.setAttribute('aria-label','Mostra categoria '+cat.name);check.onchange=()=>apply(items,check.checked);name.textContent=cat.name;const count=document.createElement('small');count.textContent=visible+'/'+items.length;label.append(check,name,count);groups.append(label);
  }results.append(groups);
  const heading=document.createElement('p');heading.className='ax-list-heading';heading.textContent=q?'Risultati della ricerca · categorie applicate per intero':'Singole strutture';results.append(heading);
- const items=all.filter(s=>s.name.toLocaleLowerCase('it').includes(q));
+ const items=all.filter(s=>s.name.toLocaleLowerCase(document.documentElement.lang||'it').includes(q));
  if(!items.length){const p=document.createElement('p');p.textContent='Nessuna struttura trovata.';results.append(p);}
  const categories=d.categories||[];
  for(const cat of categories){const members=items.filter(s=>s.cat===cat.id);if(!members.length)continue;
@@ -50,7 +50,7 @@ $('ax-find').oninput=()=>setCatalog(true);
 $('ax-list-toggle').onclick=()=>setCatalog($('ax-results').hidden);
 $('ax-find').onkeydown=e=>{if(e.key==='Escape'){setCatalog(false);}if(e.key==='Enter')$('ax-results').querySelector('.ax-result button')?.click();};
 function layout(){d?.resize();draw();}
-function open(value){if(!value)cancelTap();d=window.__dbg;opened=value;dock.hidden=!value;const card=$('card');if(value&&!cardHome){cardHome={parent:card.parentNode,next:card.nextSibling};$('ax-card-slot').append(card);}else if(!value&&cardHome){cardHome.parent.insertBefore(card,cardHome.next);cardHome=null;}document.body.classList.toggle('ax-has-selection',value&&!!d?.selected());panel.hidden=divider.hidden=expand.hidden=!value;document.body.classList.toggle('ax-open',value);toggle.setAttribute('aria-expanded',String(value));toggle.classList.toggle('active',value);$('ax-mode-3d').setAttribute('aria-pressed',String(!value));$('ax-mode-slices').setAttribute('aria-pressed',String(value));if(plane)plane.visible=outline.visible=value;layout();
+function open(value){if(!value)cancelTap();const url=new URL(location.href);if(value)url.searchParams.set('sezioni','assiali');else url.searchParams.delete('sezioni');history.replaceState(history.state,'',url);d=window.__dbg;opened=value;dock.hidden=!value;const card=$('card');if(value&&!cardHome){cardHome={parent:card.parentNode,next:card.nextSibling};$('ax-card-slot').append(card);}else if(!value&&cardHome){cardHome.parent.insertBefore(card,cardHome.next);cardHome=null;}document.body.classList.toggle('ax-has-selection',value&&!!d?.selected());panel.hidden=divider.hidden=expand.hidden=!value;document.body.classList.toggle('ax-open',value);toggle.setAttribute('aria-expanded',String(value));toggle.classList.toggle('active',value);$('ax-mode-3d').setAttribute('aria-pressed',String(!value));$('ax-mode-slices').setAttribute('aria-pressed',String(value));if(plane)plane.visible=outline.visible=value;layout();
  if(value&&!started){started=true;init().catch(e=>fail(e.message));}if(!value)(matchMedia('(max-width:899px)').matches?$('ax-mode-3d'):toggle).focus();}
 $('ax-mode-3d').onclick=()=>open(false);$('ax-mode-slices').onclick=()=>open(true);
 toggle.onclick=()=>open(!opened);$('ax-close').onclick=()=>open(false);

@@ -1,6 +1,6 @@
 // Pubblicazione statica: le bozze esistono soltanto nelle Preview protette.
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { costruisciInglese } from './build-en.mjs';
+import { costruisciInglese, creaContesto, traduciFrammento } from './build-en.mjs';
 const preview = process.env.VERCEL_ENV === 'preview' || (!process.env.VERCEL && process.argv.includes('--preview'));
 const drafts = new Set(['modelli/anca-3d.html', 'modelli/caviglia-3d.html']);
 await rm('dist', { recursive: true, force: true });
@@ -40,14 +40,24 @@ if (!preview) {
 await costruisciInglese({ preview, drafts, dettagli: process.argv.includes('--traduzioni'), rigoroso: process.argv.includes('--rigoroso') });
 // Strumento assiale nella stessa pagina, solo Preview finché non approvato.
 if (preview) {
-  const path = 'dist/modelli/spalla-3d.html';
-  let html = await readFile(path, 'utf8');
-  html = html.replace('</head>', '<link rel="stylesheet" href="../assets/visualizzazioni-spalla.css"></head>')
-    .replace('<h1>Spalla destra</h1>', '<h1>Spalla <span class="ax-side">destra</span></h1><button id="ax-toggle" aria-expanded="false" aria-controls="ax-panel"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m3 8 9-5 9 5-9 5-9-5Zm0 4 9 5 9-5M3 16l9 5 9-5"/></svg> Sezioni assiali</button>')
-    .replace('const w=innerWidth,h=innerHeight;renderer.setSize', 'const rect=canvas.getBoundingClientRect(),w=rect.width,h=rect.height;renderer.setSize')
-    .replace('ray.setFromCamera(new THREE.Vector2((x/innerWidth)*2-1,-(y/innerHeight)*2+1),camera);', 'const rect=canvas.getBoundingClientRect();ray.setFromCamera(new THREE.Vector2(((x-rect.left)/rect.width)*2-1,-((y-rect.top)/rect.height)*2+1),camera);')
-    .replace('window.__dbg={S,setVis,sync,cam,', 'window.__dbg={S,setVis,sync,cam,resize,select,categories:CATS,selected:()=>selected?.id||null,')
-    .replace('</body>', '<script type="module" src="../assets/sezioni-assiali.js"></script></body>');
-  await writeFile(path, html);
+  const comune = JSON.parse(await readFile('traduzioni/comune.en.json', 'utf8'));
+  const spalla = JSON.parse(await readFile('traduzioni/spalla-3d.en.json', 'utf8'));
+  const ctx = creaContesto('accesso-assiale', [comune]);
+  const button = '<button id="ax-toggle" aria-expanded="false" aria-controls="ax-panel"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m3 8 9-5 9 5-9 5-9-5Zm0 4 9 5 9-5M3 16l9 5 9-5"/></svg> Sezioni assiali</button>';
+  for (const en of [false, true]) {
+    const path = `dist/${en ? 'en/' : ''}modelli/spalla-3d.html`;
+    const title = en ? spalla.testi['Spalla destra'] : 'Spalla destra';
+    const heading = en ? `<h1>${title}</h1>` : '<h1>Spalla <span class="ax-side">destra</span></h1>';
+    let html = await readFile(path, 'utf8');
+    if(!html.includes(`<h1>${title}</h1>`))throw new Error(`Titolo della spalla non trovato: ${path}`);
+    html = html.replace('</head>', '<link rel="stylesheet" href="../assets/visualizzazioni-spalla.css"></head>')
+      .replace(`<h1>${title}</h1>`, heading + (en ? traduciFrammento(button, ctx) : button))
+      .replace('const w=innerWidth,h=innerHeight;renderer.setSize', 'const rect=canvas.getBoundingClientRect(),w=rect.width,h=rect.height;renderer.setSize')
+      .replace('ray.setFromCamera(new THREE.Vector2((x/innerWidth)*2-1,-(y/innerHeight)*2+1),camera);', 'const rect=canvas.getBoundingClientRect();ray.setFromCamera(new THREE.Vector2(((x-rect.left)/rect.width)*2-1,-((y-rect.top)/rect.height)*2+1),camera);')
+      .replace('window.__dbg={S,setVis,sync,cam,', 'window.__dbg={S,setVis,sync,cam,resize,select,categories:CATS,selected:()=>selected?.id||null,')
+      .replace('</body>', '<script type="module" src="../assets/sezioni-assiali.js"></script></body>');
+    await writeFile(path, html);
+  }
+  if(ctx.stato.mancanti.length)throw new Error('Traduzione del pulsante assiale incompleta');
 }
 console.log(`Build ${preview ? 'preview privata' : 'pubblica'} completata in dist/`);

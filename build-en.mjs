@@ -22,9 +22,9 @@ import { existsSync, statSync } from 'node:fs';
 
 export const SITO = 'https://www.mskatlas.com';
 /* script comuni tradotti in dist/en/assets/: le pagine inglesi li caricano con lo stesso percorso relativo */
-export const COMUNI = ['assets/nav.js', 'assets/scheda.js', 'assets/segnala.js', 'assets/ricerca.js', 'assets/ricerca-modello.js'];
+export const COMUNI = ['assets/nav.js', 'assets/scheda.js', 'assets/segnala.js', 'assets/ricerca.js', 'assets/ricerca-modello.js', 'assets/sezioni-assiali.js'];
 /* fogli di stile caricati accanto agli script tradotti (new URL(…, src)): copiati così come sono */
-const COPIE = ['assets/segnala.css', 'assets/ricerca-modello.css'];
+const COPIE = ['assets/segnala.css', 'assets/ricerca-modello.css', 'assets/visualizzazioni-spalla.css', 'assets/sezioni-assiali-worker.js'];
 const PROPRIETA = ['name', 'info', 'o', 'ins', 'fn'];
 
 /* ---------- stringhe JS ---------- */
