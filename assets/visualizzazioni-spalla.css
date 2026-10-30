@@ -46,7 +46,7 @@ body.ax-open{--ax-split:40%;--ax-dock:292px}#ax-anatomy[hidden]{display:none!imp
  body:has(#ax-toggle) .ms-search:not(.ms-open){width:44px;right:auto}
  body:has(#ax-toggle) .ms-search:not(.ms-open) .ms-field{position:relative;width:44px;justify-content:center;padding:0}
  body:has(#ax-toggle) .ms-search:not(.ms-open) .ms-field input{position:absolute;inset:0;opacity:0;height:44px;cursor:pointer}
- body:has(#ax-toggle) .ms-search.ms-open{width:auto;right:max(14px,env(safe-area-inset-right,0px));z-index:30}
+ body:has(#ax-toggle) .ms-search.ms-open{width:auto;right:calc(max(14px,env(safe-area-inset-right,0px)) + 112px);z-index:30}
  body.ax-open{--ax-top:calc(env(safe-area-inset-top,0px) + 64px);--ax-dock:calc(62px + env(safe-area-inset-bottom,0px))}
  body.ax-open.ax-expanded{--ax-top:max(200px,34dvh)}
  .ax-open #c{visibility:hidden}.ax-open.ax-expanded #c{visibility:visible}
