@@ -72,3 +72,10 @@ body.ax-open{--ax-split:40%;--ax-dock:292px}#ax-anatomy[hidden]{display:none!imp
  .ax-open:is(.ax-has-selection,.ax-browsing) #ax-panel{right:42%;bottom:0}
  .ax-open:is(.ax-has-selection,.ax-browsing) #ax-anatomy{left:auto;right:0;top:var(--ax-top);bottom:0;width:42%;height:auto;border-left:1px solid #3b5263}
 }
+
+/* Telefono: la scheda usa lo spazio degli strumenti; scorrimento fisso di 1 mm. */
+@media(max-width:899px){
+ .ax-open.ax-has-selection .ax-anatomy-tools{display:none}
+ .ax-open .ax-level-settings{display:none}
+ .ax-open .ax-controls>div+div{margin-top:0}
+}

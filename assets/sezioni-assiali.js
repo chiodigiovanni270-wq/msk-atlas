@@ -3,7 +3,7 @@ const panel=document.createElement('section');panel.id='ax-panel';panel.hidden=t
 panel.innerHTML=`<header class="ax-heading"><div><span class="ax-kicker">SPALLA DESTRA</span><h2>Sezione assiale</h2></div><button id="ax-close" aria-label="Chiudi sezioni">×</button></header>
 <div class="ax-stage"><canvas id="slice" tabindex="0" aria-label="Sezione assiale: trascina per spostare, clic o tocco per selezionare; frecce su e giù per scorrere i livelli, Maiusc e frecce per spostare" title="Trascina per spostare · clic o tocco per selezionare"></canvas><span class="ax-dir ax-ant">A</span><span class="ax-dir ax-post">P</span><span class="ax-dir ax-right">R</span><span class="ax-dir ax-left">L</span><p id="status" role="status">Preparazione delle sezioni…</p><div class="ax-zoom"><button id="zoomOut" aria-label="Riduci zoom">−</button><button id="zoomIn" aria-label="Aumenta zoom">+</button><button id="reset" aria-label="Adatta e ricentra la sezione">Adatta</button></div></div>
 <div id="hover" aria-live="polite">Seleziona una struttura nella sezione o nel modello.</div>
-<div class="ax-controls"><div><label for="level">Livello <output id="value">—</output></label><label for="step">Passo <select id="step"><option value="1">1 mm</option><option value="2">2 mm</option><option value="5">5 mm</option></select></label></div><div><button id="up" disabled aria-label="Livello superiore">↑</button><input id="level" type="range" disabled aria-label="Livello assiale"><button id="down" disabled aria-label="Livello inferiore">↓</button></div></div>`;
+<div class="ax-controls"><div class="ax-level-settings"><label for="level">Livello <output id="value">—</output></label><label for="step">Passo <select id="step"><option value="1">1 mm</option><option value="2">2 mm</option><option value="5">5 mm</option></select></label></div><div><button id="up" disabled aria-label="Livello superiore">↑</button><input id="level" type="range" disabled aria-label="Livello assiale"><button id="down" disabled aria-label="Livello inferiore">↓</button></div></div>`;
 document.body.append(panel);
 const divider=document.createElement('div');divider.id='ax-divider';divider.tabIndex=0;divider.setAttribute('role','separator');divider.setAttribute('aria-label','Dimensione delle viste');divider.setAttribute('aria-orientation','vertical');divider.setAttribute('aria-valuemin','32');divider.setAttribute('aria-valuemax','65');divider.setAttribute('aria-valuenow','40');divider.hidden=true;document.body.append(divider);
 const toggle=$('ax-toggle'),expand=document.createElement('button');expand.id='ax-expand';expand.textContent='Mostra 3D';expand.hidden=true;panel.querySelector('.ax-heading').append(expand);
@@ -45,7 +45,7 @@ function setCatalog(value){
  $('ax-empty').hidden=value||!!d?.selected();
  if(value)catalog();layout();
 }
-function syncDock(){if(!opened||!d)return;const id=d.selected(),selected=!!id;if(id!==previousSelection){previousSelection=id;if(id){setCatalog(false);$('card').querySelector('.info').scrollTop=0;}}document.body.classList.toggle('ax-has-selection',selected);$('ax-empty').hidden=selected||!$('ax-results').hidden;layout();}
+function syncDock(){if(!opened||!d)return;const id=d.selected(),selected=!!id;if(id!==previousSelection){previousSelection=id;if(id){if(matchMedia('(max-width:899px)').matches&&document.activeElement===$('ax-find'))$('ax-find').blur();setCatalog(false);$('card').querySelector('.info').scrollTop=0;}}document.body.classList.toggle('ax-has-selection',selected);$('ax-empty').hidden=selected||!$('ax-results').hidden;layout();}
 $('ax-find').oninput=()=>setCatalog(true);
 $('ax-list-toggle').onclick=()=>setCatalog($('ax-results').hidden);
 $('ax-find').onkeydown=e=>{if(e.key==='Escape'){setCatalog(false);}if(e.key==='Enter')$('ax-results').querySelector('.ax-result button')?.click();};
@@ -111,7 +111,7 @@ function requestSlice(){if(!ready||requestFrame)return;
     if(busy)pending=y;else send(y);
   });
 }
-function shift(dir){if(!ready)return;const r=$('level');r.value=Math.max(+r.min,Math.min(+r.max,+r.value+dir*+$('step').value));requestSlice();}
+function shift(dir){if(!ready)return;const r=$('level'),step=matchMedia('(max-width:899px)').matches?1:+$('step').value;r.value=Math.max(+r.min,Math.min(+r.max,+r.value+dir*step));requestSlice();}
 function draw(){
   if(!bounds||!opened)return;
   const rect=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio,2);const width=Math.round(rect.width*dpr),height=Math.round(rect.height*dpr);if(canvas.width!==width)canvas.width=width;if(canvas.height!==height)canvas.height=height;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,rect.width,rect.height);
