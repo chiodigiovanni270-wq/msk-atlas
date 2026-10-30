@@ -1,25 +1,25 @@
 /* Fascio vascolo-nervoso sopra e sotto la clavicola (modelli/spalla-3d.html): plesso, soprascapolare, vasi succlavi e ascellari, dentato anteriore,
-   succlavio, omoioideo e trapezio discendente si scostano di pochi millimetri invece di compenetrarsi.
+   succlavio e trapezio discendente si scostano di pochi millimetri invece di compenetrarsi; l'omoioideo (ventre inferiore) è tolto dal modello.
 
    Problema. Con le forme BodyParts3D il fascio attraversa questi quattro muscoli (fino a ~8 mm il succlavio, ~5 mm l'omoioideo, 2–3 mm dentato e
    trapezio). Scavare solo i muscoli (canale o solco) li taglia a metà: l'omoioideo restava diviso in due dal soprascapolare, il succlavio perdeva il
-   capo laterale. Qui nervi, vasi e muscoli si spostano insieme, con campi lisci e piccoli, verso il lato anatomico: l'omoioideo resta superficiale a
-   plesso e soprascapolare (che passano sotto il ventre inferiore verso l'incisura), il succlavio sopra e davanti a vasi e plesso, il trapezio dietro
-   e sopra, il dentato dal lato più vicino. Il poco che resta (≤ 2–3 mm, dove il muscolo è fermo sull'osso) lo toglie `nervi-muscoli-spalla.mjs`
+   capo laterale. Qui nervi, vasi e muscoli si spostano insieme, con campi lisci e piccoli, verso il lato anatomico: il succlavio sopra e davanti a
+   vasi e plesso, il trapezio dietro e sopra, il dentato dal lato più vicino. L'omoioideo corre quasi parallelo ai tronchi del plesso (~20°) e ne è
+   attraversato per un lungo tratto: con spostamenti piccoli restava diviso in due sopra il plesso, quindi si toglie (`TOGLI`, scelta del 2026-10-29). Il poco che resta (≤ 2–3 mm, dove il muscolo è fermo sull'osso) lo toglie `nervi-muscoli-spalla.mjs`
    con un solco poco profondo.
 
    Uso (dalla cartella del progetto):
      node strumenti/fascio-clavicolare-spalla.mjs              → sposta tubi e muscoli nel file del modello
      PROVA=1 node strumenti/fascio-clavicolare-spalla.mjs      → stampa spostamenti e controlli senza scrivere
      MODELLO=/tmp/copia.html node strumenti/fascio-clavicolare-spalla.mjs   → lavora su una copia
-   Va lanciato dopo `fascio-dorsale-spalla.mjs` e PRIMA di `nervi-muscoli-spalla.mjs` (`SOLO=dent,succl,omoi,trap_d` per i solchi residui; gli
+   Va lanciato dopo `fascio-dorsale-spalla.mjs` e PRIMA di `nervi-muscoli-spalla.mjs` (`SOLO=dent,succl,trap_d` per i solchi residui; gli
    altri muscoli non hanno compenetrazioni nuove con i tubi spostati, lo dice il controllo `altri`). Riparte sempre dalle stesse mesh, quindi si può rilanciare con lo stesso risultato: tubi della revisione
    `PARTENZA_TUBI` (uscita di `fascio-dorsale-spalla.mjs`; se si rilanciano `vasi-nervi-spalla.mjs` o `fascio-dorsale-spalla.mjs` va aggiornata al
    commit del loro risultato), muscoli della revisione `PARTENZA_MUSC` (uscita di `sezioni-spalla.mjs`, prima di qualsiasi canale di
    `nervi-muscoli-spalla.mjs`) riportati vicino al fascio alla forma BodyParts3D di `BP3D`.
 
    Metodo:
-     1. Forma dei muscoli. Succlavio, omoioideo e trapezio discendente (`INTERI`) ripartono dalla mesh BodyParts3D intera di `BP3D`: in
+     1. Forma dei muscoli. Succlavio e trapezio discendente (`INTERI`) ripartono dalla mesh BodyParts3D intera di `BP3D`: in
         `PARTENZA_MUSC` i canali di `vasi-nervi-spalla.mjs` li avevano schiacciati contro l'osso (il capo laterale del succlavio ridotto a una
         lamina) e `muscoli-spalla.mjs` li aveva cambiati poco altrove. Il dentato tiene le correzioni di `muscoli-spalla.mjs` contro coste e altri
         muscoli: solo i vertici entro `RIPR`[0] dai tubi vanno sul punto più vicino della superficie BodyParts3D (campo con segno di `BP3D`), con
@@ -29,10 +29,9 @@
         minimizzata con Adam (`ITER` passi): compenetrazione tubo–muscolo, misurata sui vertici dei tubi (campo del muscolo nel punto spostato) e su
         quelli del muscolo (campo dei tubi), con `GIOCO`; tubi a ≥ `GIOCO_OSSO` da ossa, cartilagini, capsula e legamenti (o non più vicini di prima);
         tubi non più dentro gli altri muscoli di prima (peso basso: lì `nervi-muscoli-spalla.mjs` rifà il canale); muscoli non più dentro ossa e altri
-        muscoli di prima; spostamento oltre `MAX` penalizzato forte; levigatezza (più forte per i tubi, `liscio_tubi`: il decorso dei nervi resta
-        liscio) e ampiezza dei campi. Inserzioni ferme: lo spostamento del muscolo è moltiplicato per un raccordo da 0 a 1 tra `INSERZ`[0] e
+        muscoli di prima; spostamento oltre `MAX` penalizzato forte; levigatezza e ampiezza dei campi. Inserzioni ferme: lo spostamento del muscolo è moltiplicato per un raccordo da 0 a 1 tra `INSERZ`[0] e
         `INSERZ`[1] dall'osso (la faccia sull'osso resta, quella libera si scosta: dove il muscolo è sottile si assottiglia di poco). Lato anatomico:
-        per omoioideo, succlavio e trapezio il campo del muscolo è prolungato di `OMBRA` cm dal lato `LATO` (dal fascio verso il muscolo) vicino ai
+        per succlavio e trapezio il campo del muscolo è prolungato di `OMBRA` cm dal lato `LATO` (dal fascio verso il muscolo) vicino ai
         contatti, così il fascio può uscire solo dal lato opposto.
      2b. Vasi nello spazio costoclavicolare: già in `PARTENZA_TUBI` succlavia e vena entravano fino a 1,6 mm in clavicola e prima costa (spazio più
         stretto del calibro). I vertici dei tubi vicini all'osso sono spinti fuori lungo la normale dell'osso, con spinta liscia
@@ -50,17 +49,20 @@ const { REAL, attrs, setMesh, repack, saveFile, log, sstep, setGriglia, griglia,
 const PROVA = !!process.env.PROVA, FILE_REPO = 'modelli/spalla-3d.html';
 const PARTENZA_TUBI = 'f9023f7', PARTENZA_MUSC = '554a2f5~1', BP3D = '59b7798';
 const TUBI = ['plesso', 'n_soprascapolare', 'n_ascellare', 'n_muscolocutaneo', 'n_radiale', 'n_mediano', 'n_ulnare', 'a_succ', 'v_succ', 'a_asc', 'v_asc'];
-const MUSC = ['dent', 'succl', 'omoi', 'trap_d'];
+const MUSC = ['dent', 'succl', 'trap_d'];
+// l'omoioideo (ventre inferiore) è tolto dal modello (scelta del 2026-10-29): corre quasi parallelo ai tronchi del plesso (~20°) e ne è
+// attraversato per un lungo tratto, così con spostamenti piccoli restava diviso in due sopra il plesso
+const TOGLI = ['omoi'];
 const OSSA = ['scapola', 'clavicola', 'omero', 'costa1', 'costa2', 'costa3', 'costa4', 'costa5', 'manubrio', 'corpo_sterno', 'cc1', 'cc2',
   'cart_omero', 'cart_glen', 'labbro', 'caps', 'cc_conoide', 'cc_trapezoide', 'cal', 'ac_leg', 'sc_leg', 'coraco_om', 'sghl', 'mghl', 'ighl_a', 'ighl_p'];
 const ALTRI = ['supra', 'infra', 'tmin', 'subs', 'delt_cl', 'delt_ac', 'delt_sp', 'tmaj', 'pec_cl', 'pec_st', 'pec_ab', 'pmin', 'trap_t', 'trap_a', 'lat',
   'romb_mag', 'romb_min', 'elev', 'bic_lungo', 'bic_breve', 'coracobr', 'tri_lungo', 'tri_lat', 'tri_med'];
 // lato del muscolo rispetto al fascio (versore, dal fascio verso il muscolo): dove l'uscita più vicina non è quella anatomica
-const LATO = { omoi: [-0.6, 0.78, -0.12], succl: [-0.05, 0.57, 0.82], trap_d: [0, 0.5, -0.87] };
-const RIPR = [0.35, 0.7], LEVIGA = 10, INTERI = ['succl', 'omoi', 'trap_d'];                         // cm, passate
+const LATO = { succl: [-0.05, 0.57, 0.82], trap_d: [0, 0.5, -0.87] };
+const RIPR = [0.35, 0.7], LEVIGA = 10, INTERI = ['succl', 'trap_d'];                         // cm, passate
 const HF = 0.05, PASSO_C = 0.7, MARGINE = 2.1, ITER = +(process.env.ITER ?? 500), PASSO_ADAM = 0.004;
 const GIOCO = 0.03, GIOCO_OSSO = 0.03, APPIATTI = 0.02, INSERZ = [0.05, 0.25], MAX = 0.3, OMBRA = 1.0;
-const PESO = { comp: 1, osso: 3, altri: 0.3, max: 20, ampiezza: 0.02, liscio: 0.3, liscio_tubi: 1.5 };
+const PESO = { comp: 1, osso: 3, altri: 0.3, max: 20, ampiezza: 0.02, liscio: 0.3 };
 
 const add = (a, b, k = 1) => [a[0] + k * b[0], a[1] + k * b[1], a[2] + k * b[2]], sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -185,7 +187,7 @@ function energia(grad) {
     pen(FO, p, Math.min(s.a, 0), PESO.altri, 'altri', [[grad[mu], S3, s.l]]);
     cap(dm, grad[mu], S3, PESO.max); });
   // ampiezza e levigatezza dei campi
-  for (const k of nomiC) { const c = campi[k], g = grad[k], pl = k === 'tubi' ? PESO.liscio_tubi : PESO.liscio;
+  for (const k of nomiC) { const c = campi[k], g = grad[k], pl = PESO.liscio;
     for (let n = 0; n < NCT; n++) { if (!libero[n]) continue; for (let e = 0; e < 3; e++) { E.regol += PESO.ampiezza * c[3 * n + e] ** 2; g[3 * n + e] += 2 * PESO.ampiezza * c[3 * n + e]; } }
     for (let k2 = 0; k2 < NC[2]; k2++) for (let j = 0; j < NC[1]; j++) for (let i = 0; i < NC[0]; i++) { const n = i + NC[0] * (j + NC[1] * k2);
       for (const m of [i + 1 < NC[0] ? n + 1 : -1, j + 1 < NC[1] ? n + NC[0] : -1, k2 + 1 < NC[2] ? n + NC[0] * NC[1] : -1]) { if (m < 0) continue;
@@ -271,4 +273,6 @@ log('spostamenti (mm, 99 % e massimo):', JSON.stringify(Object.fromEntries(Objec
 log('volume dei muscoli (cm³):', JSON.stringify(Object.fromEntries(MUSC.map(mu => [mu, [+VOL0[mu].toFixed(2), +volume(REAL(mu).pos, REAL(mu).idx).toFixed(2)]]))));
 log('tubi: vertici appiattiti contro l\'osso', JSON.stringify(APPIATTITI)); log('tubi: distanza minima dalle ossa', (DMIN0 * 10).toFixed(2), '→', (dmin * 10).toFixed(2), 'mm');
 log('compenetrazioni [mm³, mm] prima', JSON.stringify(PRIMA)); log('compenetrazioni [mm³, mm] dopo', JSON.stringify(DOPO));
+for (const n of TOGLI) G.man.meshes = G.man.meshes.filter(m => m.n !== n);
+if (TOGLI.length) log('mesh tolte dal modello:', TOGLI.join(', '));
 if (!PROVA) saveFile(repack());

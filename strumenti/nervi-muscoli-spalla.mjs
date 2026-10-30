@@ -12,9 +12,10 @@
    Il gran dorsale non è nell'elenco: la sua mesh vicino al tendine è frammentata e il canale non si cuce; il fascio si sposta fuori dal muscolo con
    `fascio-dorsale-spalla.mjs`, da lanciare PRIMA di questo script.
 
-   Dentato anteriore, succlavio, omoioideo e trapezio discendente (`FIANCO`) stanno tutti da un lato del fascio: `fascio-clavicolare-spalla.mjs`,
-   da lanciare PRIMA di questo script, li riporta alla forma BodyParts3D vicino al fascio e li scosta insieme a nervi e vasi; qui il poco che resta
-   (1–2 mm) diventa un solco aperto invece di un canale (vedi `incroci` e `ombra`).
+   Dentato anteriore, succlavio e trapezio discendente: `fascio-clavicolare-spalla.mjs`, da lanciare PRIMA di questo script, li riporta alla forma
+   BodyParts3D vicino al fascio e li scosta insieme a nervi e vasi (e toglie l'omoioideo); qui il poco che resta (≤ 2–3 mm) diventa un solco poco
+   profondo. Succlavio e trapezio (`FIANCO`) stanno tutti da un lato del fascio: solco aperto dal lato anatomico invece di un canale (vedi `incroci` e
+   `ombra`); se non si cuce a nessun livello il muscolo resta com'era (trapezio: 1,1 mm all'origine del soprascapolare).
 
    Uso (dalla cartella del progetto):
      node strumenti/nervi-muscoli-spalla.mjs                → riscrive i muscoli nel file del modello
@@ -65,10 +66,10 @@ const CORPI = ['plesso', 'n_soprascapolare', 'n_ascellare', 'n_muscolocutaneo', 
 const MUSCOLI = ['supra', 'infra', 'tmin', 'subs', 'delt_cl', 'delt_ac', 'delt_sp', 'tmaj', 'pec_cl', 'pec_st', 'pec_ab', 'pmin', 'succl', 'trap_d', 'trap_t', 'trap_a', 'romb_mag', 'romb_min', 'elev', 'dent', 'omoi', 'bic_lungo', 'bic_breve', 'coracobr', 'tri_lungo', 'tri_lat', 'tri_med'];
 // muscoli che il fascio vascolo-nervoso incrocia senza attraversarli: niente canale (lembi di muscolo sopra e sotto il nervo, bordi frastagliati
 // dove entra ed esce), il muscolo resta tutto da un lato del fascio e il fascio passa in un solco aperto. Il lato è uno solo per muscolo
-// (`ombra`): quello anatomico in `LATO_F` (dal fascio verso il muscolo, gli stessi di `fascio-clavicolare-spalla.mjs`: omoioideo superficiale a plesso
-// e soprascapolare, succlavio sopra e davanti a vasi e plesso), altrimenti quello che toglie meno muscolo. Le mesh sono quelle del file, come
+// (`ombra`): quello anatomico in `LATO_F` (dal fascio verso il muscolo, come in `fascio-clavicolare-spalla.mjs`: succlavio sopra
+// e davanti a vasi e plesso, trapezio dietro e sopra), altrimenti quello che toglie meno muscolo. Le mesh sono quelle del file, come
 // le lascia `fascio-clavicolare-spalla.mjs`.
-const FIANCO = ['succl', 'omoi'], LATO_F = { omoi: [-0.6, 0.78, -0.12], succl: [-0.05, 0.57, 0.82] };
+const FIANCO = ['succl', 'trap_d'], LATO_F = { succl: [-0.05, 0.57, 0.82], trap_d: [0, 0.5, -0.87] };
 // toppa più larga (livelli LIVELLI_F, ritorno sulla superficie di prima oltre SNAP_F) e distanza dal muscolo levigata (LISCIA_F passate di media
 // 3×3×3 sul campo): il solco ha bordi dolci
 const LIVELLI_F = [0.7, 0.8, 0.6, 0.9, 0.5, 1.0, 0.65, 0.75], SNAP_F = [0.45, 0.6], SUP_F = 0.2, PEZZO_F = 0.15, CUCI_F = 0.2, LISCIA_F = +(process.env.LISCIA ?? 15);
@@ -437,16 +438,16 @@ function rattoppa(mu, corpi, T) {
 }
 
 /* ---- correzione ---- */
-const nomi = SOLO || MUSCOLI;
+const nomi = (SOLO || MUSCOLI).filter(n => man.meshes.some(m => m.n === n));   // (l'omoioideo non c'è più: fascio-clavicolare-spalla.mjs)
 const INCROCI = {}, INCROCI_X = {};
 const PRIMA = controllo(nomi); log('prima', JSON.stringify(PRIMA));
 const daFare = {}; for (const k of Object.keys(PRIMA)) { const [mu, nv] = k.split('/'); (daFare[mu] ||= []).push(nv); }
 // se le linee di taglio del muscolo e della toppa non danno gli stessi anelli (superficie che sfiora il livello), si riprova con un altro livello
 const ESITO = {}; for (const [mu, corpi] of Object.entries(daFare)) for (const T of FIANCO.includes(mu) ? LIVELLI_F : LIVELLI) { ESITO[mu] = rattoppa(mu, corpi, T); if (!ESITO[mu].errore) break; }
-// muscoli da un lato del fascio: un pezzo rimasto staccato (meno di PEZZO_F dei vertici: dove il fascio tocca l'osso non resta spazio per il
-// muscolo e il suo capo oltre il fascio si stacca) si toglie
+// muscoli della zona clavicolare (quelli di FIANCO, dentato e trapezio): i pezzetti staccati (meno di PEZZO_F dei vertici, frammenti lasciati
+// dalla toppa vicino all'osso) si tolgono; un ventre diviso in due pezzi grandi resta e il controllo dei pezzi lo segnala
 const STACCATI = {};
-for (const mu of Object.keys(ESITO).filter(m => FIANCO.includes(m) && !ESITO[m].errore)) { const R = REAL(mu), at = attrs(mu), nm = topoNrm(mu), nv = R.nv;
+for (const mu of Object.keys(ESITO).filter(m => [...FIANCO, 'dent', 'trap_d'].includes(m) && !ESITO[m].errore)) { const R = REAL(mu), at = attrs(mu), nm = topoNrm(mu), nv = R.nv;
   const K = new Map(), v = new Int32Array(nv); for (let i = 0; i < nv; i++) { const k = chiaveP(R.pos, i); if (!K.has(k)) K.set(k, K.size); v[i] = K.get(k); }
   const par = Int32Array.from({ length: K.size }, (_, i) => i), f = x => { while (par[x] !== x) x = par[x] = par[par[x]]; return x; };
   for (let t = 0; t < R.idx.length; t += 3) { par[f(v[R.idx[t]])] = f(v[R.idx[t + 1]]); par[f(v[R.idx[t + 1]])] = f(v[R.idx[t + 2]]); }
