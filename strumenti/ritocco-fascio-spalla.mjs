@@ -250,8 +250,53 @@ for (const [v, altra, peso] of GIUNZIONE) {
   let mx = 0; const mosso = new Uint8Array(nv);
   for (let i = 0; i < nv; i++) { for (let k = 0; k < 3; k++) P[3 * i + k] = Q[3 * u[i] + k]; const d = len(sub(pt(P, i), pt(P00, i))); mx = Math.max(mx, d); if (d > 1e-4) mosso[i] = 1; }
   const NL = normali(P, R.idx), nrm = Int8Array.from(topoAttr[v].nrm); for (let i = 0; i < nv; i++) if (mosso[i]) for (let k = 0; k < 3; k++) nrm[3 * i + k] = NL[3 * i + k];
-  setMesh(v, { ...topoAttr[v], pos: P, idx: R.idx, nrm });
+  setMesh(v, { ...topoAttr[v], pos: P, idx: R.idx, nrm }); topoAttr[v].nrm = nrm;
   FINE[v + ' (tappo)'] = { vertici_mossi_da_b: mosso.reduce((s, x) => s + x, 0), spostamento_max_mm: +(mx * 10).toFixed(2), ['tappo_vs_' + altra + '_mm']: [+(f0 * 10).toFixed(2), +(fuori() * 10).toFixed(2)], pieghe: pieghe(P, R.idx) };
   log(v + ' (tappo):', JSON.stringify(FINE[v + ' (tappo)']));
+}
+/* ---- d. punta nel cuneo costoclavicolare (segnalata il 2026-10-30, dopo c): alla giunzione, dove la vena entra tra clavicola e prima costa, la
+   spinta fuori dalle ossa di b e c ha sollevato in ciascuna vena 2–3 vertici di alcuni anelli consecutivi in una cresta sottile (raggio 4–4,6 mm
+   contro 2–3,5 mm del resto dell'anello, spessore 0,1–0,5 mm) che sporge come una punta frastagliata accanto all'osso. I tubi hanno anelli di
+   `ANELLO` vertici (più i due centri dei tappi in fondo): negli anelli con baricentro entro `PUNTA_V`.r da `PUNTA_V`.c il raggio di ogni vertice
+   (distanza dal baricentro dell'anello) è limitato a `TETTO_P` × la mediana dei raggi dei ±`FINESTRA_P` vertici vicini nell'anello, spostandolo
+   verso il baricentro; poi `PASSATE_P` passate di Taubin su quegli anelli. La cresta avvolgeva lo spigolo dell'osso (la spinta lungo la normale
+   dell'osso la riformava): un vertice degli anelli che finisce a meno di `GIOCO_V` dalle ossa rientra invece lungo il raggio, verso il baricentro
+   del suo anello, fino a `GIOCO_V` (la vena resta solo appena improntata dall'osso). Il resto della vena non cambia. ---- */
+const PUNTA_V = { c: [9.7, 2.58, 3.65], r: 0.25 }, ANELLO = 20, FINESTRA_P = 4, TETTO_P = 1.1, PASSATE_P = 4;
+griglia([9.2, 1.6, 2.8], [10.5, 3.3, 4.4], 0.01, 0.2);
+const FBP = campo(OSSA_V).F, nelP = p => len(sub(p, PUNTA_V.c)) < PUNTA_V.r + 0.2;
+// spessore minimo (mm) delle vene vicino alla punta: profondità lungo la normale interna fino all'uscita dal tubo
+const spessore = v => { const R = REAL(v), F = campo([v]).F, NL = normali(R.pos, R.idx); let m = 9;
+  for (let i = 0; i < R.pos.length / 3; i++) { const p = pt(R.pos, i); if (!nelP(p)) continue; const n = [0, 1, 2].map(k => NL[3 * i + k] / 127); let s = 0.01;
+    while (s < 1 && sample(F, ...p.map((q, k) => q - n[k] * s)) < 0) s += 0.005; m = Math.min(m, s); } return +(m * 10).toFixed(2); };
+// rapporto massimo raggio / mediana dei vicini negli anelli della zona
+const picco = (P, anelli) => { let m = 0; for (const a of anelli) { const ids = [...Array(ANELLO).keys()].map(j => a * ANELLO + j), c = [0, 1, 2].map(k => ids.reduce((s, i) => s + P[3 * i + k], 0) / ANELLO);
+  const r = ids.map(i => len(sub(pt(P, i), c))); for (let j = 0; j < ANELLO; j++) { const w = []; for (let d = -FINESTRA_P; d <= FINESTRA_P; d++) if (d) w.push(r[(j + d + ANELLO) % ANELLO]); w.sort((x, y) => x - y); m = Math.max(m, r[j] / w[w.length / 2]); } } return +m.toFixed(2); };
+for (const v of VENE) {
+  const R = REAL(v), P = Float32Array.from(R.pos), nv = P.length / 3, na = (nv - 2) / ANELLO, sp0 = spessore(v), anelli = [];
+  for (let a = 0; a < na; a++) { const c = [0, 1, 2].map(k => { let s = 0; for (let j = 0; j < ANELLO; j++) s += P[3 * (a * ANELLO + j) + k]; return s / ANELLO; }); if (len(sub(c, PUNTA_V.c)) < PUNTA_V.r) anelli.push(a); }
+  const picco0 = picco(P, anelli), P0 = P.slice();
+  for (const a of anelli) { const ids = [...Array(ANELLO).keys()].map(j => a * ANELLO + j), c = [0, 1, 2].map(k => ids.reduce((s, i) => s + P[3 * i + k], 0) / ANELLO), r = ids.map(i => len(sub(pt(P, i), c)));
+    for (let j = 0; j < ANELLO; j++) { const w = []; for (let d = -FINESTRA_P; d <= FINESTRA_P; d++) if (d) w.push(r[(j + d + ANELLO) % ANELLO]); w.sort((x, y) => x - y);
+      const t = TETTO_P * w[w.length / 2]; if (r[j] <= t) continue; const i = ids[j]; for (let k = 0; k < 3; k++) P[3 * i + k] = c[k] + (P[3 * i + k] - c[k]) * t / r[j]; } }
+  const { u, n: nu } = salda(P), nb = Array.from({ length: nu }, () => new Set());
+  for (let t = 0; t < R.idx.length; t += 3) for (let e = 0; e < 3; e++) { const x = u[R.idx[t + e]], y = u[R.idx[t + (e + 1) % 3]]; if (x !== y) { nb[x].add(y); nb[y].add(x); } }
+  const NB = nb.map(x => [...x]), Q = new Float64Array(nu * 3), W = new Uint8Array(nu);
+  const CA = new Float64Array(nu * 3);   // baricentro dell'anello di ogni vertice della zona
+  for (const a of anelli) { const c = [0, 1, 2].map(k => { let s = 0; for (let j = 0; j < ANELLO; j++) s += P[3 * (a * ANELLO + j) + k]; return s / ANELLO; }); for (let j = 0; j < ANELLO; j++) CA.set(c, 3 * u[a * ANELLO + j]); }
+  for (let i = 0; i < nv; i++) { for (let k = 0; k < 3; k++) Q[3 * u[i] + k] = P[3 * i + k]; if (i < na * ANELLO && anelli.includes(Math.floor(i / ANELLO))) W[u[i]] = 1; }
+  const rientra = i => { const c = [CA[3 * i], CA[3 * i + 1], CA[3 * i + 2]], p = [Q[3 * i], Q[3 * i + 1], Q[3 * i + 2]]; if (sample(FBP, ...p) >= GIOCO_V) return;
+    let t = 1; while (t > 0.3 && sample(FBP, ...c.map((x, k) => x + (p[k] - x) * t)) < GIOCO_V) t -= 0.01; for (let k = 0; k < 3; k++) Q[3 * i + k] = c[k] + (p[k] - c[k]) * t; };
+  for (let i = 0; i < nu; i++) if (W[i]) rientra(i);
+  for (let it = 0; it < 2 * PASSATE_P; it++) { const lam = it % 2 ? -0.53 : 0.5, S = Q.slice();
+    for (let i = 0; i < nu; i++) { if (!W[i] || !NB[i].length) continue; for (let k = 0; k < 3; k++) { let m = 0; for (const j of NB[i]) m += Q[3 * j + k]; S[3 * i + k] += lam * (m / NB[i].length - Q[3 * i + k]); } }
+    Q.set(S);
+    if (it % 2) for (let i = 0; i < nu; i++) if (W[i]) rientra(i); }
+  let mx = 0, dmin = 9; const mosso = new Uint8Array(nv);
+  for (let i = 0; i < nv; i++) { for (let k = 0; k < 3; k++) P[3 * i + k] = Q[3 * u[i] + k]; const d = len(sub(pt(P, i), pt(P0, i))); mx = Math.max(mx, d); if (d > 1e-4) { mosso[i] = 1; dmin = Math.min(dmin, sample(FBP, ...pt(P, i))); } }
+  const NL = normali(P, R.idx), nrm = Int8Array.from(topoAttr[v].nrm); for (let i = 0; i < nv; i++) if (mosso[i]) for (let k = 0; k < 3; k++) nrm[3 * i + k] = NL[3 * i + k];
+  setMesh(v, { ...topoAttr[v], pos: P, idx: R.idx, nrm });
+  FINE[v + ' (punta)'] = { anelli, vertici_mossi: mosso.reduce((s, x) => s + x, 0), spostamento_max_mm: +(mx * 10).toFixed(2), raggio_su_mediana: [picco0, picco(P, anelli)], spessore_min_mm: [sp0, spessore(v)], dist_min_ossa_mm: +(dmin * 10).toFixed(2), pieghe: pieghe(P, R.idx) };
+  log(v + ' (punta):', JSON.stringify(FINE[v + ' (punta)']));
 }
 if (!PROVA) saveFile(repack());
