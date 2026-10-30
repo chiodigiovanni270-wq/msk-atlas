@@ -1,7 +1,7 @@
 const $=id=>document.getElementById(id);
 const panel=document.createElement('section');panel.id='ax-panel';panel.hidden=true;panel.setAttribute('aria-label','Sezioni assiali della spalla');
 panel.innerHTML=`<header class="ax-heading"><div><span class="ax-kicker">SPALLA DESTRA</span><h2>Sezione assiale</h2></div><button id="ax-close" aria-label="Chiudi sezioni">×</button></header>
-<div class="ax-stage"><canvas id="slice" tabindex="0" aria-label="Sezione assiale: trascina per spostare, clic o tocco per selezionare; frecce su e giù per scorrere i livelli, Maiusc e frecce per spostare" title="Trascina per spostare · clic o tocco per selezionare"></canvas><span class="ax-dir ax-ant">A</span><span class="ax-dir ax-post">P</span><span class="ax-dir ax-right">R</span><span class="ax-dir ax-left">L</span><p id="status" role="status">Preparazione delle sezioni…</p><div class="ax-zoom"><button id="zoomOut" aria-label="Riduci zoom">−</button><button id="zoomIn" aria-label="Aumenta zoom">+</button><button id="reset" aria-label="Adatta e ricentra la sezione">Adatta</button></div></div>
+<div class="ax-stage"><canvas id="slice" tabindex="0" aria-label="Sezione assiale: un dito per spostare, due dita per lo zoom, doppio tocco per adattare; clic o tocco breve per selezionare. Tastiera: frecce per i livelli, Maiusc e frecce per spostare, più e meno per lo zoom, Home per adattare" title="Trascina per spostare · due dita per lo zoom · doppio tocco per adattare"></canvas><span class="ax-dir ax-ant">A</span><span class="ax-dir ax-post">P</span><span class="ax-dir ax-right">R</span><span class="ax-dir ax-left">L</span><p id="status" role="status">Preparazione delle sezioni…</p><div class="ax-zoom"><button id="zoomOut" aria-label="Riduci zoom">−</button><button id="zoomIn" aria-label="Aumenta zoom">+</button><button id="reset" aria-label="Adatta e ricentra la sezione">Adatta</button></div></div>
 <div id="hover" aria-live="polite">Seleziona una struttura nella sezione o nel modello.</div>
 <div class="ax-controls"><div class="ax-level-settings"><label for="level">Livello <output id="value">—</output></label><label for="step">Passo <select id="step"><option value="1">1 mm</option><option value="2">2 mm</option><option value="5">5 mm</option></select></label></div><div><button id="up" disabled aria-label="Livello superiore">↑</button><input id="level" type="range" disabled aria-label="Livello assiale"><button id="down" disabled aria-label="Livello inferiore">↓</button></div></div>`;
 document.body.append(panel);
@@ -50,7 +50,7 @@ $('ax-find').oninput=()=>setCatalog(true);
 $('ax-list-toggle').onclick=()=>setCatalog($('ax-results').hidden);
 $('ax-find').onkeydown=e=>{if(e.key==='Escape'){setCatalog(false);}if(e.key==='Enter')$('ax-results').querySelector('.ax-result button')?.click();};
 function layout(){d?.resize();draw();}
-function open(value){d=window.__dbg;opened=value;dock.hidden=!value;const card=$('card');if(value&&!cardHome){cardHome={parent:card.parentNode,next:card.nextSibling};$('ax-card-slot').append(card);}else if(!value&&cardHome){cardHome.parent.insertBefore(card,cardHome.next);cardHome=null;}document.body.classList.toggle('ax-has-selection',value&&!!d?.selected());panel.hidden=divider.hidden=expand.hidden=!value;document.body.classList.toggle('ax-open',value);toggle.setAttribute('aria-expanded',String(value));toggle.classList.toggle('active',value);$('ax-mode-3d').setAttribute('aria-pressed',String(!value));$('ax-mode-slices').setAttribute('aria-pressed',String(value));if(plane)plane.visible=outline.visible=value;layout();
+function open(value){if(!value)cancelTap();d=window.__dbg;opened=value;dock.hidden=!value;const card=$('card');if(value&&!cardHome){cardHome={parent:card.parentNode,next:card.nextSibling};$('ax-card-slot').append(card);}else if(!value&&cardHome){cardHome.parent.insertBefore(card,cardHome.next);cardHome=null;}document.body.classList.toggle('ax-has-selection',value&&!!d?.selected());panel.hidden=divider.hidden=expand.hidden=!value;document.body.classList.toggle('ax-open',value);toggle.setAttribute('aria-expanded',String(value));toggle.classList.toggle('active',value);$('ax-mode-3d').setAttribute('aria-pressed',String(!value));$('ax-mode-slices').setAttribute('aria-pressed',String(value));if(plane)plane.visible=outline.visible=value;layout();
  if(value&&!started){started=true;init().catch(e=>fail(e.message));}if(!value)(matchMedia('(max-width:899px)').matches?$('ax-mode-3d'):toggle).focus();}
 $('ax-mode-3d').onclick=()=>open(false);$('ax-mode-slices').onclick=()=>open(true);
 toggle.onclick=()=>open(!opened);$('ax-close').onclick=()=>open(false);
@@ -139,36 +139,72 @@ canvas.addEventListener('wheel',e=>{e.preventDefault();if(!e.deltaY)return;
   wheelDistance+=delta;const steps=Math.trunc(wheelDistance/32);
   if(steps){wheelDistance-=steps*32;shift(-steps);}
 },{passive:false});
-// Il trascinamento sposta solo l'inquadratura 2D; un tocco breve resta una selezione.
-let drag=null,suppressClick=false,panFrame=0;
+// Mouse e touch condividono l'inquadratura; pinch ancorato al punto tra le dita.
+let drag=null,pinch=null,suppressClick=false,panFrame=0,tapTimer=0,lastTap=null,ignoreClickUntil=0;
+const pointers=new Map();
 function drawPan(){if(!panFrame)panFrame=requestAnimationFrame(()=>{panFrame=0;draw();});}
+function resetView(){zoom=1;panX=panY=0;draw();}
+function cancelTap(){clearTimeout(tapTimer);tapTimer=0;lastTap=null;}
+function currentScale(){const r=canvas.getBoundingClientRect();return Math.min((r.width-80)/(bounds.maxX-bounds.minX),(r.height-60)/(bounds.maxZ-bounds.minZ))*zoom;}
+function startDrag(p,moved=false){drag={id:p.id,x:p.x,y:p.y,panX,panY,scale:currentScale(),moved};}
+function midpoint(){const [a,b]=pointers.values();return {x:(a.x+b.x)/2,y:(a.y+b.y)/2,distance:Math.hypot(a.x-b.x,a.y-b.y)};}
+function pick(clientX,clientY){
+ if(!ready||!opened)return;
+ const r=canvas.getBoundingClientRect(),x=clientX-r.left,y=clientY-r.top;ctx.save();ctx.setTransform(1,0,0,1,0,0);
+ const hit=[...paths].reverse().find(p=>ctx.isPointInPath(p.path,x,y,'evenodd'));ctx.restore();
+ $('hover').textContent=hit?.name||'Nessuna struttura in questo punto.';d.select(hit?.id||null);draw();
+}
+function tap(e){
+ const now=performance.now();
+ if(lastTap&&now-lastTap.time<=300&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<24){cancelTap();resetView();return;}
+ cancelTap();lastTap={x:e.clientX,y:e.clientY,time:now};
+ // Attende il secondo tocco: la scheda non deve spostare la vista durante il doppio tocco.
+ tapTimer=setTimeout(()=>{const p=lastTap;lastTap=null;tapTimer=0;if(p)pick(p.x,p.y);},300);
+}
 canvas.addEventListener('pointerdown',e=>{
-  if(!ready||!e.isPrimary||e.button!==0||drag)return;
-  suppressClick=false;drag={id:e.pointerId,x:e.clientX,y:e.clientY,panX,panY,moved:false};
-  canvas.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});
+ if(!ready||e.button!==0||pointers.size>=2||(e.pointerType!=='touch'&&!e.isPrimary))return;
+ if(!pointers.size)suppressClick=false;
+ const p={id:e.pointerId,x:e.clientX,y:e.clientY,type:e.pointerType};pointers.set(e.pointerId,p);
+ canvas.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});
+ if(pointers.size===2){
+  cancelTap();suppressClick=true;drag=null;const m=midpoint(),r=canvas.getBoundingClientRect(),s=currentScale();
+  pinch={distance:Math.max(1,m.distance),zoom,u:(m.x-r.left-r.width/2)/s-panX,v:(m.y-r.top-r.height/2)/s-panY};
+  canvas.classList.add('is-panning');
+ }else startDrag(p);
 });
 canvas.addEventListener('pointermove',e=>{
-  if(!drag||e.pointerId!==drag.id)return;
-  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
-  if(!drag.moved&&Math.hypot(dx,dy)<5)return;
-  drag.moved=true;suppressClick=true;canvas.classList.add('is-panning');
-  panX=drag.panX+dx/scale;panY=drag.panY+dy/scale;drawPan();
+ const p=pointers.get(e.pointerId);if(!p)return;p.x=e.clientX;p.y=e.clientY;
+ if(pinch){
+  const m=midpoint(),r=canvas.getBoundingClientRect();zoom=Math.max(.5,Math.min(4,pinch.zoom*m.distance/pinch.distance));
+  const s=currentScale();panX=(m.x-r.left-r.width/2)/s-pinch.u;panY=(m.y-r.top-r.height/2)/s-pinch.v;drawPan();return;
+ }
+ if(!drag||e.pointerId!==drag.id)return;
+ const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)<5)return;
+ cancelTap();drag.moved=true;suppressClick=true;canvas.classList.add('is-panning');
+ panX=drag.panX+dx/drag.scale;panY=drag.panY+dy/drag.scale;drawPan();
 });
 function endPan(e){
-  if(!drag||e.pointerId!==drag.id)return;
-  suppressClick=drag.moved||e.type!=='pointerup';drag=null;canvas.classList.remove('is-panning');
-  if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);
+ const p=pointers.get(e.pointerId);if(!p)return;
+ const tapped=e.type==='pointerup'&&p.type==='touch'&&!suppressClick&&drag&&!drag.moved;
+ if(p.type==='touch')ignoreClickUntil=performance.now()+700;
+ pointers.delete(e.pointerId);pinch=null;
+ if(pointers.size){suppressClick=true;startDrag(pointers.values().next().value,true);}
+ else{drag=null;canvas.classList.remove('is-panning');}
+ if(e.type!=='pointerup'){suppressClick=true;cancelTap();}
+ if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);
+ if(tapped)tap(e);
 }
 canvas.addEventListener('pointerup',endPan);
 canvas.addEventListener('pointercancel',endPan);
 canvas.addEventListener('lostpointercapture',endPan);
 canvas.addEventListener('keydown',e=>{
+  if(['+','=','-','Home'].includes(e.key)){e.preventDefault();if(e.key==='Home')resetView();else{zoom=Math.max(.5,Math.min(4,zoom*(e.key==='-'?1/1.25:1.25)));draw();}return;}
   const direction={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
   if(e.shiftKey&&direction){e.preventDefault();if(!ready)return;panX+=direction[0]*40/scale;panY+=direction[1]*40/scale;drawPan();}
   else if(['ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();shift(e.key==='ArrowUp'?1:-1);}
 });
-canvas.addEventListener('click',e=>{if(suppressClick){suppressClick=false;return;}if(!ready)return;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;ctx.save();ctx.setTransform(1,0,0,1,0,0);const hit=[...paths].reverse().find(p=>ctx.isPointInPath(p.path,x,y,'evenodd'));ctx.restore();$('hover').textContent=hit?.name||'Nessuna struttura in questo punto.';d.select(hit?.id||null);draw();});
-$('zoomIn').onclick=()=>{zoom=Math.min(4,zoom*1.25);draw();};$('zoomOut').onclick=()=>{zoom=Math.max(.5,zoom/1.25);draw();};$('reset').onclick=()=>{zoom=1;panX=panY=0;draw();};
+canvas.addEventListener('click',e=>{if(e.pointerType==='touch'||performance.now()<ignoreClickUntil)return;if(suppressClick){suppressClick=false;return;}pick(e.clientX,e.clientY);});
+$('zoomIn').onclick=()=>{zoom=Math.min(4,zoom*1.25);draw();};$('zoomOut').onclick=()=>{zoom=Math.max(.5,zoom/1.25);draw();};$('reset').onclick=resetView;
 new ResizeObserver(draw).observe(canvas);
 
 window.addEventListener('pagehide',e=>{if(!e.persisted)worker?.terminate();});

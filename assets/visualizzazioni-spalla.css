@@ -79,3 +79,6 @@ body.ax-open{--ax-split:40%;--ax-dock:292px}#ax-anatomy[hidden]{display:none!imp
  .ax-open .ax-level-settings{display:none}
  .ax-open .ax-controls>div+div{margin-top:0}
 }
+
+/* Su telefono lo zoom è gestito dalle dita; doppio tocco per adattare. */
+@media(max-width:899px){.ax-open .ax-zoom{display:none}}
