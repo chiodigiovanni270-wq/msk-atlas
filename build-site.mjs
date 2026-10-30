@@ -1,6 +1,6 @@
 // Pubblicazione statica: le bozze esistono soltanto nelle Preview protette.
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { costruisciInglese } from './build-en.mjs';
+import { costruisciInglese, creaContesto, traduciFrammento } from './build-en.mjs';
 const preview = process.env.VERCEL_ENV === 'preview' || (!process.env.VERCEL && process.argv.includes('--preview'));
 const drafts = new Set(['modelli/anca-3d.html', 'modelli/caviglia-3d.html']);
 await rm('dist', { recursive: true, force: true });
@@ -9,6 +9,7 @@ for (const file of ['assets', 'favicon.ico', 'manifest.webmanifest', 'robots.txt
   await cp(file, `dist/${file}`, { recursive: true });
 }
 for (const file of await readdir('modelli')) {
+  if (file === 'spalla-assiale-prova.html' && !preview) continue;
   if (file.endsWith('.html') && (preview || !drafts.has(`modelli/${file}`))) await cp(`modelli/${file}`, `dist/modelli/${file}`);
 }
 if (!preview) {
@@ -37,4 +38,31 @@ if (!preview) {
   await writeFile('dist/robots.txt', 'User-agent: *\nDisallow: /\n');
 }
 await costruisciInglese({ preview, drafts, dettagli: process.argv.includes('--traduzioni'), rigoroso: process.argv.includes('--rigoroso') });
+// Vista assiale della spalla nella stessa pagina (IT ed EN), pubblicata anche in produzione.
+{
+  const comune = JSON.parse(await readFile('traduzioni/comune.en.json', 'utf8'));
+  const spalla = JSON.parse(await readFile('traduzioni/spalla-3d.en.json', 'utf8'));
+  const ctx = creaContesto('accesso-assiale', [comune]);
+  const button = '<button id="ax-toggle" aria-expanded="false" aria-controls="ax-panel"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m3 8 9-5 9 5-9 5-9-5Zm0 4 9 5 9-5M3 16l9 5 9-5"/></svg> Sezioni assiali</button>';
+  for (const en of [false, true]) {
+    const path = `dist/${en ? 'en/' : ''}modelli/spalla-3d.html`;
+    const title = en ? spalla.testi['Spalla destra'] : 'Spalla destra';
+    const heading = en ? `<h1>${title}</h1>` : '<h1>Spalla <span class="ax-side">destra</span></h1>';
+    let html = await readFile(path, 'utf8');
+    for (const [da, a] of [
+      ['</head>', '<link rel="stylesheet" href="../assets/visualizzazioni-spalla.css"></head>'],
+      [`<h1>${title}</h1>`, heading + (en ? traduciFrammento(button, ctx) : button)],
+      ['const w=innerWidth,h=innerHeight;renderer.setSize', 'const rect=canvas.getBoundingClientRect(),w=rect.width,h=rect.height;renderer.setSize'],
+      ['ray.setFromCamera(new THREE.Vector2((x/innerWidth)*2-1,-(y/innerHeight)*2+1),camera);', 'const rect=canvas.getBoundingClientRect();ray.setFromCamera(new THREE.Vector2(((x-rect.left)/rect.width)*2-1,-((y-rect.top)/rect.height)*2+1),camera);'],
+      ['window.__dbg={S,setVis,sync,cam,', 'window.__dbg={S,setVis,sync,cam,resize,select,categories:CATS,selected:()=>selected?.id||null,'],
+      ['</body>', '<script type="module" src="../assets/sezioni-assiali.js"></script></body>'],
+    ]) {
+      // Ogni aggancio deve esistere: se il modello cambia, la build si ferma invece di pubblicare una vista rotta.
+      if (!html.includes(da)) throw new Error(`Vista assiale: testo non trovato in ${path}: ${da.slice(0, 60)}`);
+      html = html.replace(da, a);
+    }
+    await writeFile(path, html);
+  }
+  if(ctx.stato.mancanti.length)throw new Error('Traduzione del pulsante assiale incompleta');
+}
 console.log(`Build ${preview ? 'preview privata' : 'pubblica'} completata in dist/`);
