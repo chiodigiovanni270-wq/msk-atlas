@@ -56,6 +56,14 @@ export function realDaRevisione(rev, name, file) {
   const fdir = m.d !== undefined ? Int8Array.from(new Int8Array(b.buffer, b.byteOffset + m.d, m.nv * 3)) : null;
   return { pos, idx: m.i16 ? new Uint16Array(ib) : new Uint32Array(ib), tag, fdir };
 }
+// normali di vertice scritte (int8 × 127) di una mesh in una revisione git del modello, o null se non ci sono: da usare con realDaRevisione
+// quando lo strumento lascia uguale una parte della mesh e vuole conservarne le normali
+export function nrmDaRevisione(rev, name, file) {
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const h = execFileSync('git', ['show', `${rev}:${file || relative(root, FILE).split('\\').join('/')}`], { cwd: root, maxBuffer: 1 << 30 }).toString('utf8');
+  const mn = JSON.parse(h.match(reMan)[2]), b = datiDi(h, rev, file || FILE), m = mn.meshes.findLast(x => x.n === name);
+  return m.nm !== undefined ? Int8Array.from(new Int8Array(b.buffer, b.byteOffset + m.nm, m.nv * 3)) : null;
+}
 // posizioni correnti (modificabili con setPos prima della voxelizzazione)
 const override = new Map();
 export function setPos(name, pos) { override.set(name, pos); const t = topo.get(name); if (t) t.pos = pos; }

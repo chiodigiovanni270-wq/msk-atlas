@@ -146,9 +146,6 @@ export const STR = [
   { id: 'dent', cat: 'tor', mesh: [['dent', 13398]], osso: 'scapola', modo: 'par', name: 'Dentato anteriore',
     info: 'Tiene la scapola contro il torace: la paralisi del nervo toracico lungo (C5–C7), per esempio dopo uno svuotamento ascellare, causa la scapola alata. Nel modello si vede solo la parte superiore.',
     o: 'Facce esterne delle prime otto o nove coste, con digitazioni.', ins: 'Margine mediale della scapola (faccia costale), con la porzione più robusta all’angolo inferiore.', fn: 'Protrae la scapola e ne ruota in alto l’angolo laterale; la fissa alla parete toracica.' },
-  { id: 'omoi', cat: 'tor', mesh: [['omoi', 13348]], osso: 'scapola', modo: 'par', name: 'Omoioideo (ventre inferiore)',
-    info: 'Nasce dalla scapola e, con un tendine intermedio sotto lo sternocleidomastoideo, raggiunge l’osso ioide. Delimita in basso il triangolo posteriore del collo (triangolo sopraclaveare). Ansa cervicale.',
-    o: 'Margine superiore della scapola, vicino all’incisura soprascapolare.', ins: 'Osso ioide (tramite tendine intermedio e ventre superiore).', fn: 'Abbassa e stabilizza l’osso ioide; tende la fascia cervicale media.' },
   // ---------- BRACCIO ----------
   { id: 'bic_lungo', cat: 'brac', mesh: [['bic_lungo', 37686]], osso: 'omero', modo: 'par', name: 'Bicipite, capo lungo',
     info: 'Il tendine è intra-articolare ma extrasinoviale: passa sopra la testa omerale, esce nel solco intertubercolare sotto il legamento trasverso dell’omero. Tenosinovite, sublussazione e rottura (segno di Popeye) sono frequenti; la lesione del labbro superiore (SLAP) coinvolge l’ancora. Nervo muscolocutaneo (C5–C6).',

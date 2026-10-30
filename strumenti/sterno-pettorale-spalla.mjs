@@ -38,7 +38,7 @@ const { REAL, realDaRevisione, saveFile, repack, log, griglia, solid, sdf, union
 const BASE = '5008394', FILE = 'modelli/spalla-3d.html', NOME = 'pec_st';
 const SUPPORTO = ['manubrio', 'corpo_sterno', 'cc1', 'cc2', 'cc3', 'cc4', 'cc5', 'costa1'];
 const OSSA = ['manubrio', 'corpo_sterno', 'cc1', 'cc2', 'cc3', 'costa1', 'costa2', 'clavicola'];
-const MOLLI = ['pec_cl', 'sc_leg', 'succl', 'pmin', 'omoi', 'a_succ', 'v_succ', 'plesso'];
+const MOLLI = ['pec_cl', 'sc_leg', 'succl', 'pmin', 'a_succ', 'v_succ', 'plesso'];
 const BOX = [[12.6, -5.0, 5.5], [17.0, 2.6, 15.0]];                       // cm: riquadro della griglia
 const PASSO = 0.03, PASSO2 = 0.05;                                          // cm
 const Y_LIM = [-4.6, 2.0];                                                 // cm: righe della mappa considerate

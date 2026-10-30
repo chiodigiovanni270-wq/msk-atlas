@@ -12,6 +12,10 @@
       "it": "Cartilagine della testa omerale e della glenoide, labbro glenoideo, capsula articolare e legamenti (coracoclavicolari, coracoacromiale, acromioclavicolare, sternoclavicolare, coraco-omerale, gleno-omerali, trasverso dell’omero), borsa subacromion-deltoidea e tratto intra-articolare del tendine del capo lungo del bicipite: ricostruiti sulle ossa reali, con inserzioni e decorso verificati rispetto alle altre strutture.",
       "en": "Cartilage of the humeral head and glenoid, glenoid labrum, joint capsule and ligaments (coracoclavicular, coracoacromial, acromioclavicular, sternoclavicular, coracohumeral, glenohumeral, transverse humeral), subacromial-subdeltoid bursa and intra-articular segment of the long head of biceps tendon: reconstructed on the real bones, with attachments and course checked against the other structures."
     },
+    "strutture-escluse": {
+      "it": "Omoioideo (ventre inferiore): in BodyParts3D è attraversato per un lungo tratto dai tronchi del plesso brachiale.",
+      "en": "Omohyoid (inferior belly): in BodyParts3D it is crossed along a long stretch by the trunks of the brachial plexus."
+    },
     "description": {
       "it": "Spalla 3D interattiva: ossa, cuffia dei rotatori, legamenti, vasi e nervi selezionabili, con note clinico-radiologiche. Materiale didattico.",
       "en": "Interactive 3D shoulder: selectable bones, rotator cuff, ligaments, vessels and nerves, with clinical and radiological notes. Educational material."
@@ -858,28 +862,6 @@
       "fn": {
         "it": "Protrae la scapola e ne ruota in alto l’angolo laterale; la fissa alla parete toracica.",
         "en": "Protracts the scapula and rotates its lateral angle upward; holds it against the chest wall."
-      }
-    },
-    "omoi": {
-      "name": {
-        "it": "Omoioideo (ventre inferiore)",
-        "en": "Omohyoid (inferior belly)"
-      },
-      "info": {
-        "it": "Nasce dalla scapola e, con un tendine intermedio sotto lo sternocleidomastoideo, raggiunge l’osso ioide. Delimita in basso il triangolo posteriore del collo (triangolo sopraclaveare). Ansa cervicale.",
-        "en": "Arises from the scapula and, through an intermediate tendon beneath the sternocleidomastoid, reaches the hyoid bone. It forms the lower boundary of the posterior triangle of the neck (supraclavicular triangle). Ansa cervicalis."
-      },
-      "o": {
-        "it": "Margine superiore della scapola, vicino all’incisura soprascapolare.",
-        "en": "Superior border of the scapula, near the suprascapular notch."
-      },
-      "ins": {
-        "it": "Osso ioide (tramite tendine intermedio e ventre superiore).",
-        "en": "Hyoid bone (through the intermediate tendon and superior belly)."
-      },
-      "fn": {
-        "it": "Abbassa e stabilizza l’osso ioide; tende la fascia cervicale media.",
-        "en": "Depresses and stabilizes the hyoid bone; tenses the middle layer of the deep cervical fascia."
       }
     },
     "bic_lungo": {
