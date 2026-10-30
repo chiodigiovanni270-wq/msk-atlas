@@ -20,7 +20,11 @@
         della digitazione (vertici della zona non sottili) alla punta (vertici sottili e vicini), tenuta nel piano della lamina (tolta la componente
         lungo la sua normale, terzo asse principale); passa `MARGINE_T` prima del vertice sottile più arretrato. Si tolgono solo le parti oltre il
         piano interamente dentro la sfera della zona (il resto del muscolo non cambia); i triangoli attraversati sono divisi sul piano e il
-        contorno è chiuso con una faccia piana (taglio delle orecchie nel piano), con normale lungo il piano: un'estremità netta, non una lamina.
+        contorno è chiuso con una faccia piana (taglio delle orecchie nel piano), raffinata (baricentri nei triangoli con lato > `LATO_F`, scambi di
+        Delaunay). Margine arrotondato (richiesta del 2026-10-30): entro `ARROTONDA` dal piano la sezione della lamina (distanza dal piano × posizione
+        nello spessore, misurato lungo la normale della lamina nel campo del muscolo intero) diventa un rettangolo con angoli a quarto di cerchio di
+        raggio min(`ARROTONDA`, 0,9 · semispessore); ogni vertice della fascia va sul punto più vicino del profilo, poi `LEVIGA_A` passate di Taubin
+        nella fascia. Dentato e tubi sono presi da `PARTENZA` anche per i campi (il file può contenere già un ritocco).
      b. Vena. Vertici di `VENE` entro `ZONA_V` dalle ossa (clavicola, prima costa, cartilagine): `PASSATE_V` passate di Taubin pesate (peso 1 fino a
         `ZONA_V`[0] dall'osso, raccordo fino a `ZONA_V`[1]), ognuna seguita da una spinta fuori dall'osso fino a `GIOCO_V` lungo la normale
         dell'osso. Le pieghe si distendono, la vena resta appoggiata alla costa senza entrarvi. Normali ricalcolate dove il vertice si è mosso.
@@ -35,7 +39,7 @@ const { REAL, setMesh, repack, saveFile, log, sstep, griglia, campo, sample, gra
 const PROVA = !!process.env.PROVA, FILE_REPO = 'modelli/spalla-3d.html', PARTENZA = 'b24e611';
 const TUBI = ['plesso', 'n_soprascapolare', 'n_ascellare', 'n_muscolocutaneo', 'n_radiale', 'n_mediano', 'n_ulnare', 'a_succ', 'v_succ', 'a_asc', 'v_asc'];
 const PUNTE = [{ nome: 'digitazione alta', c: [9.3, 3.3, 2.3], r: 1.6 }, { nome: 'digitazione sotto', c: [6.6, 0.6, 2.3], r: 1.4 }];   // cm
-const VICINO = 0.3, SOTTILE = 0.06, MARGINE_T = 0.1;                                          // cm
+const VICINO = 0.3, SOTTILE = 0.06, MARGINE_T = 0.1, ARROTONDA = 0.2, LEVIGA_A = 10, LATO_F = 0.07;                                          // cm
 const VENE = ['v_asc', 'v_succ'], OSSA_V = ['clavicola', 'costa1', 'cc1', 'manubrio'], ZONA_V = [0.15, 0.35], PASSATE_V = 30, GIOCO_V = 0.03;
 // tappi alla giunzione (x in cm, verso mediale): l'ascellare termina dentro la succlavia, la succlavia dentro l'ascellare
 // giunzione: tappo della succlavia ristretto verso l'asse (fattore RESTRINGI_G[0] all'estremità, 1 da X_G[1]) e portato dentro l'ascellare fino a
@@ -72,11 +76,14 @@ function normali(P, I) {
   return N;
 }
 const FINE = {};
+// tubi come in PARTENZA (nel file le vene possono essere già ritoccate da un lancio precedente): stessi campi a ogni lancio
+for (const t of TUBI) setMesh(t, { ...realDaRevisione(PARTENZA, t, FILE_REPO), nrm: nrmDaRevisione(PARTENZA, t, FILE_REPO) });
 
 /* ---- a. punte del dentato ---- */
 {
   const B = realDaRevisione(PARTENZA, 'dent', FILE_REPO), N0 = nrmDaRevisione(PARTENZA, 'dent', FILE_REPO);
   let P = Array.from(B.pos), I = Array.from(B.idx), T = Array.from(B.tag || []), D = Array.from(B.fdir || []), NR = N0 ? Array.from(N0) : null;
+  setMesh('dent', { ...B, nrm: N0 });   // campo del muscolo da PARTENZA, non dal file già ritoccato
   griglia([4, -2, -2], [12, 6, 5], 0.025, 0.3); const FT = campo(TUBI).F, FM = campo(['dent']).F;
   const semispessore = p => { const g = nz(grad(FM, p)); let h = 0; for (let t = 0; t <= 0.3; t += 0.01) { const q = [p[0] - g[0] * t, p[1] - g[1] * t, p[2] - g[2] * t]; if (!dentroG(q)) break; h = Math.max(h, -sample(FM, ...q)); } return h; };
   const dminZona = (P, Z) => { let d = 9; for (let i = 0; i < P.length / 3; i++) { const p = pt(P, i); if (len(sub(p, Z.c)) < Z.r && dentroG(p)) d = Math.min(d, sample(FT, ...p)); } return d; };
@@ -119,25 +126,70 @@ const FINE = {};
       anelli.push(L); }
     const e1 = nz(cross(n, Math.abs(n[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0])), e2 = cross(n, e1), area2 = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
     let facce = 0; const inizioFacce = I.length;
+    const tappo = [];   // vertici delle facce (bordo e interni)
     for (const L of anelli) { if (L.length < 3) continue;
       const base = L.map(w => { const i = rapp.get(w), j = P.length / 3; for (let k = 0; k < 3; k++) P.push(P[3 * i + k]); if (T.length) T.push(T[i]); if (D.length) for (let k = 0; k < 3; k++) D.push(D[3 * i + k]); if (NR) for (let k = 0; k < 3; k++) NR.push(Math.round(n[k] * 127)); return j; });
       const Q = base.map(j => { const p = pt(P, j); return [dot(p, e1), dot(p, e2)]; }); let A = 0; for (let i = 0; i < Q.length; i++) A += area2([0, 0], Q[i], Q[(i + 1) % Q.length]);
       const pts = Q.map((_, i) => i); if (A < 0) pts.reverse(); const inTri = (p, a, b, c) => area2(a, b, p) >= -1e-12 && area2(b, c, p) >= -1e-12 && area2(c, a, p) >= -1e-12;
+      const TR = [];   // triangoli della faccia, antiorari nel piano (e1, e2)
       while (pts.length > 3) { let fatto = false;
         for (let i = 0; i < pts.length && !fatto; i++) { const ia = pts[(i + pts.length - 1) % pts.length], ib = pts[i], ic = pts[(i + 1) % pts.length];
           if (area2(Q[ia], Q[ib], Q[ic]) <= 1e-12) continue; if (pts.some(j => j !== ia && j !== ib && j !== ic && inTri(Q[j], Q[ia], Q[ib], Q[ic]))) continue;
-          I.push(base[ia], base[ib], base[ic]); pts.splice(i, 1); fatto = true; }
-        if (!fatto) { const [ia, ib, ic] = pts.slice(0, 3); I.push(base[ia], base[ib], base[ic]); pts.splice(1, 1); } }
-      I.push(...pts.map(i => base[i])); facce++; }
+          TR.push([ia, ib, ic]); pts.splice(i, 1); fatto = true; }
+        if (!fatto) { const [ia, ib, ic] = pts.slice(0, 3); TR.push([ia, ib, ic]); pts.splice(1, 1); } }
+      TR.push(pts.slice());
+      // raffinamento della faccia (serve per arrotondarla): baricentro nei triangoli con lato > LATO_F, poi scambi di Delaunay sui lati interni
+      const NB0 = Q.length, cerchio = (a, b, c, d) => { const [ax, ay] = [a[0] - d[0], a[1] - d[1]], [bx, by] = [b[0] - d[0], b[1] - d[1]], [cx, cy] = [c[0] - d[0], c[1] - d[1]];
+        return (ax * ax + ay * ay) * (bx * cy - cx * by) - (bx * bx + by * by) * (ax * cy - cx * ay) + (cx * cx + cy * cy) * (ax * by - bx * ay) > 1e-14; };
+      const delaunay = () => { for (let giro = 0; giro < 50; giro++) { let scambi = 0; const lati = new Map();
+        TR.forEach((t, k) => { for (let e = 0; e < 3; e++) { const x = t[e], y = t[(e + 1) % 3], key = x < y ? x + ',' + y : y + ',' + x; (lati.get(key) || lati.set(key, []).get(key)).push(k); } });
+        const fatti = new Set();
+        for (const [key, tt] of lati) { if (tt.length !== 2 || fatti.has(tt[0]) || fatti.has(tt[1])) continue; const [x, y] = key.split(',').map(Number), t1 = TR[tt[0]], t2 = TR[tt[1]];
+          const o1 = t1.find(v => v !== x && v !== y), o2 = t2.find(v => v !== x && v !== y), r1 = t1.indexOf(o1); const [a1, b1, c1] = [t1[r1], t1[(r1 + 1) % 3], t1[(r1 + 2) % 3]];
+          if (!cerchio(Q[a1], Q[b1], Q[c1], Q[o2])) continue;
+          const n1 = [o1, b1, o2], n2 = [o1, o2, c1]; if (area2(...n1.map(v => Q[v])) <= 1e-12 || area2(...n2.map(v => Q[v])) <= 1e-12) continue;
+          TR[tt[0]] = n1; TR[tt[1]] = n2; fatti.add(tt[0]); fatti.add(tt[1]); scambi++; }
+        if (!scambi) break; } };
+      delaunay();
+      for (let giro = 0; giro < 12; giro++) { let nuoviV = 0; const lungo = t => Math.max(...[0, 1, 2].map(e => Math.hypot(Q[t[e]][0] - Q[t[(e + 1) % 3]][0], Q[t[e]][1] - Q[t[(e + 1) % 3]][1])));
+        for (let k = TR.length - 1; k >= 0; k--) { const t = TR[k]; if (lungo(t) <= LATO_F || Math.abs(area2(...t.map(v => Q[v]))) < LATO_F * LATO_F * 0.2) continue;
+          const c = [(Q[t[0]][0] + Q[t[1]][0] + Q[t[2]][0]) / 3, (Q[t[0]][1] + Q[t[1]][1] + Q[t[2]][1]) / 3], j = Q.length; Q.push(c);
+          TR.splice(k, 1, [t[0], t[1], j], [t[1], t[2], j], [t[2], t[0], j]); nuoviV++; }
+        delaunay(); if (!nuoviV) break; }
+      for (let j = NB0; j < Q.length; j++) { const p = [0, 1, 2].map(k => Q[j][0] * e1[k] + Q[j][1] * e2[k] + s0 * n[k]); let best = 0, bd = 1e9;
+        for (let i = 0; i < NB0; i++) { const d = Math.hypot(Q[i][0] - Q[j][0], Q[i][1] - Q[j][1]); if (d < bd) { bd = d; best = i; } }
+        const r = base[best], jj = P.length / 3; P.push(...p); if (T.length) T.push(T[r]); if (D.length) for (let k = 0; k < 3; k++) D.push(D[3 * r + k]); if (NR) for (let k = 0; k < 3; k++) NR.push(Math.round(n[k] * 127)); base.push(jj); }
+      for (const t of TR) I.push(...t.map(v => base[v])); tappo.push(...base); facce++; }
     // verso della faccia: e1 × e2 = n (fuori dal muscolo rimasto)
     for (let t = inizioFacce; t < I.length; t += 3) { const fn = cross(sub(pt(P, I[t + 1]), pt(P, I[t])), sub(pt(P, I[t + 2]), pt(P, I[t])));
       if (dot(fn, n) < 0) { const x = I[t + 1]; I[t + 1] = I[t + 2]; I[t + 2] = x; } }
+    // margine arrotondato: nel piano (dl = distanza dal piano verso il muscolo, z = posizione nello spessore lungo la normale della lamina, misurati nel
+    // campo del muscolo intero) la sezione della lamina diventa un rettangolo con gli angoli a quarto di cerchio di raggio min(ARROTONDA, 0,9 · semispessore):
+    // ogni vertice della fascia (fianchi e faccia raffinata) va sul punto più vicino del profilo, poi `LEVIGA_A` passate di Taubin leggere nella fascia
+    const mossiA = [], tSup = (p, m) => { let t = 0; while (t < 0.8 && sample(FM, p[0] + m[0] * t, p[1] + m[1] * t, p[2] + m[2] * t) < 0) t += 0.005; return t; };
+    for (let i = 0; i < P.length / 3; i++) { const p = pt(P, i), dl = s0 - dot(p, n); if (dl < -1e-6 || dl >= ARROTONDA || len(sub(p, Z.c)) > Z.r + 0.5) continue;
+      const q = [0, 1, 2].map(k => p[k] - n[k] * 0.003), tp = tSup(q, nl), tm = tSup(q, nl.map(v => -v)), h = (tp + tm) / 2, z = (tm - tp) / 2;   // z > 0: verso +nl
+      if (h < 0.01 || h > 0.6) continue; const rho = Math.min(ARROTONDA, 0.9 * h), az = Math.abs(z), d = Math.max(dl, 0);
+      if (d >= rho || az <= h - rho) continue;
+      const v = [d - rho, az - (h - rho)], l = Math.hypot(v[0], v[1]) || 1, d2 = rho + rho * v[0] / l, z2 = Math.sign(z || 1) * ((h - rho) + rho * v[1] / l);
+      for (let k = 0; k < 3; k++) P[3 * i + k] += -(d2 - d) * n[k] + (z2 - z) * nl[k]; mossiA.push(i); }
+    { const { u: u3, n: n3 } = salda(P), nb = Array.from({ length: n3 }, () => new Set()), W = new Float32Array(n3), Q = new Float64Array(n3 * 3);
+      for (let t = 0; t < I.length; t += 3) for (let e = 0; e < 3; e++) { const x = u3[I[t + e]], y = u3[I[t + (e + 1) % 3]]; if (x !== y) { nb[x].add(y); nb[y].add(x); } }
+      for (let i = 0; i < P.length / 3; i++) { const p = pt(P, i); for (let k = 0; k < 3; k++) Q[3 * u3[i] + k] = p[k];
+        if (len(sub(p, Z.c)) < Z.r + 0.5) W[u3[i]] = 1 - sstep(ARROTONDA, 1.5 * ARROTONDA, s0 - dot(p, n)); }
+      const NB = nb.map(x => [...x]);
+      for (let it = 0; it < 2 * LEVIGA_A; it++) { const lam = it % 2 ? -0.53 : 0.5, S = Q.slice();
+        for (let w = 0; w < n3; w++) { if (!W[w] || !NB[w].length) continue; for (let k = 0; k < 3; k++) { let q = 0; for (const j of NB[w]) q += Q[3 * j + k]; S[3 * w + k] += W[w] * lam * (q / NB[w].length - Q[3 * w + k]); } }
+        Q.set(S); }
+      const giaMosso = new Set(mossiA); for (let i = 0; i < P.length / 3; i++) if (W[u3[i]] > 0) { for (let k = 0; k < 3; k++) P[3 * i + k] = Q[3 * u3[i] + k]; if (!giaMosso.has(i)) mossiA.push(i); }
+    }
+    if (NR) { const NL = normali(P, I); for (const i of mossiA) for (let k = 0; k < 3; k++) NR[3 * i + k] = NL[3 * i + k]; for (const i of tappo) for (let k = 0; k < 3; k++) NR[3 * i + k] = NL[3 * i + k]; }
     // vertici non più usati
     const usato = new Int32Array(P.length / 3).fill(-1); let m = 0; for (const i of I) if (usato[i] < 0) usato[i] = m++;
     const P2 = new Array(m * 3), T2 = T.length ? new Array(m) : [], D2 = D.length ? new Array(m * 3) : [], N2 = NR ? new Array(m * 3) : null;
     for (let i = 0; i < usato.length; i++) { const j = usato[i]; if (j < 0) continue; for (let k = 0; k < 3; k++) { P2[3 * j + k] = P[3 * i + k]; if (D.length) D2[3 * j + k] = D[3 * i + k]; if (NR) N2[3 * j + k] = NR[3 * i + k]; } if (T.length) T2[j] = T[i]; }
     const d0 = dminZona(B.pos, Z); P = P2; T = T2; D = D2; NR = N2; I = I.map(i => usato[i]);
-    FINE[Z.nome] = { vertici_punta: punta.length, piano: { n: n.map(v => +v.toFixed(2)), s0: +s0.toFixed(3) }, triangoli_tolti_o_divisi: tolti, contorni: anelli.map(L => L.length), facce,
+    FINE[Z.nome] = { vertici_punta: punta.length, piano: { n: n.map(v => +v.toFixed(2)), s0: +s0.toFixed(3) }, triangoli_tolti_o_divisi: tolti, vertici_arrotondati: mossiA.length, contorni: anelli.map(L => L.length), facce,
       vertici: [nv, m], dist_min_tubi_mm: [+(d0 * 10).toFixed(2), +(dminZona(Float32Array.from(P), Z) * 10).toFixed(2)] };
     log('dentato,', Z.nome + ':', JSON.stringify(FINE[Z.nome]));
   }
